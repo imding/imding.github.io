@@ -1,0 +1,14 @@
+#gameArea {
+  	background-image: url("../img/bg.jpg");
+  	position: relative;
+  	margin: 0 auto;
+  	width: 1280px;
+  	height: 720px;
+  
+}
+
+#playerSprite {
+	position: absolute;
+ 	bottom: 0px;
+  	width: 50px;
+}
