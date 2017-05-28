@@ -1,5 +1,4 @@
 var preview = document.getElementById('preview');
-var iframeWin;
 
 window.onload = function () {
     resizeUI();
@@ -23,4 +22,4 @@ function log(str) {
     console.log(str);
 }
 
-console.log(iframeWin.test);
+console.log(preview.contentWindow.test);
