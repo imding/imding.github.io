@@ -1,8 +1,7 @@
 var preview = document.getElementById('preview');
 
 window.onload = function () {
-    resizeUI();
-    console.log(preview.contentWindow.test);
+    resizeUI();    
 }
 
 window.onresize = function () {
@@ -11,6 +10,7 @@ window.onresize = function () {
 
 preview.onmousemove = function () {
 //     log('movement');
+    log(preview.contentWindow.test);
 }
 
 function resizeUI() {
