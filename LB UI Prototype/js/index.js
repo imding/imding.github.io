@@ -2,6 +2,7 @@ var preview = document.getElementById('preview');
 
 window.onload = function () {
     resizeUI();
+    console.log(preview.contentWindow.test);
 }
 
 window.onresize = function () {
@@ -9,7 +10,7 @@ window.onresize = function () {
 }
 
 preview.onmousemove = function () {
-    log('movement');
+//     log('movement');
 }
 
 function resizeUI() {
@@ -21,5 +22,3 @@ function log(str) {
     console.clear();
     console.log(str);
 }
-
-console.log(preview.contentWindow.test);
