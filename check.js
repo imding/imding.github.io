@@ -1,4 +1,4 @@
-export function check(editableIndex, tElem, tContent, tAttr){
+exports.check = function (editableIndex, tElem, tContent, tAttr){
     let input = code.html.editable[editableIndex].trim(),
         isVoid = /area|base|br|col|hr|img|input|link|meta|param|command|keygen|source/i.test(tElem);
     tContent = tContent.replace(/#ANY#/, '.+');
