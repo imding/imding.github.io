@@ -1,0 +1,213 @@
+@import url('https://fonts.googleapis.com/css?family=Abel');
+
+html, body {
+    height: 100%;
+    margin: 0;
+    color: #C8CACC;
+    font-family: 'Abel', sans-serif;
+    user-select: none;
+}
+
+/* grids */
+#gcMain {
+    display: grid;
+    height: 100%;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    grid-gap: 50px;
+    justify-items: center;
+    background: #384558;
+    overflow: hidden;
+}
+
+#gcFlowchart {
+    display: grid;
+    align-self: end;
+    align-items: center;
+    text-align: center;
+    padding: 50px 50px 0 50px;
+}
+
+.gcDeck {
+    display: none;
+    justify-items: center;
+    height: 100%;
+    padding: 0 50px;
+}
+
+#gcFlowchart, .gcDeck {
+    position: relative;
+    grid-gap: 20px;
+    grid-auto-flow: column;
+    transition: left 0.2s ease-out;
+}
+
+/*  arrow for inner nodes */
+.arrow {
+    width: 0;
+    height: 0;
+}
+
+.toBottom {
+    margin: auto;
+    border: solid 10px #1D2533;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: transparent;
+}
+
+/* node styles */
+.node {
+    padding: 5px 10px;
+    margin: auto;
+    border-color: #1D2533;
+    border-radius: 5px;
+}
+
+.shell {
+    border: solid 1px #C8CACC;
+    border-radius: 10px;
+    padding: 15px;
+    cursor: default;
+}
+
+.inner {
+    margin-top: 10px;
+}
+
+.active {
+    cursor: pointer;
+    border-left: solid 5px #1D2533;
+    border-right: solid 5px #1D2533;
+    background: #1D2533;
+    box-shadow: 0 0 5px #1D2533;
+    transition: 0.2s;
+}
+
+.active:hover {
+    color: white;
+}
+
+/* card styles */
+.giCard {
+    width: 350px;
+    padding: 15px 6px 10px 15px;
+    border-radius: 8px 8px 0 0;
+    box-sizing: border-box;
+    background: #4C5869;
+    box-shadow: 0 0 8px #1D2533;
+    cursor: default;
+    overflow-y: scroll;
+}
+
+.giCard:nth-child(even) {
+    background: #424E61;
+}
+
+/* visual stuff */
+.fa-info-circle {
+    margin-right: 5px;
+}
+
+h4 {
+    position: relative;
+    color: #1D2533;
+    border-style: solid;
+    border-width: 0 10px 0 10px;
+    border-color: #B8D3FC;
+    border-radius: 5px;
+    background: #8296b2;
+    margin: 0 0 10px 0;
+    padding: 4px;
+    font-size: 1.2em;
+    text-align: center;
+}
+
+div.giCard > b {
+    display: block;
+    margin-top: 10px;
+    padding: 6px 3px;
+    border-radius: 5px;
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    background-image: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+em {
+    color: palegreen;
+    font-style: normal;
+}
+
+p {
+    line-height: 1.25em;
+    margin: 8px 0;
+}
+
+a {
+    color: skyblue;
+    text-decoration: none;
+    transition: 0.1s;
+}
+
+a:hover {
+    color: white;
+    font-weight: 600;
+}
+
+img {
+    display: block;
+    width: 100%;
+    margin: auto;
+    border-radius: 5px;
+    box-shadow: 0 0 5px #1D2533;
+}
+
+samp {
+    color: plum;
+}
+
+code {
+    display: block;
+    color: ghostwhite;
+    margin: 5px 0 0 0;
+    padding: 6px 5px 0 5px;
+    border-left: solid 5px #1D2533;
+    border-right: solid 5px transparent;
+    border-radius: 5px;
+    background: #303a4a;
+    transition: 0.1s ease-out;
+    cursor: pointer;
+    overflow-x: scroll;
+    white-space: nowrap;
+    user-select: text;
+}
+
+code:hover {
+    box-shadow: 0 0 1px 1px #1D2533;
+}
+
+/* scroll bar */
+::-webkit-scrollbar-thumb {
+    border-style: solid;
+    border-color: transparent;
+    background-color: #242d3d;
+    background-clip: content-box;
+}
+
+.giCard::-webkit-scrollbar {
+    width: 9px;
+}
+
+.giCard::-webkit-scrollbar-thumb {
+    border-width: 10px 5px 10px 0;  
+}
+
+code::-webkit-scrollbar {
+    height: 4px;
+}
+
+code::-webkit-scrollbar-thumb {
+    border-width: 0 0 2px 2px;
+    background-color: #545c6d;
+}

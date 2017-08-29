@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="style.css"/>
+	<script type="text/javascript" src="script.js"></script>
+</head>
+<body>
+    <div id="gcMain">
+        <div id="gcFlowchart">
+          	<!-- add new nodes into the flowchart here -->
+            <div class="node active">Source Code</div>
+            <div class="node active">Learning Objectives</div>
+            <div class="node active">Priority Check</div>
+            <div class="node active">Technical Flow</div>
+            <div class="node active">Approval</div>
+            <div class="node shell">
+                <b>Content Creation</b>
+                <div class="node inner active">Instruction</div>
+                <div class="node inner active">Static Code</div>
+                <div class="node inner active">Flow Assessment</div>
+              <div class="node inner active">Objective Tests</div>
+                <div class="node inner active">Transition Logic</div>
+              	<div class="node inner active">Author Review</div>
+            </div>
+            <div class="node active">Full Review</div>
+            <div class="node active">Publish</div>
+            <div class="node active">Teaching Test</div>
+          	<!-- end of flowchart nodes -->
+        </div>
+        
+      	<!--
+			1. a deck is displayed after clicking on a node with class name "active" AND "node"
+        	2. each deck must have id name matching the * camelized text content * of a node
+			3. there should be equal number of active nodes and decks
+			4. every active node should have a corresponding deck
+      		5. each deck must have the class name gcDeck
+			6. cards inside a deck must have the calss name giCard
+			7. content of each card can be styled using the following guide:
+				header 			-	<h4>header text</h4>
+				sub-header 		-	<b>sub-header text</b>
+				bullet points 	-	<i></i>
+				normal text 	-	<p>text</p>
+				link = 			-	<a target="_blank" href=""></a>
+				highlight 		-	<em></em>
+				code block		-	<code></code>
+				inline code		-	<samp></samp>
+			8. replace any '<' with '&lt;'
+			9. replace any '#' with '&#35;' if viewing in SandBox Mode
+		-->
+		
+<!--
+    deck: source code
+-->
+
+        <div id="sourceCode" class="gcDeck">
+            <div class="giCard">
+                <b>Source Code</b>
+                <p><i></i> Build the source code</p>
+                <p><i></i> Create teaching plan</p>
+                <p><i></i> Share it with other instructors</p>
+                <p><i></i> Classroom tests with Sandbox Mode</p>
+                <p><i></i> ...</p>
+            </div>
+        </div>
+
+<!--
+    deck: learning objectives
+-->
+        
+        <div id="learningObjectives" class="gcDeck">
+            <div class="giCard">
+                <b>Learning Objectives</b>
+                <p><i></i> Work with source code provider</p>
+                <p><i></i> Focus on 1 concept</p>
+                <p><i></i> Prioritize coding literacy</p>
+            </div>
+        </div>
+
+<!--
+    deck: priority check
+-->
+        
+        <div id="priorityCheck" class="gcDeck">
+            <div class="giCard">
+                <b>Prioritize:</b>
+                <p><i></i> Direct requests from the sales team</p>
+                <p><i></i> Content that complements what's currently available</p>
+                <p><i></i> ...</p>
+            </div>
+        </div>
+
+<!--
+    deck: technical flow
+-->
+
+        <div id="technicalFlow" class="gcDeck">
+            <div class="giCard">
+                <h4>Create Sprint</h4>
+                <img src="img/new_sprint.png" alt="new_sprint.png">
+                <b>New Sprint</b>
+                <p><i></i> Create a sprint from sracth</p>
+                <b>Import Sprint</b>
+                <p><i></i> Create a sprint from imported data</p>
+            </div>
+            <div class="giCard">
+                <h4>Sprint Info</h4>
+                <img src="img/sprint_info.png" alt="sprint_info.png">
+                <b>Sprint Title</b>
+                <p><i></i> Include syntax in the sprint name</p>
+                <p><i></i> ...</p>
+                <b>Content Type</b>
+                <p><i></i> ...</p>
+                <b>Core</b>
+                <p><i></i> Select the appropriate core</p>
+            </div>
+            <div class="giCard">
+                <h4>Description & Settings</h4>
+                <img src="img/sprint_description.png" alt="sprint_description.png">
+                <p><i></i> Description must be short enough to fit inside the pop-up window in Learner Mode</p>
+                <p><i></i> No image is needed for sprints</p>
+                <img src="img/sprint_settings.png" alt="sprint_settings.png">
+                <p><i></i> Select the appropriate level according to the <a target="_blank" href="https://docs.google.com/document/d/1DuWR6Ew7b8mWql6zMEX6R7h0P_jqy-GapPbpR1YNZcs/edit?pli=1#heading=h.jzdojqt5ae9h">Core Curriculum</a></p>
+                <p><i></i> Don't forget to enable JavasScript console if the sprint requires it</p>
+            </div>
+            <div class="giCard">
+                <h4>Srpint Structure</h4>
+                <img src="img/steps.png" alt="steps.png">
+                <p><i></i> The first step should always be named <em>Introduction</em></p>
+                <p><i></i> Include dependency step if the sprint requires it</p>
+                <p><i></i> Dedicate one step to the syntax</p>
+                <p><i></i> All relevant variants of the syntax should also be covered</p>
+                <p><i></i> Reinforce all knowledge based steps with excercises</p>
+                <p><i></i> The last step should always be named <em>Summary</em></p>
+                <p><i></i> See <a>Guidelines</a> for step naming convention</p>
+            </div>
+        </div>
+
+<!--
+    deck: approval
+-->
+
+        <div id="approval" class="gcDeck">
+            <div class="giCard">
+                <h4>Curriculum</h4>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>...</h4>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+            </div>
+        </div>
+
+<!--
+    deck: instruction
+    < = &lt;
+    # = &#35;
+-->
+
+        <div id="instruction" class="gcDeck">
+            <div class="giCard">
+                <h4>Instruction Formatting</h4>
+                <b>Using Template</b>
+                <p><i></i> Copy & paste the code under <em>Template</em> into the instruction editor's <em>Source code</em> window</p>
+                <img src="img/tinymce_src.png" alt="tinymce_src.png">
+                <b>Line Numbering</b>
+                <p><i></i> Given a particular line in the CSS file contains the string <samp>catpaw</samp> and it occurs <em>exactly once</em> in the entire CSS code, the number of that line can be retrieved dynamically using the following code
+                    <code>##LINE("style.css","catpaw")##</code>
+                </p>
+                <p><i></i> The resulting location can also be offset
+                    <code>##LINE("style.css","catpaw")+2##</code>
+                </p>
+                <p><i></i> All line locations must be <em>dynamically referenced</em></p>
+                <p><i></i> Line locations should look like this in Learner Mode</p>
+                <img src="img/line_ref.png" alt="line_ref.png">
+                <b>Code References</b>
+                <p><i></i> Always highlight code references</p>
+                <img src="img/format_code.png" alt="format_code.png">
+                <p><i></i> Highlight selection should be limited to <em>syntax only</em></p>
+                <b>Code Snippet</b>
+                <p><i></i> Code inside a snippet should primarily help to understand <em>syntax structure</em>, do not give actual functioning code</p>
+                <p><i></i> Alert the learner to not use the snippet for copy-and-paste workflow</p>
+                <img src="img/snippet_alert.png" alt="snippet_alert.png">
+                <b>Objectives</b>
+                <p><i></i> Visually separate the objectives from the rest of the instruction text</p>
+                <img src="img/obj_header.png" alt="obj_header.png">
+                <p><i></i> When tab switching is required to complete the objectives, use the <em>Notes</em> format to alert the learner</p>
+                <img src="img/tab_switch.png" alt="tab_switch.png">
+                <p><i></i> Offer tips to help the learner progress, but don't give out answers</p>
+                <img src="img/tips.png" alt="tips.png">
+                <p><i></i> There should be <em>no more than 3 objectives</em> in a step</p>
+                <b>...</b>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>Step: Introduction</h4>
+                <b>Scenario</b>
+                <p><i></i> Describe a common scenario where the learning outcome may be useful</p>
+                <p><i></i> Keep the information general because this step won't be tested and there is no way to ensure the learner retains what's stated here</p>
+                <b>Learning Outcome</b>
+                <p><i></i> Specifically what the learner will and/or won't do in this sprint</p>
+                <b>Results</b>
+                <p><i></i> Visual demonstration of what can be achieved, this can be in the <em>output panel</em> if the sprint produces a visually interesting output, otherwise use <em>external visuals</em></p>
+                <b>Template</b>
+                <p><code>
+                    Many HTML elements are &lt;b>block elements&lt;/b> by default, meaning they will take up the entire row of space even if they don't need all of it. This can be good or bad depending on what you're trying to create.<br>
+                    &lt;br>&lt;br><br>
+                    In this sprint you will learn how to turn any element into an &lt;b>inline element&lt;/b>.<br>
+                    &lt;br>&lt;br>&lt;a href='http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/08/img.png' target='_blank'>&lt;img src='http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/08/img.png'>&lt;/a><br>
+                    &lt;hr><br>
+                    &lt;p class='highlight'>When you're ready, click &lt;b>Next Step&lt;/b> to get started&lt;/p><br>
+                </code></p>
+            </div>
+            <div class="giCard">
+                <h4>Step: Dependency Concepts</h4>
+                <b>Overview</b>
+                <p><i></i> Skip if there is no dependency</p>
+                <p><i></i> If the dependency is an available sprint on LaunchBox, simply provide link and redirect learner, the link should always <em>open a new window</em></p>
+                <img src="img/depend_short.png" alt="depend_short.png">
+                <p><i></i> Otherwise, start with the dependency name and a general description of the concept, clarify any abbreviated terms</p>
+                <b>Relevance</b>
+                <p><i></i> How the concept relate to this sprint and its encompassing domain</p>
+                <b>Examples & Breakdowns</b>
+                <p><i></i> Demonstrate a practical use case, break it down and explain each component</p>
+                <p><i></i> Use the <em>code snippet</em> and/or <em>bullet points</em> to emphasize this section</p>
+                <b>Objectives</b>
+                <p><i></i> Focus on having the learner <em>reporduce</em> the syntax</p>
+                <p><i></i> If there is no syntax involved, just make sure to test the learner's understanding of the concept</p>
+                <b>Template</b>
+                <p><code>
+                    The parent-child technique ( also called hierarchy ) is widely used to keep large number of things well structured.<br>
+                    &lt;br>&lt;br><br>
+                    On the web, a typical parent-child relationship looks like this:<br>
+                    &lt;pre class='language-html'>&lt;code> &amp;lt;!-- Example. Do not copy & paste --><br>
+                    &nbsp;&amp;lt;div id="parent"><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;lt;p class="child">&amp;lt;/p><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;lt;img class="child" src="#"><br>
+                    &nbsp;&amp;lt;/div>&lt;/code>&lt;/pre><br>
+                    &lt;ul><br>
+                    	&lt;li>&lt;p class='notes'>Both &lt;code>&amp;lt;p>&lt;/code> and &lt;code>&amp;lt;img>&lt;/code> are child elements of &lt;code>&amp;lt;div>&lt;/code>&lt;/p>&lt;/li><br>
+                    	&lt;li>&lt;p class='notes'>The &lt;code>&amp;lt;p>&lt;/code> element is the &lt;b>first child&lt;/b>&lt;/p>&lt;/li><br>
+                    	&lt;li>&lt;p class='notes'>The &lt;code>&amp;lt;img>&lt;/code> element is the &lt;b>second child&lt;/b>&lt;/p>&lt;/li><br>
+                    &lt;/ul><br>
+                    &lt;p style='text-align:center'>&lt;b>- OBJECTIVES -&lt;/b>&lt;/p><br>
+                    &lt;p class='highlight'>On &lt;b>HTML line ##LINE('index.html','&amp;lt;html>')##&lt;/b> - &lt;b>##LINE('index.html','&amp;lt;/html>')##&lt;/b>, find the &lt;b>second child&lt;/b> of the &lt;code>&amp;lt;html>&lt;/code> element&lt;/p><br>
+                    &lt;p class='notes' style='text-align:center'>Switch over to the &lt;b>style.css&lt;/b> tab&lt;/p><br>
+                    &lt;p class='highlight'>On &lt;b>CSS line ##LINE('style.css','UNIQUE STRING')##&lt;/b>, Add a &lt;b>selector&lt;/b> to target the second child&lt;/p><br>
+                    &lt;hr><br>
+                    &lt;p class='highlight'>&lt;b>Check Objectives&lt;/b> to continue&lt;/p>
+                </code></p>
+            </div>
+            <div class="giCard">
+                <h4>Step: Syntax & Variation</h4>
+                <b>Syntax & Breakdowns</b>
+                <p><i></i> Describe the purpose of the syntax</p>
+                <p><i></i> Show it inside the <em>code snippet</em> and make clear to not copy & paste the content of the snippet</p>
+                <p><i></i> Break the syntax down into components and explain each one</p>
+                <b>Example</b>
+                <p><i></i> Show functional use of the syntax, relate components in the syntax to natural language</p>
+                <b>Objectives</b>
+                <p><i></i> Focus on having the learner <em>reporduce</em> the syntax</p>
+                <b>Template</b>
+                <p><code>
+                    A function can run &lt;b>some time after&lt;/b> it is called, and here is how you can do it:<br>
+                    &lt;pre class='language-javascript'>&lt;code> /* Example. Do not copy & paste */<br>
+                    &nbsp;setTimeout(functionName, delay);&lt;/code>&lt;/pre><br>
+                    &lt;ul><br>
+                    	&lt;li>&lt;p class='notes'>&lt;code>functionName&lt;/code> is the name of the function we want to call&lt;/p>&lt;/li><br>
+                    	&lt;li>&lt;p class='notes'>&lt;code>delay&lt;/code> is the amount of &lt;b>milliseconds&lt;/b> the function will wait before it runs&lt;/p>&lt;/li><br>
+                    	&lt;li>&lt;p class='notes'>&lt;b>Example:&lt;/b> &lt;code>setTimeout(sayHello, 500);&lt;/code> will run the &lt;code>sayHello()&lt;/code> function with a &lt;b>500 milliseconds&lt;/b> delay ( i.e. after 0.5 second )&lt;/p>&lt;/li><br>
+                    &lt;/ul><br>
+                    &lt;p style='text-align:center'>&lt;b>- OBJECTIVES -&lt;/b>&lt;/p><br>
+                    &lt;p class='highlight'>On &lt;b>JS line ##LINE('script.js','UINQUE STRING')##&lt;/b>, run the &lt;code>sayHello()&lt;/code> function with a &lt;b>800 milliseconds&lt;/b> delay&lt;/p><br>
+                    &lt;p class='notes'>&lt;b>TIP:&lt;/b> Use the &lt;code>setTimout()&lt;/code> method&lt;/p><br>
+                    &lt;hr><br>
+                    &lt;p class='highlight'>&lt;b>Check Objectives&lt;/b> to continue&lt;/p>
+                </code></p>
+            </div>
+            <div class="giCard">
+                <h4>Step: Exercise</h4>
+                <b>The Problem</b>
+                <p><i></i> Present a problem that would be ideally sovlved by the syntax from the preceding step</p>
+                <p><i></i> Help to understand the problem rather than explaining how it can be solved</p>
+                <b>The Question</b>
+                <p><i></i> Clearly state the expected outcome</p>
+                <b>Objectives</b>
+                <p><i></i> Focus on having the learner <em>apply</em> the syntax</p>
+                <b>Template</b>
+                <p><code>
+                    In the output panel, you can see 3 images ( &lt;b>HTML line ##LINE('index.html','image 1')##&lt;/b> - &lt;b>##LINE('index.html','image 3')##&lt;/b> ). The middle one is bigger than the other two, and it breaks the design flow of the page.<br>
+                    &lt;br>&lt;br><br>
+                    How can you make the 3 images all have the same size?<br>
+                    &lt;p style='text-align:center'>&lt;b>- OBJECTIVES -&lt;/b>&lt;/p><br>
+                    &lt;p class='highlight'>On &lt;b>CSS line ##LINE('style.css','image 2')##&lt;/b>, make the 2nd image the &lt;b>same size&lt;/b> as the other two&lt;/p><br>
+                    &lt;hr><br>
+                    &lt;p class='highlight'>&lt;b>Check Objectives&lt;/b> to continue&lt;/p>
+                </code></p>
+            </div>
+            <div class="giCard">
+                <h4>Step: Summary</h4>
+                <b>Recap</b>
+                <p><i></i> Reinterate the objectives completed by the learner</p>
+                <b>End Note</b>
+                <p><i></i> Mention <em>Sandbox Mode</em> where the learner can test things out further</p>
+                <b>Template</b>
+                <p><code>
+                    Well done! You have completed this sprint, here is a recap:<br>
+                    &lt;ul><br>
+                    	&lt;li>&lt;p class='notes'>Add the &lt;code>width&lt;/code> & &lt;code>height&lt;/code> properties to elements to resize them&lt;/p>&lt;/li><br>
+                    	&lt;li>&lt;p class='notes'>Use both &lt;b>px&lt;/b> and &lt;b>%&lt;/b> values for different effects&lt;/p>&lt;/li><br>
+                    &lt;/ul><br>
+                    &lt;hr><br>
+                    &lt;p class='highlight'>Don't forget to try things out in &lt;b>Sandbox Mode&lt;/b>&lt;/p>
+                </code></p>
+            </div>
+        </div>
+
+<!--
+    deck: static code
+    < = &lt;
+    # = &#35;
+-->
+
+        <div id="staticCode" class="gcDeck">
+            <div class="giCard">
+                <h4>Workflow</h4>
+                <p><i></i> Define the state of the code in each step that best relate to the instructions</p>
+                <p><i></i> <em>Don't use modify content</em> at all during this stage, focus on progression and flow</p>
+                <p><i></i> Revise the instruction if necessary</p>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>General Formatting</h4>
+                <p><i></i> The first HTML, CSS and JavasScript file should always be named <em>index.html</em>, <em>style.css</em> and <em>script.js</em> respectively</p>
+                <p><i></i> Separate words in file names with the dash symbol, <em>e.g. about-page.html</em></p>
+                <p><i></i> Set unused files to <em>hidden</em></p>
+                <p><i></i> Ensure proper indentation, one indentation is <em>4 spaces</em></p>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>Editable Blocks</h4>
+                <p><i></i> An editable block creates a fixed space in the code panel where the learner can type, an empty editale should always <em>contain 4 spaces</em>
+                    <code>&#35;BEGIN_EDITABLE&#35;&#160;&#160;&#160;&#160;&#35;END_EDITABLE&#35;</code>
+                </p>
+                <p><i></i> Occupied editable blocks should have a <em>1 space padding</em> on both ends
+                    <code>&#35;BEGIN_EDITABLE&#35; var foo = "bar"; &#35;END_EDITABLE&#35;</code>
+                </p>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>Editable Lines</h4>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>Comments</h4>
+                <p><i></i> Comments on top of editable blocks containing code</p>
+                <p><i></i> Comments next to empty editable blocks</p>
+                <p><i></i> ...</p>
+            </div>
+        </div>
+
+<!--
+    deck: flow assessment
+-->
+
+        <div id="flowAssessment" class="gcDeck">
+            <div class="giCard">
+                <h4>Flow Assessment</h4>
+                <p>Work with other instructors to ensure the flow will work in classrooms</p>
+                <p><i></i> There should be 3 or less objectives per step</p>
+                <p><i></i> Every step is tested</p>
+                <p><i></i> Paragraphs are kept short & concise</p>
+                <p><i></i> Language & tone is appropriate</p>
+            </div>
+        </div>
+
+<!--
+    deck: objective tests
+    < = &lt;
+    # = &#35;
+-->
+
+        <div id="objectiveTests" class="gcDeck">
+            <div class="giCard">
+                <h4>AST</h4>
+                <b>The Syntax</b>
+                <p><i></i> Use the following AST syntax to test <em>HTML</em> & <em>CSS</em> code:
+                    <code>
+                        pass.if.html.editable(n).equivalent(expectedCode);<br>
+                        pass.if.css.editable(n).equivalent(expectedCode);
+                    </code>
+                </p>
+                <p><i></i> <samp>editable(0)</samp> targets code in the first editable, <samp>editable(1)</samp> the second, and so on...</p>
+                <p><i></i> Use <em>parenthesis</em> to indicate editable location, using square brackets is not considered the AST approach</p>
+                <p><i></i> <samp>expectedCode</samp> must be valid code</p>
+                <p><i></i> If the code files do not have default names, i.e. <em>index.html</em> and <em>style.css</em>, use the following syntax instead
+                    <code>
+                        pass.if.filename.html.editable(n).equivalent(expectedCode);<br>
+                        pass.if.filename.css.editable(n).equivalent(expectedCode);
+                    </code>
+                </p>
+                <b>Feedback</b>
+                <p><i></i> Don't always rely on auto-generated feedback, write elaborate error messages when it is necessary
+                    <code>pass("useful feedback here").if.html.editable(n).equivalent("");</code>
+                </p>
+                <p><i></i> Provide line numbers when a single objective tests code in multiple places, for example:
+                    <code>
+                        pass("CSS LINE 11 - feedback").if.css.editable(2).equivalent("width: 20px");<br>
+                        pass("CSS LINE 13 - feedback").if.css.editable(3).equivalent("height: 50px");
+                    </code>
+                </p>
+                <p><i></i> When the position of <samp>editable(n)</samp> is unpreditable, insert an <em>unique string</em> on the same line and use the following method to retrive line number dynamically
+                    <code>
+                        function line(file, str) {let n; file.text.split(/\r?\n/).forEach((e, i) => { e.includes(str) ? (n = i + 1) : null }); return n;}<br>
+                        pass("CSS LINE " + line(code.css, "uniqueString") + " - feedback").if.css.editable(2).equivalent("width: 20px");<br>
+                        pass("CSS LINE " + line(code.css, "uniqueString") + " - feedback").if.css.editable(3).equivalent("height: 50px");
+                    </code>
+                </p>
+                <b>Quotations</b>
+                <p><i></i> Both single & double quotes are allowed by the AST tests, as long as the opening & closing quotes match</p>
+                <p><i></i> The following test will pass <samp>&lt;a href="#">&lt;/a></samp> or <samp>&lt;a href='#'>&lt;/a></samp>
+                    <code>pass.if.html.editable(n).equivalent('&lt;a href="#">&lt;/a>');</code>
+                </p>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>HTML</h4>
+                <b>Element & Content</b>
+                <p><i></i> <samp>&lt;div>&lt;/div></samp>
+                    <code>pass.if.html.editable(n).equivalent("&lt;div>&lt;/div>");</code>
+                </p>
+                <p><i></i> <samp>&lt;button>Submit&lt;/button></samp>
+                    <code>pass.if.html.editable(n).equivalent("&lt;button>Submit&lt;/button>");</code>
+                </p>
+                <b>Single Attribute</b>
+                <p><i></i> <samp>&lt;p id="info">&lt;/p></samp>
+                    <code>pass.if.html.editable(n).equivalent('&lt;p id="info">&lt;/p>');</code>
+                </p>
+                <b>Multiple Attributes</b>
+                <p><i></i> The following test will pass <samp>&lt;input id="user" type="text"></samp> or <samp>&lt;input type="text" id="user"></samp>
+                    <code>pass.if.html.editable(n).equivalent.to('&lt;input id="user" type="text">');</code>
+                </p>
+                <b>Partial Syntax</b>
+                <p><i></i> Given that line <samp>n</samp> in the HTML file is <samp>&lt;img &#35;BEGIN_EDITABLE#&nbsp;&nbsp;&nbsp;&nbsp;&#35;END_EDITABLE#></samp> and the learner is expected to insert <samp>src="http://link.png"</samp>, use the following test
+                    <code>pass.if.html(code.html.text.split(/\r?\n/)[n - 1]).equivalent('&lt;img src="http://link.png">');</code>
+                </p>
+                <p><i></i> Alternatively, concatenate learner input with additional strings to make up valid HTML code
+                    <code>pass.if.html("&lt;img " + code.html.editable[n] + ">").equivalent('&lt;img src="http://link.png">');</code>
+                </p>
+                <b>Known Issues</b>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>CSS</h4>
+                <b>Rule</b>
+                <p><i></i> <samp>div { width: 100px; height: 120px; }</samp>
+                    <code>pass.if.css.editable(n).equivalent("div { width: 100px; height: 120px; }");</code>
+                </p>
+                <b>Selector</b>
+                <p><i></i> <samp>#idName</samp>
+                    <code>pass.if.css(code.css.editable[0] + "{}").equivalent("#idName {}");</code>
+                </p>
+                <b>Property & Single Value</b>
+                <p><i></i> <samp>position: absolute;</samp>
+                    <code>pass.if.css.editable(n).equivalent("position: absolute");</code>
+                </p>
+                <p><i></i> <samp>top: 0px;</samp>
+                    <code>pass.if.css.editable(n).equivalent.to("top: 0").or("top: 0px").or("top: 0%");</code>
+                </p>
+                <b>Property & Multiple Values</b>
+                <p><i></i> <samp>margin: 5% auto 10px auto;</samp>
+                    <code>pass.if.css.editable(n).equivalent("margin: 5% auto 10px auto");</code>
+                </p>
+                <p><i></i> <samp>border: solid black;</samp>
+                    <code>pass.if.css.editable(n).equivalent.to("border: solid black").or("border: black solid");</code>
+                </p>
+                <p><i></i> Although <samp>border: solid black</samp> and <samp>border: black solid</samp> are both valid and will produce the same result, <a target="_blank" href="https://developer.mozilla.org/en/docs/Web/CSS/border#Formal_syntax">ordering standards</a> do exist and should be respected by LaunchBox</p>
+                <b>Partial Syntax</b>
+                <p><i></i> Refer to <em>Partial Syntax</em> in the <em>HTML</em> card</p>
+                <b>Known Issues</b>
+                <p><i></i> The following test is syntactically correct but a valid input triggers the error <em>"Make sure you have a semi-colon after ..."</em>
+                    <code>pass.if.css.editable(n).equivalent('background-image: url("http://link.png")');</code>
+                </p>
+                <p><i></i> The following test can not test for multiple selectors
+                    <code>pass.if.css.editable(n).equivalent("#idName, .className, tagName {}");</code>
+                </p>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>CSS Global [Upcoming]</h4>
+                <b>Syntax</b>
+                <p><i></i> Pass the learner if the target CSS file contains a rule with specified selector and declaration
+                    <code>pass.if.css.selector(selector).contains(declaration);</code>
+                </p>
+                <p><i></i> The default CSS file is <em>style.css</em>, use <samp>if.filename.css</samp> to target additional CSS file</p>
+                <p><i></i> <samp>selector</samp> and <samp>declaration</samp> must be string values</p>
+                <p><i></i> <samp>declaration</samp> must be valid CSS code</p>
+            </div>
+            <div class="giCard">
+                <h4>JavasScript</h4>
+                <b>RegExp</b>
+                <p><i></i> AST syntax for testing JavasScript is not yet implemented, use <a target="_blank" href="http://regexr.com/">Regular Expression</a> to achieve similar results</p>
+                <p><i></i> ...</p>
+            </div>
+        </div>
+
+<!--
+    deck: transition logic
+-->
+
+        <div id="transitionLogic" class="gcDeck">
+            <div class="giCard">
+                <h4>...</h4>
+            </div>
+        </div>
+
+<!--
+    deck: author review
+-->
+
+      	<div id="authorReview" class="gcDeck">
+            <div class="giCard">
+                <h4>Author Review</h4>
+              	<p><i></i> Run through it in Learner Mode at least once</p>
+              	<p><i></i> Ensure the integrity of the sprint is maintained throughout the steps and one can finish it without any technical issue</p>
+              	<p><i></i> ...</p>
+            </div>
+        </div>
+
+<!--
+    deck: full review
+-->
+
+        <div id="fullReview" class="gcDeck">
+            <div class="giCard">
+                <h4>Instructor Team</h4>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>...</h4>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+            </div>
+        </div>
+
+<!--
+    deck: publish
+-->
+
+        <div id="publish" class="gcDeck">
+            <div class="giCard">
+                <h4>Publish</h4>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>...</h4>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+            </div>
+        </div>
+
+<!--
+    deck: teaching test
+-->
+
+        <div id="teachingTest" class="gcDeck">
+            <div class="giCard">
+                <h4>Code Club</h4>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+            </div>
+            <div class="giCard">
+                <h4>...</h4>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+                <p><i></i> ...</p>
+            </div>
+        </div>
+    </div>
+    
+<!-- end of decks -->
+
+    <script src="https://use.fontawesome.com/54c503b2ae.js"></script>
+    <!--<script src="https://cloud.tinymce.com/stable/tinymce.min.js?apiKey=2322r6kwtx7u7040qlmfrdvua3gz5badcv8zjvvbllk6q614"></script>-->
+</body>
+</html>
