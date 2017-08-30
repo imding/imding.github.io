@@ -96,7 +96,7 @@
         <div id="technicalFlow" class="gcDeck">
             <div class="giCard">
                 <h4>Create Sprint</h4>
-                <img src="img/new_sprint.png" alt="new_sprint.png">
+                <img src="img/flow-chart/new_sprint.png" alt="new_sprint.png">
                 <b>New Sprint</b>
                 <p><i></i> Create a sprint from sracth</p>
                 <b>Import Sprint</b>
@@ -104,7 +104,7 @@
             </div>
             <div class="giCard">
                 <h4>Sprint Info</h4>
-                <img src="img/sprint_info.png" alt="sprint_info.png">
+                <img src="img/flow-chart/sprint_info.png" alt="sprint_info.png">
                 <b>Sprint Title</b>
                 <p><i></i> Include syntax in the sprint name</p>
                 <p><i></i> ...</p>
@@ -115,16 +115,16 @@
             </div>
             <div class="giCard">
                 <h4>Description & Settings</h4>
-                <img src="img/sprint_description.png" alt="sprint_description.png">
+                <img src="img/flow-chart/sprint_description.png" alt="sprint_description.png">
                 <p><i></i> Description must be short enough to fit inside the pop-up window in Learner Mode</p>
                 <p><i></i> No image is needed for sprints</p>
-                <img src="img/sprint_settings.png" alt="sprint_settings.png">
+                <img src="img/flow-chart/sprint_settings.png" alt="sprint_settings.png">
                 <p><i></i> Select the appropriate level according to the <a target="_blank" href="https://docs.google.com/document/d/1DuWR6Ew7b8mWql6zMEX6R7h0P_jqy-GapPbpR1YNZcs/edit?pli=1#heading=h.jzdojqt5ae9h">Core Curriculum</a></p>
                 <p><i></i> Don't forget to enable JavasScript console if the sprint requires it</p>
             </div>
             <div class="giCard">
                 <h4>Srpint Structure</h4>
-                <img src="img/steps.png" alt="steps.png">
+                <img src="img/flow-chart/steps.png" alt="steps.png">
                 <p><i></i> The first step should always be named <em>Introduction</em></p>
                 <p><i></i> Include dependency step if the sprint requires it</p>
                 <p><i></i> Dedicate one step to the syntax</p>
@@ -164,8 +164,7 @@
             <div class="giCard">
                 <h4>Instruction Formatting</h4>
                 <b>Using Template</b>
-                <p><i></i> Copy & paste the code under <em>Template</em> into the instruction editor's <em>Source code</em> window</p>
-                <img src="img/tinymce_src.png" alt="tinymce_src.png">
+                <p><i></i> Click to select & copy everything under <em>Template</em>, paste into the instruction panel</p>
                 <b>Line Numbering</b>
                 <p><i></i> Given a particular line in the CSS file contains the string <samp>catpaw</samp> and it occurs <em>exactly once</em> in the entire CSS code, the number of that line can be retrieved dynamically using the following code
                     <code>##LINE("style.css","catpaw")##</code>
@@ -175,22 +174,22 @@
                 </p>
                 <p><i></i> All line locations must be <em>dynamically referenced</em></p>
                 <p><i></i> Line locations should look like this in Learner Mode</p>
-                <img src="img/line_ref.png" alt="line_ref.png">
+                <img src="img/flow-chart/line_ref.png" alt="line_ref.png">
                 <b>Code References</b>
                 <p><i></i> Always highlight code references</p>
-                <img src="img/format_code.png" alt="format_code.png">
+                <img src="img/flow-chart/format_code.png" alt="format_code.png">
                 <p><i></i> Highlight selection should be limited to <em>syntax only</em></p>
                 <b>Code Snippet</b>
                 <p><i></i> Code inside a snippet should primarily help to understand <em>syntax structure</em>, do not give actual functioning code</p>
                 <p><i></i> Alert the learner to not use the snippet for copy-and-paste workflow</p>
-                <img src="img/snippet_alert.png" alt="snippet_alert.png">
+                <img src="img/flow-chart/snippet_alert.png" alt="snippet_alert.png">
                 <b>Objectives</b>
                 <p><i></i> Visually separate the objectives from the rest of the instruction text</p>
-                <img src="img/obj_header.png" alt="obj_header.png">
+                <img src="img/flow-chart/obj_header.png" alt="obj_header.png">
                 <p><i></i> When tab switching is required to complete the objectives, use the <em>Notes</em> format to alert the learner</p>
-                <img src="img/tab_switch.png" alt="tab_switch.png">
+                <img src="img/flow-chart/tab_switch.png" alt="tab_switch.png">
                 <p><i></i> Offer tips to help the learner progress, but don't give out answers</p>
-                <img src="img/tips.png" alt="tips.png">
+                <img src="img/flow-chart/tips.png" alt="tips.png">
                 <p><i></i> There should be <em>no more than 3 objectives</em> in a step</p>
                 <b>...</b>
                 <p><i></i> ...</p>
@@ -205,21 +204,21 @@
                 <b>Results</b>
                 <p><i></i> Visual demonstration of what can be achieved, this can be in the <em>output panel</em> if the sprint produces a visually interesting output, otherwise use <em>external visuals</em></p>
                 <b>Template</b>
-                <p><code>
-                    Many HTML elements are &lt;b>block elements&lt;/b> by default, meaning they will take up the entire row of space even if they don't need all of it. This can be good or bad depending on what you're trying to create.<br>
-                    &lt;br>&lt;br><br>
-                    In this sprint you will learn how to turn any element into an &lt;b>inline element&lt;/b>.<br>
-                    &lt;br>&lt;br>&lt;a href='http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/08/img.png' target='_blank'>&lt;img src='http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/08/img.png'>&lt;/a><br>
-                    &lt;hr><br>
-                    &lt;p class='highlight'>When you're ready, click &lt;b>Next Step&lt;/b> to get started&lt;/p><br>
-                </code></p>
+                <div class="template">
+                    Many HTML elements are <b>block elements</b> by default, meaning they will take up the entire row of space even if they don't need all of it. This can be good or bad depending on what you're trying to create.
+                    <br><br>
+                    In this sprint you will learn how to turn any element into an <b>inline element</b>.
+                    <br><br><a href='http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/08/img.png' target='_blank'><img src='http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/08/img.png'></a>
+                    <hr>
+                    <p class='highlight'>When you're ready, click <b>Next Step</b> to get started</p>
+                </div>
             </div>
             <div class="giCard">
                 <h4>Step: Dependency Concepts</h4>
                 <b>Overview</b>
                 <p><i></i> Skip if there is no dependency</p>
                 <p><i></i> If the dependency is an available sprint on LaunchBox, simply provide link and redirect learner, the link should always <em>open a new window</em></p>
-                <img src="img/depend_short.png" alt="depend_short.png">
+                <img src="img/flow-chart/depend_short.png" alt="depend_short.png">
                 <p><i></i> Otherwise, start with the dependency name and a general description of the concept, clarify any abbreviated terms</p>
                 <b>Relevance</b>
                 <p><i></i> How the concept relate to this sprint and its encompassing domain</p>
@@ -230,27 +229,27 @@
                 <p><i></i> Focus on having the learner <em>reporduce</em> the syntax</p>
                 <p><i></i> If there is no syntax involved, just make sure to test the learner's understanding of the concept</p>
                 <b>Template</b>
-                <p><code>
-                    The parent-child technique ( also called hierarchy ) is widely used to keep large number of things well structured.<br>
-                    &lt;br>&lt;br><br>
-                    On the web, a typical parent-child relationship looks like this:<br>
-                    &lt;pre class='language-html'>&lt;code> &amp;lt;!-- Example. Do not copy & paste --><br>
-                    &nbsp;&amp;lt;div id="parent"><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;lt;p class="child">&amp;lt;/p><br>
-                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;lt;img class="child" src="#"><br>
-                    &nbsp;&amp;lt;/div>&lt;/code>&lt;/pre><br>
-                    &lt;ul><br>
-                    	&lt;li>&lt;p class='notes'>Both &lt;code>&amp;lt;p>&lt;/code> and &lt;code>&amp;lt;img>&lt;/code> are child elements of &lt;code>&amp;lt;div>&lt;/code>&lt;/p>&lt;/li><br>
-                    	&lt;li>&lt;p class='notes'>The &lt;code>&amp;lt;p>&lt;/code> element is the &lt;b>first child&lt;/b>&lt;/p>&lt;/li><br>
-                    	&lt;li>&lt;p class='notes'>The &lt;code>&amp;lt;img>&lt;/code> element is the &lt;b>second child&lt;/b>&lt;/p>&lt;/li><br>
-                    &lt;/ul><br>
-                    &lt;p style='text-align:center'>&lt;b>- OBJECTIVES -&lt;/b>&lt;/p><br>
-                    &lt;p class='highlight'>On &lt;b>HTML line ##LINE('index.html','&amp;lt;html>')##&lt;/b> - &lt;b>##LINE('index.html','&amp;lt;/html>')##&lt;/b>, find the &lt;b>second child&lt;/b> of the &lt;code>&amp;lt;html>&lt;/code> element&lt;/p><br>
-                    &lt;p class='notes' style='text-align:center'>Switch over to the &lt;b>style.css&lt;/b> tab&lt;/p><br>
-                    &lt;p class='highlight'>On &lt;b>CSS line ##LINE('style.css','UNIQUE STRING')##&lt;/b>, Add a &lt;b>selector&lt;/b> to target the second child&lt;/p><br>
-                    &lt;hr><br>
-                    &lt;p class='highlight'>&lt;b>Check Objectives&lt;/b> to continue&lt;/p>
-                </code></p>
+                <div class="template">
+                    The parent-child technique ( also called hierarchy ) is widely used to keep large number of things well structured.
+                    <br><br>
+                    On the web, a typical parent-child relationship looks like this:
+                    <pre class='language-html'><code>&nbsp;&lt;!-- Example. Do not copy & paste --><br>
+                    &nbsp;&lt;div id="parent"><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;p class="child">&lt;/p><br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;img class="child" src="#"><br>
+                    &nbsp;&lt;/div></code></pre>
+                    <ul>
+                    <li><p class='notes'>Both <code>&lt;p></code> and <code>&lt;img></code> are child elements of <code>&lt;div></code></p></li>
+                    <li><p class='notes'>The <code>&lt;p></code> element is the <b>first child</b></p></li>
+                    <li><p class='notes'>The <code>&lt;img></code> element is the <b>second child</b></p></li>
+                    </ul>
+                    <p style='text-align:center'><strong>- OBJECTIVES -</strong></p>
+                    <p class='highlight'>On <b>HTML line ##LINE('index.html','&lt;html>')##</b> - <b>##LINE('index.html','&lt;/html>')##</b>, find the <b>second child</b> of the <code>&lt;html></code> element</p>
+                    <p class='notes' style='text-align:center'>Switch over to the <b>style.css</b> tab</p>
+                    <p class='highlight'>On <b>CSS line ##LINE('style.css','UNIQUE STRING')##</b>, Add a <b>selector</b> to target the second child</p>
+                    <hr>
+                    <p class='highlight'><b>Check Objectives</b> to continue</p>
+                </div>
             </div>
             <div class="giCard">
                 <h4>Step: Syntax & Variation</h4>
@@ -263,21 +262,21 @@
                 <b>Objectives</b>
                 <p><i></i> Focus on having the learner <em>reporduce</em> the syntax</p>
                 <b>Template</b>
-                <p><code>
-                    A function can run &lt;b>some time after&lt;/b> it is called, and here is how you can do it:<br>
-                    &lt;pre class='language-javascript'>&lt;code> /* Example. Do not copy & paste */<br>
-                    &nbsp;setTimeout(functionName, delay);&lt;/code>&lt;/pre><br>
-                    &lt;ul><br>
-                    	&lt;li>&lt;p class='notes'>&lt;code>functionName&lt;/code> is the name of the function we want to call&lt;/p>&lt;/li><br>
-                    	&lt;li>&lt;p class='notes'>&lt;code>delay&lt;/code> is the amount of &lt;b>milliseconds&lt;/b> the function will wait before it runs&lt;/p>&lt;/li><br>
-                    	&lt;li>&lt;p class='notes'>&lt;b>Example:&lt;/b> &lt;code>setTimeout(sayHello, 500);&lt;/code> will run the &lt;code>sayHello()&lt;/code> function with a &lt;b>500 milliseconds&lt;/b> delay ( i.e. after 0.5 second )&lt;/p>&lt;/li><br>
-                    &lt;/ul><br>
-                    &lt;p style='text-align:center'>&lt;b>- OBJECTIVES -&lt;/b>&lt;/p><br>
-                    &lt;p class='highlight'>On &lt;b>JS line ##LINE('script.js','UINQUE STRING')##&lt;/b>, run the &lt;code>sayHello()&lt;/code> function with a &lt;b>800 milliseconds&lt;/b> delay&lt;/p><br>
-                    &lt;p class='notes'>&lt;b>TIP:&lt;/b> Use the &lt;code>setTimout()&lt;/code> method&lt;/p><br>
-                    &lt;hr><br>
-                    &lt;p class='highlight'>&lt;b>Check Objectives&lt;/b> to continue&lt;/p>
-                </code></p>
+                <div class="template">
+                    <p>A function can run <b>some time after</b> it is called, and here is how you can do it:</p>
+                    <pre class='language-javascript'><code>&nbsp;/* Example. Do not copy & paste */<br>
+                    &nbsp;setTimeout(functionName, delay);</code></pre>
+                    <ul>
+                    <li><p class='notes'><code>functionName</code> is the name of the function we want to call</p></li>
+                    <li><p class='notes'><code>delay</code> is the amount of <b>milliseconds</b> the function will wait before it runs</p></li>
+                    <li><p class='notes'><b>Example:</b> <code>setTimeout(sayHello, 500);</code> will run the <code>sayHello()</code> function with a <b>500 milliseconds</b> delay ( i.e. after 0.5 second )</p></li>
+                    </ul>
+                    <p style='text-align:center'><b>- OBJECTIVES -</b></p>
+                    <p class='highlight'>On <b>JS line ##LINE('script.js','UINQUE STRING')##</b>, run the <code>sayHello()</code> function with a <b>800 milliseconds</b> delay</p>
+                    <p class='notes'><b>TIP:</b> Use the <code>setTimout()</code> method</p>
+                    <hr>
+                    <p class='highlight'><b>Check Objectives</b> to continue</p>
+                </div>
             </div>
             <div class="giCard">
                 <h4>Step: Exercise</h4>
@@ -285,19 +284,19 @@
                 <p><i></i> Present a problem that would be ideally sovlved by the syntax from the preceding step</p>
                 <p><i></i> Help to understand the problem rather than explaining how it can be solved</p>
                 <b>The Question</b>
-                <p><i></i> Clearly state the expected outcome</p>
+                <p><i></i> Clearly state the expected outcome without giving away any code-related information</p>
                 <b>Objectives</b>
                 <p><i></i> Focus on having the learner <em>apply</em> the syntax</p>
                 <b>Template</b>
-                <p><code>
-                    In the output panel, you can see 3 images ( &lt;b>HTML line ##LINE('index.html','image 1')##&lt;/b> - &lt;b>##LINE('index.html','image 3')##&lt;/b> ). The middle one is bigger than the other two, and it breaks the design flow of the page.<br>
-                    &lt;br>&lt;br><br>
-                    How can you make the 3 images all have the same size?<br>
-                    &lt;p style='text-align:center'>&lt;b>- OBJECTIVES -&lt;/b>&lt;/p><br>
-                    &lt;p class='highlight'>On &lt;b>CSS line ##LINE('style.css','image 2')##&lt;/b>, make the 2nd image the &lt;b>same size&lt;/b> as the other two&lt;/p><br>
-                    &lt;hr><br>
-                    &lt;p class='highlight'>&lt;b>Check Objectives&lt;/b> to continue&lt;/p>
-                </code></p>
+                <div class="template">
+                    In the output panel, you can see 3 images ( <b>HTML line ##LINE('index.html','image 1')##</b> - <b>##LINE('index.html','image 3')##</b> ). The middle one is bigger than the other two, and it breaks the design flow of the page.
+                    <br><br>
+                    How can you make the 3 images all have the same size?
+                    <p style='text-align:center'><b>- OBJECTIVES -</b></p>
+                    <p class='highlight'>On <b>CSS line ##LINE('style.css','image 2')##</b>, make the 2nd image the <b>same size</b> as the other two</p>
+                    <hr>
+                    <p class='highlight'><b>Check Objectives</b> to continue</p>
+                </div>
             </div>
             <div class="giCard">
                 <h4>Step: Summary</h4>
@@ -306,15 +305,15 @@
                 <b>End Note</b>
                 <p><i></i> Mention <em>Sandbox Mode</em> where the learner can test things out further</p>
                 <b>Template</b>
-                <p><code>
-                    Well done! You have completed this sprint, here is a recap:<br>
-                    &lt;ul><br>
-                    	&lt;li>&lt;p class='notes'>Add the &lt;code>width&lt;/code> & &lt;code>height&lt;/code> properties to elements to resize them&lt;/p>&lt;/li><br>
-                    	&lt;li>&lt;p class='notes'>Use both &lt;b>px&lt;/b> and &lt;b>%&lt;/b> values for different effects&lt;/p>&lt;/li><br>
-                    &lt;/ul><br>
-                    &lt;hr><br>
-                    &lt;p class='highlight'>Don't forget to try things out in &lt;b>Sandbox Mode&lt;/b>&lt;/p>
-                </code></p>
+                <div class="template">
+                    Well done! You have completed this sprint, here is a recap:
+                    <ul>
+                    	<li><p class='notes'>Add the <code>width</code> & <code>height</code> properties to elements to resize them</p></li>
+                    	<li><p class='notes'>Use both <b>px</b> and <b>%</b> values for different effects</p></li>
+                    </ul>
+                    <hr>
+                    <p class='highlight'>Don't forget to try things out in <b>Sandbox Mode</b></p>
+                </div>
             </div>
         </div>
 
@@ -337,6 +336,7 @@
                 <p><i></i> The first HTML, CSS and JavasScript file should always be named <em>index.html</em>, <em>style.css</em> and <em>script.js</em> respectively</p>
                 <p><i></i> Separate words in file names with the dash symbol, <em>e.g. about-page.html</em></p>
                 <p><i></i> Set unused files to <em>hidden</em></p>
+                <p><i></i> Make sure to exclude the <samp>&lt;script></samp> element from the HTML code when the script file is abscent</p>
                 <p><i></i> Ensure proper indentation, one indentation is <em>4 spaces</em></p>
                 <p><i></i> ...</p>
             </div>
@@ -407,7 +407,7 @@
                 <p><i></i> Don't always rely on auto-generated feedback, write elaborate error messages when it is necessary
                     <code>pass("useful feedback here").if.html.editable(n).equivalent("");</code>
                 </p>
-                <p><i></i> Provide line numbers when a single objective tests code in multiple places, for example:
+                <p><i></i> Provide line numbers when a single objective tests code in multiple places
                     <code>
                         pass("CSS LINE 11 - feedback").if.css.editable(2).equivalent("width: 20px");<br>
                         pass("CSS LINE 13 - feedback").if.css.editable(3).equivalent("height: 50px");
@@ -415,9 +415,9 @@
                 </p>
                 <p><i></i> When the position of <samp>editable(n)</samp> is unpreditable, insert an <em>unique string</em> on the same line and use the following method to retrive line number dynamically
                     <code>
-                        function line(file, str) {let n; file.text.split(/\r?\n/).forEach((e, i) => { e.includes(str) ? (n = i + 1) : null }); return n;}<br>
-                        pass("CSS LINE " + line(code.css, "uniqueString") + " - feedback").if.css.editable(2).equivalent("width: 20px");<br>
-                        pass("CSS LINE " + line(code.css, "uniqueString") + " - feedback").if.css.editable(3).equivalent("height: 50px");
+                        function line(str) {let n; code.css.text.split(/\r?\n/).forEach((e, i) => { e.includes(str) ? (n = i + 1) : null }); return n;}<br>
+                        pass("CSS LINE " + line("uniqueString") + " - feedback").if.css.editable(2).equivalent("width: 20px");<br>
+                        pass("CSS LINE " + line("uniqueString") + " - feedback").if.css.editable(3).equivalent("height: 50px");
                     </code>
                 </p>
                 <b>Quotations</b>
@@ -478,7 +478,7 @@
                 <p><i></i> <samp>border: solid black;</samp>
                     <code>pass.if.css.editable(n).equivalent.to("border: solid black").or("border: black solid");</code>
                 </p>
-                <p><i></i> Although <samp>border: solid black</samp> and <samp>border: black solid</samp> are both valid and will produce the same result, <a target="_blank" href="https://developer.mozilla.org/en/docs/Web/CSS/border#Formal_syntax">ordering standards</a> do exist and should be respected by teaching materials on LaunchBox</p>
+                <p><i></i> Although <samp>border: solid black</samp> and <samp>border: black solid</samp> are both valid and will produce the same result, <a target="_blank" href="https://developer.mozilla.org/en/docs/Web/CSS/border#Formal_syntax">ordering standards</a> do exist and should be respected by LaunchBox</p>
                 <b>Partial Syntax</b>
                 <p><i></i> Refer to <em>Partial Syntax</em> in the <em>HTML</em> card</p>
                 <b>Known Issues</b>

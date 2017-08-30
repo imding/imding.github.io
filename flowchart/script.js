@@ -2,7 +2,7 @@
     gc = grid container
     gi = grid item
 */
-let winWidth, winHeight, gcMain, gcFlowchart, gcDeck, giNode, giCard, activeNode, activeDeck, activeSelection;
+let winWidth, winHeight, gcMain, gcFlowchart, gcDeck, giNode, giCard, activeNode, activeDeck, activeSelection, template;
 
 Number.prototype.clamp = function(min, max) {
     return Math.min(Math.max(this, min), max);
@@ -18,12 +18,12 @@ function selectText(elem) {
         activeSelection = elem;
         selection.removeAllRanges();
         selection.addRange(rangeObj);
-        if (document.execCommand('copy')) {
-            elem.style.borderLeft = "solid 5px palegreen";
+        if (elem.tagName == "CODE") {
+            document.execCommand('copy') ? elem.style.borderLeft = "solid 5px palegreen" : elem.style.borderLeft = "solid 5px indianred";
+            setTimeout(() => { elem.style.borderLeft = "solid 5px #1D2533" }, 500)
         } else {
-            elem.style.borderLeft = "solid 5px indianred";
+            document.execCommand('copy');
         }
-        setTimeout(() => { elem.style.borderLeft = "solid 5px #1D2533" }, 500);
     } else {
         activeSelection = null;
     }
@@ -68,7 +68,9 @@ function dynAdjust(refPoint, focus) {
         /* flow-chart & deck */
         (focus == gcFlowchart || !focus) ? gcFlowchart.style.left = `${scroll[0]}px` : null;
         (focus == activeDeck || !focus) ? activeDeck.style.left = `${scroll[1]}px` : null;
-        activeDeck.style.height = winHeight - activeDeck.offsetTop + "px";
+        if (!focus) {
+            activeDeck.style.height = winHeight - activeDeck.offsetTop + "px";
+        }
     });
 }
 
@@ -89,16 +91,30 @@ function showDeck(name) {
     });
 }
 
+function addShades(card) {
+    let shader = document.createElement("div");
+    
+    shader.classList.add("shade");
+    card.appendChild(shader);
+    card.onscroll = (evt) => {
+        window.requestAnimationFrame(() => {
+            shader.style.top = `${card.scrollTop}px`;
+        });
+    };
+}
+
 window.onload = () => {
     console.clear();
     gcFlowchart = document.getElementById("gcFlowchart");
     giNode = Array.from(document.getElementsByClassName("node"));       // not all nodes are grid items
     gcDeck = Array.from(document.getElementsByClassName("gcDeck"));
     giCard = Array.from(document.getElementsByClassName("giCard"));
+    // template = Array.from(document.getElementsByClassName("template"));
     /* assign font-awesome class names */
     Array.from(document.getElementsByTagName("i")).forEach((iTag) => { iTag.classList.length === 0 ? iTag.classList.add("fa", "fa-info-circle") : null });
-    /* code snippet click-to-select */
+    /* click-to-select */
     Array.from(document.getElementsByTagName("code")).forEach((codeTag) => { codeTag.onclick = (evt) => { selectText(evt.target) } });
+    Array.from(document.getElementsByClassName("template")).forEach((template) => { template.onclick = (evt) => { selectText(evt.target) } });
     /* store window size */
     winWidth = window.innerWidth;
     winHeight = window.innerHeight;
@@ -130,6 +146,7 @@ window.onload = () => {
     
     gcFlowchart.onmousemove = (evt) => { dynAdjust(evt.clientX, gcFlowchart) };
     gcDeck.forEach((deck) => { deck.onmousemove = (evt) => { dynAdjust(evt.clientX, activeDeck) } });
+    giCard.forEach((card, i) => { addShades(card) });
     
     window.onresize = () => { 
         winWidth = window.innerWidth;
@@ -137,6 +154,6 @@ window.onload = () => {
         dynAdjust(winWidth / 2);
     };
     
-    giNode[0].click();
+    giNode[6].click();
     window.dispatchEvent(new Event('resize'));
 };

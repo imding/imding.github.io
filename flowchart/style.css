@@ -90,6 +90,7 @@ html, body {
 
 /* card styles */
 .giCard {
+    position: relative;
     width: 350px;
     padding: 15px 6px 10px 15px;
     border-radius: 8px 8px 0 0;
@@ -104,13 +105,88 @@ html, body {
     background: #424E61;
 }
 
-/* visual stuff */
+.shade {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 99%;
+    height: 55px;
+    box-sizing: border-box;
+    background-image: linear-gradient(
+        hsl(215, 16%, 35%) 50%,
+        hsla(215, 16%, 35%, 0.978) 54.75%,
+        hsla(215, 16%, 35%, 0.925) 58.85%,
+        hsla(215, 16%, 35%, 0.857) 62.35%,
+        hsla(215, 16%, 35%, 0.781) 65.5%,
+        hsla(215, 16%, 35%, 0.701) 68.4%,
+        hsla(215, 16%, 35%, 0.62) 71.15%,
+        hsla(215, 16%, 35%, 0.538) 73.8%,
+        hsla(215, 16%, 35%, 0.455) 76.45%,
+        hsla(215, 16%, 35%, 0.373) 79.1%,
+        hsla(215, 16%, 35%, 0.291) 81.85%,
+        hsla(215, 16%, 35%, 0.212) 84.75%,
+        hsla(215, 16%, 35%, 0.138) 87.9%,
+        hsla(215, 16%, 35%, 0.07) 91.45%,
+        hsla(215, 16%, 35%, 0.019) 95.6%,
+        hsla(215, 16%, 35%, 0) 100%
+    )
+    /*background-image: linear-gradient(#4C5869 60%, transparent);*/
+}
+
+.giCard:nth-child(even) > .shade {
+    background-image: linear-gradient(
+        hsl(217, 19%, 32%) 50%,
+        hsla(217, 19%, 32%, 0.978) 54.75%,
+        hsla(217, 19%, 32%, 0.925) 58.85%,
+        hsla(217, 19%, 32%, 0.857) 62.35%,
+        hsla(217, 19%, 32%, 0.781) 65.5%,
+        hsla(217, 19%, 32%, 0.701) 68.4%,
+        hsla(217, 19%, 32%, 0.62) 71.15%,
+        hsla(217, 19%, 32%, 0.538) 73.8%,
+        hsla(217, 19%, 32%, 0.455) 76.45%,
+        hsla(217, 19%, 32%, 0.373) 79.1%,
+        hsla(217, 19%, 32%, 0.291) 81.85%,
+        hsla(217, 19%, 32%, 0.212) 84.75%,
+        hsla(217, 19%, 32%, 0.138) 87.9%,
+        hsla(217, 19%, 32%, 0.07) 91.45%,
+        hsla(217, 19%, 32%, 0.019) 95.6%,
+        hsla(217, 19%, 32%, 0) 100%
+    )
+}
+
+/* scroll bar */
+::-webkit-scrollbar-thumb {
+    border-style: solid;
+    border-color: transparent;
+    background-color: #242d3d;
+    background-clip: content-box;
+}
+
+.giCard::-webkit-scrollbar {
+    width: 9px;
+}
+
+.giCard::-webkit-scrollbar-thumb {
+    border-width: 10px 5px 10px 0;
+}
+
+code::-webkit-scrollbar {
+    height: 4px;
+}
+
+code::-webkit-scrollbar-thumb {
+    border-width: 0 0 2px 2px;
+    background-color: #545c6d;
+}
+
+/* card content styles */
 .fa-info-circle {
     margin-right: 5px;
 }
 
 h4 {
-    position: relative;
+    position: sticky;
+    top: -19px;
     color: #1D2533;
     border-style: solid;
     border-width: 0 10px 0 10px;
@@ -121,6 +197,7 @@ h4 {
     padding: 4px;
     font-size: 1.2em;
     text-align: center;
+    z-index: 100;
 }
 
 div.giCard > b {
@@ -187,27 +264,61 @@ code:hover {
     box-shadow: 0 0 1px 1px #1D2533;
 }
 
-/* scroll bar */
-::-webkit-scrollbar-thumb {
+/* template styles */
+.giCard > .template {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background: white;
+    color: black;
+    cursor: pointer;
+    transition: 0.2s ease-out;
+    user-select: initial;
+}
+
+.giCard > .template pre {
+    padding: 5px 0;
+    border-radius: 5px;
+    border-width: 0 0 0 10px;
     border-style: solid;
-    border-color: transparent;
-    background-color: #242d3d;
-    background-clip: content-box;
+    border-color: #358ccb;
+    box-shadow: 1px 0 2px grey;
+    overflow: hidden;
 }
 
-.giCard::-webkit-scrollbar {
-    width: 9px;
+.giCard > .template pre code {
+    color: grey;
+    background: initial;
 }
 
-.giCard::-webkit-scrollbar-thumb {
-    border-width: 10px 5px 10px 0;  
+.giCard > .template code {
+    display: initial;
+    border: none;
+    margin: inherit;
+    padding: 3px 4px 3px 6px;
+    color: #c7254e;
+    background-color: #f9f2f4;
+    overflow: initial;
 }
 
-code::-webkit-scrollbar {
-    height: 4px;
+.giCard > .template img {
+    box-shadow: initial;
+    border-radius: initial;
 }
 
-code::-webkit-scrollbar-thumb {
-    border-width: 0 0 2px 2px;
-    background-color: #545c6d;
+.giCard > .template .highlight {
+    padding: 5px 10px;
+    border: 1px solid #2c3e50;
+    background-color: #d7e6e0;
+}
+
+.giCard > .template .notes {
+    padding: 5px 10px;
+    border: 1px solid #cccccc;
+    border-radius: 5px;
+    background-color: whitesmoke;
+}
+
+.giCard > .template > * {
+    pointer-events: none;
 }
