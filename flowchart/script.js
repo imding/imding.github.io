@@ -2,11 +2,36 @@
     gc = grid container
     gi = grid item
 */
-let winWidth, winHeight, gcMain, gcFlowchart, gcDeck, giNode, giCard, activeNode, activeDeck, activeSelection, template;
+let winWidth, winHeight, gcMain, gcFlowchart, gcDeck, giNode, giCard, activeNode, activeDeck, activeSelection, arrSubHeader;
 
 Number.prototype.clamp = function(min, max) {
     return Math.min(Math.max(this, min), max);
 };
+
+function camelize(str) {
+    return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, i) {
+        if (+match === 0) return "";        // (/\s+/.test(match)) for white spaces
+        return i === 0 ? match.toLowerCase() : match.toUpperCase();
+    });
+}
+
+function toggleExpand(subHeader) {
+    let content = [subHeader.nextSibling];
+    /* grow the content array until next sub-header */
+    while (content[content.length - 1].nextSibling && content[content.length - 1].nextSibling.tagName != "H5") {
+        content.push(content[content.length - 1].nextSibling);
+    }
+    /* get rid of empty tags and shade element */
+    content = content.filter((el) => { return (el.tagName && !el.className.includes("shade")) });
+    /* toggle display property */
+    content.forEach((el) => {
+        if (el.style.display == "none") {
+            el.style.display = "inherit";
+        } else {
+            el.style.display = "none";
+        }
+    });
+}
 
 function selectText(elem) {
     let selection = window.getSelection();
@@ -27,13 +52,6 @@ function selectText(elem) {
     } else {
         activeSelection = null;
     }
-}
-
-function camelize(str) {
-    return str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, i) {
-        if (+match === 0) return "";        // (/\s+/.test(match)) for white spaces
-        return i === 0 ? match.toLowerCase() : match.toUpperCase();
-    });
 }
 
 function dynAdjust(refPoint, focus) {
@@ -109,12 +127,14 @@ window.onload = () => {
     giNode = Array.from(document.getElementsByClassName("node"));       // not all nodes are grid items
     gcDeck = Array.from(document.getElementsByClassName("gcDeck"));
     giCard = Array.from(document.getElementsByClassName("giCard"));
-    // template = Array.from(document.getElementsByClassName("template"));
+    arrSubHeader = Array.from(document.getElementsByTagName("H5"));
     /* assign font-awesome class names */
     Array.from(document.getElementsByTagName("i")).forEach((iTag) => { iTag.classList.length === 0 ? iTag.classList.add("fa", "fa-info-circle") : null });
     /* click-to-select */
     Array.from(document.getElementsByTagName("code")).forEach((codeTag) => { codeTag.onclick = (evt) => { selectText(evt.target) } });
     Array.from(document.getElementsByClassName("template")).forEach((template) => { template.onclick = (evt) => { selectText(evt.target) } });
+    /* click-to-expand */
+    arrSubHeader.forEach((subHeader) => { subHeader.onclick = () => { toggleExpand(subHeader) }; subHeader.click() });
     /* store window size */
     winWidth = window.innerWidth;
     winHeight = window.innerHeight;

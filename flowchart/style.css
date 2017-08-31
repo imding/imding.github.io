@@ -111,7 +111,6 @@ html, body {
     top: 0;
     width: 99%;
     height: 55px;
-    box-sizing: border-box;
     background-image: linear-gradient(
         hsl(215, 16%, 35%) 50%,
         hsla(215, 16%, 35%, 0.978) 54.75%,
@@ -130,7 +129,6 @@ html, body {
         hsla(215, 16%, 35%, 0.019) 95.6%,
         hsla(215, 16%, 35%, 0) 100%
     )
-    /*background-image: linear-gradient(#4C5869 60%, transparent);*/
 }
 
 .giCard:nth-child(even) > .shade {
@@ -186,7 +184,7 @@ code::-webkit-scrollbar-thumb {
 
 h4 {
     position: sticky;
-    top: -19px;
+    top: -18px;
     color: #1D2533;
     border-style: solid;
     border-width: 0 10px 0 10px;
@@ -200,14 +198,15 @@ h4 {
     z-index: 100;
 }
 
-div.giCard > b {
-    display: block;
-    margin-top: 10px;
+h5 {
+    font-size: 1em;
+    margin: 10px 0;
     padding: 6px 3px;
     border-radius: 5px;
     color: white;
     text-align: center;
     font-weight: 600;
+    cursor: pointer;
     background-image: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
@@ -302,18 +301,21 @@ code:hover {
 }
 
 .giCard > .template img {
+    margin: 2px 0;
     box-shadow: initial;
     border-radius: initial;
 }
 
 .giCard > .template .highlight {
-    padding: 5px 10px;
+    margin-bottom: 0;
+    padding: 4px 6px;
     border: 1px solid #2c3e50;
     background-color: #d7e6e0;
 }
 
 .giCard > .template .notes {
-    padding: 5px 10px;
+    margin-bottom: 0;
+    padding: 4px 6px;
     border: 1px solid #cccccc;
     border-radius: 5px;
     background-color: whitesmoke;

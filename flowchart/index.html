@@ -37,7 +37,7 @@
 			6. cards inside a deck must have the calss name giCard
 			7. content of each card can be styled using the following guide:
 				header 			-	<h4>header text</h4>
-				sub-header 		-	<b>sub-header text</b>
+				sub-header 		-	<h5>sub-header text</h5>
 				bullet points 	-	<i></i>
 				normal text 	-	<p>text</p>
 				link = 			-	<a target="_blank" href=""></a>
@@ -54,7 +54,7 @@
 
         <div id="sourceCode" class="gcDeck">
             <div class="giCard">
-                <b>Source Code</b>
+                <h5>Source Code</h5>
                 <p><i></i> Build the source code</p>
                 <p><i></i> Create teaching plan</p>
                 <p><i></i> Share it with other instructors</p>
@@ -69,7 +69,7 @@
         
         <div id="learningObjectives" class="gcDeck">
             <div class="giCard">
-                <b>Learning Objectives</b>
+                <h5>Learning Objectives</h5>
                 <p><i></i> Work with source code provider</p>
                 <p><i></i> Focus on 1 concept</p>
                 <p><i></i> Prioritize coding literacy</p>
@@ -82,7 +82,7 @@
         
         <div id="priorityCheck" class="gcDeck">
             <div class="giCard">
-                <b>Prioritize:</b>
+                <h5>Prioritize:</h5>
                 <p><i></i> Direct requests from the sales team</p>
                 <p><i></i> Content that complements what's currently available</p>
                 <p><i></i> ...</p>
@@ -97,20 +97,20 @@
             <div class="giCard">
                 <h4>Create Sprint</h4>
                 <img src="img/new_sprint.png" alt="new_sprint.png">
-                <b>New Sprint</b>
+                <h5>New Sprint</h5>
                 <p><i></i> Create a sprint from sracth</p>
-                <b>Import Sprint</b>
+                <h5>Import Sprint</h5>
                 <p><i></i> Create a sprint from imported data</p>
             </div>
             <div class="giCard">
                 <h4>Sprint Info</h4>
                 <img src="img/sprint_info.png" alt="sprint_info.png">
-                <b>Sprint Title</b>
+                <h5>Sprint Title</h5>
                 <p><i></i> Include syntax in the sprint name</p>
                 <p><i></i> ...</p>
-                <b>Content Type</b>
+                <h5>Content Type</h5>
                 <p><i></i> ...</p>
-                <b>Core</b>
+                <h5>Core</h5>
                 <p><i></i> Select the appropriate core</p>
             </div>
             <div class="giCard">
@@ -163,9 +163,9 @@
         <div id="instruction" class="gcDeck">
             <div class="giCard">
                 <h4>Instruction Formatting</h4>
-                <b>Using Template</b>
+                <h5>Using Template</h5>
                 <p><i></i> Click to select & copy everything under <em>Template</em>, paste into the instruction panel</p>
-                <b>Line Numbering</b>
+                <h5>Line Numbering</h5>
                 <p><i></i> Given a particular line in the CSS file contains the string <samp>catpaw</samp> and it occurs <em>exactly once</em> in the entire CSS code, the number of that line can be retrieved dynamically using the following code
                     <code>##LINE("style.css","catpaw")##</code>
                 </p>
@@ -175,15 +175,18 @@
                 <p><i></i> All line locations must be <em>dynamically referenced</em></p>
                 <p><i></i> Line locations should look like this in Learner Mode</p>
                 <img src="img/line_ref.png" alt="line_ref.png">
-                <b>Code References</b>
+                <h5>Code References</h5>
                 <p><i></i> Always highlight code references</p>
                 <img src="img/format_code.png" alt="format_code.png">
                 <p><i></i> Highlight selection should be limited to <em>syntax only</em></p>
-                <b>Code Snippet</b>
+                <h5>Code Snippet</h5>
                 <p><i></i> Code inside a snippet should primarily help to understand <em>syntax structure</em>, do not give actual functioning code</p>
                 <p><i></i> Alert the learner to not use the snippet for copy-and-paste workflow</p>
                 <img src="img/snippet_alert.png" alt="snippet_alert.png">
-                <b>Objectives</b>
+                <h5>Images</h5>
+                <p><i></i> All images must themselves be hyperlinks that open <em>in a new tab</em></p>
+                <img src="img/image.png" alt="image.png">
+                <h5>Objectives</h5>
                 <p><i></i> Visually separate the objectives from the rest of the instruction text</p>
                 <img src="img/obj_header.png" alt="obj_header.png">
                 <p><i></i> When tab switching is required to complete the objectives, use the <em>Notes</em> format to alert the learner</p>
@@ -191,44 +194,44 @@
                 <p><i></i> Offer tips to help the learner progress, but don't give out answers</p>
                 <img src="img/tips.png" alt="tips.png">
                 <p><i></i> There should be <em>no more than 3 objectives</em> in a step</p>
-                <b>...</b>
+                <h5>...</h5>
                 <p><i></i> ...</p>
             </div>
             <div class="giCard">
                 <h4>Step: Introduction</h4>
-                <b>Scenario</b>
+                <h5>Scenario</h5>
                 <p><i></i> Describe a common scenario where the learning outcome may be useful</p>
                 <p><i></i> Keep the information general because this step won't be tested and there is no way to ensure the learner retains what's stated here</p>
-                <b>Learning Outcome</b>
+                <h5>Learning Outcome</h5>
                 <p><i></i> Specifically what the learner will and/or won't do in this sprint</p>
-                <b>Results</b>
+                <h5>Results</h5>
                 <p><i></i> Visual demonstration of what can be achieved, this can be in the <em>output panel</em> if the sprint produces a visually interesting output, otherwise use <em>external visuals</em></p>
-                <b>Template</b>
+                <h5>Template</h5>
                 <div class="template">
                     Many HTML elements are <b>block elements</b> by default, meaning they will take up the entire row of space even if they don't need all of it. This can be good or bad depending on what you're trying to create.
                     <br><br>
                     In this sprint you will learn how to turn any element into an <b>inline element</b>.
-                    <br><br><a href='http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/08/img.png' target='_blank'><img src='http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/08/img.png'></a>
+                    <p style="text-align:center" class="notes"><a href='http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/06/shapes.png' target='_blank'><img src='http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/06/shapes.png'></a>Click the image to open it in a new tab</p>
                     <hr>
                     <p class='highlight'>When you're ready, click <b>Next Step</b> to get started</p>
                 </div>
             </div>
             <div class="giCard">
                 <h4>Step: Dependency Concepts</h4>
-                <b>Overview</b>
+                <h5>Overview</h5>
                 <p><i></i> Skip if there is no dependency</p>
                 <p><i></i> If the dependency is an available sprint on LaunchBox, simply provide link and redirect learner, the link should always <em>open a new window</em></p>
                 <img src="img/depend_short.png" alt="depend_short.png">
                 <p><i></i> Otherwise, start with the dependency name and a general description of the concept, clarify any abbreviated terms</p>
-                <b>Relevance</b>
+                <h5>Relevance</h5>
                 <p><i></i> How the concept relate to this sprint and its encompassing domain</p>
-                <b>Examples & Breakdowns</b>
+                <h5>Examples & Breakdowns</h5>
                 <p><i></i> Demonstrate a practical use case, break it down and explain each component</p>
                 <p><i></i> Use the <em>code snippet</em> and/or <em>bullet points</em> to emphasize this section</p>
-                <b>Objectives</b>
+                <h5>Objectives</h5>
                 <p><i></i> Focus on having the learner <em>reporduce</em> the syntax</p>
                 <p><i></i> If there is no syntax involved, just make sure to test the learner's understanding of the concept</p>
-                <b>Template</b>
+                <h5>Template</h5>
                 <div class="template">
                     The parent-child technique ( also called hierarchy ) is widely used to keep large number of things well structured.
                     <br><br>
@@ -253,15 +256,15 @@
             </div>
             <div class="giCard">
                 <h4>Step: Syntax & Variation</h4>
-                <b>Syntax & Breakdowns</b>
+                <h5>Syntax & Breakdowns</h5>
                 <p><i></i> Describe the purpose of the syntax</p>
                 <p><i></i> Show it inside the <em>code snippet</em> and make clear to not copy & paste the content of the snippet</p>
                 <p><i></i> Break the syntax down into components and explain each one</p>
-                <b>Example</b>
+                <h5>Example</h5>
                 <p><i></i> Show functional use of the syntax, relate components in the syntax to natural language</p>
-                <b>Objectives</b>
+                <h5>Objectives</h5>
                 <p><i></i> Focus on having the learner <em>reporduce</em> the syntax</p>
-                <b>Template</b>
+                <h5>Template</h5>
                 <div class="template">
                     <p>A function can run <b>some time after</b> it is called, and here is how you can do it:</p>
                     <pre class='language-javascript'><code>&nbsp;/* Example. Do not copy & paste */<br>
@@ -280,14 +283,14 @@
             </div>
             <div class="giCard">
                 <h4>Step: Exercise</h4>
-                <b>The Problem</b>
+                <h5>The Problem</h5>
                 <p><i></i> Present a problem that would be ideally sovlved by the syntax from the preceding step</p>
                 <p><i></i> Help to understand the problem rather than explaining how it can be solved</p>
-                <b>The Question</b>
+                <h5>The Question</h5>
                 <p><i></i> Clearly state the expected outcome without giving away any code-related information</p>
-                <b>Objectives</b>
+                <h5>Objectives</h5>
                 <p><i></i> Focus on having the learner <em>apply</em> the syntax</p>
-                <b>Template</b>
+                <h5>Template</h5>
                 <div class="template">
                     In the output panel, you can see 3 images ( <b>HTML line ##LINE('index.html','image 1')##</b> - <b>##LINE('index.html','image 3')##</b> ). The middle one is bigger than the other two, and it breaks the design flow of the page.
                     <br><br>
@@ -300,11 +303,11 @@
             </div>
             <div class="giCard">
                 <h4>Step: Summary</h4>
-                <b>Recap</b>
+                <h5>Recap</h5>
                 <p><i></i> Reinterate the objectives completed by the learner</p>
-                <b>End Note</b>
+                <h5>End Note</h5>
                 <p><i></i> Mention <em>Sandbox Mode</em> where the learner can test things out further</p>
-                <b>Template</b>
+                <h5>Template</h5>
                 <div class="template">
                     Well done! You have completed this sprint, here is a recap:
                     <ul>
@@ -387,7 +390,7 @@
         <div id="objectiveTests" class="gcDeck">
             <div class="giCard">
                 <h4>AST</h4>
-                <b>The Syntax</b>
+                <h5>The Syntax</h5>
                 <p><i></i> Use the following AST syntax to test <em>HTML</em> & <em>CSS</em> code:
                     <code>
                         pass.if.html.editable(n).equivalent(expectedCode);<br>
@@ -403,7 +406,7 @@
                         pass.if.filename.css.editable(n).equivalent(expectedCode);
                     </code>
                 </p>
-                <b>Feedback</b>
+                <h5>Feedback</h5>
                 <p><i></i> Don't always rely on auto-generated feedback, write elaborate error messages when it is necessary
                     <code>pass("useful feedback here").if.html.editable(n).equivalent("");</code>
                 </p>
@@ -420,7 +423,7 @@
                         pass("CSS LINE " + line("uniqueString") + " - feedback").if.css.editable(3).equivalent("height: 50px");
                     </code>
                 </p>
-                <b>Quotations</b>
+                <h5>Quotations</h5>
                 <p><i></i> Both single & double quotes are allowed by the AST tests, as long as the opening & closing quotes match</p>
                 <p><i></i> The following test will pass <samp>&lt;a href="#">&lt;/a></samp> or <samp>&lt;a href='#'>&lt;/a></samp>
                     <code>pass.if.html.editable(n).equivalent('&lt;a href="#">&lt;/a>');</code>
@@ -429,49 +432,49 @@
             </div>
             <div class="giCard">
                 <h4>HTML</h4>
-                <b>Element & Content</b>
+                <h5>Element & Content</h5>
                 <p><i></i> <samp>&lt;div>&lt;/div></samp>
                     <code>pass.if.html.editable(n).equivalent("&lt;div>&lt;/div>");</code>
                 </p>
                 <p><i></i> <samp>&lt;button>Submit&lt;/button></samp>
                     <code>pass.if.html.editable(n).equivalent("&lt;button>Submit&lt;/button>");</code>
                 </p>
-                <b>Single Attribute</b>
+                <h5>Single Attribute</h5>
                 <p><i></i> <samp>&lt;p id="info">&lt;/p></samp>
                     <code>pass.if.html.editable(n).equivalent('&lt;p id="info">&lt;/p>');</code>
                 </p>
-                <b>Multiple Attributes</b>
+                <h5>Multiple Attributes</h5>
                 <p><i></i> The following test will pass <samp>&lt;input id="user" type="text"></samp> or <samp>&lt;input type="text" id="user"></samp>
                     <code>pass.if.html.editable(n).equivalent.to('&lt;input id="user" type="text">');</code>
                 </p>
-                <b>Partial Syntax</b>
+                <h5>Partial Syntax</h5>
                 <p><i></i> Given that line <samp>n</samp> in the HTML file is <samp>&lt;img &#35;BEGIN_EDITABLE#&nbsp;&nbsp;&nbsp;&nbsp;&#35;END_EDITABLE#></samp> and the learner is expected to insert <samp>src="http://link.png"</samp>, use the following test
                     <code>pass.if.html(code.html.text.split(/\r?\n/)[n - 1]).equivalent('&lt;img src="http://link.png">');</code>
                 </p>
                 <p><i></i> Alternatively, concatenate learner input with additional strings to make up valid HTML code
                     <code>pass.if.html("&lt;img " + code.html.editable[n] + ">").equivalent('&lt;img src="http://link.png">');</code>
                 </p>
-                <b>Known Issues</b>
+                <h5>Known Issues</h5>
                 <p><i></i> ...</p>
             </div>
             <div class="giCard">
                 <h4>CSS</h4>
-                <b>Rule</b>
+                <h5>Rule</h5>
                 <p><i></i> <samp>div { width: 100px; height: 120px; }</samp>
                     <code>pass.if.css.editable(n).equivalent("div { width: 100px; height: 120px; }");</code>
                 </p>
-                <b>Selector</b>
+                <h5>Selector</h5>
                 <p><i></i> <samp>#idName</samp>
                     <code>pass.if.css(code.css.editable[0] + "{}").equivalent("#idName {}");</code>
                 </p>
-                <b>Property & Single Value</b>
+                <h5>Property & Single Value</h5>
                 <p><i></i> <samp>position: absolute;</samp>
                     <code>pass.if.css.editable(n).equivalent("position: absolute");</code>
                 </p>
                 <p><i></i> <samp>top: 0px;</samp>
                     <code>pass.if.css.editable(n).equivalent.to("top: 0").or("top: 0px").or("top: 0%");</code>
                 </p>
-                <b>Property & Multiple Values</b>
+                <h5>Property & Multiple Values</h5>
                 <p><i></i> <samp>margin: 5% auto 10px auto;</samp>
                     <code>pass.if.css.editable(n).equivalent("margin: 5% auto 10px auto");</code>
                 </p>
@@ -479,9 +482,9 @@
                     <code>pass.if.css.editable(n).equivalent.to("border: solid black").or("border: black solid");</code>
                 </p>
                 <p><i></i> Although <samp>border: solid black</samp> and <samp>border: black solid</samp> are both valid and will produce the same result, <a target="_blank" href="https://developer.mozilla.org/en/docs/Web/CSS/border#Formal_syntax">ordering standards</a> do exist and should be respected by LaunchBox</p>
-                <b>Partial Syntax</b>
+                <h5>Partial Syntax</h5>
                 <p><i></i> Refer to <em>Partial Syntax</em> in the <em>HTML</em> card</p>
-                <b>Known Issues</b>
+                <h5>Known Issues</h5>
                 <p><i></i> The following test is syntactically correct but a valid input triggers the error <em>"Make sure you have a semi-colon after ..."</em>
                     <code>pass.if.css.editable(n).equivalent('background-image: url("http://link.png")');</code>
                 </p>
@@ -492,7 +495,7 @@
             </div>
             <div class="giCard">
                 <h4>CSS Global [Upcoming]</h4>
-                <b>Syntax</b>
+                <h5>Syntax</h5>
                 <p><i></i> Pass the learner if the target CSS file contains a rule with specified selector and declaration
                     <code>pass.if.css.selector(selector).contains(declaration);</code>
                 </p>
@@ -502,7 +505,7 @@
             </div>
             <div class="giCard">
                 <h4>JavasScript</h4>
-                <b>RegExp</b>
+                <h5>RegExp</h5>
                 <p><i></i> AST syntax for testing JavasScript is not yet implemented, use <a target="_blank" href="http://regexr.com/">Regular Expression</a> to achieve similar results</p>
                 <p><i></i> ...</p>
             </div>
