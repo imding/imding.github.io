@@ -54,7 +54,7 @@
 
         <div id="sourceCode" class="gcDeck">
             <div class="giCard">
-                <h5>Source Code</h5>
+                <h4>Source Code</h4>
                 <p><i></i> Build the source code</p>
                 <p><i></i> Create teaching plan</p>
                 <p><i></i> Share it with other instructors</p>
@@ -69,7 +69,7 @@
         
         <div id="learningObjectives" class="gcDeck">
             <div class="giCard">
-                <h5>Learning Objectives</h5>
+                <h4>Learning Objectives</h4>
                 <p><i></i> Work with source code provider</p>
                 <p><i></i> Focus on 1 concept</p>
                 <p><i></i> Prioritize coding literacy</p>
@@ -82,7 +82,7 @@
         
         <div id="priorityCheck" class="gcDeck">
             <div class="giCard">
-                <h5>Prioritize:</h5>
+                <h4>Prioritization</h4>
                 <p><i></i> Direct requests from the sales team</p>
                 <p><i></i> Content that complements what's currently available</p>
                 <p><i></i> ...</p>
@@ -402,8 +402,8 @@
                 <p><i></i> <samp>expectedCode</samp> must be valid code</p>
                 <p><i></i> If the code files do not have default names, i.e. <em>index.html</em> and <em>style.css</em>, use the following syntax instead
                     <code>
-                        pass.if.filename.html.editable(n).equivalent(expectedCode);<br>
-                        pass.if.filename.css.editable(n).equivalent(expectedCode);
+                        pass.if.fileName.html.editable(n).equivalent(expectedCode);<br>
+                        pass.if.fileName.css.editable(n).equivalent(expectedCode);
                     </code>
                 </p>
                 <h5>Feedback</h5>
@@ -416,11 +416,20 @@
                         pass("CSS LINE 13 - feedback").if.css.editable(3).equivalent("height: 50px");
                     </code>
                 </p>
-                <p><i></i> When the position of <samp>editable(n)</samp> is unpreditable, insert an <em>unique string</em> on the same line and use the following method to retrive line number dynamically
+                <p><i></i> When the position of <samp>editable(n)</samp> is unpreditable, use the following function to retrive line number dynamically
                     <code>
-                        function line(str) {let n; code.css.text.split(/\r?\n/).forEach((e, i) => { e.includes(str) ? (n = i + 1) : null }); return n;}<br>
-                        pass("CSS LINE " + line("uniqueString") + " - feedback").if.css.editable(2).equivalent("width: 20px");<br>
-                        pass("CSS LINE " + line("uniqueString") + " - feedback").if.css.editable(3).equivalent("height: 50px");
+                        function line(file, str) {let n; file.text.split(/\r?\n/).forEach((e, i) => { e.includes(str) ? (n = i + 1) : null }); return n;}<br>
+                    </code>
+                </p>
+                <p><i></i> <samp>line(file, str)</samp> returns a number indicating the location of <samp>str</samp> in the specified <samp>file</samp></p>
+                <p><i></i> <samp>file</samp> can be <samp>code.html</samp>, <samp>code.css</samp> or <samp>code.js</samp> if the file has the <em>default name</em>, otherwise use <samp>code.fileName.html</samp>, <samp>code.fileName.css</samp> or <samp>code.fileName.js</samp></p>
+                <p><i></i> <samp>str</samp> must be a <em>unique string</em> that can be found exactly once in the target file</p>
+                <p><i></i> <em>Example</em>
+                    <code>
+                        function line(file, str) {let n; file.text.split(/\r?\n/).forEach((e, i) => { e.includes(str) ? (n = i + 1) : null }); return n;}<br>
+                        pass("CSS LINE " + line(code.css, '#body') + " - feedback").if.css.editable(2).equivalent("");<br>
+                        pass("HTML LINE " + line(code.gallery.html, '&lt;div id="main">') + " - feedback").if.html.editable(3).equivalent("");<br>
+                        pass("JS LINE " + (line(code.js, 'var foo;') + 9) + " - feedback").if.js.editable(2).equivalent("");<br>
                     </code>
                 </p>
                 <h5>Quotations</h5>
@@ -499,7 +508,7 @@
                 <p><i></i> Pass the learner if the target CSS file contains a rule with specified selector and declaration
                     <code>pass.if.css.selector(selector).contains(declaration);</code>
                 </p>
-                <p><i></i> The default CSS file is <em>style.css</em>, use <samp>if.filename.css</samp> to target additional CSS file</p>
+                <p><i></i> The default CSS file is <em>style.css</em>, use <samp>if.fileName.css</samp> to target additional CSS file</p>
                 <p><i></i> <samp>selector</samp> and <samp>declaration</samp> must be string values</p>
                 <p><i></i> <samp>declaration</samp> must be valid CSS code</p>
             </div>
@@ -594,6 +603,8 @@
     
 <!-- end of decks -->
 
+    <!--<input id="searchBar" type="text">-->
+    
     <script src="https://use.fontawesome.com/54c503b2ae.js"></script>
     <!--<script src="https://cloud.tinymce.com/stable/tinymce.min.js?apiKey=2322r6kwtx7u7040qlmfrdvua3gz5badcv8zjvvbllk6q614"></script>-->
 </body>
