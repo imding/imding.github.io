@@ -47,7 +47,7 @@ const markup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'];
 
 let vDiv = document.createElement('div');
 let hDiv = document.createElement('div');
-let vDivPos = 0.55, hDivPos = 0.75;     // INITIAL DIVIDER POSIITIONS
+let vDivPos = 0.3, hDivPos = 0.8;     // INITIAL DIVIDER POSIITIONS
 let xOffset, yOffset;
 
 const pagePadding = 20, margin = 10;
