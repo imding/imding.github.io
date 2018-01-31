@@ -8,6 +8,14 @@ const
     cssKeys = ['Selector', 'Target', 'Rule', 'Property', 'Value'],
     jsKeys = ['Variable', 'Function', 'Argument', 'Array'];
 
+const html =
+{
+    Attribute: {
+        key: 'Attribute',
+        content: `${esc('<h1 id="title" class="clickable"></h1>')} has two attributes: id & class`,
+    }
+};
+
 let cards = '',
     debug = true;
 
@@ -23,8 +31,7 @@ dot.style.top = '-25px';
 dot.style.padding = '0 20px 30px 20px';
 dot.style.borderRadius = '50%';
 dot.style.boxShadow = '2px 2px 5px 1px rgba(0, 0, 0, 0.5)';
-// dot.style.background = 'rgba(40, 40, 38, 0.9)';
-dot.style.background = 'ghostwhite';
+dot.style.background = 'rgba(40, 40, 38, 0.9)';
 dot.style.fontFamily = 'arial';
 dot.style.userSelect = 'none';
 dot.style.cursor = 'pointer';
@@ -52,11 +59,11 @@ btnClose.style.cursor = 'pointer';
 btnClose.innerHTML = '&#10539;';
 
 ['color', 'cursor', 'backgroundColor'].forEach(p => btnBack.style[p] = btnClose.style[p]);
-btnBack.style.backgroundColor = '#222';
+btnBack.style.backgroundColor = 'indianred';
 btnBack.style.border = 'none';
 btnBack.style.outline = 'none';
-btnBack.style.marginRight = '5px';
-btnBack.style.padding = '5px 15px';
+btnBack.style.height = '28px';
+btnBack.style.padding = '6px 15px 4px 15px';
 btnBack.style.borderRadius = '0 0 5px 5px';
 btnBack.style.fontSize = '1.1em';
 btnBack.innerHTML = 'Back to menu';
@@ -86,7 +93,7 @@ window.onload = function() {
         e.style.outline = 'none';
         e.style.cursor = 'pointer';
         e.style.color = 'white';
-        e.onclick = () => showDetail(e);
+        e.onclick = () => showDetail(e, eval(e.classList[0])[e.innerHTML].content);
     });
     dot.childElementsByClass('html').forEach(e => e.style.background = '#39f');
     dot.childElementsByClass('css').forEach(e => e.style.background = '#f90');
@@ -104,7 +111,7 @@ window.onresize = function() {
     menu.style.width = window.outerWidth - 60 + 'px';
 
     if (menu.style.opacity == '0') {
-        // dot.style.height = 
+        console.log(detail.offsetHeight);
     }
 };
 
@@ -132,7 +139,7 @@ dot.onclick = function(){
 
 btnClose.onclick = function() {
     if (dot.offsetWidth > 50) {   debug ? log('btnClose.onclick') : null;
-        if (menu.style.opacity == '0') dot.removeChild(detail);
+        if (menu.style.opacity == '0') btnBack.click();
         dot.style.cursor = 'pointer';
         dot.style.width = '50px';
         dot.style.height = '50px';
@@ -151,16 +158,11 @@ btnBack.onclick = function() {
 };
 
 // ======================================== FUNCTIONS ========== //
-function showDetail(e){     debug ? log('showDetail(e): e is [' + (e.classList[0] + e.innerHTML).replace(/\s/g, '') + '.gif]') : null;
+function showDetail(e, c){     debug ? log('showDetail(e): e is [' + (e.classList[0] + e.innerHTML).replace(/\s/g, '') + '.gif]') : null;
     const 
         link = `${(e.classList[0] + e.innerHTML).replace(/\s/g, '')}.gif`,
         title = document.createElement('button'),
-        content = document.createElement('img');
-
-    title.innerHTML = `${e.classList[0].toUpperCase()} - ${e.innerHTML}`;
-    content.id = 'content';
-    content.src = link;
-    content.height = 100 * Math.random() + 100;
+        content = document.createElement('div');
 
     detail.appendChild(btnBack);
     detail.appendChild(title);
@@ -168,11 +170,16 @@ function showDetail(e){     debug ? log('showDetail(e): e is [' + (e.classList[0
     
     dot.appendChild(detail);
 
-    ['color', 'backgroundColor'].forEach(p => title.style[p] = e.style[p]);
-    ['outline', 'border', 'fontSize', 'borderRadius', 'padding'].forEach(p => title.style[p] = btnBack.style[p]);
+    title.innerHTML = `${e.classList[0].toUpperCase()} - ${e.innerHTML}`;
+    content.innerHTML = c;
 
+    ['color', 'backgroundColor'].forEach(p => title.style[p] = e.style[p]);
+    ['height', 'outline', 'border', 'fontSize', 'borderRadius', 'padding'].forEach(p => title.style[p] = btnBack.style[p]);
+
+    title.style.position = 'absolute';
+    title.style.top = '0';
     title.style.left = btnBack.offsetLeft + btnBack.offsetWidth + 10 + 'px';
-    // title.style.overflow = 'hidden';
+    title.style.overflow = 'hidden';    
 
     content.style.marginTop = '10px';
     content.style.width = 'calc(100% - 40px)';
@@ -180,7 +187,11 @@ function showDetail(e){     debug ? log('showDetail(e): e is [' + (e.classList[0
 
     menu.style.opacity = '0';
 
-    dot.style.height = content.offsetHeight + 70 + 'px';
+    dot.style.height = detail.offsetHeight + 'px';
+}
+
+function esc(s) {
+    return s.replace(/</g, '&lt;');
 }
 
 function log(msg, opt) {
