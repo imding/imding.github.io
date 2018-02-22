@@ -39,22 +39,6 @@ img {
 
 let input;
 
-function replaceStrings(str, replacement = '.') {
-    let arr = str.match(/((`)[^`]*\2)|((')[^']*\4)|((")[^"]*\6)/g);
-    arr ? arr.forEach((s) => {
-        str = str.replace(s, Array(s.length + 1).join(replacement));
-    }) : null;
-    return str;
-}
-
-function log(s) {
-    if (info.innerHTML) {
-        info.innerHTML += (`\n==========\n${s}`);
-    } else {
-        info.innerHTML = s;
-    }
-}
-
 //================================
 
 const
@@ -70,74 +54,88 @@ const
         'form', 'input', 'select', 'option', 'textarea',
     ];
 
-let verdict = '', pass = true, inputClone = input, ruleCount = 0, tree = {atRules: [], rules: []};
+// ===========================================
 
-Number.prototype.rank = function() {
-    return this + (/1$/.test(this) && this != 11 ? 'st' : /2$/.test(this) && this != 12 ? 'nd' : /3$/.test(this) && this != 13 ? 'rd' : 'th');
+function rank(n) {
+    return n > 0 ?
+        n + (/1$/.test(n) && n != 11 ? 'st' : /2$/.test(n) && n != 12 ? 'nd' : /3$/.test(n) && n != 13 ? 'rd' : 'th') :
+        n;
 }
 
-String.prototype.toSpace = function(target) {
-    return target ?
-        this.replace(target, target.replace(/[^\s]/g, ' ')) :
-        this.replace(/[^\s]/g, ' ');
-};
+function toSpace(srcString, target) {
+  return target ?
+    srcString.replace(target, target.replace(/[^\s]/g, ' ')) :
+    srcString.replace(/[^\s]/g, ' ');
+}
 
-Array.prototype.last = function() {
-    return this[this.length - 1];
-};
+function lastOf(arr) {
+    return arr[Math.max(arr.length - 1, 0)];
+}
 
-Array.prototype.flatten = function(n = 0) {
-    while (n < this.length) {
-        if (Array.isArray(this[n])) {
-            const arr = this[n];
-            this.splice(n, 1);
-            arr.forEach((e, i) => this.splice(n + i, 0, e));            
+function flatten(srcArray, n = 0, end = srcArray.length) {
+    if (n < 0 || end > srcArray.length) throw new Error(`${srcArray}[${n} to ${end}] can not be flattened due to invalid index range`);
+
+    const addToSrcArray = (e, i) => srcArray.splice(n + i, 0, e);
+    
+    while (n < end) {
+        if (Array.isArray(srcArray[n])) {
+            const _arr = srcArray[n];
+            srcArray.splice(n, 1);
+            _arr.forEach(addToSrcArray);
         }
         n++;
     }
-    return this;
-};
+    return srcArray;
+}
+
+// =======================================
+
+let verdict = '', pass = true, inputClone = input, ruleCount = 0, tree = {atRules: [], rules: []};
 
 function latestNode() {
-    return [tree.rules, tree.atRules].filter(arr => arr.some(r => r.nth == ruleCount))[0].last();
+    return lastOf([tree.rules, tree.atRules].filter(arr => arr.some(r => r.nth == ruleCount))[0]);
 }
 
 function buildInvalidCode(nextValid = [pRule, pNestedAtRule, pAtRule], invalidCode = '') {
     let ob, cb, ln, isNestedAtRule;
 
-    // position of error can be retrieved before trim
+    // error position can be retrieved before trim
     inputClone = inputClone.trim();
-
-    while (inputClone.length && nextValid.every(p => !p.test(inputClone))) {
+    
+    // build invalid code
+    while (inputClone.length) {
         invalidCode += inputClone[0];
         
         if (inputClone[0] == '}') break;
 
-        inputClone = inputClone.slice(1);        
+        inputClone = inputClone.slice(1);
     }
 
+    // if tree is partially built
     if (tree.rules.length + tree.atRules.length) {
         ln = latestNode();
         isNestedAtRule = ln.hasOwnProperty('rules') || ln.hasOwnProperty('keyframes');
     }
 
     const braces = invalidCode.match(/[{}]/g) || [];
-        
 
     if (braces.length % 2) {
-        verdict = `Make sure the curly brackets are properly paired in ${invalidCode}.`;
+        // pattern to remove valid rules from invalid code
+        const p = /\s*([^@/;{}\s]+[^/;{}]*){\s*([^{}]*)}/g;
+        verdict = `Make sure the curly brackets are properly paired in ${invalidCode.replace(p, '').replace(/\s+/g, ' ')}.`;
     }
     else if (/^{[^{}]+}/.test(invalidCode)) {
         verdict = isNestedAtRule ?
             `There is a missing selector in the @${ln.type} at-rule.` :
-            `The ${(ln.nth + 1).rank()} rule in your CSS has no selector.`;
+            `The ${rank(ln.nth + 1)} rule in your CSS has no selector.`;
     }
     else {
         verdict = isNestedAtRule ?
             `The @${ln.type} at-rule contains invalid code. Please read the instructions again.` :
-            `Your CSS is incorrect after the ${ln.nth.rank()} rule. Please read the instructions again.`;
-    }
-    
+            ln ?
+                `Your CSS is incorrect after the ${rank(ln.nth)} rule. Please read the instructions again.` :
+                `${invalidCode} is incorrect. Please read the instructions again.`;
+    }    
 }
 
 function pushAtRule(nested, data) {
@@ -175,7 +173,7 @@ function pushNestedRule(type, data) {
     switch (type) {
         case 'media':
             if (checkRule(data, true)) {
-                tree.atRules.last().rules.push({type: 'rule', selectors: data[1], declarations: data[2]});
+                lastOf(tree.atRules).rules.push({type: 'rule', selectors: data[1], declarations: data[2]});
             }
             break;
 
@@ -186,15 +184,15 @@ function pushNestedRule(type, data) {
             else if (!/^[\d]+(\.[\d]+)?%$/.test(data[1])) {
                 verdict = `${data[1]} is not a valid selector for the @keyframes at-rule. Use a number followed by the % symbol.`;
             } else {
-                tree.atRules.last().keyframes.push({type: 'keyframe', values: data[1], declarations: data[2]});
+                lastOf(tree.atRules).keyframes.push({type: 'keyframe', values: data[1], declarations: data[2]});
             }
             break;
     }
 
     if (data[2] && !verdict) {
         const 
-            r = tree.atRules.last().rules || tree.atRules.last().keyframes,
-            d = checkDeclaration(r.last());
+            r = lastOf(tree.atRules).rules || lastOf(tree.atRules).keyframes,
+            d = checkDeclaration(lastOf(r));
 
         if (d) checkProperty(d) && checkValue(d);
     }
@@ -202,39 +200,28 @@ function pushNestedRule(type, data) {
 }
 
 function parse() {
-    while (inputClone.trim().length && !verdict) {
-        pass = [pRule, pNestedAtRule, pAtRule].some((p, i) => {
-            let match = inputClone.match(p);
+    const foundAndMatched = (p, i) => {
+        let match = inputClone.match(p);
 
-            if (match && pass) {
-                match = match.map(m => m ? m.trim() || m : m);
-                pass = i ? checkAtRule(match, !(i - 1)) : checkRule(match);
-            }
-            return match && pass;
-        });
+        if (match && pass) {
+            match = match.map(m => m ? m.trim() || m : m);
+            pass = i ? checkAtRule(match, i == 1) : checkRule(match);
+        }
+        return match && pass;
+    };
+        
+    while (inputClone.trim().length && !verdict) {
+        pass = [pRule, pNestedAtRule, pAtRule].some(foundAndMatched);
 
         if (verdict) break;
 
         if (!pass) buildInvalidCode();
-        // console.log(braces);
-        // if (tree.rules.length + tree.atRules.length) {
-        //     if (!pass) buildInvalidCode();
-        // }
-        // else if (braces.length % 2) {
-        //     buildInvalidCode();
-        // }
-        // else {
-        //     const d = checkDeclaration({declarations: inputClone});
-            
-        //     if (pass) pass = checkProperty(d) && checkValue(d);
-        //     break;
-        // }
     }
 }
 
 function checkAtRule(match, nested) {
     // remove "@[type] [identifier]" from input string
-    inputClone = inputClone.toSpace(match[0]);
+    inputClone = toSpace(inputClone, match[0]);
 
     // @media or @keyframes etc...
     if (nested) {
@@ -261,14 +248,14 @@ function checkAtRule(match, nested) {
         if (ob) {
             if (checker.every(c => {return !(verdict = c.error ? c.feedback : '')})) {
                 pushAtRule(nested, match);
-                inputClone = inputClone.toSpace(ob[0]);            
+                inputClone = toSpace(inputClone, ob[0]);            
 
                 // remove valid rules
                 while (pRule.test(inputClone)) {
                     const m = inputClone.match(pRule).map(_m => _m.trim());
 
                     pushNestedRule(match[1], m);
-                    inputClone = inputClone.toSpace(m[0]);
+                    inputClone = toSpace(inputClone, m[0]);
 
                     if (verdict) return null;
                 }
@@ -276,7 +263,7 @@ function checkAtRule(match, nested) {
                 const cb = inputClone.match(/^\s*\}/);      // closing brace
 
                 if (cb) {
-                    inputClone = inputClone.toSpace(cb[0]);
+                    inputClone = toSpace(inputClone, cb[0]);
                 }
                 else if (!inputClone.trim().length || pAtRule.test(inputClone)) {
                     verdict = `Make sure curly brackets are properly paired for the ${match[0].trim()} at-rule.`;
@@ -310,7 +297,7 @@ function checkAtRule(match, nested) {
             () => { return match[4] ? '' : `Don't forget the semi-colon(;) after ${match[3]}` },
         ];
         
-        if (checker.every(check => { return !(verdict = check()) })) {
+        if (checker.every(check => !(verdict = check()))) {
             pushAtRule(nested, match);
             // disguise as declaration
             checkValue([{property: '@import', value: match[3]}]);
@@ -321,21 +308,42 @@ function checkAtRule(match, nested) {
 
 function checkRule(match, nested) {
     const
-        sel = match[1].split(/,|>|\+|~/).map(s => s.trim()).map(s => s.split(/\s+/)).flatten(),
+        sel = flatten(match[1].split(/,|>|\+|~/).map(s => s.trim()).map(s => s.split(/\s+/))),
         pTags = tags.map(t => new RegExp(`^${t}(::?[a-z-()]+)?$`, 'i')),
         checker = [
-        {
-            error: !sel.every(s => pTags.some(t => t.test(s)) || /^[.#*]/.test(s)),
-            feedback: `${match[1]} is not a valid tag name.`,
-        },
-        {
-            error: sel.some(s => /^[.#]/.test(s) && !/[a-z]/i.test(s[1])),
-            feedback: `${match[1]} is incorrect. Selector must begin with a letter.`,
-        }];
+            () => {
+                let feedback = '';
+                // every selector must be a valid HTML tag or begin with . # or *
+                sel.every(s => {
+                    s = s.replace(/(\[[^\[\]]+\])$/, '');
+                    if (pTags.some(t => t.test(s)) || /^[.#*]/.test(s)) {
+                        return true;
+                    } else {
+                        // remove 2nd ${...} after in-line error message is implemented
+                        feedback = `${s} ${sel.length > 1 ? `in ${match[1]} ` : ''}is not a valid tag name.`;
+                        return;
+                    }
+                });
+                return feedback;
+            },
+            () => {
+                let feedback = '';
+                // any selector begins with . or # followed by a non-alphabet character
+                sel.some(s => {
+                    if (/^[.#]/.test(s) && !/[a-z]/i.test(s[1])) {
+                        // remove 2nd ${...} after in-line error message is implemented
+                        feedback = `${s} ${sel.length > 1 ? `in ${match[1]} ` : ''}is incorrect. Selector must begin with a letter.`;
+                        return true;
+                    }
+                    return;
+                });
+                return feedback;
+            },
+        ];
 
-    if (checker.every(c => !(verdict = c.error ? c.feedback : '')) && !nested) {
-        tree.rules.push({type: 'rule', selector: match[1], declarations: match[2], nth: ruleCount += 1});
-        inputClone = inputClone.toSpace(match[0]);
+    if (checker.every(check => !(verdict = check())) && !nested) {
+        tree.rules.push({type: 'rule', selector: match[1].replace(/\s+/g, ' '), declarations: match[2], nth: ruleCount += 1});
+        inputClone = toSpace(inputClone, match[0]);
         
         if (match[2]) {
             const d = checkDeclaration();
@@ -346,7 +354,7 @@ function checkRule(match, nested) {
     return !verdict;
 }
 
-function checkDeclaration(target = tree.rules.last()) {
+function checkDeclaration(target = lastOf(tree.rules)) {
     const p = /[^:]+\s*:\s*[^;]+\s*;/i;     // fixed declaration pattern
     let da = [];        // declaration array    
 
@@ -448,13 +456,22 @@ function checkValue(target) {
                         else if (!match[6]) verdict = `Add closing bracket at the end of ${match[0]}.`;
                         break;
                     case 1:
-                        if (!/background(-image)?|content|@import/.test(d.property)) verdict = `${d.value} is incorrect. Please remove the colon(:).`;
-                        break;
+                        if (/:/.test(d.value.replace(/htt?p:/, ''))) verdict = `${d.value} is incorrect. Please remove extra colons(:).`; break;
                 }
             }
             return !verdict;
         });
     });
+}
+
+// ===== IRRELEVANT FOR LB =====
+
+function log(s) {
+    if (info.innerHTML) {
+        info.innerHTML += (`\n==========\n${s}`);
+    } else {
+        info.innerHTML = s;
+    }
 }
 
 function getTree() {
@@ -517,4 +534,15 @@ btnParse.onclick = function() {
     } else {
         log(verdict.replace(/\n/g, '&crarr;'));
     }
+};
+
+let ctrl;
+
+window.onkeydown = function(evt) {
+    if (!ctrl) ctrl = evt.keyCode == 17;
+};
+
+window.onkeyup = function(evt) {
+    if (ctrl && evt.keyCode == 17) ctrl = false;
+    if (evt.keyCode == 13 && ctrl) btnParse.click();
 };

@@ -1,11 +1,14 @@
 html, body {
 	height: 100%;
 	margin: 0;
+	background: #252525;
 }
 
 #ide {
 	height: calc(100% - 150px);
 	width: 50%;
+	background: #1e1e1e;
+	color: ghostwhite;
 }
 
 #btnParse {

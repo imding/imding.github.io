@@ -1,0 +1,40 @@
+body {
+	margin: 0;
+    font-family: arial;
+    text-align: center;
+}
+
+#puzzleContainer {
+    position: relative;
+    margin: auto;
+    border: 2px solid black;
+    border-radius: 5px;
+}
+
+#spare {
+	margin: 0;
+	width: 100%;
+	background: skyblue;
+}
+
+#imageLink {
+	width: 90%;
+	border: 0.5px solid black;
+	border-radius: 2px;
+	font-family: monospace;
+	font-size: 0.8em;
+	text-align: center;
+}
+
+#newPuzzle {
+	padding: 5px 20px;
+}
+
+.piece {
+	display: inline-block;
+    position: absolute;
+    border-radius: 5px;
+    border: white solid 0.5px;
+    box-sizing: border-box;
+    transition-property: top, left;
+}

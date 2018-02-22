@@ -109,7 +109,7 @@ window.onload = () => {
     codeEditor.setOptions(aceOptions);
     logicEditor.setOptions(aceOptions);
 
-    codeEditor.$blockScrolling = Infinity; logicEditor.$blockScrolling = Infinity;              // TEMP FIX FOR UNKNOWN EDITOR ISSUE
+    codeEditor.$blockScrolling = Infinity; logicEditor.$blockScrolling = Infinity;              // FIX FOR UNKNOWN ACE EDITOR ISSUE
 
     setValue(codeEditor, [
         '<!DOCTYPE html>',
@@ -120,7 +120,7 @@ window.onload = () => {
         '</head>',
         '<body>\n\t',
         '</body>',
-        `</html>${markup.join('')}`,
+        `</html>`,
     ].join('\n'));
     
     taInstruction.value = `Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the learner will do\n\n[Result]`;
