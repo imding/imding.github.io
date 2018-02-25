@@ -47,8 +47,8 @@ const markup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'];
 
 const vDiv = document.createElement('div');
 const hDiv = document.createElement('div');
-const vDivPos = 0.3, hDivPos = 0.8;     // INITIAL DIVIDER POSIITIONS
 const vDivMin = 450, hDivMin = 250;
+let vDivPos = 0.3, hDivPos = 0.8;     // INITIAL DIVIDER POSIITIONS
 let xOffset, yOffset;
 
 const pagePadding = 20, margin = 10;
@@ -619,16 +619,16 @@ function scaleContent() {
 
 function moveDivider(evt) {
     vDiv.style.left = clamp(evt.clientX - xOffset, vDivMin, window.innerWidth - vDivMin) + 'px';
-    hDiv.style.top = clamp(evt.clientY - yOffset, hDivMin, window.innerHeight - 150) + 'px';
+    hDiv.style.top = clamp(evt.clientY - yOffset, hDivMin, window.innerHeight - (hDivMin - 100)) + 'px';
     hDiv.style.width = window.innerWidth - get(vDiv, 'left') + 'px';
     scaleContent();
 }
 
 function flexDivider() {
-    vDiv.style.left = Math.max(window.innerWidth * vDivPos, vDivMin) + 'px';
-    hDiv.style.top = Math.max(window.innerHeight * hDivPos, hDivMin) + 'px';
+    vDiv.style.left = vDivMin + 'px';
+    hDiv.style.top = window.innerHeight - (hDivMin - 100) + 'px';
     vDiv.style.height = window.innerHeight + 'px';
-    hDiv.style.width = window.innerWidth * (1 - vDivPos) + 'px';
+    hDiv.style.width = window.innerWidth - vDivMin + 'px';
 }
 
 function alignElement(e, target = taInstruction) {
@@ -814,6 +814,22 @@ function range(min, max, int = false) {
 
 function remap(v, iMin, iMax, oMin, oMax) {
     return oMin + (v - iMin) * (oMax - oMin) / (iMax - iMin);
+}
+
+function round(v, decimal = 0, op = Math.round) {
+    if (op !== Math.round && op !== Math.ceil && op !== Math.floor) {
+        throw new Error(`Invalid operation parametre: ${op}.`);
+    }
+    else if (decimal < 0 || !Number.isInteger(decimal)) {
+        throw new Error(`Invalid decimal parametre: ${decimal}.`);
+    }
+
+    if (decimal) {
+        const mod = Math.pow(10, decimal);
+        return op(v * mod) / mod;
+    } else {
+        return op(v);
+    }
 }
 
 String.prototype.splice = function(idx, rem, str) {
