@@ -45,9 +45,10 @@ const cssToken = ['##CSS##', '##CSS_E##', /##CSS##.*##CSS_E##/];
 const jsToken = ['##JS##', '##JS_E##', /##JS##.*##JS_E##/];   
 const markup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'];
 
-let vDiv = document.createElement('div');
-let hDiv = document.createElement('div');
-let vDivPos = 0.3, hDivPos = 0.8;     // INITIAL DIVIDER POSIITIONS
+const vDiv = document.createElement('div');
+const hDiv = document.createElement('div');
+const vDivPos = 0.3, hDivPos = 0.8;     // INITIAL DIVIDER POSIITIONS
+const vDivMin = 450, hDivMin = 250;
 let xOffset, yOffset;
 
 const pagePadding = 20, margin = 10;
@@ -617,15 +618,15 @@ function scaleContent() {
 }
 
 function moveDivider(evt) {
-    vDiv.style.left = clamp(evt.clientX - xOffset, 450, window.innerWidth - 450) + 'px';
-    hDiv.style.top = clamp(evt.clientY - yOffset, 250, window.innerHeight - 150) + 'px';
+    vDiv.style.left = clamp(evt.clientX - xOffset, vDivMin, window.innerWidth - vDivMin) + 'px';
+    hDiv.style.top = clamp(evt.clientY - yOffset, hDivMin, window.innerHeight - 150) + 'px';
     hDiv.style.width = window.innerWidth - get(vDiv, 'left') + 'px';
     scaleContent();
 }
 
 function flexDivider() {
-    vDiv.style.left = window.innerWidth * vDivPos + 'px';
-    hDiv.style.top = window.innerHeight * hDivPos + 'px';
+    vDiv.style.left = Math.max(window.innerWidth * vDivPos, vDivMin) + 'px';
+    hDiv.style.top = Math.max(window.innerHeight * hDivPos, hDivMin) + 'px';
     vDiv.style.height = window.innerHeight + 'px';
     hDiv.style.width = window.innerWidth * (1 - vDivPos) + 'px';
 }
