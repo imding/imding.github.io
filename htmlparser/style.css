@@ -1,4 +1,5 @@
 body {
+	padding-top: 20px;
 	text-align: center;
 	background: #252525;
 }
@@ -6,7 +7,7 @@ body {
 #ide {
 	width: 90vw;
 	max-width: 500px;
-	height: calc(100vh - 120px);
+	height: calc(100vh - 125px);
 	padding: 10px;
 	border: none;
 	outline: none;

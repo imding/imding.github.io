@@ -1,16 +1,11 @@
-const input = `<button>Click</button>
+const input = `<input class = 'small key ' placeholder="Don't do this">
 <div id='wrapper'>
-    <h1 id='title' class='red'>Test</h1>
+    <h1 id='title'>Test</h1>
     <h3></h3>
 </div>`;
 let counter = 0, ctrl, log = '';
 
 // ===== LB CODE ===== //
-function shorten(s, n) {
-    if (s.length > n) return `${s.slice(0, n - 1)}...`;
-    return s;
-}
-
 const
     pOpeningTag = /^\s*<(?!\s*\/)(\s+)?([^/<>]+)?(>)?/i,
     pClosingTag = /^\s*<(\s*)?\/([^<>]+)?(>)?/i,
@@ -27,6 +22,24 @@ const
             'blockquote',
         ],
         void: ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'],
+    },
+    attributes = {
+        all: [
+            'id',
+            'alt', 'dir', 'for', 'low', 'max', 'min', 'rel', 'src',
+            'cite', 'code', 'cols', 'data', 'form', 'high', 'href', 'icon', 'kind', 'lang', 'list', 'loop', 'name', 'open', 'ping', 'rows', 'size', 'slot', 'span', 'step', 'type', 'wrap',
+            'align', 'async', 'class', 'defer', 'ismap', 'label', 'media', 'muted', 'scope', 'shape', 'sizes', 'start', 'style', 'title', 'value', 'width',
+            'accept', 'action', 'coords', 'height', 'hidden', 'method', 'poster', 'scoped', 'srcdoc', 'srcset', 'target', 'usemap',
+            'charset', 'checked', 'colspan', 'content', 'default', 'dirname', 'enctype', 'headers', 'keytype', 'optimum', 'pattern', 'preload', 'rowspan', 'sandbox', 'srclang', 'summary',
+            'autoplay', 'buffered', 'codebase', 'controls', 'datetime', 'disabled', 'download', 'dropzone', 'hreflang', 'itemprop', 'language', 'manifest', 'multiple', 'readonly', 'required', 'reversed', 'seamless', 'selected', 'tabindex',
+            'accesskey', 'autofocus', 'challenge', 'draggable', 'integrity', 'maxlength', 'minlength', 'translate',
+            'formaction', 'http-equiv', 'novalidate', 'radiogroup', 'spellcheck',
+            'contextmenu', 'crossorigin', 'placeholder',
+            'autocomplete',
+            'accept-charset', 'autocapitalize',
+            'contenteditable',
+        ],
+        boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
     };
 
 let verdict, inputClone, invalidElement = [], ambiguous = [];
@@ -179,38 +192,50 @@ function checkClosingTag(element, tag) {
 }
 
 function checkAttributes(attrsRaw) {
-    const
-        // `  =   ` into `=`
-        // `="    ` into `="`
-        // `   "  ` into `"  `
-        attrs = attrsRaw.replace(/\s*=\s*/g, '=').replace(/=(['"])\s*/g, '=$1').replace(/\s*(['"])/g, '$1').trim().split(/\s+/),
+    const 
+        lot = {sq: [], dq: [], pq: '', name: '', quote: null, raw: '', value: null},
+        attrsStrArray = [],
         attrsObjArray = [];
+    
+    // remove space around = symbol and quotes. e.g. id = ' box ' class='red ' >>> id='box' class='red'
+    let attrsCompact = attrsRaw.replace(/\s*=\s*/g, '=').replace(/=(['"])\s*/g, '=$1').replace(/\s*(['"])/g, '$1');
+    
+    console.log(attrsCompact);
 
-    attrs.every(a => {
+    Array.from(attrsCompact).some((char, i) => {
+        if (!lot.name) {
+            console.log();
+        }
+    });
+
+    if (verdict) return;
+
+    attrsCompact.trim().split(/\s+/).every(a => {
         a = a.split(/=/);
         
-        if (/[^a-z-]/.test(a[0])) verdict = `${a[0]} is incorrect. Attribute name can only contain letters(a-z) and the dash(-).`
-        else if (/^[^a-z]/.test(a[0])) verdict = `${a[0]} is incorrect. Attribute name must begin with a letter.`;
-        
-        let p = new RegExp(`\\s*${a[0]}`);
-
-        if (a.length > 1) {
+        if (/^[^a-z]/.test(a[0])) verdict = `${a[0]} is incorrect. Attribute name must begin with a letter.`
+        else if (/[^a-z-]/.test(a[0])) verdict = `${a[0]} is incorrect. Attribute name can only contain letters(a-z) and the dash(-).`
+        else if (!(attributes.all.some(_a => _a === a[0]) || /^data-/i.test(a[0]))) verdict = `${a[0]} is not a valid attribute. Please read the instructions again.`
+        else if (a.length > 1) {
             if (!a[1].length) verdict = `Please add a value for the ${a[0]} attribute after the = symbol.`
             else if (!/^['"].*['"]$/.test(a[1])) verdict = `Please add quotation marks around ${a[1].replace(/['"]/g, '')}.`
             else if (a[1][0] !== lastOf(Array.from(a[1]))) verdict = `${a[1]} is incorrect. Make sure quotation marks are properly paired.`;
-
-            p = new RegExp(`\\s*${a[0]}\\s*=\\s*${a[1].replace(/(['"])(?=.)/g, '\\s*$1\\s*').replace(/(['"])$/, '\\s*$1')}`);
         }
-
+        else if (!attributes.boolean.some(_a => _a === a[0])) verdict = `${a[0]} is not a Boolean attribute. Please give it a value.`;
+        
         if (verdict) return;
+
+        const p = a.length > 1 ?
+            new RegExp(`\\s*${a[0]}\\s*=\\s*${a[1].replace(/(['"])(?=.)/g, '\\s*$1\\s*').replace(/(['"])$/, '\\s*$1')}`) :
+            new RegExp(`\\s*${a[0]}`);
 
         const attrObj = {
             name: a[0],
-            quote: a[1][0],
+            quote: a[1] ? a[1][0] : null,
             raw: attrsRaw.match(p)[0],
-            value: a[1].slice(1, -1),
+            value: a[1] ? a[1].slice(1, -1) : null,
         };
-
+console.log(attrObj);
         attrsRaw = attrsRaw.slice(attrObj.raw.length);
         attrsObjArray.push(attrObj);
         return true;
@@ -268,6 +293,14 @@ function lastOf(arr) {
     return arr[Math.max(arr.length - 1, 0)];
 }
 
+function replaceStrings(str, replacement = '.') {
+    let arr = str.match(/((')[^']*\2)|((")[^"]*\4)/g);
+    arr ? arr.forEach((s) => {    
+        str = str.replace(s, Array(s.length + 1).join(replacement));
+    }) : null;
+    return str;
+}
+  
 window.onload = () => initialize();
 
 window.onkeydown = (evt) => {
