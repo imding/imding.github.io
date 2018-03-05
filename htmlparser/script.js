@@ -163,10 +163,18 @@ function checkOpeningTag(tagRaw, tag = tagRaw.trim().toLowerCase()) {
 function checkClosingTag(element, tag) {
     const match = inputClone.match(pClosingTag);
 
-    if (!match) verdict = `${element} needs a closing tag.`
-    else if (match[1]) verdict = `${match[0].trim()} is incorrect. Make sure there is no space after the < symbol.`
-    else if (match[2] !== tag) verdict = `${match[0].trim()}`
-    else if (!match[3]) verdict = `Make sure to write the > symbol after ${match[0].trim()}.`;
+    if (!match) {
+        verdict = `${element} needs a closing tag.`;
+    }
+    else if (match[1]) {
+        verdict = `${match[0].trim()} is incorrect. Make sure there is no space after the < symbol.`;
+    }
+    else if (match[2] !== tag) {
+        verdict = `${match[0].trim()}`;
+    }
+    else if (!match[3]) {
+        verdict = `Make sure to write the > symbol after ${match[0].trim()}.`;
+    }
     
     if (verdict) {
         // look for valid closing tag in var:ambiguous
@@ -193,53 +201,123 @@ function checkClosingTag(element, tag) {
 
 function checkAttributes(attrsRaw) {
     const 
-        lot = {sq: [], dq: [], pq: '', name: '', quote: null, raw: '', value: null},
+        lot = {sq: [], dq: [], fq: null, name: '', quote: null, raw: '', value: null},
         attrsStrArray = [],
         attrsObjArray = [];
     
     // remove space around = symbol and quotes. e.g. id = ' box ' class='red ' >>> id='box' class='red'
     let attrsCompact = attrsRaw.replace(/\s*=\s*/g, '=').replace(/=(['"])\s*/g, '=$1').replace(/\s*(['"])/g, '$1');
     
-    console.log(attrsCompact);
+    function removeValidAttr(s) {
+        return s;
+    }
 
-    Array.from(attrsCompact).some((char, i) => {
+    while (attrsCompact.length) {
+        console.log(attrsCompact);
         if (!lot.name) {
-            console.log();
+            // look for attribute name
+            if (/^[^\s+]/.test(attrsCompact)) {
+                verdict = `Please add a space after ${lastOf(attrsObjArray.raw)}.`;
+            }
+            else if (/^\s+[^a-z]/.test(attrsCompact)) {
+                verdict = `${removeValidAttr(attrsCompact)} is incorrect. Attribute name must begin with a letter(a-z).`;
+            }
+            else if (/[^a-z-]/.test(attrsCompact.trim().split(/[\s+=]/))[0]) {
+                verdict = `${removeValidAttr(attrsCompact)} is incorrect. Attribute name can only contain letters(a-z) and the dash(-).`;
+            }
+            else {
+                // get leading string containing letters(a-z) and dash(-)
+                const m = attrsCompact.match(/^\s+[a-z-]+/);
+    
+                if (attributes.all.some(a => a === m[0]) || /^data-/i.test(m[0])) {
+                    attrsCompact = attrsCompact.slice(lot.raw.length);
+                    lot.name = m ? m[0].trim() : '';
+                    lot.raw = m[0];
+                }
+                else {
+                    verdict = `${m[0].trim()} is not a valid attribute. Please read the instructions again.`;
+                }
+            }
         }
-    });
+        else if (attributes.boolean.every(a => a != lot.name)) {
+            // look for attribute value
+            const m = attrsCompact.match(/^(\s*=)(.+)?/);
+            if (!m) {
+                verdict = `The ${lot.name} attribute a value by adding the = sign after it.`;
+            }
+            else if (!m[2]) {
+                verdict = `Please give the ${lot.name} attribute a value after the = sign.`;
+            }
+            else {
+                attrsCompact = m[2];
+                lot.raw += m[1];
 
-    if (verdict) return;
-
-    attrsCompact.trim().split(/\s+/).every(a => {
-        a = a.split(/=/);
-        
-        if (/^[^a-z]/.test(a[0])) verdict = `${a[0]} is incorrect. Attribute name must begin with a letter.`
-        else if (/[^a-z-]/.test(a[0])) verdict = `${a[0]} is incorrect. Attribute name can only contain letters(a-z) and the dash(-).`
-        else if (!(attributes.all.some(_a => _a === a[0]) || /^data-/i.test(a[0]))) verdict = `${a[0]} is not a valid attribute. Please read the instructions again.`
-        else if (a.length > 1) {
-            if (!a[1].length) verdict = `Please add a value for the ${a[0]} attribute after the = symbol.`
-            else if (!/^['"].*['"]$/.test(a[1])) verdict = `Please add quotation marks around ${a[1].replace(/['"]/g, '')}.`
-            else if (a[1][0] !== lastOf(Array.from(a[1]))) verdict = `${a[1]} is incorrect. Make sure quotation marks are properly paired.`;
+                Array.from(m[2]).some((char, i) => {
+                    // if first quote is not yet found
+                    if (!lot.fq) {
+                        // if current character is anything other than space or single/double quote
+                        if (/[^\s'"]/.test(char)) {
+                            verdict = "It's good practice to always use quotes for attribute values. Please add a quotation mark after the = sign.";
+                        }
+                        else if (/['"]/.test(char)) {
+                            attrsCompact = attrsCompact.slice(i + 1);
+                            lot.fq = char;
+                            char === '"' ? lot.dq.push(char) : lot.sq.push(char);
+                        }
+                    }
+                    else if (char === lot.fq) {
+                        lot.quote = char;
+                        lot.value = 
+                    }
+                    lot.raw += char;
+                    return verdict || lot.value;
+                });
+            }
         }
-        else if (!attributes.boolean.some(_a => _a === a[0])) verdict = `${a[0]} is not a Boolean attribute. Please give it a value.`;
+
+        if (verdict) break;
         
-        if (verdict) return;
+        attrsObjArray.push({
+            name: lot.name,
+            quote: lot.quote,
+            raw: lot.raw,
+            value: lot.value,
+        });
+    } 
+        
 
-        const p = a.length > 1 ?
-            new RegExp(`\\s*${a[0]}\\s*=\\s*${a[1].replace(/(['"])(?=.)/g, '\\s*$1\\s*').replace(/(['"])$/, '\\s*$1')}`) :
-            new RegExp(`\\s*${a[0]}`);
+//     if (verdict) return;
 
-        const attrObj = {
-            name: a[0],
-            quote: a[1] ? a[1][0] : null,
-            raw: attrsRaw.match(p)[0],
-            value: a[1] ? a[1].slice(1, -1) : null,
-        };
-console.log(attrObj);
-        attrsRaw = attrsRaw.slice(attrObj.raw.length);
-        attrsObjArray.push(attrObj);
-        return true;
-    });
+//     attrsCompact.trim().split(/\s+/).every(a => {
+//         a = a.split(/=/);
+        
+//         if (/^[^a-z]/.test(a[0])) verdict = `${a[0]} is incorrect. Attribute name must begin with a letter.`
+//         else if (/[^a-z-]/.test(a[0])) verdict = `${a[0]} is incorrect. Attribute name can only contain letters(a-z) and the dash(-).`
+//         else if (!(attributes.all.some(_a => _a === a[0]) || /^data-/i.test(a[0]))) verdict = `${a[0]} is not a valid attribute. Please read the instructions again.`
+//         else if (a.length > 1) {
+//             if (!a[1].length) verdict = `Please add a value for the ${a[0]} attribute after the = symbol.`
+//             else if (!/^['"].*['"]$/.test(a[1])) verdict = `Please add quotation marks around ${a[1].replace(/['"]/g, '')}.`
+//             else if (a[1][0] !== lastOf(Array.from(a[1]))) verdict = `${a[1]} is incorrect. Make sure quotation marks are properly paired.`;
+//         }
+//         else if (!attributes.boolean.some(_a => _a === a[0])) verdict = `${a[0]} is not a Boolean attribute. Please give it a value.`;
+        
+//         if (verdict) return;
+
+//         const p = a.length > 1 ?
+//             new RegExp(`\\s*${a[0]}\\s*=\\s*${a[1].replace(/(['"])(?=.)/g, '\\s*$1\\s*').replace(/(['"])$/, '\\s*$1')}`) :
+//             new RegExp(`\\s*${a[0]}`);
+
+//         const attrObj = {
+//             name: a[0],
+//             quote: a[1] ? a[1][0] : null,
+//             raw: attrsRaw.match(p)[0],
+//             value: a[1] ? a[1].slice(1, -1) : null,
+//         };
+// console.log(attrObj);
+//         attrsRaw = attrsRaw.slice(attrObj.raw.length);
+//         attrsObjArray.push(attrObj);
+//         return true;
+//     });
 
     return verdict ? false : attrsObjArray;
 }
