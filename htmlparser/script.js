@@ -40,6 +40,8 @@ const
             'contenteditable',
         ],
         boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
+        strict: ['id', 'class', ],
+        allowQuotes: ['title', 'value', 'placeholder', ],
     };
 
 let verdict, inputClone, invalidElement = [], ambiguous = [];
@@ -201,47 +203,53 @@ function checkClosingTag(element, tag) {
 
 function checkAttributes(attrsRaw) {
     const 
-        lot = {sq: [], dq: [], fq: null, name: '', quote: null, raw: '', value: null},
         attrsStrArray = [],
         attrsObjArray = [];
     
     // remove space around = symbol and quotes. e.g. id = ' box ' class='red ' >>> id='box' class='red'
-    let attrsCompact = attrsRaw.replace(/\s*=\s*/g, '=').replace(/=(['"])\s*/g, '=$1').replace(/\s*(['"])/g, '$1');
+    let
+        attrsCompact = attrsRaw.replace(/\s*=\s*/g, '=').replace(/=(['"])\s*/g, '=$1').replace(/\s*(['"])/g, '$1'),
+        lot = {sq: [], dq: [], fq: null, name: '', quote: null, raw: '', value: null};
     
     function removeValidAttr(s) {
         return s;
     }
 
-    while (attrsCompact.length) {
-        console.log(attrsCompact);
+    console.log(attrsCompact);
+    while (attrsRaw.trim().length) {
+        console.log(attrsRaw);
+        // look for attribute name if lot.name is empty
         if (!lot.name) {
-            // look for attribute name
-            if (/^[^\s+]/.test(attrsCompact)) {
-                verdict = `Please add a space after ${lastOf(attrsObjArray.raw)}.`;
+            // if attrsRaw doesn't begin with space
+            if (/^[^\s+]/.test(attrsRaw)) {
+                verdict = `Please add a space after ${lastOf(attrsObjArray).raw}.`;
             }
-            else if (/^\s+[^a-z]/.test(attrsCompact)) {
-                verdict = `${removeValidAttr(attrsCompact)} is incorrect. Attribute name must begin with a letter(a-z).`;
+            // if first non-space character isn't a letter(a-z)
+            else if (/^\s+[^a-z]/.test(attrsRaw)) {
+                verdict = `${removeValidAttr(attrsRaw)} is incorrect. Attribute name must begin with a letter(a-z).`;
             }
-            else if (/[^a-z-]/.test(attrsCompact.trim().split(/[\s+=]/))[0]) {
-                verdict = `${removeValidAttr(attrsCompact)} is incorrect. Attribute name can only contain letters(a-z) and the dash(-).`;
+            // if string up to the first space or = sign contains anything other than letters(a-z) and dash(-)
+            else if (/[^a-z-]/.test(attrsRaw.trim().split(/[\s+=]/))[0]) {
+                verdict = `${removeValidAttr(attrsRaw)} is incorrect. Attribute name can only contain letters(a-z) and dash(-).`;
             }
             else {
                 // get leading string containing letters(a-z) and dash(-)
-                const m = attrsCompact.match(/^\s+[a-z-]+/);
+                const m = attrsRaw.match(/^\s+([a-z-]+)/);
     
-                if (attributes.all.some(a => a === m[0]) || /^data-/i.test(m[0])) {
-                    attrsCompact = attrsCompact.slice(lot.raw.length);
-                    lot.name = m ? m[0].trim() : '';
+                if (attributes.all.some(a => a === m[1].toLowerCase()) || /^data-/i.test(m[1])) {
+                    lot.name = m ? m[1].toLowerCase() : '';
                     lot.raw = m[0];
+                    attrsRaw = attrsRaw.slice(lot.raw.length);
+                    continue;
                 }
                 else {
-                    verdict = `${m[0].trim()} is not a valid attribute. Please read the instructions again.`;
+                    verdict = `${m[1]} is not a valid attribute. Please read the instructions again.`;
                 }
             }
         }
+        // look for attribute value if lot.name is not a Boolean attribute
         else if (attributes.boolean.every(a => a != lot.name)) {
-            // look for attribute value
-            const m = attrsCompact.match(/^(\s*=)(.+)?/);
+            const m = attrsRaw.match(/^(\s*=)(.+)?/);
             if (!m) {
                 verdict = `The ${lot.name} attribute a value by adding the = sign after it.`;
             }
@@ -249,32 +257,48 @@ function checkAttributes(attrsRaw) {
                 verdict = `Please give the ${lot.name} attribute a value after the = sign.`;
             }
             else {
-                attrsCompact = m[2];
+                attrsRaw = m[2];
                 lot.raw += m[1];
 
-                Array.from(m[2]).some((char, i) => {
+                const validAttr = Array.from(m[2]).some((char, i) => {
+                    lot.raw += char;
+
                     // if first quote is not yet found
                     if (!lot.fq) {
                         // if current character is anything other than space or single/double quote
                         if (/[^\s'"]/.test(char)) {
-                            verdict = "It's good practice to always use quotes for attribute values. Please add a quotation mark after the = sign.";
+                            verdict = "Please add a quotation mark after the = sign.";
                         }
                         else if (/['"]/.test(char)) {
-                            attrsCompact = attrsCompact.slice(i + 1);
                             lot.fq = char;
-                            char === '"' ? lot.dq.push(char) : lot.sq.push(char);
                         }
                     }
                     else if (char === lot.fq) {
                         lot.quote = char;
-                        lot.value = 
+                        lot.value = attrsRaw.slice(0, i).trim().slice(1);
+                        attrsRaw = attrsRaw.slice(i + 1);
                     }
-                    lot.raw += char;
+                    else if (/[^0-9a-z-_\s]/.test(char) && attributes.strict.some(a => a === lot.name)) {
+                        verdict = `${attrsRaw.slice(0, i + 1)}.`;
+                    }
+                    
                     return verdict || lot.value;
                 });
+
+                if (!validAttr && !verdict) {
+                    if (!lot.quote) {
+                        verdict = `Make sure quotes are properly paired in ${attrsRaw}.`;
+                    }
+                    else if (!lot.value) {
+                        verdict = `Make sure the value isn't empty for the ${lot.name} attribute.`;
+                    }
+                    else {
+                        verdict = `${attrsRaw.split(/[a-z][0-9a-z-_]*\s*=\s*('[^']*'|"[^"]*")/)[0]} is incorrect. Please read the instructions again.`;
+                    }
+                }
             }
         }
-
+        
         if (verdict) break;
         
         attrsObjArray.push({
@@ -283,41 +307,9 @@ function checkAttributes(attrsRaw) {
             raw: lot.raw,
             value: lot.value,
         });
+
+        lot = {sq: [], dq: [], fq: null, name: '', quote: null, raw: '', value: null};
     } 
-        
-
-//     if (verdict) return;
-
-//     attrsCompact.trim().split(/\s+/).every(a => {
-//         a = a.split(/=/);
-        
-//         if (/^[^a-z]/.test(a[0])) verdict = `${a[0]} is incorrect. Attribute name must begin with a letter.`
-//         else if (/[^a-z-]/.test(a[0])) verdict = `${a[0]} is incorrect. Attribute name can only contain letters(a-z) and the dash(-).`
-//         else if (!(attributes.all.some(_a => _a === a[0]) || /^data-/i.test(a[0]))) verdict = `${a[0]} is not a valid attribute. Please read the instructions again.`
-//         else if (a.length > 1) {
-//             if (!a[1].length) verdict = `Please add a value for the ${a[0]} attribute after the = symbol.`
-//             else if (!/^['"].*['"]$/.test(a[1])) verdict = `Please add quotation marks around ${a[1].replace(/['"]/g, '')}.`
-//             else if (a[1][0] !== lastOf(Array.from(a[1]))) verdict = `${a[1]} is incorrect. Make sure quotation marks are properly paired.`;
-//         }
-//         else if (!attributes.boolean.some(_a => _a === a[0])) verdict = `${a[0]} is not a Boolean attribute. Please give it a value.`;
-        
-//         if (verdict) return;
-
-//         const p = a.length > 1 ?
-//             new RegExp(`\\s*${a[0]}\\s*=\\s*${a[1].replace(/(['"])(?=.)/g, '\\s*$1\\s*').replace(/(['"])$/, '\\s*$1')}`) :
-//             new RegExp(`\\s*${a[0]}`);
-
-//         const attrObj = {
-//             name: a[0],
-//             quote: a[1] ? a[1][0] : null,
-//             raw: attrsRaw.match(p)[0],
-//             value: a[1] ? a[1].slice(1, -1) : null,
-//         };
-// console.log(attrObj);
-//         attrsRaw = attrsRaw.slice(attrObj.raw.length);
-//         attrsObjArray.push(attrObj);
-//         return true;
-//     });
 
     return verdict ? false : attrsObjArray;
 }
@@ -368,15 +360,8 @@ function initialize() {
 }
 
 function lastOf(arr) {
+    if (!Array.isArray(arr)) arr = Array.from(arr);
     return arr[Math.max(arr.length - 1, 0)];
-}
-
-function replaceStrings(str, replacement = '.') {
-    let arr = str.match(/((')[^']*\2)|((")[^"]*\4)/g);
-    arr ? arr.forEach((s) => {    
-        str = str.replace(s, Array(s.length + 1).join(replacement));
-    }) : null;
-    return str;
 }
   
 window.onload = () => initialize();
