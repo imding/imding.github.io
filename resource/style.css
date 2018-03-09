@@ -1,0 +1,14 @@
+body {
+    margin: 0 10px;
+    text-align: center;
+}
+
+h1 {
+    font-family: monospace;
+}
+
+canvas {
+    float: left;
+    margin: 10px;
+    border: 1px dashed silver;
+}
