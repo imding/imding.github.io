@@ -160,7 +160,7 @@ window.onkeydown = (evt) => {
     }
 };
 
-window.onresize = () => { updateUI();};
+window.onresize = () => updateUI;
 
 window.onmouseup = () => {
     window.removeEventListener('mousemove', moveDivider, true);
@@ -820,7 +820,7 @@ function round(v, decimal = 0, op = Math.round) {
     if (op !== Math.round && op !== Math.ceil && op !== Math.floor) {
         throw new Error(`Invalid operation parametre: ${op}.`);
     }
-    else if (decimal < 0 || !Number.isInteger(decimal)) {
+    else if (!Number.isInteger(decimal) || decimal < 0) {
         throw new Error(`Invalid decimal parametre: ${decimal}.`);
     }
 
