@@ -1,0 +1,41 @@
+h1 {
+    font-family: "Nunito";
+  	font-size: 35px;
+  	font-weight: 200;
+    text-align: center;
+}
+
+p {
+  font-family: "Nunito";
+  font-size: 15;
+  font-weight: 700;
+}
+
+button {
+  font-family: "Nunito";
+  font-size: 14px;
+}
+
+#points {
+  	text-align: right;
+}
+
+#points-wrapper {
+  	width: 400px;
+    margin: auto;
+}
+
+#button-wrapper {
+	padding-top: 20px;
+  	text-align: center;
+}
+
+canvas {
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    width: 400px;
+}
+

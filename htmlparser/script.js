@@ -87,7 +87,7 @@ function checkElement() {
 
     const element = {
         openingTag: {
-            attrs: attrsRaw ? checkAttributes(attrsRaw) : [],
+            attrs: attrsRaw ? checkAttribute(attrsRaw) : [],
             raw: match[0],
             tagName: tagRaw.toLowerCase(),
             type: 'tagstart',
@@ -201,16 +201,41 @@ function checkClosingTag(element, tag) {
     return {raw: match[0], tagName: match[2].trim(), type: 'tagend'};
 }
 
-function checkAttributes(attrsRaw) {
+function checkAttribute(inputRaw) {
     const attrsObjArray = [];
-    
-    
+    const p = {
+        attr: /^\s+([a-z]+)/i,
+        sign: /^\s*=/,
+    };
+
+    while (inputRaw.length) {
+        const m = inputRaw.match(p.attr);
+        if (m) {
+            inputRaw = inputRaw.slice(m[0].length);
+            // if attribute is valid
+            if (attributes.all.some(a => a === m[1].toLowerCase())) {
+                // if boolean attribute
+                if (attributes.boolean.some(a => a === m[1].toLowerCase())) continue;
+                if (checkValue(m[1].toLowerCase(), inputRaw)) continue;
+                break;
+            }
+            verdict = `${m[1]} is not a valid attribute.`;
+            break;
+        }
+        verdict = `${m[0]} is incorrect.`;
+        break;
+    }
 
     return verdict ? false : attrsObjArray;
 }
 
-function checkValue() {
-    return true;
+function checkValue(attr, inputRaw) {
+    if (inputRaw.trim().startsWith('=')) {
+        inputRaw = inputRaw.replace(/^\s*=\s*/, '');
+        
+    }
+    verdict = `Please add an equal sign after the ${attr} attribute.`;
+    return false;
 }
 
 function parse() {
@@ -237,6 +262,7 @@ function parse() {
     }
     
     console.log(tree);
+    console.log(inputClone);
 }
 
 // ===== LB IRRELEVANT ===== //

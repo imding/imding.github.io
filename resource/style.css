@@ -2,6 +2,12 @@ body {
     margin: 0 10px;
     text-align: center;
     font-family: monospace;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+button {
+    margin-bottom: 10px;
 }
 
 canvas {

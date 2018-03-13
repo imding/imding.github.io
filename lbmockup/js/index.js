@@ -124,7 +124,7 @@ window.onload = () => {
         `</html>`,
     ].join('\n'));
     
-    taInstruction.value = `Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the learner will do\n\n[Result]`;
+    taInstruction.value = `Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the #GLS(hello)# learner will do\n\n[Result]`;
 
     updateStepLogic();
 };
@@ -160,7 +160,7 @@ window.onkeydown = (evt) => {
     }
 };
 
-window.onresize = () => updateUI;
+window.onresize = updateUI;
 
 window.onmouseup = () => {
     window.removeEventListener('mousemove', moveDivider, true);
@@ -206,7 +206,8 @@ function updateStyledInstruction() {
         image = /\[IMG::(https?:\/\/[^\'"\s]+\.(jpg|gif|jpeg|bmp|png|svg))\]/gi,
         link = /\[([^\]:]+)::([^\s]+)\]/g,
         bold = /\*([^\s*]+|[^\s][^*]+[^\s])\*/g,
-        code = /`([^\s`]+|[^\s][^`]+[^\s])`/g;
+        code = /`([^\s`]+|[^\s][^`]+[^\s])`/g,
+        glossary = /#GLS\(([a-zA-Z0-9-]+)\)#/g;
     let source = inst[cStep].replace(/</g, '&lt;').split(/\r?\n/).slice(2),
         isList = false,
         isPre = false;
@@ -248,6 +249,7 @@ function updateStyledInstruction() {
     source = source.join('\n').replace(/\[-/g, '<ul>').replace(/-\]/g, '</ul>').replace(/\[=/g, '<ol>').replace(/=\]/g, '</ol>');                           // LISTS
     source = source.replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code>').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>');     // CODE SNIPPETS
     source = source.replace(bold, '<b>$1</b>').replace(code, '<code>$1</code>').replace(link, '<a href="$2" target="_blank">$1</a>');
+    source = source.replace(glossary, '<span class="glossary"><i class="fa fa-bolt"></i><span class="glossary-link">hello</span></span>');        console.log(source);
     source += (cStep > 1 && cStep < tSteps ? '\n<hr>\n<p class="highlight">Click on <b>Check all objectives</b> to continue</p>' :
         cStep == 1 ? '\n<hr>\n<p class="highlight">Click on <b>Next step</b> to get started</p>' :
         cStep > 10 ? '\n<hr>\n<p class="highlight"><b>Export to Sandbox</b> to continue working on it</p>' : '');
