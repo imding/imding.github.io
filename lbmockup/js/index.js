@@ -124,9 +124,10 @@ window.onload = () => {
         `</html>`,
     ].join('\n'));
     
-    taInstruction.value = `Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the #GLS(hello)# learner will do\n\n[Result]`;
+    // taInstruction.value = `Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the learner will do.\n\n[Result]`;
+    taInstruction.value = `Adding the onclick attribute\n\nThe player needs to click on one of the 3 images to play this game, so they each needs to respond to the *mouse click event*.\n\nWe can do this with the #GLS(HTML-onclick)# attribute.\n\nThe \`onclick\` attribute must have a value that is the name of a JavaScript #GLS(JS-function)#.\n\nYou can even change the #GLS(CSS-background-color)# of the element.\n\n(***)\n\n(!) create the \`onclick\` attribute`;
 
-    updateStepLogic();
+    updateStepLogic();  btnConvert.click();
 };
 
 window.onkeydown = (evt) => {
@@ -158,6 +159,12 @@ window.onkeydown = (evt) => {
         }
         pkey = evt.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal/, '');       // LIST OF KEYS TO ALLOW REPEATED PRESS
     }
+
+    if (evt.code == 'Escape') {
+        evt.preventDefault();
+        const b = document.getElementById('glsClose');
+        if (b) b.click();
+    }
 };
 
 window.onresize = updateUI;
@@ -167,6 +174,8 @@ window.onmouseup = () => {
     vDivPos = get(vDiv, 'left') / window.innerWidth;
     hDivPos = get(hDiv, 'top') / window.innerHeight;
 };
+
+
 
 // ==================== PROJECT INFO ==================== //
 function editProjectInfo() {
@@ -207,7 +216,7 @@ function updateStyledInstruction() {
         link = /\[([^\]:]+)::([^\s]+)\]/g,
         bold = /\*([^\s*]+|[^\s][^*]+[^\s])\*/g,
         code = /`([^\s`]+|[^\s][^`]+[^\s])`/g,
-        glossary = /#GLS\(([a-zA-Z0-9-]+)\)#/g;
+        glossary = /#GLS\(([a-zA-Z]+)-([a-zA-Z0-9-]+)\)#/g;
     let source = inst[cStep].replace(/</g, '&lt;').split(/\r?\n/).slice(2),
         isList = false,
         isPre = false;
@@ -247,9 +256,9 @@ function updateStyledInstruction() {
     });
 
     source = source.join('\n').replace(/\[-/g, '<ul>').replace(/-\]/g, '</ul>').replace(/\[=/g, '<ol>').replace(/=\]/g, '</ol>');                           // LISTS
-    source = source.replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code>').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>');     // CODE SNIPPETS
-    source = source.replace(bold, '<b>$1</b>').replace(code, '<code>$1</code>').replace(link, '<a href="$2" target="_blank">$1</a>');
-    source = source.replace(glossary, '<span class="glossary"><i class="fa fa-bolt"></i><span class="glossary-link">hello</span></span>');        console.log(source);
+    source = source.replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>');     // CODE SNIPPETS
+    source = source.replace(bold, '<b>$1</b>').replace(code, '<code class="syntax">$1</code>').replace(link, '<a href="$2" target="_blank">$1</a>');
+    source = source.replace(glossary, '<code class="glossary gls$1"><i class="fa fa-rocket glsIcon"></i><span class="glossary-link gls$1">$2</span></code>');
     source += (cStep > 1 && cStep < tSteps ? '\n<hr>\n<p class="highlight">Click on <b>Check all objectives</b> to continue</p>' :
         cStep == 1 ? '\n<hr>\n<p class="highlight">Click on <b>Next step</b> to get started</p>' :
         cStep > 10 ? '\n<hr>\n<p class="highlight"><b>Export to Sandbox</b> to continue working on it</p>' : '');
@@ -258,6 +267,62 @@ function updateStyledInstruction() {
     styledInstruction.innerHTML = source + '<link rel="stylesheet" href="css/instructions.css">';
     selectAndCopy(styledInstruction);
     convertLineNumber();
+
+    const btnGlossary = Array.from(document.getElementsByClassName('glossary'));
+    btnGlossary.forEach(b => {
+        b.onclick = function() {
+            const glsBackdrop = document.createElement('div');
+            const glsWrapper = document.createElement('div');
+            const glsClose = document.createElement('div');
+            
+            document.body.appendChild(glsBackdrop);
+            document.body.appendChild(glsWrapper);
+            glsWrapper.appendChild(glsClose);
+            
+            glsBackdrop.id = 'glsBackdrop';
+
+            glsWrapper.id = 'glsWrapper';
+            glsWrapper.style.left = `${styledInstruction.offsetLeft + b.offsetLeft + (b.offsetWidth / 2)}px`;
+            glsWrapper.style.top = `${styledInstruction.offsetTop + b.offsetTop + (b.offsetHeight / 2)}px`;
+
+            setTimeout(() => {
+                glsBackdrop.style.opacity = '0.6';
+                glsWrapper.style.opacity = '1';
+                glsWrapper.style.width = '500px';
+                glsWrapper.style.height = '350px';
+                glsWrapper.style.left = 'calc(50% - 250px)';
+                glsWrapper.style.top = 'calc(50% - 175px)';
+            }, 0);
+
+            glsWrapper.addEventListener('transitionend', function(evt) {
+                if (glsClose.id) {
+                    if (evt.propertyName == 'width') {
+                        document.body.removeChild(this);
+                    }
+                }
+                else {
+                    if (evt.propertyName == 'width') {
+                        glsClose.id = 'glsClose';
+                        glsClose.innerHTML = '&#10539;';
+                        glsClose.style.left = `${glsWrapper.offsetWidth - glsClose.offsetWidth - 10}px`;
+                    }
+                }
+            }, false);
+
+            glsClose.onclick = function() {
+                glsBackdrop.style.opacity = '0';
+                glsWrapper.style.opacity = '0';
+                glsWrapper.style.width = '0';
+                glsWrapper.style.height = '0';
+                glsWrapper.style.left = `${styledInstruction.offsetLeft + b.offsetLeft + (b.offsetWidth / 2)}px`;
+                glsWrapper.style.top = `${styledInstruction.offsetTop + b.offsetTop + (b.offsetHeight / 2)}px`;
+
+                glsBackdrop.addEventListener('transitionend', function() {
+                    document.body.removeChild(this);
+                }, false);
+            };
+        };
+    });
 }
 
 function convertLineNumber() {
