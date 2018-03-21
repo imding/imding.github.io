@@ -124,19 +124,20 @@ window.onload = () => {
         `</html>`,
     ].join('\n'));
     
-    // taInstruction.value = `Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the learner will do.\n\n[Result]`;
-    taInstruction.value = `Adding the onclick attribute\n\nThe player needs to click on one of the 3 images to play this game, so they each needs to respond to the *mouse click event*.\n\nWe can do this with the #GLS(HTML-onclick)# attribute.\n\nThe \`onclick\` attribute must have a value that is the name of a JavaScript #GLS(JS-function)#.\n\nYou can even change the #GLS(CSS-background-color)# of the element.\n\n(***)\n\n(!) create the \`onclick\` attribute`;
+    taInstruction.value = `Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the learner will do.\n\n[Result]`;
+    // taInstruction.value = `Adding the onclick attribute\n\nThe player needs to click on one of the 3 images to play this game, so they each needs to respond to the *mouse click event*.\n\nWe can do this with the #GLS(HTML-onclick)# attribute.\n\nThe \`onclick\` attribute must have a value that is the name of a JavaScript #GLS(JS-function)#.\n\nYou can even change the #GLS(CSS-background-color)# of the element.\n\n(***)\n\n(!) create the \`onclick\` attribute`;
 
-    updateStepLogic();  btnConvert.click();
+    updateStepLogic();
 };
 
-window.onkeydown = (evt) => {
+window.onkeydown = (evt) => {//   console.log(evt.keyCode);
     const c1 = evt.keyCode == 116;                    // DISABLE F5
     const c2 = evt.location == 1 && evt.ctrlKey;      // EXTRA 'CTRL' KEY PRODUCED BY 'LEFT ALT'
 
     if (c1 || c2) return false;
     
     if (evt.altKey && evt.code != pkey) {           // 'ALT' KEY *AND* NON-REPEATED KEY
+        evt.preventDefault();
         switch (evt.code) {
             case 'Digit0': taInstruction.value = template[0]; break;
             case 'Digit1': taInstruction.value = template[1]; break;
@@ -147,7 +148,7 @@ window.onkeydown = (evt) => {
             case 'KeyP': btnRun.click(); break;
             case 'KeyL': if (cStep > 1) { testLogic(); break; } else { break; };
             case 'KeyK': generateTest(); break;
-            case 'KeyI': evt.preventDefault(); btnConvert.click(); break;
+            case 'KeyI': btnConvert.click(); break;
             case 'Backspace': closePreview(); break;
             case 'BracketLeft': btnPrev.click(); break;
             case 'BracketRight': btnNext.click(); break;
@@ -161,9 +162,11 @@ window.onkeydown = (evt) => {
     }
 
     if (evt.code == 'Escape') {
-        evt.preventDefault();
         const b = document.getElementById('glsClose');
-        if (b) b.click();
+        if (b) {
+            evt.preventDefault();
+            b.click();
+        }
     }
 };
 
@@ -174,8 +177,6 @@ window.onmouseup = () => {
     vDivPos = get(vDiv, 'left') / window.innerWidth;
     hDivPos = get(hDiv, 'top') / window.innerHeight;
 };
-
-
 
 // ==================== PROJECT INFO ==================== //
 function editProjectInfo() {
