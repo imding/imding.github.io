@@ -25,16 +25,23 @@ const
 // ===== FUNCTIONS ===== //
 
 function leaderboard(newScore) {
-    const fire = new Firebase('https://ding-test-test.firebaseio.com/');
-    fire.on('value', (snapshot) => {
-        const data = snapshot.val();
+    let fire = new Firebase('https://ding-test-test.firebaseio.com/');
 
+    info.textContent = 'Loading high score...';
+
+    fire.on('value', (snapshot) => {
+        let data = snapshot.val();
+        
         if (!data.hasOwnProperty('Jigsaw')) {
             data.Jigsaw = {};
-            data.Jigsaw.Highest = null;
+            data.Jigsaw.BEST = 0;
+            fire.set(data);
         }
 
         data = data.Jigsaw;
+
+const ref = fire.database().ref('Jigsaw/BEST/');
+console.log(ref);
 
         if (newScore) {
             data[name] = newScore;
@@ -59,8 +66,8 @@ function setBackground() {
         position: 'absolute',
         top: '50%',
         left: '50%',
-        width: (ir < wr) ? '110vw' : 'inherit',
-        height: (ir > wr) ? '110vh' : 'inherit',
+        width: (ir < wr) ? `${window.innerWidth}px` : 'inherit',
+        height: (ir > wr) ? `${window.innerHeight}px` : 'inherit',
         transform: 'translate(-50%, -50%)',
         filter: 'grayscale(0.6) blur(10px)',
         opacity: '0.75',
@@ -75,10 +82,10 @@ function setBackground() {
 
 function loadImage() {
     image = document.createElement('img');
-    // bg = document.createElement('img');
+    bg = document.createElement('img');
 
     image.src = links[level];
-    // bg.src = image.src;
+    bg.src = image.src;
     info.textContent = `Loading the ${rank(level + 1)} puzzle...`;
 
     image.onload = () => {
@@ -277,7 +284,6 @@ function checkPuzzle() {
             resetPuzzle();
         }
         else {
-            //  console.log(Math.ceil((Date.now() - time) / 1000));
             leaderboard(Math.ceil((Date.now() - time) / 1000));
             info.textContent = 'Well done!';
         }
@@ -288,13 +294,12 @@ function resetPuzzle() {
     puzzle.forEach(piece => puzzleContainer.removeChild(piece));
 
     image = null;
-    // bg = null;
+    bg = null;
     puzzle = [];
     puzzleGrid = [];
     activeIndex = null;
     activeGrid = null;
     mouseDown = false;
-    // puzzleContainer.style.borderColor = 'black';
 
     loadImage();
 }
