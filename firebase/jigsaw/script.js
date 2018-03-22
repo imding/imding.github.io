@@ -23,27 +23,42 @@ const
     ];
 
 // ===== FUNCTIONS ===== //
+const leaderboard = {
+    get
+};
+
+function newLeaderboard(ref, data) {
+    ref.transaction(() => {
+        return data;
+    }, () => {
+        alert("You're the first one to challenge this puzzle. Good Luck!");
+        leaderboard();
+    });
+}
 
 function leaderboard(newScore) {
     let fire = new Firebase('https://ding-test-test.firebaseio.com/');
 
     info.textContent = 'Loading high score...';
 
-    fire.on('value', (snapshot) => {
-        let data = snapshot.val();
-        
+    fire.once('value', (snapshot) => {
+        const
+            data = snapshot.val() || {},
+            Jigsaw;
+
         if (!data.hasOwnProperty('Jigsaw')) {
             data.Jigsaw = {};
             data.Jigsaw.BEST = 0;
-            fire.set(data);
+            newLeaderboard(fire, data);
+            return;
         }
-
-        data = data.Jigsaw;
-
-const ref = fire.database().ref('Jigsaw/BEST/');
-console.log(ref);
+        
+        Jigsaw = snapshot.child('Jigsaw/').ref();
 
         if (newScore) {
+            data.transaction(() => {
+                return newScore;
+            }, () => console.log('Update completed.'));    
             data[name] = newScore;
             fire.set(data);
         }
