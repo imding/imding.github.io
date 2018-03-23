@@ -3,6 +3,11 @@ body {
     font-family: arial;
     text-align: center;
     overflow: hidden;
+    user-select: none;
+}
+
+h1 {
+    margin: 5px;
 }
 
 #puzzleContainer {
@@ -26,35 +31,11 @@ body {
     background: rgba(255, 255, 255, 0.75);
 }
 
-/*#imageLink {*/
-/*	width: 90%;*/
-/*  	margin-top: 10px;*/
-/*	border: 0.5px solid black;*/
-/*	border-radius: 2px;*/
-/*	font-family: monospace;*/
-/*	font-size: 0.8em;*/
-/*	text-align: center;*/
-/*}*/
-
-/*#newPuzzle {*/
-/*    height: 30px;*/
-/*  	margin: 10px 0;*/
-/*	padding: 0 30px;*/
-/*	border: 2px solid black;*/
-/*	border-radius: 15px;*/
-/*	background: ghostwhite;*/
-/*	color: rgba(0, 0, 0, 0.8);*/
-/*    outline: none;*/
-/*    cursor: pointer;*/
-/*  	font-family: Monospace;*/
-/*  	font-size: 1.2em;*/
-/*}*/
-
 .piece {
 	display: inline-block;
     position: absolute;
-    border-radius: 5px;
-    border: rgba(255, 255, 255, 0.6) solid 0.5px;
+    border-radius: 2px;
+    border: rgba(255, 255, 255, 0.25) solid 0.5px;
     box-sizing: border-box;
     transition-property: top, left;
     cursor: -webkit-grab;

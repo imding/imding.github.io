@@ -5,7 +5,7 @@ let
     puzzle = [],
     puzzleGrid = [],
     fire,
-    name,
+    profile,
     image,
     resolution,
     activeIndex,
@@ -26,7 +26,7 @@ const
         // },
         // {
         //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
-        //     grid: 3,
+        //     grid: 4,
         // },
         // {
         //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
@@ -56,11 +56,11 @@ const
 
                 if (!records.length) return showInfo();
 
-                records.forEach(name => {
-                    if (data.Jigsaw[name] < leaderboard.best.time || !leaderboard.best.time) {
+                records.forEach(email => {
+                    if (data.Jigsaw[email].time < leaderboard.best.time || !leaderboard.best.time) {
                         leaderboard.best = {
-                            name: name,
-                            time: data.Jigsaw[name],
+                            name: profile.name,
+                            time: data.Jigsaw[name].time,
                         };
                     }
                 });
@@ -72,17 +72,22 @@ const
         add: (newScore) => {
             if (!newScore || newScore < 0) throw new Error('New score must be a non-zero positive integer.');
             
-            const ref = fire.child(`Jigsaw/${name}`);
-            ref.transaction(() => newScore, () => {
+            const ref = fire.child(`Jigsaw/${profile.email}`);
+            ref.transaction(() => {
+                return {
+                    name: profile.name,
+                    time: newScore,
+                };
+            }, () => {
                 if (newScore <= leaderboard.best.time || !leaderboard.best.time) {
                     alert(`Well done! You have ${leaderboard.best.name ? `defeated ${leaderboard.best.name} to` : ''} become the fastest puzzle solver.`);
                     leaderboard.best = {
-                        name: name,
+                        name: profile.name,
                         time: newScore,
                     };
                 }
                 else {
-                    alert(`You finished in ${newScore} seconds, ${newScore - leaderboard.best.time}s more than the fastest solver.`);
+                    alert(`You finished in ${newScore} seconds, ${newScore - leaderboard.best.time}s behind the fastest solver.`);
                 }
             });
         },
@@ -360,15 +365,119 @@ function style(elem, declarations) {
     });
 }
 
+function getBSDProfile() {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+
+    function InvalidCharacterError(message) {
+        this.message = message;
+    }
+
+    InvalidCharacterError.prototype = new Error();
+    InvalidCharacterError.prototype.name = 'InvalidCharacterError';
+
+    function polyfill(input) {
+        var str = String(input).replace(/=+$/, '');
+        if (str.length % 4 == 1) {
+            throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
+        }
+        for (
+            // initialize result and counters
+            var bc = 0, bs, buffer, idx = 0, output = '';
+            // get next character
+            buffer = str.charAt(idx++);
+            // character found in table? initialize bit storage and add its ascii value;
+            ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
+                // and if not first of each 4 characters,
+                // convert the first 8 bits to one ascii character
+                bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
+        ) {
+            // try to find character in table (0-63, not found => -1)
+            buffer = chars.indexOf(buffer);
+        }
+        return output;
+    }
+
+    function b64DecodeUnicode(str) {
+        return decodeURIComponent(atob(str).replace(/(.)/g, function (m, p) {
+            var code = p.charCodeAt(0).toString(16).toUpperCase();
+            if (code.length < 2) {
+                code = '0' + code;
+            }
+            return '%' + code;
+        }));
+    }
+
+    function base64_url_decode(str) {
+        var output = str.replace(/-/g, "+").replace(/_/g, "/");
+        switch (output.length % 4) {
+            case 0:
+                break;
+            case 2:
+                output += "==";
+                break;
+            case 3:
+                output += "=";
+                break;
+            default:
+                throw "Illegal base64url string!";
+        }
+
+        try {
+            return b64DecodeUnicode(output);
+        } catch (err) {
+            return atob(output);
+        }
+    };
+
+    function InvalidTokenError(message) {
+        this.message = message;
+    }
+
+    InvalidTokenError.prototype = new Error();
+    InvalidTokenError.prototype.name = 'InvalidTokenError';
+
+    function decodeJwt(token, options) {
+        if (typeof token !== 'string') {
+            throw new InvalidTokenError('Invalid token specified');
+        }
+
+        options = options || {};
+        var pos = options.header === true ? 0 : 1;
+        try {
+            return JSON.parse(base64_url_decode(token.split('.')[pos]));
+        } catch (e) {
+            throw new InvalidTokenError('Invalid token specified: ' + e.message);
+        }
+    };
+
+    var token = parent.localStorage.getItem('id_token');
+    if (token != null) {
+        var decoded = decodeJwt(token);
+        if (decoded != null) {
+            return {
+                name: decoded.name,
+                email: decoded.email,
+                picture: decoded.picture,
+                lb_user_id: decoded.lb_user_id,
+                auth0_user_id: decoded.user_id,
+                organisations: decoded.organisations
+            };
+        }
+    }
+    return null;
+}
+
 // ===== EVENTS ===== //
 
 window.onload = () => {
-    while (!name || !name.trim().length) {
-        name = prompt("What's your name?");
+    profile = getBSDProfile();
+    if (profile) {
+        leaderboard.load(() => {time = Date.now()});
+        loadImage();
     }
-
-    leaderboard.load(() => {time = Date.now()});
-    loadImage();
+    else {
+        window.open('www.bsdlaunchbox.com');
+    }
 };
 
 window.ontouchstart = (evt) => selectPiece(evt.target);
