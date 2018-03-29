@@ -7,7 +7,7 @@ body {
 }
 
 h1 {
-    margin: 5px;
+    margin: 10px 0 5px 0;
 }
 
 #puzzleContainer {
@@ -34,8 +34,8 @@ h1 {
 .piece {
 	display: inline-block;
     position: absolute;
-    border-radius: 2px;
-    border: rgba(255, 255, 255, 0.25) solid 0.5px;
+    border-radius: 3px;
+    border: rgba(0, 0, 0, 0.1) solid 0.5px;
     box-sizing: border-box;
     transition-property: top, left;
     cursor: -webkit-grab;
@@ -43,4 +43,20 @@ h1 {
 
 .piece:active {
     cursor: -webkit-grabbing;
+}
+
+.blue {
+    color: skyblue;
+}
+
+.red {
+    color: indianred;
+}
+
+.green {
+    color: rgb(67, 199, 144);
+}
+
+.gold {
+    color: rgb(231, 171, 91);
 }

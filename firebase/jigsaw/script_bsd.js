@@ -7,12 +7,14 @@ let
     fire,
     profile,
     image,
+    popup,
     resolution,
     activeIndex,
     activeGrid,
     secondaryLocation,
     bg = {wrapper: null, image: null},
-    mouseDown = false;
+    mouseDown = false,
+    tap = Date.now();
 
 const
     levels = [
@@ -20,18 +22,18 @@ const
             link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-keys.jpeg',
             grid: 2,
         },
-        // {
-        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-newyork.png',
-        //     grid: 3,
-        // },
-        // {
-        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
-        //     grid: 4,
-        // },
-        // {
-        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
-        //     grid: 4,
-        // }
+        {
+            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-newyork.png',
+            grid: 3,
+        },
+        {
+            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
+            grid: 4,
+        },
+        {
+            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
+            grid: 4,
+        }
     ],
     leaderboard = {
         best: {
@@ -39,55 +41,65 @@ const
             time: 0,
         },
         load: (afterLoad) => {
-            fire = new Firebase('https://ding-test-test.firebaseio.com/');
-            info.textContent = 'Loading leaderboard...';
-            
-            fire.once('value', (snapshot) => {
-                const
-                    data = snapshot.val() || {},
-                    showInfo = () => {
-                        alert("No one has solved all 5 puzzles yet, be the first. Good Luck!");
-                        afterLoad();
-                    };
+            showPopup('Loading leaderboard...');
+            fire = new Firebase('https://bsd-jigsaw.firebaseio.com/');
 
-                if (!data.hasOwnProperty('Jigsaw')) return showInfo();
-                
-                const records = Object.keys(data.Jigsaw);
+            fire.once('value', (snapshot) => {
+                document.body.removeChild(popup.element);
+                const showInfo = () => {
+                    showPopup('No one has solved all 5 puzzles yet. Good Luck!', 'Play', () => {
+                        document.body.removeChild(popup.element);
+                        toggleFullScreen();
+                    });
+                    afterLoad();
+                };
+
+                if (!snapshot.hasChildren()) return showInfo();
+
+                const records = Object.keys(snapshot.val());
 
                 if (!records.length) return showInfo();
 
-                records.forEach(email => {
-                    if (data.Jigsaw[email].time < leaderboard.best.time || !leaderboard.best.time) {
+                records.forEach(uid => {
+                    if (snapshot.val()[uid].time < leaderboard.best.time || !leaderboard.best.time) {
                         leaderboard.best = {
-                            name: profile.name,
-                            time: data.Jigsaw[name].time,
+                            name: snapshot.val()[uid].name,
+                            time: snapshot.val()[uid].time,
                         };
                     }
                 });
 
-                alert(`The fastest solve is ${leaderboard.best.time}s kept by ${leaderboard.best.name}.`);
+                showPopup(`<span class='blue'>${leaderboard.best.name}</span><br>solved all puzzles in<br><span class='gold'>${leaderboard.best.time}</span> seconds`, 'Play', () => {
+                    document.body.removeChild(popup.element);
+                    toggleFullScreen();
+                });
                 afterLoad();
             });
         },
         add: (newScore) => {
+            let sameUser;
             if (!newScore || newScore < 0) throw new Error('New score must be a non-zero positive integer.');
-            
-            const ref = fire.child(`Jigsaw/${profile.email}`);
-            ref.transaction(() => {
+
+            const ref = fire.child(profile.lb_user_id);
+            ref.transaction((currentData) => {
+                sameUser = Boolean(currentData);
                 return {
                     name: profile.name,
-                    time: newScore,
+                    email: profile.email,
+                    time: currentData ? Math.min(currentData.time, newScore) : newScore,
                 };
             }, () => {
                 if (newScore <= leaderboard.best.time || !leaderboard.best.time) {
-                    alert(`Well done! You have ${leaderboard.best.name ? `defeated ${leaderboard.best.name} to` : ''} become the fastest puzzle solver.`);
+                    const p = sameUser ? 'beaten your own record' : `defeated<br><span class='blue'>${leaderboard.best.name}</span><br>to become the champion`;
+                    showPopup(`You finished in<br><span class='gold'>${newScore}</span> seconds<br><br>Congratulations! You've ${p}!`, 'Play again', () => window.location.reload(true));
                     leaderboard.best = {
                         name: profile.name,
                         time: newScore,
                     };
                 }
                 else {
-                    alert(`You finished in ${newScore} seconds, ${newScore - leaderboard.best.time}s behind the fastest solver.`);
+                    showPopup(`You finished in<br><span class='green'>${newScore}</span> seconds<br><br>The current best score is<br><span class='gold'>${leaderboard.best.time}</span> seconds`);
+                    alert(`You finished in ${newScore} seconds, ${newScore - leaderboard.best.time}s more than the fastest solver.`);
                 }
             });
         },
@@ -154,12 +166,11 @@ function initialze() {
     generatePuzzle();
     shuffle(puzzle);
 
-    spare.style.height = window.innerHeight - spare.offsetTop + 'px';
+    spare.style.height = `${window.innerHeight - spare.offsetTop}px`;
 
     puzzle.forEach((piece, i) => {
         puzzleContainer.appendChild(piece);
         piece.location = puzzleGrid[i];
-// console.log(puzzleGrid.filter(g => g.isEmpty).length / puzzleGrid.length);
         if (Math.random() > 0.7) {
             puzzleGrid[i].isEmpty = false;
             piece.style.left = puzzleGrid[i].x;
@@ -290,8 +301,8 @@ function dropPiece(clientX, clientY) {
         activeIndex = null;
     }
 
-    const selection = window.getSelection();
-    if (selection.type == 'Range') selection.removeAllRanges();
+    // const selection = window.getSelection();
+    // if (selection.type == 'Range') selection.removeAllRanges();
 }
 
 function placePiece(target) {
@@ -324,12 +335,13 @@ function checkPuzzle() {
 
     if (pass && puzzleGrid.every(grid => !grid.isEmpty)) {
         if (nth < levels.length - 1) {
-            nth++;
-            resetPuzzle();
+            showPopup(`Well done! You solved the ${rank(++nth)} puzzle!`, 'Next puzzle', () => {
+                document.body.removeChild(popup.element);
+                resetPuzzle();
+            });
         }
         else {
             leaderboard.add(Math.ceil((Date.now() - time) / 1000));
-            info.textContent = 'Well done! You solved all 5 puzzles.';
         }
     }
 }
@@ -345,6 +357,154 @@ function resetPuzzle() {
 
     loadImage();
 }
+
+function toggleFullScreen() {
+    var doc = window.document;
+    var docEl = doc.documentElement;
+
+    var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+    var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+    if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        requestFullScreen.call(docEl);
+    }
+    else {
+        cancelFullScreen.call(doc);
+    }
+}
+
+function showPopup(messageContent, buttonText, action) {
+    const
+        wrapper = document.createElement('div'),
+        logo = document.createElement('img'),
+        message = document.createElement('h2'),
+        button = document.createElement('button');
+
+    popup = {
+        element: document.createElement('div'),
+        message: message,
+        button: button,
+    };
+
+    logo.src = 'https://app.bsdlaunchbox.com/resources/bsdlogo.png';
+    message.innerHTML = messageContent;
+    
+    wrapper.appendChild(message);
+
+    if (buttonText) {
+        button.textContent = buttonText;
+        button.onclick = action;
+        wrapper.appendChild(button);
+    }
+
+    document.body.appendChild(popup.element);
+  	popup.element.appendChild(wrapper);
+    popup.element.appendChild(logo);
+    
+  	style([popup.element], {
+        position: 'absolute',
+        top: '0',
+        width: `${window.innerWidth}px`,
+        height: `${window.innerHeight}px`,
+        background_color: 'rgba(255, 255, 255, 0.8)',
+        z_index: '2',
+    });
+  
+    style([wrapper], {
+        position: 'absolute',   
+        width: `${window.innerWidth - 50}px`,
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        border_radius: '10px',
+        padding: '0 20px 20px 20px',
+        background_color: 'rgba(0, 0, 0, 0.8)',
+        box_sizing: 'border-box',
+    });
+    
+    style([message], {
+        margin_top: '0',
+        font_family: 'Monospace',
+        color: 'ghostwhite',
+        line_height: '1.5em',
+    });
+    
+    if (buttonText) style([button], {
+        border: 'none',
+        border_radius: `${button.offsetHeight / 2}px`,
+        padding: '5px 10px',
+        cursor: 'pointer',
+        outline: 'none',
+        font_family: 'Monospace',
+        font_size: '1.2em',
+        color: 'black',
+        background_color: 'ghostwhite',
+    });
+    
+    logo.onload = () => {
+        const sizeRatio = window.innerWidth * 0.15 / logo.offsetWidth;
+        style([wrapper], {padding_top: `${10 + (logo.offsetHeight / 2) * sizeRatio}px`});
+        style([logo], {
+            position: 'absolute',
+            left: '50%',
+            transform: `translateX(-50%) scale(${sizeRatio}) `,
+            top: `${wrapper.offsetTop - (wrapper.offsetHeight / 2) - (logo.offsetHeight / 2)}px`,
+        });
+    }
+}
+
+// ===== EVENTS ===== //
+
+window.onresize = () => style([spare], {height: `${window.innerHeight - spare.offsetTop}px`});
+
+window.onload = () => {
+    loadImage();
+
+    profile = getBSDProfile();
+
+    if (profile) leaderboard.load(() => time = Date.now());
+    else {
+        showPopup('You must log in with a Launchbox account to play', 'Go to Launchbox', () => window.open('https://app.bsdlaunchbox.com'));
+        document.onvisibilitychange = () => {
+            if (document.visibilityState === 'visible') window.location.reload(true);
+        }
+    }
+};
+
+window.ontouchstart = (evt) => {
+    if (evt.touches.length === 1) selectPiece(evt.target);
+};
+
+window.onmousedown = (evt) => {
+    mouseDown = true;
+    selectPiece(evt.target);
+};
+
+window.ontouchmove = (evt) => {
+    if (evt.touches.length === 1) movePiece(evt.touches[0].clientX, evt.touches[0].clientY);
+    evt.preventDefault();
+};
+
+window.onmousemove = (evt) => {
+    if (mouseDown) movePiece(evt.clientX, evt.clientY);
+};
+
+window.ontouchend = (evt) => {
+    if (!activeIndex && !evt.touches.length) {
+        const time = Date.now();
+        if (time - tap < 200) toggleFullScreen();
+        tap = time;
+    }
+
+    dropPiece(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
+};
+
+window.onmouseup = (evt) => {
+    mouseDown = false;
+    dropPiece(evt.clientX, evt.clientY);
+};
+
+// ===== UTILITY ===== //
 
 function rank(n) {
     return n > 0 ?
@@ -466,33 +626,3 @@ function getBSDProfile() {
     }
     return null;
 }
-
-// ===== EVENTS ===== //
-
-window.onload = () => {
-    profile = getBSDProfile();
-    if (profile) {
-        leaderboard.load(() => {time = Date.now()});
-        loadImage();
-    }
-    else {
-        window.open('www.bsdlaunchbox.com');
-    }
-};
-
-window.ontouchstart = (evt) => selectPiece(evt.target);
-window.onmousedown = (evt) => {
-    mouseDown = true;
-    selectPiece(evt.target);
-};
-
-window.ontouchmove = (evt) => movePiece(evt.touches[0].clientX, evt.touches[0].clientY);
-window.onmousemove = (evt) => {
-    if (mouseDown) movePiece(evt.clientX, evt.clientY);
-};
-
-window.ontouchend = (evt) => dropPiece(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
-window.onmouseup = (evt) => {
-    mouseDown = false;
-    dropPiece(evt.clientX, evt.clientY);
-};

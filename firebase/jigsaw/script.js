@@ -20,18 +20,18 @@ const
             link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-keys.jpeg',
             grid: 2,
         },
-        // {
-        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-newyork.png',
-        //     grid: 3,
-        // },
-        // {
-        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
-        //     grid: 3,
-        // },
-        // {
-        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
-        //     grid: 4,
-        // }
+        {
+            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-newyork.png',
+            grid: 3,
+        },
+        {
+            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
+            grid: 4,
+        },
+        {
+            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
+            grid: 4,
+        }
     ],
     leaderboard = {
         best: {

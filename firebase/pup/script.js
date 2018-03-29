@@ -1,915 +1,24 @@
-const newBody = 
-`<div class="top-bar">
-    <center><img class="logo" src="http://bsdlaunchbox.com/wp-content/uploads/2017/08/logo-lightbg.png" alt="" width="40%" />
-        <div class="profileData">
-            <div id="profileName" class="profileContent">
-                <button class="button loginbutton" onclick="auth0Login()" type="button">Click here to Login or Signup on Launchbox. <br>Reload this page after doing so</button>
-            </div>
-            <div id="profileEmail" class="profileContent"></div>
-            <div id="pointsHolder" class="profilePoints">Points: <span id="profilePoints"></span></div>
-            <button id="levelSwitch" class="button level-select-button">Switch Levels</button>
-        </div>
-    </center>
-</div>
-
-<ol class="level-list"></ol>
-<p id="levelInstruction" class="instruction"></p>
-<canvas id="theGame"></canvas>
-<br /><br />
-
-<button class="button next-level-button">Next level</button>
-
-<div class="levels">
-
-<pre id="intro-fixed1" data-blurb="Tutorial">
-blurb: Tutorial
-instruction: Drag cub to star
----
-*=.=.
-!
-. . .
-!
-@=.=.
-</pre>
-
-<pre id="intro-fixed2" data-blurb="Tutorial">
-blurb: Tutorial
-instruction: Drag grid to rotate. Cub and star moves with grid. Orange links stay in place.
----
-* . .
-!
-. . .
-!
-@=.=.
-</pre>
-
-<pre id="intro-fixed3" data-blurb="★">
-blurb: ★
----
-@=. .
-
-. . .
-!
-*=. .
-</pre>
-
-<pre id="intro-free1" data-blurb="Tutorial">
-blurb: Tutorial
-instruction: Blue links move with grid. Rotate grid to connect blue and orange links in different ways.
----
-@-. .
-!   | 
-. . .
-|
-*-.-.
-</pre>
-
-<pre id="m3x3-2-med" data-blurb="★">
-blurb: ★
----
-. . *
-| | | 
-. . .
-| | | 
-@ .=.
-</pre>
-
-<pre id="m3x3-fixed-switch" data-blurb="★">
-blurb: ★
----
-*=.-.
-
-. . .
-| 
-@-. .
-</pre>
-
-<pre id="m4x4-2" data-blurb="★">
-blurb: ★
----
-. .=. .
-| !  
-. . .-*
-|    
-. . . .
-
-. @-. .
-</pre>
-
-<pre id="m4x4-1" data-blurb="★">
-blurb: ★
----
-. . . .
-
-* . . @
-| ! |
-. . . .
-!    
-. . . .
-</pre>
-
-<pre id="m4x4-3" data-blurb="★">
-blurb: ★
----
-. @ . .
-! |    
-. . . .
-|
-.=.=.-.
-|       
-. * . .
-</pre>
-
-<pre id="m4x4-4" data-blurb="★">
-blurb: ★
----
-. . . .
-
-* . . .
-!  
-. . .-.
-!      
-.=.=. @
-</pre>
-
-<pre id="m4x4-5" data-blurb="★">
-blurb: ★
----
-.-.-.-.
-|       
-@ .-.-.
-
-* .=. .
-!   |   
-.-.-. .
-</pre>
-
-<pre id="m4x4-6-med" data-blurb="★">
-blurb: ★
----
-. * . .
-
-.-.=. .
-|
-. . . .
-!   |
-.=. @ .
-</pre>
-
-<pre id="m4x4-7-hard1" data-blurb="★★">
-blurb: ★★
----
-. . *-.
-
-.-.=. .
-|
-.=. . .
-| |  
-@-.-.=.
-</pre>
-
-<pre id="m4x4-8-hard2" data-blurb="★★">
-blurb: ★★
----
-.-@ .=.
-
-. . . .
-|  
-.-. .-*
-|    
-. .=.-.
-</pre>
-
-<pre id="m4x4-9-hard1" data-blurb="★★">
-blurb: ★★
----
-. . .=.
-!    
-@-. .-.
-
-. .=. .
-
-. . * .
-</pre>
-
-<pre id="m4x4-10-hard1" data-blurb="★★">
-blurb: ★★
----
-. @=. .
-|   
-. .-.-.
-
-.-.-.-.
-!     ! 
-. * . .
-</pre>
-
-<pre id="m5x5-3" data-blurb="★">
-. . . . .
-| !   
-. . .-. .
-|     
-. . . . *
-|     
-. . .=. .
-|     
-. @ . . .
-</pre>
-
-<pre id="m5x5-1" data-blurb="★">
-@-.-. .-.
-|    
-. . . . .
- 
-. . .=. .
- 
-. . . .=.
-|    
-. .=.-* .
-</pre>
-
-<pre id="m5x5-2" data-blurb="★★">
-. . . . .
-
-. .=.-. @
-|       !
-. . . .-.
-
-.=. . .=.
-!       
-* . . . .
-</pre>
-
-<pre id="m5x5-4" data-blurb="★★">
-. . . .-.
-! 
-. .-. . .
-!     |
-.=. . . .
-|        
-. . . . *
-|        
-.-@=. .=.
-</pre>
-
-<pre id="m5x5-5" data-blurb="★★">
-. . . . .
-
-. . .-. *
-!
-. . .-. .
-
-.=. . . .
-|
-. @-. . .
-</pre>
-
-<pre id="m5x5-6" data-blurb="★★">
-. . .-.-.
-!   !    
-. .=.-. .
-|   
-. .-. .-@
-!
-* .=. . .
-|
-.=. .-.=.
-</pre>
-
-<pre id="m5x5-7" data-blurb="★★★">
-.=* . @=.
-|
-. .=. . .
-|   | |
-.=. . .-.
-|
-. . . .=.
-!    
-. .-.-. .
-</pre>
-
-<pre id="m5x5-8" data-blurb="★★★">
-. * . .-.
-|     
-. . .=.-.
-!       | 
-. . . . .
-
-. .-. .=.
-|
-. . .=.-@
-</pre>
-
-<pre id="m5x5-9" data-blurb="★★★">
-.-.-. . .
-|    
-. . . .-@
-!      
-* . .-. .
-|   !    
-.-. . .=.
-|   !
-. . .=. .
-</pre>
-
-<pre id="m5x5-10" data-blurb="★★">
-. . . . .
- 
-. . . .-@
-!      
-* . .=. .
-|   !    
-.-. . . .
- 
-. . . . .
-</pre>
-
-<pre id="m5x5-11" data-blurb="★★★">
-. . . .=.
-|     
-. . . .=.
-|        
-. . .-. .
-! |     
-. .=. . .
-|   !   !
-.-@ . * .
-</pre>
-
-<pre id="m5x5-12" data-blurb="★★">
-. . .=.=.
-
-. . . . .
-
-. . . . @
-
-. . . . .
-
-* . .=.=.
-</pre>
-
-<pre id="m6x6-1-hard1" data-blurb="★★★">
-. . * . . .
-! | |  
-. .-. .-. .
-  |
-. . . . .-.
-| ! |
-. . .=. . .
-|
-@-.-. .-. .
-  |
-. .=. . .-.
-</pre>
-
-<pre id="m6x6-2" data-blurb="★★★">
-@ .=. . .=.
-| | !
-. . . .=. .
-|     |
-. . . .-. .
-|   !
-. . . . . *
-|     |
-.=. .-. . .
-|   | |
-.-. . . .=.
-</pre>
-
-<pre id="m6x6-3" data-blurb="★★★">
-.=. .=.-.-*
-|        
-.-. . . . .
-| !
-. . .-.-. .
-!          
-.-. .=.=. .
-   
-@ .=. . . .
-|     !
-. .-. .-. .
-</pre>
-
-<pre id="pivot-4x4-intro" data-blurb="Tutorial">
-instruction: Green links pivot with grid, but point in the same direction
----
-. .-* .
-|    
-. . . .
-
-. .>. .
-
-. @ . .
-</pre>
-
-<pre id="pivot-5x5-2" data-blurb="★★">
-. . .-.-@
-
-. .<. . .
-
-.>. . . .
-| !      
-.-.-. . *
-!     
-. . . . .
-</pre>
-
-<pre id="pivot-5x5-swirly" data-blurb="★★★">
-. . . . .
-^ 
-.<. . . *
-
-. . . . .
-
-@ . . .>.
-v     
-. . . . .
-</pre>
-
-<pre id="pivot-5x5-1" data-blurb="★★★">
-. .-. . .
-^ 
-. .<.=.=.
-
-.>. . .-@
-
-* . . .=.
-
-. . . . .
-</pre>
-
-<pre id="pivot-5x5-3" data-blurb="★★">
-.=. . .-*
-v   
-. . . . .
- 
-. . .-.J.
- 
-@-. . . .
-v   
-.<. . . .
-</pre>
-
-<pre id="pivot-5x5-4" data-blurb="★★★">
-.-.-. @>.
-!     ^ 
-. . . . .
-|      
-. . . . .
-|     
-. . . .=*
-^    
-. . .-. .>
-</pre>
-
-<pre id="pivot-5x5-5" data-blurb="★★★">
-.-. . . *
-
-. .>. . .
-|       v
-.-. . . .
-^      
-. . .-. .
-v 
-@=.=. . .
-</pre>
-
-<pre id="pivot-5x5-6" data-blurb="★★★">
-. . .>. .
-! |    
-@=. .-. .
-
-. . . .=.>
- 
-. . . . .
- 
-. *>.<. .
-</pre>
-
-<pre id="pivot-5x5-7" data-blurb="★★★">
-* . @ . .
-v   |   
-. . . . .
-!  
-. . . . .
-^     ! !
-. .-. . .
-!     
-. . . . .
-v
-</pre>
-
-<pre id="pivot-6x6-1" data-blurb="★★★">
-. . . . . .
-| v         
-@ . . . . *
-| |      
-. . . . . .
-| !   ^ | K
-. . . .-.=.
-|          
-. .-. . . .
-v          
-.>. . . . .
-</pre>
-
-<pre id="pivot-6x6-3" data-blurb="★★★">
-. @-. .>.-.
-  
-. . . . . .
-  |
-* .>. .=. .
-!      
-. . . . . .>
-|   ^
-. . . .=. .
-   
-. .=. . .=.>
-</pre>
-
-<pre id="pivot-6x6-2" data-blurb="★★★">
-. .-.-. .=.
-v   
-. . . . . .
-|     ! v
-.>. . . . *
-^      
-. . . . . .
-|          
-. .-.<. . .
-! |       |
-. . . .>.-@
-</pre>
-
-<pre id="m44" data-blurb="★★">
-. .=. *-.
-
-. . .=. .
-!        
-. . . . .
-|   ! 
-. . . . .
-|     |
-. @ . .=.
-</pre>
-
-<pre id="m45" data-blurb="★★">
-@ * .>. .
-
-. .=.=. .
-|     | 
-.>. . . .
-
-. . . .>.
-|       
-.=. . .-.
-</pre>
-
-<pre id="m46" data-blurb="★★★">
-.-. . .
-^ 
-. . . .
-
-.L. . .
-!
-@ . .-*
-</pre>
-
-<pre id="m47" data-blurb="★★">
-@ . . . . .
-v v v v v v
-. . . . . .
-
-. . . . . .
-   
-. . . . . .
-v v v v v
-. . . . . .
-   
-. . . .=. *
-v v v v   v
-</pre>
-
-<pre id="m48" data-blurb="★">
-.-.<.>.=. .
-W !       |
-. . .A. . *
-|   |  
-. .=. . . .
-^ !        
-. .D.-.=.=@
-  | 
-. . .-.-. .
-|          
-.#.=. .<. .
-v     v
-</pre>
-
-<pre id="m49" data-blurb="★★★">
-. . .-@ .
-|   
-. . . .J.
-
-* . . . .
-| !     !
-. . . . .
-v   !
-. . . .-.
-</pre>
-
-<pre id="m50" data-blurb="★★★">
-*=. . .
-v  
-. . . .
-^     |
-. . . .
-^   |
-@ .>. .
-</pre>
-
-<pre id="rotate-tut" data-blurb="Tutorial">
-instruction: Red links are fixed in place, but rotate with grid
----
-. . . .
-
-@ .4. .
-|    
-. . .-*
-
-. . . .
-</pre>
-
-<pre id="rotate1" data-blurb="★">
-. . .-*
-|  
-. . . .
-5  
-.4. . .
-|      
-@ . . .
-</pre>
-
-<pre id="rotate2" data-blurb="★★">
-@ .-.=.
-|  
-. . .4.
-|  
-* . . .
-|   |  
-. . . . 
-</pre>
-
-<pre id="rotate3" data-blurb="★★">
-. . * .
-! 5 v  
-. . . @
-|    
-. .4. .
-!    
-. . . .
-</pre>
-
-<pre id="rotate3b" data-blurb="★★">
-* . . .
-! 5    
-. . . @
-|    
-. .4. .
-!    
-. . . .
-</pre>
-
-<pre id="rotate-5x5-1" data-blurb="★★">
-. . . .-@
-8 
-. .=. . .
-
-*=. . . .
-
-. .-. . .
-
-. . . . .
-</pre>
-
-<pre id="rotate-5x5-2" data-blurb="★★">
-. . . . .
-
-. . . .6*
-|     
-. . . .=.
-|     
-.4. . . .
-|
-. . . .-@
-</pre>
-
-<pre id="rotate-5x5-2b" data-blurb="★★★">
-. . . . .
-!   | 
-.-.-. . .
-v   |
-. . .-. .
-
-@ . . . .
-5   
-. . .=* .
-</pre>
-
-<pre id="rotate-6x6-1" data-blurb="★★★">
-@4.=. . . .
-  
-. . . . . .
-v 8 |
-.-.-. . . .
-!   !   ^   
-. . . . . .
-   
-. .>. . . .
-!          
-* . .4. . .
-</pre>
-
-<pre id="rotate-6x6-2" data-blurb="★★★">
-. . *<. . .
-  
-.=. .-. . .
-5
-. . . .-. .
-|   
-. . . . . .
-   
-. . . . . .
-5     | 
-. .=. . @-.
-</pre>
-
-<pre id="rotate-6x6-3" data-blurb="★★★">
-.4. . . . @
-!          
-.-. . .=. .
-! 
-. . . . . .
-!           
-.>.6. . . .
-!          
-. . . .=.-.
-^    
-. . . . * .
-</pre>
-</div>`;
-
-window.onload = function () {
-    document.body.innerHTML = newBody;
-
-    function auth0Login() {
-        window.open('https://app.bsdlaunchbox.com/');
-    }
-
-    function getBSDProfile() {
-        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-
-        function InvalidCharacterError(message) {
-            this.message = message;
-        }
-
-        InvalidCharacterError.prototype = new Error();
-        InvalidCharacterError.prototype.name = 'InvalidCharacterError';
-
-        function polyfill(input) {
-            var str = String(input).replace(/=+$/, '');
-            if (str.length % 4 == 1) {
-                throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
-            }
-            for (
-                // initialize result and counters
-                var bc = 0, bs, buffer, idx = 0, output = '';
-                // get next character
-                buffer = str.charAt(idx++);
-                // character found in table? initialize bit storage and add its ascii value;
-                ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
-                    // and if not first of each 4 characters,
-                    // convert the first 8 bits to one ascii character
-                    bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
-            ) {
-                // try to find character in table (0-63, not found => -1)
-                buffer = chars.indexOf(buffer);
-            }
-            return output;
-        }
-
-        function b64DecodeUnicode(str) {
-            return decodeURIComponent(atob(str).replace(/(.)/g, function (m, p) {
-                var code = p.charCodeAt(0).toString(16).toUpperCase();
-                if (code.length < 2) {
-                    code = '0' + code;
-                }
-                return '%' + code;
-            }));
-        }
-
-        function base64_url_decode(str) {
-            var output = str.replace(/-/g, "+").replace(/_/g, "/");
-            switch (output.length % 4) {
-                case 0:
-                    break;
-                case 2:
-                    output += "==";
-                    break;
-                case 3:
-                    output += "=";
-                    break;
-                default:
-                    throw "Illegal base64url string!";
-            }
-
-            try {
-                return b64DecodeUnicode(output);
-            } catch (err) {
-                return atob(output);
-            }
-        };
-
-        function InvalidTokenError(message) {
-            this.message = message;
-        }
-
-        InvalidTokenError.prototype = new Error();
-        InvalidTokenError.prototype.name = 'InvalidTokenError';
-
-        function decodeJwt(token, options) {
-            if (typeof token !== 'string') {
-                throw new InvalidTokenError('Invalid token specified');
-            }
-
-            options = options || {};
-            var pos = options.header === true ? 0 : 1;
-            try {
-                return JSON.parse(base64_url_decode(token.split('.')[pos]));
-            } catch (e) {
-                throw new InvalidTokenError('Invalid token specified: ' + e.message);
-            }
-        };
-
-        var token = parent.localStorage.getItem('id_token');
-        if (token != null) {
-            var decoded = decodeJwt(token);
-            if (decoded != null) {
-                return {
-                    name: decoded.name,
-                    email: decoded.email,
-                    picture: decoded.picture,
-                    lb_user_id: decoded.lb_user_id,
-                    auth0_user_id: decoded.user_id,
-                    organisations: decoded.organisations
-                };
-            }
-        }
-        return null;
-    }
-
-    var profile = getBSDProfile();
-    if (profile) {
-        var username = JSON.stringify(profile.name, null, 2);
-        var email = JSON.stringify(profile.email, null, 2);
-        console.log(JSON.parse(username));
-        document.getElementById("profileName").innerHTML = JSON.parse(username);
-        document.getElementById("profileEmail").innerHTML = JSON.parse(email);
-    } else {
-        document.getElementById("levelSwitch").style.display = "none";
-        document.getElementById("theGame").style.display = "none";
-        document.getElementById("levelInstruction").style.display = "none";
-        document.getElementById("pointsHolder").style.display = "none";
-    }
-
-    // databaseFirebase.on("value", function(snapshot) {
-    // //     console.log(snapshot.val());
-    //     //when data updates at Firebase, put it in the data variable
-    //     data = snapshot.val();
-    // })
-
+const champion = {
+    name: '',
+    score: 0,
+};
+
+let fire,
+    profile,
+    gamePoints = 0;
+
+function loadGame() {
     /**
-    * UPDATE POINTS TALLY
-    */
-
-    var gamePoints = 0;
-
-    function updatePoints() {
-        gamePoints = $(".level-list__item__check:visible").length
-        //     alert(gamePoints);
-        document.getElementById("profilePoints").innerHTML = gamePoints;
-        dataSendFirebase();
-    }
-
-    /**
-    * PUZZLE MAKER
-    */
+ * EvEmitter v1.0.2
+ * Lil' event emitter
+ * MIT License
+ */
 
     /* jshint unused: true, undef: true, strict: true */
 
     (function (global, factory) {
         // universal module definition
-        /* jshint strict: false */
-        /* globals define, module */
+        /* jshint strict: false */ /* globals define, module */
         if (typeof define == 'function' && define.amd) {
             // AMD - RequireJS
             define(factory);
@@ -1010,17 +119,16 @@ window.onload = function () {
     }));
 
     /*!
-    * Unipointer v2.1.0
-    * base class for doing one thing with pointer event
-    * MIT license
-    */
+     * Unipointer v2.1.0
+     * base class for doing one thing with pointer event
+     * MIT license
+     */
 
     /*jshint browser: true, undef: true, unused: true, strict: true */
 
     (function (window, factory) {
         // universal module definition
-        /* jshint strict: false */
-        /*global define, module, require */
+        /* jshint strict: false */ /*global define, module, require */
         if (typeof define == 'function' && define.amd) {
             // AMD
             define([
@@ -1062,9 +170,9 @@ window.onload = function () {
         };
 
         /**
-        * works as unbinder, as you can ._bindStart( false ) to unbind
-        * @param {Boolean} isBind - will unbind if falsey
-        */
+         * works as unbinder, as you can ._bindStart( false ) to unbind
+         * @param {Boolean} isBind - will unbind if falsey
+         */
         proto._bindStartEvent = function (elem, isBind) {
             // munge isBind, default to true
             isBind = isBind === undefined ? true : !!isBind;
@@ -1122,10 +230,10 @@ window.onload = function () {
             };
 
         /**
-        * pointer start
-        * @param {Event} event
-        * @param {Event or Touch} pointer
-        */
+         * pointer start
+         * @param {Event} event
+         * @param {Event or Touch} pointer
+         */
         proto._pointerDown = function (event, pointer) {
             // dismiss other pointers
             if (this.isPointerDown) {
@@ -1201,11 +309,11 @@ window.onload = function () {
         };
 
         /**
-        * pointer move
-        * @param {Event} event
-        * @param {Event or Touch} pointer
-        * @private
-        */
+         * pointer move
+         * @param {Event} event
+         * @param {Event or Touch} pointer
+         * @private
+         */
         proto._pointerMove = function (event, pointer) {
             this.pointerMove(event, pointer);
         };
@@ -1237,11 +345,11 @@ window.onload = function () {
         };
 
         /**
-        * pointer up
-        * @param {Event} event
-        * @param {Event or Touch} pointer
-        * @private
-        */
+         * pointer up
+         * @param {Event} event
+         * @param {Event or Touch} pointer
+         * @private
+         */
         proto._pointerUp = function (event, pointer) {
             this._pointerDone();
             this.pointerUp(event, pointer);
@@ -1283,11 +391,11 @@ window.onload = function () {
         };
 
         /**
-        * pointer cancel
-        * @param {Event} event
-        * @param {Event or Touch} pointer
-        * @private
-        */
+         * pointer cancel
+         * @param {Event} event
+         * @param {Event or Touch} pointer
+         * @private
+         */
         proto._pointerCancel = function (event, pointer) {
             this._pointerDone();
             this.pointerCancel(event, pointer);
@@ -1324,34 +432,16 @@ window.onload = function () {
             b: b
         };
         this.three = {
-            a: {
-                x: -a.y,
-                y: a.x
-            },
-            b: {
-                x: -b.y,
-                y: b.x
-            }
+            a: { x: -a.y, y: a.x },
+            b: { x: -b.y, y: b.x }
         };
         this.six = {
-            a: {
-                x: -a.x,
-                y: -a.y
-            },
-            b: {
-                x: -b.x,
-                y: -b.y
-            }
+            a: { x: -a.x, y: -a.y },
+            b: { x: -b.x, y: -b.y }
         };
         this.nine = {
-            a: {
-                x: a.y,
-                y: -a.x
-            },
-            b: {
-                x: b.y,
-                y: -b.x
-            }
+            a: { x: a.y, y: -a.x },
+            b: { x: b.y, y: -b.x }
         };
     }
 
@@ -1379,22 +469,10 @@ window.onload = function () {
         this.a = a;
         this.b = b;
         // orientations
-        this.noon = {
-            a: a,
-            b: b
-        };
-        this.three = {
-            a: a,
-            b: b
-        };
-        this.six = {
-            a: a,
-            b: b
-        };
-        this.nine = {
-            a: a,
-            b: b
-        };
+        this.noon = { a: a, b: b };
+        this.three = { a: a, b: b };
+        this.six = { a: a, b: b };
+        this.nine = { a: a, b: b };
     }
 
     var proto = FixedSegment.prototype;
@@ -1420,44 +498,23 @@ window.onload = function () {
         this.b = b;
         var dx = b.x - a.x;
         var dy = b.y - a.y;
-        this.delta = {
-            x: dx,
-            y: dy
-        };
+        this.delta = { x: dx, y: dy };
         // orientations
         this.noon = {
             a: a,
             b: b
         };
         this.three = {
-            a: {
-                x: -a.y,
-                y: a.x
-            },
-            b: {
-                x: -a.y + dx,
-                y: a.x + dy
-            }
+            a: { x: -a.y, y: a.x },
+            b: { x: -a.y + dx, y: a.x + dy }
         };
         this.six = {
-            a: {
-                x: -a.x,
-                y: -a.y
-            },
-            b: {
-                x: -a.x + dx,
-                y: -a.y + dy
-            }
+            a: { x: -a.x, y: -a.y },
+            b: { x: -a.x + dx, y: -a.y + dy }
         };
         this.nine = {
-            a: {
-                x: a.y,
-                y: -a.x
-            },
-            b: {
-                x: a.y + dx,
-                y: -a.x + dy
-            }
+            a: { x: a.y, y: -a.x },
+            b: { x: a.y + dx, y: -a.x + dy }
         };
     }
 
@@ -1502,27 +559,12 @@ window.onload = function () {
         // orientations
         var dx = b.x - a.x;
         var dy = b.y - a.y;
-        this.delta = {
-            x: dx,
-            y: dy
-        };
+        this.delta = { x: dx, y: dy };
         this.theta = Math.atan2(dy, dx);
-        this.noon = {
-            a: a,
-            b: b
-        };
-        this.three = {
-            a: a,
-            b: this.getB(TAU / 4)
-        };
-        this.six = {
-            a: a,
-            b: this.getB(TAU / 2)
-        };
-        this.nine = {
-            a: a,
-            b: this.getB(TAU * 3 / 4)
-        };
+        this.noon = { a: a, b: b };
+        this.three = { a: a, b: this.getB(TAU / 4) };
+        this.six = { a: a, b: this.getB(TAU / 2) };
+        this.nine = { a: a, b: this.getB(TAU * 3 / 4) };
     }
 
     var proto = RotateSegment.prototype;
@@ -1606,10 +648,7 @@ window.onload = function () {
 
 
     var cub = {
-        offset: {
-            x: 0,
-            y: 0
-        },
+        offset: { x: 0, y: 0 },
     };
 
     var pegOrienter = {
@@ -1617,22 +656,13 @@ window.onload = function () {
             return peg;
         },
         three: function (peg) {
-            return {
-                x: peg.y,
-                y: -peg.x
-            };
+            return { x: peg.y, y: -peg.x };
         },
         six: function (peg) {
-            return {
-                x: -peg.x,
-                y: -peg.y
-            };
+            return { x: -peg.x, y: -peg.y };
         },
         nine: function (peg) {
-            return {
-                x: -peg.y,
-                y: peg.x
-            };
+            return { x: -peg.y, y: peg.x };
         },
     };
 
@@ -1640,22 +670,10 @@ window.onload = function () {
         peg = pegOrienter[orientation](peg);
         this.peg = peg;
 
-        this.noon = {
-            x: peg.x,
-            y: peg.y
-        };
-        this.three = {
-            x: -peg.y,
-            y: peg.x
-        };
-        this.six = {
-            x: -peg.x,
-            y: -peg.y
-        };
-        this.nine = {
-            x: peg.y,
-            y: -peg.x
-        };
+        this.noon = { x: peg.x, y: peg.y };
+        this.three = { x: -peg.y, y: peg.x };
+        this.six = { x: -peg.x, y: -peg.y };
+        this.nine = { x: peg.y, y: -peg.x };
     };
 
     var offsetOrienter = {
@@ -1664,23 +682,14 @@ window.onload = function () {
         },
         three: function (offset) {
             // flip y because its rendering
-            return {
-                x: offset.y,
-                y: -offset.x
-            };
+            return { x: offset.y, y: -offset.x };
         },
         six: function (offset) {
-            return {
-                x: -offset.x,
-                y: -offset.y
-            };
+            return { x: -offset.x, y: -offset.y };
         },
         nine: function (offset) {
             // flip y because its rendering
-            return {
-                x: -offset.y,
-                y: offset.x
-            };
+            return { x: -offset.y, y: offset.x };
         },
     };
 
@@ -1772,9 +781,6 @@ window.onload = function () {
             if (!line) {
                 return;
             }
-            let nnn = line;
-            line = line.replace(/=""/g, '\n');
-            console.log(`${nnn}, ${line}`);
             var parts = line.split(':');
             var key = parts[0].trim();
             var value = parts[1].trim();
@@ -1824,26 +830,14 @@ window.onload = function () {
     };
 
     function getHorizSegment(pegX, pegY, Segment) {
-        var a = {
-            x: pegX + 1,
-            y: pegY
-        };
-        var b = {
-            x: pegX - 1,
-            y: pegY
-        };
+        var a = { x: pegX + 1, y: pegY };
+        var b = { x: pegX - 1, y: pegY };
         return new Segment(a, b);
     }
 
     function getVertSegment(pegX, pegY, Segment) {
-        var a = {
-            x: pegX,
-            y: pegY + 1
-        };
-        var b = {
-            x: pegX,
-            y: pegY - 1
-        };
+        var a = { x: pegX, y: pegY + 1 };
+        var b = { x: pegX, y: pegY - 1 };
         return new Segment(a, b);
     }
 
@@ -1851,14 +845,8 @@ window.onload = function () {
 
     // pivot up segment
     proto['parse^'] = proto.addPivotUpSegment = function (pegX, pegY) {
-        var a = {
-            x: pegX,
-            y: pegY + 1
-        };
-        var b = {
-            x: pegX,
-            y: pegY - 1
-        };
+        var a = { x: pegX, y: pegY + 1 };
+        var b = { x: pegX, y: pegY - 1 };
         var segment = new PivotSegment(a, b);
         this.connectSegment(segment);
         this.pivotSegments.push(segment);
@@ -1866,14 +854,8 @@ window.onload = function () {
 
     // pivot down segment
     proto.parsev = proto.addPivotDownSegment = function (pegX, pegY) {
-        var a = {
-            x: pegX,
-            y: pegY - 1
-        };
-        var b = {
-            x: pegX,
-            y: pegY + 1
-        };
+        var a = { x: pegX, y: pegY - 1 };
+        var b = { x: pegX, y: pegY + 1 };
         var segment = new PivotSegment(a, b);
         this.connectSegment(segment);
         this.pivotSegments.push(segment);
@@ -1881,14 +863,8 @@ window.onload = function () {
 
     // pivot left segment
     proto['parse<'] = proto.addPivotLeftSegment = function (pegX, pegY) {
-        var a = {
-            x: pegX + 1,
-            y: pegY
-        };
-        var b = {
-            x: pegX - 1,
-            y: pegY
-        };
+        var a = { x: pegX + 1, y: pegY };
+        var b = { x: pegX - 1, y: pegY };
         var segment = new PivotSegment(a, b);
         this.connectSegment(segment);
         this.pivotSegments.push(segment);
@@ -1896,14 +872,8 @@ window.onload = function () {
 
     // pivot right segment
     proto['parse>'] = proto.addPivotRightSegment = function (pegX, pegY) {
-        var a = {
-            x: pegX - 1,
-            y: pegY
-        };
-        var b = {
-            x: pegX + 1,
-            y: pegY
-        };
+        var a = { x: pegX - 1, y: pegY };
+        var b = { x: pegX + 1, y: pegY };
         var segment = new PivotSegment(a, b);
         this.connectSegment(segment);
         this.pivotSegments.push(segment);
@@ -1912,56 +882,32 @@ window.onload = function () {
     // ----- rotate ----- //
 
     proto.parse8 = proto.addRotateUpSegment = function (pegX, pegY) {
-        var a = {
-            x: pegX,
-            y: pegY + 1
-        };
-        var b = {
-            x: pegX,
-            y: pegY - 1
-        };
+        var a = { x: pegX, y: pegY + 1 };
+        var b = { x: pegX, y: pegY - 1 };
         var segment = new RotateSegment(a, b);
         this.connectSegment(segment);
         this.rotateSegments.push(segment);
     };
 
     proto.parse4 = proto.addRotateLeftSegment = function (pegX, pegY) {
-        var a = {
-            x: pegX + 1,
-            y: pegY
-        };
-        var b = {
-            x: pegX - 1,
-            y: pegY
-        };
+        var a = { x: pegX + 1, y: pegY };
+        var b = { x: pegX - 1, y: pegY };
         var segment = new RotateSegment(a, b);
         this.connectSegment(segment);
         this.rotateSegments.push(segment);
     };
 
     proto.parse5 = proto.addRotateUpSegment = function (pegX, pegY) {
-        var a = {
-            x: pegX,
-            y: pegY - 1
-        };
-        var b = {
-            x: pegX,
-            y: pegY + 1
-        };
+        var a = { x: pegX, y: pegY - 1 };
+        var b = { x: pegX, y: pegY + 1 };
         var segment = new RotateSegment(a, b);
         this.connectSegment(segment);
         this.rotateSegments.push(segment);
     };
 
     proto.parse6 = proto.addRotateRightSegment = function (pegX, pegY) {
-        var a = {
-            x: pegX - 1,
-            y: pegY
-        };
-        var b = {
-            x: pegX + 1,
-            y: pegY
-        };
+        var a = { x: pegX - 1, y: pegY };
+        var b = { x: pegX + 1, y: pegY };
         var segment = new RotateSegment(a, b);
         this.connectSegment(segment);
         this.rotateSegments.push(segment);
@@ -2031,19 +977,13 @@ window.onload = function () {
 
     // start position
     proto['parse@'] = function (pegX, pegY) {
-        this.startPosition = {
-            x: pegX,
-            y: pegY
-        };
+        this.startPosition = { x: pegX, y: pegY };
         cub.setPeg(this.startPosition, 'noon');
     };
 
     // goal position
     proto['parse*'] = function (pegX, pegY) {
-        this.goalPosition = {
-            x: pegX,
-            y: pegY
-        };
+        this.goalPosition = { x: pegX, y: pegY };
     };
 
     // --------------------------  -------------------------- //
@@ -2316,14 +1256,13 @@ window.onload = function () {
     }
 
     /* globals cub, WinAnimation, Unipointer, Maze */
-
     var docElem = document.documentElement;
     var canvas = document.querySelector('canvas');
     var ctx = canvas.getContext('2d');
     // size canvas;
     var canvasSize = Math.min(window.innerWidth, window.innerHeight);
     var canvasWidth = canvas.width = window.innerWidth * 2;
-    var canvasHeight = canvas.height = window.innerHeight * 1.4;
+    var canvasHeight = canvas.height = window.innerHeight * 2;
     var maze;
     var PI = Math.PI;
     var TAU = PI * 2;
@@ -2338,14 +1277,15 @@ window.onload = function () {
 
     var gridSize = Math.min(40, canvasSize / 12);
     var mazeCenter = {
-        x: canvasWidth / 4,
-        y: Math.min(gridSize * 8, canvasHeight / 4)
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+        // y: Math.min(gridSize * 8, canvasHeight / 4)
     };
 
     // ----- instruction ----- //
 
     var instructElem = document.querySelector('.instruction');
-    instructElem.style.top = (mazeCenter.y + gridSize * 5.5) + 'px';
+    instructElem.style.top = (mazeCenter.y + gridSize * 4) + 'px';
 
     // ----- build level select, levels array ----- //
 
@@ -2367,7 +1307,6 @@ window.onload = function () {
                 '<span class="level-list__item__check">✔</span>';
             listItem.setAttribute('data-id', id);
             fragment.appendChild(listItem);
-
             levels.push(id);
         }
 
@@ -2384,7 +1323,7 @@ window.onload = function () {
         levelList.classList.add('is-open');
     });
 
-    nextLevelButton.style.top = (mazeCenter.y + gridSize * 5.5) + 'px';
+    nextLevelButton.style.top = `${instructElem.offsetTop + instructElem.offsetHeight + 20}px`;
 
     // ----- level list ----- //
 
@@ -2399,12 +1338,12 @@ window.onload = function () {
     });
 
     function getParent(elem, selector) {
-        var theparent = elem;
-        while (theparent != document.body) {
-            if (theparent.matches(selector)) {
-                return theparent;
+        var parent = elem;
+        while (parent != document.body) {
+            if (parent.matches(selector)) {
+                return parent;
             }
-            theparent = theparent.parentNode;
+            parent = parent.parentNode;
         }
     }
 
@@ -2507,10 +1446,7 @@ window.onload = function () {
             return;
         }
         isCubDragging = true;
-        dragStartPosition = {
-            x: pointer.pageX,
-            y: pointer.pageY
-        };
+        dragStartPosition = { x: pointer.pageX, y: pointer.pageY };
         dragStartPegPosition = {
             x: cub[maze.orientation].x * gridSize + mazeCenter.x,
             y: cub[maze.orientation].y * gridSize + mazeCenter.y,
@@ -2533,15 +1469,10 @@ window.onload = function () {
         docElem.classList.remove('is-cub-dragging');
         isCubDragging = false;
         // set at peg
-        cub.setOffset({
-            x: 0,
-            y: 0
-        }, maze.orientation);
+        cub.setOffset({ x: 0, y: 0 }, maze.orientation);
         // check level complete
         if (cub.peg.x == maze.goalPosition.x && cub.peg.y == maze.goalPosition.y) {
             completeLevel();
-            updatePoints();
-            console.log('win');
         }
     };
 
@@ -2673,10 +1604,7 @@ window.onload = function () {
             x = line.a.x * gridSize + mazeCenter.x;
             y = getSegmentDragCoord(line, 'y', dragPosition);
         }
-        return {
-            x: x,
-            y: y
-        };
+        return { x: x, y: y };
     }
 
     function getSegmentDragCoord(line, axis, dragPosition) {
@@ -2814,8 +1742,9 @@ window.onload = function () {
         if (completedLevels.indexOf(maze.id) == -1) {
             completedLevels.push(maze.id);
             localStorage.setItem('completedLevels', completedLevels.join(','));
+            // sync progress to firebase
+            syncToFirebase(localStorage.getItem('completedLevels'));
         }
-
         if (getNextLevel()) {
             setTimeout(function () {
                 nextLevelButton.classList.add('is-open');
@@ -2842,57 +1771,257 @@ window.onload = function () {
     function normalizeAngle(angle) {
         return ((angle % TAU) + TAU) % TAU;
     }
+}
 
-    /**
-    * CONNECT TO FIREBASE
-    */
+function syncToFirebase(localData) {
+    fire.doc(`players/${profile.lb_user_id}`).set({
+        name: profile.name,
+        email: profile.email,
+        score: ++gamePoints,
+        progress: localData,
+    }, { merge: true })
+        .then(() => console.log("Document written", name, score))
+        .catch(error => console.error("Error adding document: ", error));
+}
 
-    //collect data to send
-    function dataSendFirebase() {
-        //just make a variable to keep track of the data coming from Firebase
-        var data = [];
+function showPopup(messageContent, buttonText, action) {
+    const
+        wrapper = document.createElement('div'),
+        logo = document.createElement('img'),
+        message = document.createElement('h2'),
+        button = document.createElement('button');
 
-        var ref = new Firebase('https://kellettgame.firebaseio.com/');
+    popup = {
+        element: document.createElement('div'),
+        message: message,
+        button: button,
+    };
 
-        ref.on("value", function (snapshot) {
-            console.log(snapshot.val());
-            //when data updates at Firebase, put it in the data variable
-            data = snapshot.val();
-        })
+    logo.src = 'https://app.bsdlaunchbox.com/resources/bsdlogo.png';
+    message.innerHTML = messageContent;
 
-        var userName = document.getElementById("profileName").innerHTML;
-        var userEmail = document.getElementById("profileEmail").innerHTML;
-        var userPoints = document.getElementById("profilePoints").innerHTML;
+    wrapper.appendChild(message);
 
-
-        //     ref.child("kellettgame").orderByChild("email").equalTo(userEmail).once("value", snapshot => {
-        //         const userData = snapshot.val();
-        //         if (userData) {
-        //             console.log("exists!");
-        //         }
-        //     });
-
-
-
-
-        //take the values from the form, and put them in an object
-        var newSubmission = {
-            "name": userName,
-            "email": userEmail,
-            "points": userPoints
-        }
-
-        //put the new object into the data array
-        data.push(newSubmission);
-        console.log(data);
-        //send the new data to Firebase
-        ref.set(data);
-
-        return false;
-        console.log("Data updated in the database");
+    if (buttonText) {
+        button.textContent = buttonText;
+        button.onclick = action;
+        wrapper.appendChild(button);
     }
 
-    //RUN THE UPDATE FUNCTION WITH FIREBASE EMBEDDED
+    document.body.appendChild(popup.element);
+    popup.element.appendChild(wrapper);
+    popup.element.appendChild(logo);
 
-    updatePoints();
+    style([popup.element], {
+        position: 'absolute',
+        top: '0',
+        width: `${window.innerWidth}px`,
+        height: `${window.innerHeight}px`,
+        background_color: 'rgba(255, 255, 255, 0.8)',
+        z_index: '2',
+    });
+
+    style([wrapper], {
+        position: 'absolute',
+        width: `${window.innerWidth - 50}px`,
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        border_radius: '10px',
+        padding: '0 20px 20px 20px',
+        background_color: 'rgba(0, 0, 0, 0.8)',
+        box_sizing: 'border-box',
+    });
+
+    style([message], {
+        margin_top: '0',
+        font_family: 'Monospace',
+        color: 'ghostwhite',
+        font_size: '1em',
+        line_height: '1.5em',
+    });
+
+    if (buttonText) style([button], {
+        border: 'none',
+        border_radius: `${button.offsetHeight / 2}px`,
+        padding: '5px 10px',
+        cursor: 'pointer',
+        outline: 'none',
+        font_family: 'Monospace',
+        font_size: '1em',
+        color: 'black',
+        background_color: 'ghostwhite',
+    });
+
+    logo.onload = () => {
+        const sizeRatio = window.innerWidth * 0.15 / logo.offsetWidth;
+        style([wrapper], { padding_top: `${10 + (logo.offsetHeight / 2) * sizeRatio}px` });
+        style([logo], {
+            position: 'absolute',
+            left: '50%',
+            transform: `translateX(-50%) scale(${sizeRatio}) `,
+            top: `${wrapper.offsetTop - (wrapper.offsetHeight / 2) - (logo.offsetHeight / 2)}px`,
+        });
+    }
+}
+
+window.onload = function () {
+    profile = getBSDProfile();
+    
+    if (profile) {
+        showPopup('Loading leaderboard...');
+
+        // Initialize Cloud Firestore through Firebase
+        firebase.initializeApp({
+            apiKey: 'AIzaSyCk7YyJ7d9VUjED8vQbeWLnvYZH9BHTwVI',
+            authDomain: 'bsd-pup.firebaseapp.com',
+            projectId: 'bsd-pup'
+        });
+
+        fire = firebase.firestore();
+
+        fire.collection("players").get().then(players => {
+            document.body.removeChild(popup.element);
+
+            if (players.empty) {
+                showPopup("You're the first one to challenge this puzzle. Good Luck!", 'Play', () => document.body.removeChild(popup.element));
+            }
+            else {
+                players.forEach(p => {
+                    if (p.id === profile.lb_user_id) {
+                        gamePoints = p.data().score;
+                        localStorage.setItem('completedLevels', p.data().progress);
+                    }
+
+                    if (p.data().score > champion.score) {
+                        champion.name = p.data().name;
+                        champion.score = p.data().score;
+                    }
+                });
+                showPopup(`Top player<br><span class='blue'>${champion.name}</span><br>solved a total of<br><span class='gold'>${champion.score}</span> levels`, 'Play', () => document.body.removeChild(popup.element));
+            }
+
+            loadGame();
+        });
+    }
+    else {
+        showPopup('You must log in with a Launchbox account to play', 'Go to Launchbox', () => window.open('https://app.bsdlaunchbox.com'));
+        document.onvisibilitychange = () => {
+            if (document.visibilityState === 'visible') window.location.reload(true);
+        }
+    }
 };
+
+// ===== UTILITY ===== //
+
+function style(elem, declarations) {
+    Object.keys(declarations).forEach(d => {
+        elem.forEach(e => {
+            e.style[d.replace(/_/, '-')] = declarations[d];
+        });
+    });
+}
+
+// ===== BSD PROFILE ===== //
+
+function getBSDProfile() {
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+
+    function InvalidCharacterError(message) {
+        this.message = message;
+    }
+
+    InvalidCharacterError.prototype = new Error();
+    InvalidCharacterError.prototype.name = 'InvalidCharacterError';
+
+    function polyfill(input) {
+        var str = String(input).replace(/=+$/, '');
+        if (str.length % 4 == 1) {
+            throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
+        }
+        for (
+            // initialize result and counters
+            var bc = 0, bs, buffer, idx = 0, output = '';
+            // get next character
+            buffer = str.charAt(idx++);
+            // character found in table? initialize bit storage and add its ascii value;
+            ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
+                // and if not first of each 4 characters,
+                // convert the first 8 bits to one ascii character
+                bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
+        ) {
+            // try to find character in table (0-63, not found => -1)
+            buffer = chars.indexOf(buffer);
+        }
+        return output;
+    }
+
+    function b64DecodeUnicode(str) {
+        return decodeURIComponent(atob(str).replace(/(.)/g, function (m, p) {
+            var code = p.charCodeAt(0).toString(16).toUpperCase();
+            if (code.length < 2) {
+                code = '0' + code;
+            }
+            return '%' + code;
+        }));
+    }
+
+    function base64_url_decode(str) {
+        var output = str.replace(/-/g, "+").replace(/_/g, "/");
+        switch (output.length % 4) {
+            case 0:
+                break;
+            case 2:
+                output += "==";
+                break;
+            case 3:
+                output += "=";
+                break;
+            default:
+                throw "Illegal base64url string!";
+        }
+
+        try {
+            return b64DecodeUnicode(output);
+        } catch (err) {
+            return atob(output);
+        }
+    };
+
+    function InvalidTokenError(message) {
+        this.message = message;
+    }
+
+    InvalidTokenError.prototype = new Error();
+    InvalidTokenError.prototype.name = 'InvalidTokenError';
+
+    function decodeJwt(token, options) {
+        if (typeof token !== 'string') {
+            throw new InvalidTokenError('Invalid token specified');
+        }
+
+        options = options || {};
+        var pos = options.header === true ? 0 : 1;
+        try {
+            return JSON.parse(base64_url_decode(token.split('.')[pos]));
+        } catch (e) {
+            throw new InvalidTokenError('Invalid token specified: ' + e.message);
+        }
+    };
+
+    var token = parent.localStorage.getItem('id_token');
+    if (token != null) {
+        var decoded = decodeJwt(token);
+        if (decoded != null) {
+            return {
+                name: decoded.name,
+                email: decoded.email,
+                picture: decoded.picture,
+                lb_user_id: decoded.lb_user_id,
+                auth0_user_id: decoded.user_id,
+                organisations: decoded.organisations
+            };
+        }
+    }
+    return null;
+}

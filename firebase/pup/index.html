@@ -1,38 +1,27 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-    <meta name="viewport" content="initial-scale=1.0">
-    <link href="style.css" rel="stylesheet" type="text/css" />
     <meta charset="UTF-8">
+    <title>Cub n Pup - puzzle game demo</title>
+    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="top-bar">
-        <center>
-            <img class="logo" src="http://bsdlaunchbox.com/wp-content/uploads/2017/08/logo-lightbg.png" alt="" width="40%" />
-            <div class="profileData">
-                <div id="profileName" class="profileContent">
-                    <button class="button loginbutton" onclick="auth0Login()" type="button">Click here to Login or Signup on Launchbox.
-                        <br>Reload this page after doing so</button>
-                </div>
-                <div id="profileEmail" class="profileContent"></div>
-                <div id="pointsHolder" class="profilePoints">Points:
-                    <span id="profilePoints"></span>
-                </div>
-                <button id="levelSwitch" class="button level-select-button">Switch Levels</button>
-        </center>
-        </div>
+        <h2 id='title'>Cub n Pup</h2>
+        <button id='btnLevel' class="button level-select-button">Levels</button>
     </div>
 
     <ol class="level-list"></ol>
-    <p id="levelInstruction" class="instruction"></p>
-    <canvas id="theGame"></canvas>
-    <br />
-    <br />
 
+    <canvas></canvas>
+    <p class="instruction"></p>
     <button class="button next-level-button">Next level</button>
 
     <div class="levels">
+
         <pre id="intro-fixed1" data-blurb="Tutorial">
 blurb: Tutorial
 instruction: Drag cub to star
@@ -770,9 +759,9 @@ instruction: Red links are fixed in place, but rotate with grid
 </pre>
     </div>
 
-    <script type="text/javascript" src="https://cdn.firebase.com/js/client/2.2.0/firebase.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <script type="text/javascript" src="script.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.11.0/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.11.0/firebase-firestore.js"></script>
+    <script src="script.js"></script>
 </body>
 
 </html>
