@@ -1,3 +1,6 @@
+const context = {
+    
+};
 const input = `<input class = 'small key ' placeholder="Don't do this">
 <div id='wrapper'>
     <h1 id='title'>Test</h1>
@@ -202,31 +205,10 @@ function checkClosingTag(element, tag) {
 }
 
 function checkAttribute(inputRaw) {
-    const attrsObjArray = [];
-    const p = {
-        attr: /^\s+([a-z]+)/i,
-        sign: /^\s*=/,
-    };
+    // unable to reliably parse attributes and provide useful syntax error feedback
+    // 
 
-    while (inputRaw.length) {
-        const m = inputRaw.match(p.attr);
-        if (m) {
-            inputRaw = inputRaw.slice(m[0].length);
-            // if attribute is valid
-            if (attributes.all.some(a => a === m[1].toLowerCase())) {
-                // if boolean attribute
-                if (attributes.boolean.some(a => a === m[1].toLowerCase())) continue;
-                if (checkValue(m[1].toLowerCase(), inputRaw)) continue;
-                break;
-            }
-            verdict = `${m[1]} is not a valid attribute.`;
-            break;
-        }
-        verdict = `${m[0]} is incorrect.`;
-        break;
-    }
-
-    return verdict ? false : attrsObjArray;
+    return !verdict;
 }
 
 function checkValue(attr, inputRaw) {
