@@ -4,11 +4,13 @@ body {
 	background: #252525;
 }
 
-#ide {
+#teacher, #learner {
+	display: block;
 	width: 90vw;
 	max-width: 500px;
-	height: calc(100vh - 125px);
+	height: 250px;
 	padding: 10px;
+	margin: 10px auto;
 	border: none;
 	outline: none;
 	color: ghostwhite;
@@ -16,7 +18,7 @@ body {
 	resize: none;
 }
 
-#btnParse {
+#btnParse, #btnCompare {
 	padding: 5px 20px;
 }
 

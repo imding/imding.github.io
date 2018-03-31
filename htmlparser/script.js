@@ -1,12 +1,16 @@
-const context = {
-    
-};
-const input = `<input class = 'small key ' placeholder="Don't do this">
+const
+    ti = `<input class = 'small key ' placeholder="Don't do this">
+<div id='wrapper'>
+    <h1 id='title'>Test</h1>
+    <h3></h3>
+</div>`,
+    li = `<input class='small key' placeholder="Ain't no rest for the wicked.">
 <div id='wrapper'>
     <h1 id='title'>Test</h1>
     <h3></h3>
 </div>`;
-let counter = 0, ctrl, log = '';
+
+let counter = 0, ctrl, log = '', context;
 
 // ===== LB CODE ===== //
 const
@@ -49,6 +53,7 @@ const
 
 let verdict, inputClone, invalidElement = [], ambiguous = [];
 
+// ===== HtmlAst.js ===== //
 function checkElement() {
     const match = inputClone.match(pOpeningTag);
 
@@ -67,7 +72,7 @@ function checkElement() {
     }
 
     if (match[3] === undefined) {
-        verdict = `Please add the > symbol after ${match[0].trim()}.`;
+        verdict = `Please use the > symbol to close off the opening tag for the ${match[2]} element.`;
         return;
     }
 
@@ -75,10 +80,7 @@ function checkElement() {
 
     // extract tag name and attributes
     Array.from(match[2]).every((char, i) => {
-        if (char !== ' ') {
-            tagRaw += char;
-            return true;
-        }
+        if (!/\s/.test(char)) return (tagRaw += char);
         attrsRaw = match[2].slice(i);
         return;
     });
@@ -247,19 +249,36 @@ function parse() {
     console.log(inputClone);
 }
 
+// ===== HtmlAstComparer.js ===== //
+function compare() {
+    
+}
+
 // ===== LB IRRELEVANT ===== //
+
+function reset() {
+    console.clear();
+    inputClone = learner.value;
+    verdict = null;
+    log = '';
+    invalidElement = [];
+    ambiguous = [];
+}
+
 function initialize() {
-    ide.value = input;
+    teacher.value = ti;
+    learner.value = li;
+    
     btnParse.onclick = () => {
-        console.clear();
-        inputClone = ide.value;
-        verdict = null;
-        log = '';
-        invalidElement = [];
-        ambiguous = [];
-        parse(ide.value);
+        reset();
+        parse(learner.value);
         info.textContent = verdict || 'All good.';
     }
+
+    btnCompare.onclick = () => {
+        reset();
+
+    };
 }
 
 function lastOf(arr) {
