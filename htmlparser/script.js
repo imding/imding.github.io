@@ -10,7 +10,7 @@ const
     <h3></h3>
 </div>`;
 
-let counter = 0, ctrl, log = '', context;
+let counter = 0, ctrl, log = '', result = {teacher: {}, learner: {}}, context;
 
 // ===== LB CODE ===== //
 const
@@ -222,7 +222,11 @@ function checkValue(attr, inputRaw) {
     return false;
 }
 
-function parse() {
+function parse(htmlString, context) {
+    if (!context) {
+        
+    }
+
     let tree = [];
 
     while (inputClone.trim().length) {
@@ -259,6 +263,7 @@ function compare() {
 function reset() {
     console.clear();
     inputClone = learner.value;
+    result = {teacher: {}, learner: {}};
     verdict = null;
     log = '';
     invalidElement = [];
@@ -271,13 +276,13 @@ function initialize() {
     
     btnParse.onclick = () => {
         reset();
-        parse(learner.value);
+        parse(learner.value, result.teacher.context);
         info.textContent = verdict || 'All good.';
     }
 
     btnCompare.onclick = () => {
         reset();
-
+        result.teacher = parse(teacher.value);
     };
 }
 
