@@ -1,10 +1,10 @@
 const
-    ti = `<input class = 'small key ' placeholder="Don't do this">
+    ti = `<input class='small key' placeholder="Ain't no rest for the wicked.">
 <div id='wrapper'>
     <h1 id='title'>Test</h1>
     <h3></h3>
 </div>`,
-    li = `<input class='small key' placeholder="Ain't no rest for the wicked.">
+    li = `<input class = 'small key ' placeholder="Don't do this">
 <div id='wrapper'>
     <h1 id='title'>Test</h1>
     <h3></h3>
@@ -12,7 +12,7 @@ const
 
 let counter = 0, ctrl, log = '', result = {teacher: {}, learner: {}}, context;
 
-// ===== LB CODE ===== //
+// ===== HtmlAst.js ===== //
 const
     pOpeningTag = /^\s*<(?!\s*\/)(\s+)?([^/<>]+)?(>)?/i,
     pClosingTag = /^\s*<(\s*)?\/([^<>]+)?(>)?/i,
@@ -47,13 +47,55 @@ const
             'contenteditable',
         ],
         boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
-        strict: ['id', 'class', ],
-        allowQuotes: ['title', 'value', 'placeholder', ],
+        // strict: ['id', 'class'],
+        // allowQuotes: ['title', 'value', 'placeholder'],
     };
 
 let verdict, inputClone, invalidElement = [], ambiguous = [];
 
-// ===== HtmlAst.js ===== //
+function HtmlAst(strHTML, ctx) {
+    if (!ctx) {
+        const err = HTMLHint.verify(strHTML, {
+            'spec-char-escape': true,
+            'id-unique': true,
+            'src-not-empty': true,
+            'attr-no-duplication': true,
+          });
+
+        if (err.length) throw new Error('Error in teacher code.');
+
+        tree.
+    }
+
+    let tree = [];
+
+    inputClone = strHTML;
+
+    while (inputClone.trim().length) {
+        // extract text node
+        const t = inputClone.match(/^[^<]+/);
+        if (t) {
+            inputClone = inputClone.slice(t[0].length);
+            tree.push({raw: t[0], type: 'text'});
+        }
+
+        // extract element node
+        const e = checkElement();
+        if (!e) break;
+        tree.push(e);
+    }
+
+    // deal with ambiguous code
+    if (!verdict && invalidElement.length) {
+        verdict = `${invalidElement[0].openingTag.raw.trim()} needs a closing tag.`;
+        if (ambiguous.length) verdict = `${ambiguous[0].raw} is not a valid closing tag for ${invalidElement[0].openingTag.raw.trim()}.`;
+    }
+    
+    console.log(`${ctx ? 'Teach' : 'Learn'}er:`, tree);
+    return tree;
+    // console.log(inputClone);
+}
+
 function checkElement() {
     const match = inputClone.match(pOpeningTag);
 
@@ -222,47 +264,18 @@ function checkValue(attr, inputRaw) {
     return false;
 }
 
-function parse(htmlString, context) {
-    if (!context) {
-        
-    }
-
-    let tree = [];
-
-    while (inputClone.trim().length) {
-        // extract text node
-        const t = inputClone.match(/^[^<]+/);
-        if (t) {
-            inputClone = inputClone.slice(t[0].length);
-            tree.push({raw: t[0], type: 'text'});
-        }
-
-        // extract element node
-        const e = checkElement();
-        if (!e) break;
-        tree.push(e);
-    }
-
-    // deal with ambiguous code
-    if (!verdict && invalidElement.length) {
-        verdict = `${invalidElement[0].openingTag.raw.trim()} needs a closing tag.`;
-        if (ambiguous.length) verdict = `${ambiguous[0].raw} is not a valid closing tag for ${invalidElement[0].openingTag.raw.trim()}.`;
-    }
-    
-    console.log(tree);
-    console.log(inputClone);
-}
-
 // ===== HtmlAstComparer.js ===== //
-function compare() {
-    
+function compare(t, l) {
+    result.teacher = HtmlAst(t);
+    result.learner = HtmlAst(l, result.teacher.context);
+
+
 }
 
 // ===== LB IRRELEVANT ===== //
 
 function reset() {
     console.clear();
-    inputClone = learner.value;
     result = {teacher: {}, learner: {}};
     verdict = null;
     log = '';
@@ -276,13 +289,13 @@ function initialize() {
     
     btnParse.onclick = () => {
         reset();
-        parse(learner.value, result.teacher.context);
+        HtmlAst(learner.value, result.teacher.context);
         info.textContent = verdict || 'All good.';
     }
 
     btnCompare.onclick = () => {
         reset();
-        result.teacher = parse(teacher.value);
+        compare(teacher.value, learner.value);
     };
 }
 
