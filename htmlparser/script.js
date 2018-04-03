@@ -247,7 +247,7 @@ function HtmlAst(strHTML, ctx) {
 
     function checkAttribute(attrsRaw) {
         // unable to reliably parse attributes and provide useful syntax error feedback
-        // for teacher code, having reached this function means correct syntax
+        // for teacher code, having reached this function guarantees correct syntax
         // for learner code, this function checks for error agaisnt teacher code
 
         if (!attrsRaw.trim().length) return [];
@@ -255,7 +255,7 @@ function HtmlAst(strHTML, ctx) {
         let attrsObj = {}, attrsArray = [],
             lot = {index: null, name: '', quotes: '', raw: '', value: ''};
 
-        while (attrsRaw.length) {
+        while (!verdict && attrsRaw.length) {
             if (!lot.name) {
                 const m = attrsRaw.match(/^\s+([a-z-]+)/);
 
@@ -263,15 +263,36 @@ function HtmlAst(strHTML, ctx) {
                     lot.name = m ? m[1].toLowerCase() : '';
                     lot.raw = m[0];
                     attrsRaw = attrsRaw.slice(lot.raw.length);
-                    console.log(m);
                     continue;
+                }
+                else {
+                    verdict = `${m[0].trim()} is not a valid attribute name.`;
                 }
             }
             // attribute requries a value
             else if (attributes.boolean.every(a => a != lot.name)) {
-                
+                // m[0] - equal sign & value
+                // m[1] - equal sign
+                // m[2, 4] - single or double quote
+                // m[3, 5] - attribute value
+                const m = attrsRaw.match(/^(\s*=)(?:\s*([']?)([^']*)\2|(["])([^"]*)\4)/);
+
+                if (!m[1]) {
+                    verdict = `The ${lot.name} attribute a value by adding the = sign after it.`;
+                }
+                else if (!m[2] && !m[4]) {
+                    verdict = `We recommend always using quotes around attribute values.`;
+                }
+                else if (!m[3] && !m[5]) {
+                    verdict = `Make sure to provide a value for the ${log.name} attribute.`;
+                }
+                else {
+                    attrsRaw = attrsRaw.replace(m[0], '');
+                    lot.raw += m[0];
+                }
             }
 
+            // reset variable 'lot' and look for another attribute-value pair
             lot = {index: null, name: '', quotes: '', raw: '', value: ''};
             break;
         }
@@ -428,6 +449,7 @@ function initialize() {
     btnCompare.onclick = () => {
         reset();
         compare(teacher.value, learner.value);
+        info.textContent = verdict || 'All good.';
     };
 }
 
