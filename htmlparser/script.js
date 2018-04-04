@@ -1,5 +1,5 @@
 const
-    ti = `<input class='small key' placeholder="Ain't no rest for the wicked.">
+    ti = `<input class='small key' disabled placeholder="Ain't no rest for the wicked.">
 <div id="wrapper">
     <h1 id='title'>Test</h1>
     <h3></h3>
@@ -10,7 +10,7 @@ const
     <h3></h3>
 </div>`;
 
-let ctrl, log = '', result = {teacher: {}, learner: {}};
+let ctrl, result = { teacher: {}, learner: {} };
 
 // ===== HtmlAst.js ===== //
 const
@@ -47,24 +47,29 @@ const
             'contenteditable',
         ],
         boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
-        // strict: ['id', 'class'],
-        // allowQuotes: ['title', 'value', 'placeholder'],
     };
+
+function lastOf(arr) {
+    if (!Array.isArray(arr)) arr = Array.from(arr);
+    return arr[Math.max(arr.length - 1, 0)];
+}
+
+const val = (v) => {
+    return {
+        isUniqueIn: (a) => {
+            let n = 0;
+            a.some(item => {
+                if (v === item) n++;
+                return n > 1;
+            });
+            return n === 1;
+        },
+    };
+};
 
 let verdict, inputClone, invalidElement = [], ambiguous = [];
 
-function HtmlAst(strHTML, ctx) {
-    if (!ctx) {
-        const err = HTMLHint.verify(strHTML, {
-            'spec-char-escape': true,
-            'id-unique': true,
-            'src-not-empty': true,
-            'attr-no-duplication': true,
-        });
-
-        if (err.length) throw new Error('Error in teacher code.');
-    }
-
+function HtmlAst(strHTML, origin) {
     let tree = [];
 
     inputClone = strHTML;
@@ -74,7 +79,7 @@ function HtmlAst(strHTML, ctx) {
         const t = inputClone.match(/^[^<]+/);
         if (t) {
             inputClone = inputClone.slice(t[0].length);
-            tree.push({raw: t[0], type: 'text'});
+            tree.push({ raw: t[0], type: 'text' });
         }
 
         // extract element node
@@ -85,18 +90,19 @@ function HtmlAst(strHTML, ctx) {
 
     // deal with ambiguous code
     if (!verdict && invalidElement.length) {
-        verdict = `${invalidElement[0].openingTag.raw.trim()} needs a closing tag.`;
+        verdict = `${lastOf(invalidElement).openingTag.raw.trim()} needs a closing tag.`;
         if (ambiguous.length) verdict = `${ambiguous[0].raw} is not a valid closing tag for ${invalidElement[0].openingTag.raw.trim()}.`;
     }
 
-    console.log(`${ctx ? 'Learn' : 'Teach'}er:`, tree);
+    console.log(`${origin}:`, tree);
+    verdict = verdict ? `${origin}: ${verdict}` : verdict;
     return tree;
-    // console.log(inputClone);
 
+    // ===== NESTED FUNCTIONS ===== //
     function checkElement() {
         const match = inputClone.match(pOpeningTag);
 
-        if (!match) return; match.forEach((m, i) => log += `${i}: ${m ? m.trim() : m} | `);
+        if (!match) return;
 
         // empty space is found after the < symbol
         if (match[1] !== undefined) {
@@ -111,7 +117,7 @@ function HtmlAst(strHTML, ctx) {
         }
 
         if (match[3] === undefined) {
-            verdict = 'Please make sure opening tags are closed off using theh > symbol.';
+            verdict = `${match[0].trim()} needs to be closed off using the > symbol.`;
             return;
         }
 
@@ -131,7 +137,7 @@ function HtmlAst(strHTML, ctx) {
 
         const element = {
             openingTag: {
-                attrs: attrsRaw ? checkAttribute(attrsRaw) : [],
+                attrs: attrsRaw ? checkAttribute(attrsRaw, tagRaw.trim()) : [],
                 raw: match[0],
                 tagName: tagRaw.toLowerCase(),
                 type: 'tagstart',
@@ -148,13 +154,13 @@ function HtmlAst(strHTML, ctx) {
         if (!element.isVoid) {
             let
                 textContent = inputClone.match(/^[^<]+/),
-                nestedElement = inputClone.match(pOpeningTag); log += 'Content: [';
+                nestedElement = inputClone.match(pOpeningTag);
 
             // extract content
             while (textContent || nestedElement) {
                 if (textContent) {
                     inputClone = inputClone.slice(textContent[0].length);
-                    element.content.push({raw: textContent[0], type: 'text'}); log += `'${textContent[0]}', `;
+                    element.content.push({ raw: textContent[0], type: 'text' });
                 }
                 else {
                     nestedElement = checkElement();
@@ -164,7 +170,7 @@ function HtmlAst(strHTML, ctx) {
 
                 textContent = inputClone.match(/^[^<]+/);
                 nestedElement = inputClone.match(pOpeningTag);
-            } log += '] | ';
+            }
 
             if (verdict && !invalidElement.length) return;
 
@@ -172,14 +178,13 @@ function HtmlAst(strHTML, ctx) {
             const closingTag = checkClosingTag(element.openingTag.raw.trim(), element.openingTag.tagName);
 
             if (!closingTag) {
-                // element.error = verdict;
                 invalidElement.push(element);
                 verdict = null;
                 return element;
             }
 
             element.closingTag = closingTag;
-        } log += `isVoid: ${element.isVoid} | Remains: [${inputClone}]`;
+        }
         return element;
     }
 
@@ -225,7 +230,8 @@ function HtmlAst(strHTML, ctx) {
         if (verdict) {
             // look for valid closing tag in var:ambiguous
             if (ambiguous.length && lastOf(ambiguous).tag === tag) {
-                return {raw: lastOf(ambiguous).raw, tagName: ambiguous.pop().tag, type: 'tagend'};
+                verdict = '';
+                return { raw: lastOf(ambiguous).raw, tagName: ambiguous.pop().tag, type: 'tagend' };
             }
             else {
                 // store the current error in var:ambiguous if there is more code after the error
@@ -242,60 +248,76 @@ function HtmlAst(strHTML, ctx) {
 
         inputClone = inputClone.slice(match[0].length);
 
-        return {raw: match[0], tagName: match[2].trim(), type: 'tagend'};
+        return { raw: match[0], tagName: match[2].trim(), type: 'tagend' };
     }
 
-    function checkAttribute(attrsRaw) {
-        /*
-        - for teacher code, having reached this function guarantees correct syntax
-        - for learner code, this function checks for error agaisnt teacher code
-        */
-        const attrObj = {}, attrsArray = [];
+    function checkAttribute(attrsRaw, tag) {
+        if (/['"]/.test(attrsRaw.replace(/'[^']*'|"[^"]*"/g, ''))) {
+            verdict = `Please make sure the quotation marks are properly paired in ${attrsRaw.trim()}.`;
+            return false;
+        }
 
+        let attrObj = {}, attrsArray = [];
+
+        // basic syntax check-ups
         while (!verdict && attrsRaw.trim().length) {
-            // const m = attrsRaw.match(/^(\s+)?([a-z-]+)(?:\s*(=)\s*([^'"])?(?:'([^']*)'|"([^"]*)"))?/);
-            let m = attrsRaw.match(/^(\s+)?([a-z-]+)/);
+            // start by looking for space(m[1]) followed by string(m[2])
+            let m = attrsRaw.match(/^(\s+)?([A-Za-z-]+)/);
 
-            // use teacher code to help diagnose learner code
-            if (ctx) {
-
-            }
-
-            // basic syntax check-ups for both teacher and learner code
             if (m) {
                 const
                     validAttrName = attributes.all.some(a => a === m[2].toLowerCase()) || /^data-/i.test(m[2]),
-                    attrRequiresValue = attributes.boolean.every(a => a != m[2].toLowerCase());
+                    boolAttr = attributes.boolean.some(a => a === m[2].toLowerCase());
 
                 if (validAttrName) {
                     if (!m[1]) {
                         verdict = `Please add a space before the ${m[2]} attribute.`;
                     }
-                    else if (attrRequiresValue) {
-                        attrObj.name = m[1].toLowerCase();
+                    else {
+                        attrObj.name = m[2].toLowerCase();
                         attrObj.raw = m[0];
                         attrsRaw = attrsRaw.slice(m[0].length);
+
+                        if (boolAttr) {
+                            const _m = attrsRaw.match(/^\s*=('[^']*'|"[^"]*")?/);
+                            _m ? verdict = `${attrObj.name} is a Boolean attribute. Please remove ${_m[0]}.` : pushAttr();
+                            continue;
+                        }
+
+                        // look for equal sign(m[1]) followed by single or double quote(m[2])
                         m = attrsRaw.match(/^\s*(=)\s*(['"])?/);
 
                         if (!m[1]) {
-                            verdict = `${m[2]} is not a Boolean attribute. Please give it a value.`;
+                            verdict = `${attrObj.name} is not a Boolean attribute. Please give it a value.`;
                         }
                         else if (!m[2]) {
-                            verdict = 'We recommend always using quotes around attribute values.';
+                            verdict = 'Remember to always use quotes after the = sign.';
                         }
                         else {
                             attrObj.quote = m[2];
                             attrObj.raw += m[0];
                             attrsRaw = attrsRaw.slice(m[0].length);
 
-                            Array.from(attrsRaw).some(char => {
-                                
+                            // expansive string search until closing quote then store as attribute value
+                            Array.from(attrsRaw).some((char, i) => {
+                                attrObj.raw += char;
+                                if (char === attrObj.quote) {
+                                    attrsRaw = attrsRaw.slice(i + 1);
+                                    return true;
+                                }
+                                else {
+                                    attrObj.value = (attrObj.value || '') + char;
+                                    return;
+                                }
                             });
-                        }
 
-
-                        else if (!m[5] && !m[6]) {
-                            verdict = `Make sure to provide a value for the ${m[2]} attribute.`;
+                            if (attrObj.value && attrObj.value.trim()) {
+                                attrObj.value = attrObj.value.trim().replace(/\s+/, ' ');
+                                pushAttr();
+                            }
+                            else {
+                                verdict = `Please provide a value for the ${attrObj.name} attribute.`;
+                            }
                         }
                     }
                 }
@@ -304,45 +326,49 @@ function HtmlAst(strHTML, ctx) {
                 }
             }
             else {
-                verdict = `${attrsRaw} is incorrect.`;
+                verdict = `In the ${tag} tag, ${attrsRaw} is incorrect. Please remove it.`;
             }
 
             if (verdict) break;
-
-            attrsArray.push({
-                index: null,
-                name: m[1],
-                quote: m[5] ? '\'' : m[6] ? '"' : null,
-                raw: m[0],
-                value: function() {
-                    const v = m[5] || m[6] || null;
-                    return v ? v.trim().replace(/\s+/, ' ') : v;
-                }(),
-            });
-
-            attrsRaw = attrsRaw.replace(m[0], '');
         }
 
+        // check for duplicate attributes
+        attrsArray.every(attr => {
+            const uniqAttr = val(attr.name).isUniqueIn(attrsArray.map(_attr => _attr.name));
+            if (!uniqAttr) verdict = `There should be only one ${attr.name} attribute in the ${tag} tag.`;
+            return uniqAttr;
+        });
+
         return verdict ? false : attrsArray;
+
+        function pushAttr() {
+            attrsArray.push({
+                index: null,
+                name: attrObj.name,
+                quote: attrObj.quote || null,
+                raw: attrObj.raw,
+                value: attrObj.value || null,
+            });
+
+            attrObj = {};
+        }
     }
 }
 
-
 // ===== HtmlAstComparer.js ===== //
 function compare(t, l) {
-    result.teacher = HtmlAst(t);
-    result.learner = HtmlAst(l, result.teacher);
+    result.teacher = HtmlAst(t, 'Teacher');
 
-
+    if (!verdict) {
+        result.learner = HtmlAst(l, 'Learner');
+    }
 }
 
 // ===== LB IRRELEVANT ===== //
-
 function reset() {
     console.clear();
-    result = {teacher: {}, learner: {}};
+    result = { teacher: {}, learner: {} };
     verdict = null;
-    log = '';
     invalidElement = [];
     ambiguous = [];
 }
@@ -351,22 +377,11 @@ function initialize() {
     teacher.value = ti;
     learner.value = li;
 
-    btnParse.onclick = () => {
-        reset();
-        HtmlAst(learner.value, result.teacher);
-        info.textContent = verdict || 'All good.';
-    };
-
     btnCompare.onclick = () => {
         reset();
         compare(teacher.value, learner.value);
         info.textContent = verdict || 'All good.';
     };
-}
-
-function lastOf(arr) {
-    if (!Array.isArray(arr)) arr = Array.from(arr);
-    return arr[Math.max(arr.length - 1, 0)];
 }
 
 window.onload = () => initialize();
@@ -377,5 +392,5 @@ window.onkeydown = (evt) => {
 
 window.onkeyup = (evt) => {
     if (ctrl && evt.keyCode == 17) ctrl = false;
-    if (evt.keyCode == 13 && ctrl) btnParse.click();
+    if (evt.keyCode == 13 && ctrl) btnCompare.click();
 };
