@@ -89,7 +89,7 @@ function HtmlAst(strHTML, ctx) {
         if (ambiguous.length) verdict = `${ambiguous[0].raw} is not a valid closing tag for ${invalidElement[0].openingTag.raw.trim()}.`;
     }
 
-    console.log(`${ctx ? 'Teach' : 'Learn'}er:`, tree);
+    console.log(`${ctx ? 'Learn' : 'Teach'}er:`, tree);
     return tree;
     // console.log(inputClone);
 
@@ -247,46 +247,56 @@ function HtmlAst(strHTML, ctx) {
 
     function checkAttribute(attrsRaw) {
         /*
-            - for teacher code, having reached this function guarantees correct syntax
-            - for learner code, this function checks for error agaisnt teacher code
-            */
+        - for teacher code, having reached this function guarantees correct syntax
+        - for learner code, this function checks for error agaisnt teacher code
+        */
+        const attrObj = {}, attrsArray = [];
 
-        if (!attrsRaw.trim().length) return [];
+        while (!verdict && attrsRaw.trim().length) {
+            // const m = attrsRaw.match(/^(\s+)?([a-z-]+)(?:\s*(=)\s*([^'"])?(?:'([^']*)'|"([^"]*)"))?/);
+            let m = attrsRaw.match(/^(\s+)?([a-z-]+)/);
 
-        // let attrsObj = {};
-        const attrsArray = [];
+            // use teacher code to help diagnose learner code
+            if (ctx) {
 
-        while (!verdict && attrsRaw.length) {
-            const m = attrsRaw.match(/^\s+([a-z-]+)\s*(=)\s*(['"]?)([^']*|[^"]*)\3/);
+            }
 
+            // basic syntax check-ups for both teacher and learner code
             if (m) {
                 const
-                    validAttrName = attributes.all.some(a => a === m[1].toLowerCase()) || /^data-/i.test(m[1]),
-                    attrRequiresValue = attributes.boolean.every(a => a != m[1].toLowerCase());
+                    validAttrName = attributes.all.some(a => a === m[2].toLowerCase()) || /^data-/i.test(m[2]),
+                    attrRequiresValue = attributes.boolean.every(a => a != m[2].toLowerCase());
 
                 if (validAttrName) {
-                    if (attrRequiresValue) {
-                        if (!m[2]) {
-                            verdict = `${m[1]} is not a Boolean attribute. Please give it a value.`;
+                    if (!m[1]) {
+                        verdict = `Please add a space before the ${m[2]} attribute.`;
+                    }
+                    else if (attrRequiresValue) {
+                        attrObj.name = m[1].toLowerCase();
+                        attrObj.raw = m[0];
+                        attrsRaw = attrsRaw.slice(m[0].length);
+                        m = attrsRaw.match(/^\s*(=)\s*(['"])?/);
+
+                        if (!m[1]) {
+                            verdict = `${m[2]} is not a Boolean attribute. Please give it a value.`;
                         }
-                        else if (!m[3]) {
+                        else if (!m[2]) {
                             verdict = 'We recommend always using quotes around attribute values.';
                         }
-                        else if (!m[4]) {
-                            verdict = `Make sure to provide a value for the ${m[1]} attribute.`;
-                        }
                         else {
-                            attrsArray.push({
-                                index: null,
-                                name: m[1],
-                                quote: m[3],
-                                raw: m[0],
-                                value: m[4],
+                            attrObj.quote = m[2];
+                            attrObj.raw += m[0];
+                            attrsRaw = attrsRaw.slice(m[0].length);
+
+                            Array.from(attrsRaw).some(char => {
+                                
                             });
                         }
-                    }
-                    else {
-                        
+
+
+                        else if (!m[5] && !m[6]) {
+                            verdict = `Make sure to provide a value for the ${m[2]} attribute.`;
+                        }
                     }
                 }
                 else {
@@ -295,58 +305,26 @@ function HtmlAst(strHTML, ctx) {
             }
             else {
                 verdict = `${attrsRaw} is incorrect.`;
-                break;
             }
 
-            break;
+            if (verdict) break;
 
-            //     if (attributes.all.some(a => a === m[1].toLowerCase()) || /^data-/i.test(m[1])) {
-            //         attrsObj.name = m ? m[1].toLowerCase() : '';
-            //         attrsObj.raw = m[0];
-            //         attrsRaw = attrsRaw.slice(attrsObj.raw.length);
-            //     }
-            //     else {
-            //         verdict = `${m[0].trim()} is not a valid attribute name.`;
-            //     }
+            attrsArray.push({
+                index: null,
+                name: m[1],
+                quote: m[5] ? '\'' : m[6] ? '"' : null,
+                raw: m[0],
+                value: function() {
+                    const v = m[5] || m[6] || null;
+                    return v ? v.trim().replace(/\s+/, ' ') : v;
+                }(),
+            });
 
-            // attribute requries a value
-            // else if (attributes.boolean.every(a => a != attrsObj.name)) {
-            //     const m = attrsRaw.match(/^(\s*=)(?:\s*([']?)([^']*)\2|(["]?)([^"]*)\4)/);
-
-            //     if (!m) {
-            //         verdict = `${attrsObj.name} is not a Boolean attribute. Please give it a value.`;
-            //     }
-            //     else if (!m[2] && !m[4]) {
-            //         verdict = 'We recommend always using quotes around attribute values.';
-            //     }
-            //     else if (!m[3] && !m[5]) {
-            //         verdict = `Make sure to provide a value for the ${attrsObj.name} attribute.`;
-            //     }
-            //     else {
-            //         attrsRaw = attrsRaw.replace(m[0], '');
-            //         attrsObj.raw += m[0];
-            //         attrsObj.quote = m[2] || m[4];
-            //         attrsObj.value = m[3] || m[5];
-            //     }
-            // }
-
-            // attrsArray.push(attrsObj);
-
-            // attrsObj = { index: null, name: '', quote: '', raw: '', value: '' };
-
+            attrsRaw = attrsRaw.replace(m[0], '');
         }
 
         return verdict ? false : attrsArray;
     }
-
-    // function checkValue(attr, inputRaw) {
-    //     if (inputRaw.trim().startsWith('=')) {
-    //         inputRaw = inputRaw.replace(/^\s*=\s*/, '');
-
-    //     }
-    //     verdict = `Please add an equal sign after the ${attr} attribute.`;
-    //     return false;
-    // }
 }
 
 
@@ -375,7 +353,7 @@ function initialize() {
 
     btnParse.onclick = () => {
         reset();
-        HtmlAst(learner.value, result.teacher.context);
+        HtmlAst(learner.value, result.teacher);
         info.textContent = verdict || 'All good.';
     };
 
