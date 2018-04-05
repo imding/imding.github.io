@@ -10,7 +10,7 @@ const
     <h3></h3>
 </div>`;
 
-let ctrl, result = { teacher: {}, learner: {} };
+let ctrl;
 
 // ===== HtmlAst.js ===== //
 const
@@ -56,6 +56,9 @@ function lastOf(arr) {
 
 const val = (v) => {
     return {
+        isFoundIn: (a) => {
+            return a.some(item => v === item);
+        },
         isUniqueIn: (a) => {
             let n = 0;
             a.some(item => {
@@ -285,16 +288,16 @@ function HtmlAst(strHTML, origin) {
                         }
 
                         // look for equal sign(m[1]) followed by single or double quote(m[2])
-                        m = attrsRaw.match(/^\s*(=)\s*(['"])?/);
+                        m = attrsRaw.match(/^\s*=\s*(['"])?/);
 
-                        if (!m[1]) {
-                            verdict = `${attrObj.name} is not a Boolean attribute. Please give it a value.`;
+                        if (!m) {
+                            verdict = `${attrObj.name} is not a Boolean attribute. Please give it a value using the = sign.`;
                         }
-                        else if (!m[2]) {
+                        else if (!m[1]) {
                             verdict = 'Remember to always use quotes after the = sign.';
                         }
                         else {
-                            attrObj.quote = m[2];
+                            attrObj.quote = m[1];
                             attrObj.raw += m[0];
                             attrsRaw = attrsRaw.slice(m[0].length);
 
@@ -357,10 +360,69 @@ function HtmlAst(strHTML, origin) {
 
 // ===== HtmlAstComparer.js ===== //
 function compare(t, l) {
-    result.teacher = HtmlAst(t, 'Teacher');
+    const model = HtmlAst(t, 'Teacher');
 
     if (!verdict) {
-        result.learner = HtmlAst(l, 'Learner');
+        const input = HtmlAst(l, 'Learner');
+        if (!verdict) model.every((e, i) => matchElements(e, input[i]));
+    }
+
+    // compare elements using teacher node(tn) & learner node(ln)
+    function matchElements(tn, ln) {
+        if (tn.type === 'element') {
+            if (ln.type === 'element') {
+                if (ln.openingTag.tagName !== tn.openingTag.tagName) {
+                    verdict = `${ln.openingTag.tagName} is not the right tag.`;
+                }
+                else if (tn.openingTag.attrs.length < ln.openingTag.attrs.length) {
+                    ln.openingTag.attrs.some(a => {
+                        if (!val(a.name).isFoundIn(tn.openingTag.attrs.map(_a => _a.name))) {
+                            verdict = `In the ${tn.openingTag.tagName} tag, ${a.name} attribute is not required. Please remove it.`;
+                        }
+                    });
+                }
+                else if (matchAttrs(tn.openingTag, ln.openingTag)) {
+                    // compare content
+                    if (tn.content.length) tn.content.every((e, j) => matchElements(e, ln.content[j]));
+                }
+            }
+            else if (ln.type === 'text') {
+                verdict = `${ln.raw} is not an element. You can create elements using tags.`;
+            }
+        }
+        return !verdict;
+    }
+
+    // compare attributes and values using teacher tag(tt) & learner tag(lt)
+    function matchAttrs(tt, lt) {
+        return tt.attrs.every(a => {
+            if (val(a.name).isFoundIn(lt.attrs.map(_a => _a.name))) {
+                let 
+                    inputVal = lt.attrs.filter(_a => _a.name === a.name)[0].value,
+                    missingVal;
+
+                if (a.name === 'class') {
+                    a.value.split(/\s+/).forEach(v => {
+                        inputVal.includes(v) ? inputVal = inputVal.replace(v, '').trim() : missingVal = true;
+                    });
+
+                    if (inputVal.length) {
+                        verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
+                    }
+                    else if (missingVal) {
+                        verdict = `In the ${tt.tagName} tag, some value is missing from the ${a.name} attribute.`;
+                    }
+                }
+                else if (a.value !== inputVal) {
+                    verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
+                }
+            }
+            else {
+                verdict = `An attribute is missing in the ${lt.tagName} tag.`;
+            }
+
+            return !verdict;
+        });
     }
 }
 
