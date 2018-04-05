@@ -14,7 +14,7 @@ let ctrl;
 
 // ===== HtmlAst.js ===== //
 const
-    pOpeningTag = /^\s*<(?!\s*\/)(\s+)?([^/<>]+)?(>)?/i,
+    pOpeningTag = /^\s*<(?!\s*\/)(\s+)?([^<>]+)?(>)?/i,
     pClosingTag = /^\s*<(\s*)?\/([^<>]+)?(>)?/i,
     tags = {
         all: [
@@ -82,7 +82,8 @@ function HtmlAst(strHTML, origin) {
         const t = inputClone.match(/^[^<]+/);
         if (t) {
             inputClone = inputClone.slice(t[0].length);
-            tree.push({ raw: t[0], type: 'text' });
+            // text node containing only white spaces are ignored
+            if (t[0].trim().length) tree.push({ raw: t[0], type: 'text' });
         }
 
         // extract element node
@@ -101,47 +102,57 @@ function HtmlAst(strHTML, origin) {
     verdict = verdict ? `${origin}: ${verdict}` : verdict;
     return tree;
 
+    // this._tree = tree;
+    // this._messages = verdict ? [{
+    //     type: messageType.error,
+    //     message: verdict,
+    // }] : [];
+
     // ===== NESTED FUNCTIONS ===== //
     function checkElement() {
-        const match = inputClone.match(pOpeningTag);
+        // basic syntax check for a single tag
+        const m = inputClone.match(pOpeningTag);
 
-        if (!match) return;
-
-        // empty space is found after the < symbol
-        if (match[1] !== undefined) {
-            verdict = `${match[0].trim()} is incorrect. Make sure there is no space after the < symbol.`;
-            return;
+        if (m) {
+            if (m[1]) {
+                verdict = `${m[0].trim()} is incorrect. Make sure there is no space after the < symbol.`;
+            }
+            else if (!m[2]) {
+                verdict = 'Please write a tag name after the < symbol.';
+            }
+            else if (!m[3]) {
+                verdict = `${m[0].trim()} needs to be closed off using the > symbol.`;
+            }
         }
 
-        // nothing is found inside the tag
-        if (match[2] === undefined) {
-            verdict = 'Please write a tag name after the < symbol.';
-            return;
-        }
-
-        if (match[3] === undefined) {
-            verdict = `${match[0].trim()} needs to be closed off using the > symbol.`;
-            return;
-        }
+        if (verdict) return;
 
         let tagRaw = '', attrsRaw;
 
         // extract tag name and attributes
-        Array.from(match[2]).every((char, i) => {
-            if (!/\s/.test(char)) return (tagRaw += char);
-            attrsRaw = match[2].slice(i);
+        Array.from(m[2]).every((char, i) => {
+            if (!/[\s/]/.test(char)) return (tagRaw += char);
+            attrsRaw = m[2].slice(i);
             return;
         });
 
         // remove matched string from inputClone
-        inputClone = inputClone.slice(match[0].length);
+        inputClone = inputClone.slice(m[0].length);
 
         if (!checkOpeningTag(tagRaw)) return;
 
         const element = {
             openingTag: {
+                close: function () {
+                    if (attrsRaw) {
+                        const _m = attrsRaw.match(/\/\s*$/);
+                        if (_m) attrsRaw = attrsRaw.replace(/\/\s*$/, '');
+                        return _m ? _m[0] : null;
+                    }
+                    return null;
+                }(),
                 attrs: attrsRaw ? checkAttribute(attrsRaw, tagRaw.trim()) : [],
-                raw: match[0],
+                raw: m[0],
                 tagName: tagRaw.toLowerCase(),
                 type: 'tagstart',
             },
@@ -153,8 +164,15 @@ function HtmlAst(strHTML, origin) {
 
         if (!element.openingTag.attrs) return;
 
-        // in case of non-void element
-        if (!element.isVoid) {
+        if (element.isVoid) {
+            if (element.openingTag.close && element.openingTag.close.endsWith(' ')) {
+                verdict = `In the ${element.openingTag.tagName} tag, please remove any space after the / symbol.`;
+            }
+        }
+        else if (element.openingTag.close) {
+            verdict = `${element.openingTag.tagName} is not a void element. Please remove the / symbol.`;
+        }
+        else {
             let
                 textContent = inputClone.match(/^[^<]+/),
                 nestedElement = inputClone.match(pOpeningTag);
@@ -163,7 +181,8 @@ function HtmlAst(strHTML, origin) {
             while (textContent || nestedElement) {
                 if (textContent) {
                     inputClone = inputClone.slice(textContent[0].length);
-                    element.content.push({ raw: textContent[0], type: 'text' });
+                    // text node containing only white spaces are ignored
+                    if (textContent[0].trim().length) element.content.push({ raw: textContent[0], type: 'text' });
                 }
                 else {
                     nestedElement = checkElement();
@@ -201,9 +220,9 @@ function HtmlAst(strHTML, origin) {
                 verdict = `${tagRaw} is not a valid tag name.`;
             }
 
-            // overwrite verdict if tagRaw starts with valid tag name
+            // overwrite verdict if tagRaw starts with valid tag name followed by a valid attribute  name with no space in between
             tags.all.forEach(t => {
-                if (tag.startsWith(t)) {
+                if (tag.startsWith(t) && attributes.all.some(a => tag.slice(t.length) === a)) {
                     verdict = `There should be a space between ${tagRaw.slice(0, t.length)} and ${tagRaw.slice(t.length)}.`;
                 }
             });
@@ -215,20 +234,22 @@ function HtmlAst(strHTML, origin) {
     }
 
     function checkClosingTag(element, tag) {
-        const match = inputClone.match(pClosingTag);
+        const m = inputClone.match(pClosingTag);
 
-        if (!match) {
+        if (!m) {
             verdict = `${element} needs a closing tag.`;
         }
-        else if (match[1]) {
-            verdict = `${match[0].trim()} is incorrect. Make sure there is no space after the < symbol.`;
+        else if (m[1]) {
+            verdict = `${m[0].trim()} is incorrect. Make sure there is no space after the < symbol.`;
         }
-        else if (match[2] !== tag) {
-            verdict = `${match[0].trim()}`;
+        else if (m[2].trimRight().toLowerCase() !== tag) {
+            verdict = 'bababa';
         }
-        else if (!match[3]) {
-            verdict = `Make sure to write the > symbol after ${match[0].trim()}.`;
+        else if (!m[3]) {
+            verdict = `Make sure to write the > symbol after ${m[0].trim()}.`;
         }
+
+        // if (verdict) return;
 
         if (verdict) {
             // look for valid closing tag in var:ambiguous
@@ -238,25 +259,25 @@ function HtmlAst(strHTML, origin) {
             }
             else {
                 // store the current error in var:ambiguous if there is more code after the error
-                if (match && match[0].trim().length <= inputClone.trim().length) {
+                if (m && m[0].trim().length <= inputClone.trim().length) {
                     ambiguous.push({
-                        raw: match[0].trim(),
-                        tag: match[2].trim().toLowerCase(),
+                        raw: m[0].trim(),
+                        tag: m[2].trim().toLowerCase(),
                     });
-                    inputClone = inputClone.slice(match[0].length);
+                    inputClone = inputClone.slice(m[0].length);
                 }
                 return;
             }
         }
 
-        inputClone = inputClone.slice(match[0].length);
+        inputClone = inputClone.slice(m[0].length);
 
-        return { raw: match[0], tagName: match[2].trim(), type: 'tagend' };
+        return { raw: m[0], tagName: m[2].trim(), type: 'tagend' };
     }
 
     function checkAttribute(attrsRaw, tag) {
         if (/['"]/.test(attrsRaw.replace(/'[^']*'|"[^"]*"/g, ''))) {
-            verdict = `Please make sure the quotation marks are properly paired in ${attrsRaw.trim()}.`;
+            verdict = `Please make sure quotation marks are properly paired in ${attrsRaw.trim()}.`;
             return false;
         }
 
@@ -329,7 +350,7 @@ function HtmlAst(strHTML, origin) {
                 }
             }
             else {
-                verdict = `In the ${tag} tag, ${attrsRaw} is incorrect. Please remove it.`;
+                verdict = `In the ${tag} tag, ${attrsRaw.trim()} is incorrect. Please remove it.`;
             }
 
             if (verdict) break;
@@ -364,7 +385,17 @@ function compare(t, l) {
 
     if (!verdict) {
         const input = HtmlAst(l, 'Learner');
-        if (!verdict) model.every((e, i) => matchElements(e, input[i]));
+        if (!verdict) {
+            model.every((e, i) => {
+                if (input.hasOwnProperty(i)) {
+                    return matchElements(e, input[i]);
+                }
+                else {
+                    verdict = `The ${e.openingTag.tagName} element is missing from your code. Please add it in.`;
+                    return;
+                }
+            });
+        }
     }
 
     // compare elements using teacher node(tn) & learner node(ln)
@@ -383,7 +414,17 @@ function compare(t, l) {
                 }
                 else if (matchAttrs(tn.openingTag, ln.openingTag)) {
                     // compare content
-                    if (tn.content.length) tn.content.every((e, j) => matchElements(e, ln.content[j]));
+                    if (tn.content.length) {
+                        tn.content.every((e, j) => {
+                            if (ln.content.hasOwnProperty(j)) {
+                                return matchElements(e, ln.content[j]);
+                            }
+                            else {
+                                verdict = `The ${e.openingTag.tagName} element is missing from your code. Please add it in.`;
+                                return;
+                            }
+                        });
+                    }
                 }
             }
             else if (ln.type === 'text') {
@@ -397,7 +438,7 @@ function compare(t, l) {
     function matchAttrs(tt, lt) {
         return tt.attrs.every(a => {
             if (val(a.name).isFoundIn(lt.attrs.map(_a => _a.name))) {
-                let 
+                let
                     inputVal = lt.attrs.filter(_a => _a.name === a.name)[0].value,
                     missingVal;
 
