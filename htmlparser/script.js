@@ -1,21 +1,17 @@
 const
-    ti = `<div id="wrapper">
-    <h1 id='title'>Test</h1>
+    ti = `<div>
+    <h3></h2></h3>
+</div>`,
+    li = `<div>
     <h3></h3>
-</div>
-<img>`,
-    li = `<div id="wrapper">
-    <h1 id='title'>Test</h1>
-    <h3></h3>
-</div>
-<img>`;
+</div>`;
 
 let ctrl;
 
 // ===== HtmlAst.js ===== //
 const
     pOpeningTag = /^\s*<(?!\s*\/)(\s+)?([^<>]+)?(>)?/i,
-    pClosingTag = /^\s*<(\s*)?\/([^<>]+)?(>)?/i,
+    pClosingTag = /^\s*<(\s*)?\/(\s*)?([^<>]+)?(>)?/i,
     tags = {
         all: [
             // IMPORTANT: ascending tag name lengths
@@ -86,7 +82,7 @@ function flatten(srcArray, n = 0, end = srcArray.length) {
     return srcArray;
 }
 
-let verdict, inputClone, invalidElement = [], ambiguous = [];
+let verdict, inputClone, ambiguous = {elem: [], closingTag:[]};
 
 function HtmlAst(strHTML, origin) {
     let tree = [];
@@ -108,13 +104,22 @@ function HtmlAst(strHTML, origin) {
         tree.push(e);
     }
 
+    // input string can only contain, if any, valid closing tag(s) at this point
+    if (inputClone.length) {
+        verdict = `${ambiguous.closingTag[0].raw} is not paired with anything. Please add an opening tag or remove it.`;
+    }
     // deal with ambiguous code
-    if (!verdict && invalidElement.length) {
-        verdict = `${lastOf(invalidElement).openingTag.raw.trim()} needs a closing tag.`;
-        if (ambiguous.length) verdict = `${ambiguous[0].raw} is not a valid closing tag for ${invalidElement[0].openingTag.raw.trim()}.`;
+    else if (ambiguous.elem.length < ambiguous.closingTag) {
+        verdict = `${lastOf(ambiguous.closingTag).raw} is not paired with anything. Please add an opening tag or remove it.`;
+    }
+    else if (ambiguous.elem.length > ambiguous.closingTag) {
+        verdict = `${lastOf(ambiguous.elem).openingTag.tagName} is not a void element. Please add a closing tag for ${lastOf(ambiguous.elem).openingTag.raw} or remove it.`;
+    }
+    else {
+        verdict = `${lastOf(ambiguous.closingTag).raw} is not a valid closing tag for ${lastOf(ambiguous.elem).openingTag.raw}.`;
     }
 
-    console.log(`${origin}:`, tree);
+    // console.log(`${origin}:`, tree);
     verdict = verdict ? `${origin}: ${verdict}` : verdict;
     return tree;
 
@@ -129,16 +134,17 @@ function HtmlAst(strHTML, origin) {
         // basic syntax check for a single tag
         const m = inputClone.match(pOpeningTag);
 
-        if (m) {
-            if (m[1]) {
-                verdict = `${m[0].trim()} is incorrect. Make sure there is no space after the < symbol.`;
-            }
-            else if (!m[2]) {
-                verdict = 'Please write a tag name after the < symbol.';
-            }
-            else if (!m[3]) {
-                verdict = `${m[0].trim()} needs to be closed off using the > symbol.`;
-            }
+        if (!m) {
+            return;
+        }
+        else if (m[1]) {
+            verdict = `${m[0].trim()} is incorrect. Make sure there is no space after the < symbol.`;
+        }
+        else if (!m[2]) {
+            verdict = 'Please write a tag name after the < symbol.';
+        }
+        else if (!m[3]) {
+            verdict = `${m[0].trim()} needs to be closed off using the > symbol.`;
         }
 
         if (verdict) return;
@@ -152,7 +158,6 @@ function HtmlAst(strHTML, origin) {
             return;
         });
 
-        // remove matched string from inputClone
         inputClone = inputClone.slice(m[0].length);
 
         if (!checkOpeningTag(tagRaw)) return;
@@ -188,6 +193,7 @@ function HtmlAst(strHTML, origin) {
         else if (element.openingTag.close) {
             verdict = `${element.openingTag.tagName} is not a void element. Please remove the / symbol.`;
         }
+        // check for content & closing tag for non-void elements
         else {
             let
                 textContent = inputClone.match(/^[^<]+/),
@@ -203,6 +209,7 @@ function HtmlAst(strHTML, origin) {
                 else {
                     nestedElement = checkElement();
                     if (!nestedElement) return;
+                    if (!nestedElement.closingTag.raw) ambiguous.elem.push(nestedElement);
                     element.content.push(nestedElement);
                 }
 
@@ -211,15 +218,23 @@ function HtmlAst(strHTML, origin) {
             }
 
             // look for closing tag
-            const closingTag = checkClosingTag(element.openingTag.raw.trim(), element.openingTag.tagName);
-
-            if (!closingTag) {
-                invalidElement.push(element);
-                if (verdict === 'unclear') verdict = null;
-                return verdict ? false : element;
+            if (ambiguous.closingTag.length && ambiguous.closingTag[0].tagName === element.openingTag.tagName) {
+                element.closingTag = ambiguous.closingTag.shift();
+                // if (!checkContent()) return;
             }
+            else {
+                const closingTag = checkClosingTag(element.openingTag.raw.trim(), element.openingTag.tagName);
 
-            element.closingTag = closingTag;
+                if (closingTag) {
+                    if (closingTag.tagName === element.openingTag.tagName) {
+                        element.closingTag = closingTag;
+                        // if (!checkContent()) return;
+                    }
+                    else {
+                        ambiguous.closingTag.push(closingTag);
+                    }
+                }
+            }
         }
         return element;
     }
@@ -253,40 +268,18 @@ function HtmlAst(strHTML, origin) {
         if (!m) {
             verdict = `${element} needs a closing tag.`;
         }
-        else if (m[1]) {
-            verdict = `${m[0].trim()} is incorrect. Make sure there is no space after the < symbol.`;
+        else if (m[1] || m[2]) {
+            verdict = `${m[0].trim()} is incorrect. Make sure there is no space after <${m[2] ? '/' : ''}.`;
         }
-        else if (m[2].trimRight().toLowerCase() !== tag) {
-            verdict = 'unclear';
-        }
-        else if (!m[3]) {
+        else if (!m[4]) {
             verdict = `Please close off ${m[0].trim()} with a > symbol.`;
         }
 
-        // if (verdict) return;
-
-        if (verdict) {
-            // look for valid closing tag in var:ambiguous
-            if (ambiguous.length && lastOf(ambiguous).tag === tag) {
-                verdict = null;
-                return { raw: lastOf(ambiguous).raw, tagName: ambiguous.pop().tag, type: 'tagend' };
-            }
-            else {
-                // store the current error in var:ambiguous if there is more code after the error
-                if (m && m[0].trim().length <= inputClone.trim().length) {
-                    ambiguous.push({
-                        raw: m[0].trim(),
-                        tag: m[2].trim().toLowerCase(),
-                    });
-                    inputClone = inputClone.slice(m[0].length);
-                }
-                return;
-            }
-        }
+        if (verdict) return;
 
         inputClone = inputClone.slice(m[0].length);
 
-        return { raw: m[0], tagName: m[2].trim(), type: 'tagend' };
+        return { raw: m[0], tagName: m[3].trimRight(), type: 'tagend' };
     }
 
     function checkAttribute(attrsRaw, tag) {
@@ -303,9 +296,7 @@ function HtmlAst(strHTML, origin) {
             let m = attrsRaw.match(/^(\s+)?([A-Za-z-]+)/);
 
             if (m) {
-                const
-                    validAttrName = attributes.all.some(a => a === m[2].toLowerCase()) || /^data-/i.test(m[2]),
-                    boolAttr = attributes.boolean.some(a => a === m[2].toLowerCase());
+                const validAttrName = attributes.all.some(a => a === m[2].toLowerCase()) || /^data-/i.test(m[2]);
 
                 if (validAttrName) {
                     if (!m[1]) {
@@ -316,13 +307,27 @@ function HtmlAst(strHTML, origin) {
                         attrObj.raw = m[0];
                         attrsRaw = attrsRaw.slice(m[0].length);
 
+                        const
+                            boolAttr = attributes.boolean.some(a => a === m[2].toLowerCase()),
+                            pushAttr = () => {
+                                attrsArray.push({
+                                    index: null,
+                                    name: attrObj.name,
+                                    quote: attrObj.quote || null,
+                                    raw: attrObj.raw,
+                                    value: attrObj.value || null,
+                                });
+
+                                attrObj = {};
+                            };
+                        
                         if (boolAttr) {
                             const _m = attrsRaw.match(/^\s*=('[^']*'|"[^"]*")?/);
                             _m ? verdict = `${attrObj.name} is a Boolean attribute. Please remove ${_m[0]}.` : pushAttr();
                             continue;
                         }
 
-                        // look for equal sign(m[1]) followed by single or double quote(m[2])
+                        // look for equal sign(m) followed by single or double quote(m[1])
                         m = attrsRaw.match(/^\s*=\s*(['"])?/);
 
                         if (!m) {
@@ -336,7 +341,8 @@ function HtmlAst(strHTML, origin) {
                             attrObj.raw += m[0];
                             attrsRaw = attrsRaw.slice(m[0].length);
 
-                            // expansive string search until closing quote then store as attribute value
+                            // expansive string search until closing quote
+                            // store as raw string (attrObj.raw) & attribute value(attrObj.value)
                             Array.from(attrsRaw).some((char, i) => {
                                 attrObj.raw += char;
                                 if (char === attrObj.quote) {
@@ -378,18 +384,6 @@ function HtmlAst(strHTML, origin) {
         });
 
         return verdict ? false : attrsArray;
-
-        function pushAttr() {
-            attrsArray.push({
-                index: null,
-                name: attrObj.name,
-                quote: attrObj.quote || null,
-                raw: attrObj.raw,
-                value: attrObj.value || null,
-            });
-
-            attrObj = {};
-        }
     }
 }
 
@@ -400,6 +394,77 @@ function compare(t, l) {
     if (!verdict) {
         const input = HtmlAst(l, 'Learner');
         if (!verdict) {
+            // compare elements using teacher node(tn) & learner node(ln)
+            const matchElements = (tn, ln) => {
+                if (tn.type === 'element') {
+                    if (ln.type === 'element') {
+                        if (ln.openingTag.tagName !== tn.openingTag.tagName) {
+                            verdict = `${ln.openingTag.tagName} is not the right tag. Please read the instructions again.`;
+                        }
+                        else if (tn.openingTag.attrs.length < ln.openingTag.attrs.length) {
+                            ln.openingTag.attrs.some(a => {
+                                if (!val(a.name).isFoundIn(tn.openingTag.attrs.map(_a => _a.name))) {
+                                    verdict = `In the ${tn.openingTag.tagName} tag, ${a.name} attribute is not required. Please remove it.`;
+                                }
+                            });
+                        }
+                        else if (matchAttrs(tn.openingTag, ln.openingTag)) {
+                            // compare content
+                            if (tn.content.length) {
+                                tn.content.every((e, j) => {
+                                    if (ln.content.hasOwnProperty(j)) {
+                                        return matchElements(e, ln.content[j]);
+                                    }
+                                    else if (e.type === 'element') {
+                                        verdict = `The ${e.openingTag.tagName} element is missing from your code. Please add it in.`;
+                                    }
+                                    else if (ln.content[j].type === 'text') {
+                                        verdict = `${ln.content[j].raw} is not the correct text content for the ${tn.openingTag.tagName} element.`;
+                                    }
+                                    return;
+                                });
+                            }
+                        }
+                    }
+                    else if (ln.type === 'text') {
+                        verdict = `${ln.raw} is not an element. You can create elements using tags.`;
+                    }
+                }
+                return !verdict;
+            };
+
+            // compare attributes and values using teacher tag(tt) & learner tag(lt)
+            const matchAttrs = (tt, lt) => {
+                return tt.attrs.every(a => {
+                    if (val(a.name).isFoundIn(lt.attrs.map(_a => _a.name))) {
+                        let
+                            inputVal = lt.attrs.filter(_a => _a.name === a.name)[0].value,
+                            missingVal;
+
+                        if (a.name === 'class') {
+                            a.value.split(/\s+/).forEach(v => {
+                                inputVal.includes(v) ? inputVal = inputVal.replace(v, '').trim() : missingVal = true;
+                            });
+
+                            if (inputVal.length) {
+                                verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
+                            }
+                            else if (missingVal) {
+                                verdict = `In the ${tt.tagName} tag, some value is missing from the ${a.name} attribute.`;
+                            }
+                        }
+                        else if (a.value !== inputVal) {
+                            verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
+                        }
+                    }
+                    else {
+                        verdict = `An attribute is missing in the ${lt.tagName} tag.`;
+                    }
+
+                    return !verdict;
+                });
+            };
+
             model.every((e, i) => {
                 if (input[i]) {
                     if (matchElements(e, input[i]) && i === model.length - 1 && input[i + 1]) {
@@ -413,74 +478,6 @@ function compare(t, l) {
             });
         }
     }
-
-    // compare elements using teacher node(tn) & learner node(ln)
-    function matchElements(tn, ln) {
-        if (tn.type === 'element') {
-            if (ln.type === 'element') {
-                if (ln.openingTag.tagName !== tn.openingTag.tagName) {
-                    verdict = `${ln.openingTag.tagName} is not the right tag. Please read the instructions again.`;
-                }
-                else if (tn.openingTag.attrs.length < ln.openingTag.attrs.length) {
-                    ln.openingTag.attrs.some(a => {
-                        if (!val(a.name).isFoundIn(tn.openingTag.attrs.map(_a => _a.name))) {
-                            verdict = `In the ${tn.openingTag.tagName} tag, ${a.name} attribute is not required. Please remove it.`;
-                        }
-                    });
-                }
-                else if (matchAttrs(tn.openingTag, ln.openingTag)) {
-                    // compare content
-                    if (tn.content.length) {
-                        tn.content.every((e, j) => {
-                            if (ln.content.hasOwnProperty(j)) {
-                                return matchElements(e, ln.content[j]);
-                            }
-                            else {
-                                verdict = `The ${e.openingTag.tagName} element is missing from your code. Please add it in.`;
-                                return;
-                            }
-                        });
-                    }
-                }
-            }
-            else if (ln.type === 'text') {
-                verdict = `${ln.raw} is not an element. You can create elements using tags.`;
-            }
-        }
-        return !verdict;
-    }
-
-    // compare attributes and values using teacher tag(tt) & learner tag(lt)
-    function matchAttrs(tt, lt) {
-        return tt.attrs.every(a => {
-            if (val(a.name).isFoundIn(lt.attrs.map(_a => _a.name))) {
-                let
-                    inputVal = lt.attrs.filter(_a => _a.name === a.name)[0].value,
-                    missingVal;
-
-                if (a.name === 'class') {
-                    a.value.split(/\s+/).forEach(v => {
-                        inputVal.includes(v) ? inputVal = inputVal.replace(v, '').trim() : missingVal = true;
-                    });
-
-                    if (inputVal.length) {
-                        verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
-                    }
-                    else if (missingVal) {
-                        verdict = `In the ${tt.tagName} tag, some value is missing from the ${a.name} attribute.`;
-                    }
-                }
-                else if (a.value !== inputVal) {
-                    verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
-                }
-            }
-            else {
-                verdict = `An attribute is missing in the ${lt.tagName} tag.`;
-            }
-
-            return !verdict;
-        });
-    }
 }
 
 // ===== LB IRRELEVANT ===== //
@@ -488,8 +485,7 @@ function reset() {
     console.clear();
     result = { teacher: {}, learner: {} };
     verdict = null;
-    invalidElement = [];
-    ambiguous = [];
+    ambiguous = {elem: [], closingTag: []};
 }
 
 function initialize() {
