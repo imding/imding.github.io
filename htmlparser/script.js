@@ -1,14 +1,14 @@
 const
-    ti = `<input class='small key' disabled placeholder="Ain't no rest for the wicked.">
-<div id="wrapper">
+    ti = `<div id="wrapper">
     <h1 id='title'>Test</h1>
     <h3></h3>
-</div>`,
-    li = `<input class = "small key " placeholder="Don't do this">
-<div id="wrapper">
-    <h1 id="title">Test</h1>
+</div>
+<img>`,
+    li = `<div id="wrapper">
+    <h1 id='title'>Test</h1>
     <h3></h3>
-</div>`;
+</div>
+<img>`;
 
 let ctrl;
 
@@ -69,6 +69,22 @@ const val = (v) => {
         },
     };
 };
+
+function flatten(srcArray, n = 0, end = srcArray.length) {
+    if (n < 0 || end > srcArray.length) throw new Error(`${srcArray}[${n} to ${end}] can not be flattened due to invalid index range`);
+
+    const addToSrcArray = (e, i) => srcArray.splice(n + i, 0, e);
+
+    while (n < end) {
+        if (Array.isArray(srcArray[n])) {
+            const _arr = srcArray[n];
+            srcArray.splice(n, 1);
+            _arr.forEach(addToSrcArray);
+        }
+        n++;
+    }
+    return srcArray;
+}
 
 let verdict, inputClone, invalidElement = [], ambiguous = [];
 
@@ -186,7 +202,7 @@ function HtmlAst(strHTML, origin) {
                 }
                 else {
                     nestedElement = checkElement();
-                    if (!nestedElement) break;
+                    if (!nestedElement) return;
                     element.content.push(nestedElement);
                 }
 
@@ -194,15 +210,13 @@ function HtmlAst(strHTML, origin) {
                 nestedElement = inputClone.match(pOpeningTag);
             }
 
-            if (verdict && !invalidElement.length) return;
-
             // look for closing tag
             const closingTag = checkClosingTag(element.openingTag.raw.trim(), element.openingTag.tagName);
 
             if (!closingTag) {
                 invalidElement.push(element);
-                verdict = null;
-                return element;
+                if (verdict === 'unclear') verdict = null;
+                return verdict ? false : element;
             }
 
             element.closingTag = closingTag;
@@ -243,10 +257,10 @@ function HtmlAst(strHTML, origin) {
             verdict = `${m[0].trim()} is incorrect. Make sure there is no space after the < symbol.`;
         }
         else if (m[2].trimRight().toLowerCase() !== tag) {
-            verdict = 'bababa';
+            verdict = 'unclear';
         }
         else if (!m[3]) {
-            verdict = `Make sure to write the > symbol after ${m[0].trim()}.`;
+            verdict = `Please close off ${m[0].trim()} with a > symbol.`;
         }
 
         // if (verdict) return;
@@ -254,7 +268,7 @@ function HtmlAst(strHTML, origin) {
         if (verdict) {
             // look for valid closing tag in var:ambiguous
             if (ambiguous.length && lastOf(ambiguous).tag === tag) {
-                verdict = '';
+                verdict = null;
                 return { raw: lastOf(ambiguous).raw, tagName: ambiguous.pop().tag, type: 'tagend' };
             }
             else {
@@ -387,13 +401,15 @@ function compare(t, l) {
         const input = HtmlAst(l, 'Learner');
         if (!verdict) {
             model.every((e, i) => {
-                if (input.hasOwnProperty(i)) {
-                    return matchElements(e, input[i]);
+                if (input[i]) {
+                    if (matchElements(e, input[i]) && i === model.length - 1 && input[i + 1]) {
+                        verdict = `${input[i + 1].openingTag ? input[i + 1].openingTag.raw : input[i + 1].raw} is not required. Please remove it.`;
+                    }
                 }
                 else {
                     verdict = `The ${e.openingTag.tagName} element is missing from your code. Please add it in.`;
-                    return;
                 }
+                return !verdict;
             });
         }
     }
@@ -403,7 +419,7 @@ function compare(t, l) {
         if (tn.type === 'element') {
             if (ln.type === 'element') {
                 if (ln.openingTag.tagName !== tn.openingTag.tagName) {
-                    verdict = `${ln.openingTag.tagName} is not the right tag.`;
+                    verdict = `${ln.openingTag.tagName} is not the right tag. Please read the instructions again.`;
                 }
                 else if (tn.openingTag.attrs.length < ln.openingTag.attrs.length) {
                     ln.openingTag.attrs.some(a => {
