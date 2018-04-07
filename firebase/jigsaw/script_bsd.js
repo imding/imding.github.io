@@ -107,7 +107,7 @@ const
 
 // ===== FUNCTIONS ===== //
 
-function setBackground(ir, wr) {
+function setBackground() {
     if (!Array.from(document.body.children).includes(bg.wrapper)) {
         bg.wrapper = document.createElement('div');
         bg.image = document.createElement('img');
@@ -148,15 +148,13 @@ function loadImage() {
     info.textContent = `Loading the ${rank(nth + 1)} puzzle...`;
 
     image.onload = () => {
-        const
-            ir = image.width / image.height,
-            wr = window.innerWidth / window.innerHeight;
+        const ir = image.width / image.height;
         
         resolution = [
             ir >= 0 ? Math.round(levels[nth].grid * ir) : levels[nth].grid,
             ir >= 0 ? levels[nth].grid : Math.round(levels[nth].grid * ir),
         ];
-        setBackground(ir, wr);
+        setBackground();
         initialze();
         info.textContent = `You're solving the ${rank(nth + 1)} puzzle.`;
     };
@@ -197,7 +195,7 @@ function generatePuzzle() {
             y = Math.floor(i / resolution[0]) * (image.height * r / resolution[1]);
 
         piece.id = `piece${i}`;
-        piece.className = "piece";
+        piece.className = 'piece';
         piece.style.width = `${image.width * r / resolution[0]}px`;
         piece.style.height = `${image.height * r / resolution[1]}px`;
         piece.style.backgroundImage = `url(${image.src})`;
@@ -398,10 +396,10 @@ function showPopup(messageContent, buttonText, action) {
     }
 
     document.body.appendChild(popup.element);
-  	popup.element.appendChild(wrapper);
+    popup.element.appendChild(wrapper);
     popup.element.appendChild(logo);
     
-  	style([popup.element], {
+    style([popup.element], {
         position: 'absolute',
         top: '0',
         width: `${window.innerWidth}px`,
@@ -450,7 +448,7 @@ function showPopup(messageContent, buttonText, action) {
             transform: `translateX(-50%) scale(${sizeRatio}) `,
             top: `${wrapper.offsetTop - (wrapper.offsetHeight / 2) - (logo.offsetHeight / 2)}px`,
         });
-    }
+    };
 }
 
 // ===== EVENTS ===== //
@@ -467,7 +465,7 @@ window.onload = () => {
         showPopup('You must log in with a Launchbox account to play', 'Go to Launchbox', () => window.open('https://app.bsdlaunchbox.com'));
         document.onvisibilitychange = () => {
             if (document.visibilityState === 'visible') window.location.reload(true);
-        }
+        };
     }
 };
 
@@ -538,7 +536,7 @@ function getBSDProfile() {
     function polyfill(input) {
         var str = String(input).replace(/=+$/, '');
         if (str.length % 4 == 1) {
-            throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
+            throw new InvalidCharacterError('"atob" failed: The string to be decoded is not correctly encoded.');
         }
         for (
             // initialize result and counters
@@ -568,18 +566,18 @@ function getBSDProfile() {
     }
 
     function base64_url_decode(str) {
-        var output = str.replace(/-/g, "+").replace(/_/g, "/");
+        var output = str.replace(/-/g, '+').replace(/_/g, '/');
         switch (output.length % 4) {
             case 0:
                 break;
             case 2:
-                output += "==";
+                output += '==';
                 break;
             case 3:
-                output += "=";
+                output += '=';
                 break;
             default:
-                throw "Illegal base64url string!";
+                throw 'Illegal base64url string!';
         }
 
         try {
@@ -587,7 +585,7 @@ function getBSDProfile() {
         } catch (err) {
             return atob(output);
         }
-    };
+    }
 
     function InvalidTokenError(message) {
         this.message = message;
@@ -608,7 +606,7 @@ function getBSDProfile() {
         } catch (e) {
             throw new InvalidTokenError('Invalid token specified: ' + e.message);
         }
-    };
+    }
 
     var token = parent.localStorage.getItem('id_token');
     if (token != null) {
