@@ -494,7 +494,7 @@ function initialize() {
     btnCompare.onclick = () => {
         reset();
         compare(teacher.value, learner.value);
-        info.textContent = `Comparison: ${verdict}` || 'All good.';
+        info.textContent = verdict || 'All good.';
     };
 
     teacher.addEventListener('keydown', tabHandler, false);

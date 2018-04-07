@@ -49,7 +49,7 @@ const
                 const showInfo = () => {
                     showPopup('No one has solved all 5 puzzles yet. Good Luck!', 'Play', () => {
                         document.body.removeChild(popup.element);
-                        toggleFullScreen();
+                        // toggleFullScreen();
                     });
                     afterLoad();
                 };
@@ -71,7 +71,7 @@ const
 
                 showPopup(`<span class='blue'>${leaderboard.best.name}</span><br>solved all puzzles in<br><span class='gold'>${leaderboard.best.time}</span> seconds`, 'Play', () => {
                     document.body.removeChild(popup.element);
-                    toggleFullScreen();
+                    // toggleFullScreen();
                 });
                 afterLoad();
             });
@@ -87,6 +87,7 @@ const
                     name: profile.name,
                     email: profile.email,
                     time: currentData ? Math.min(currentData.time, newScore) : newScore,
+                    userInfo: profile.userInfo,
                 };
             }, () => {
                 if (newScore <= leaderboard.best.time || !leaderboard.best.time) {
@@ -99,7 +100,7 @@ const
                 }
                 else {
                     showPopup(`You finished in<br><span class='green'>${newScore}</span> seconds<br><br>The current best score is<br><span class='gold'>${leaderboard.best.time}</span> seconds`);
-                    alert(`You finished in ${newScore} seconds, ${newScore - leaderboard.best.time}s more than the fastest solver.`);
+                    // alert(`You finished in ${newScore} seconds, ${newScore - leaderboard.best.time}s more than the fastest solver.`);
                 }
             });
         },
@@ -339,6 +340,9 @@ function checkPuzzle() {
             });
         }
         else {
+            if (!profile.userInfo) {
+                
+            }
             leaderboard.add(Math.ceil((Date.now() - time) / 1000));
         }
     }
@@ -467,6 +471,71 @@ window.onload = () => {
             if (document.visibilityState === 'visible') window.location.reload(true);
         };
     }
+
+    btnPopup.onclick = () => {
+        showPopup(
+            `...<br>
+            School<br>
+            <input id='school' type='text'><br>
+            Your date of birth
+            <select id='birthYear'>
+                <option value='2015'>2015</option>
+                <option value='2014'>2014</option>
+                <option value='2013'>2013</option>
+                <option value='2012'>2012</option>
+                <option value='2011'>2011</option>
+                <option value='2010'>2010</option>
+                <option value='2009'>2009</option>
+                <option value='2008'>2008</option>
+                <option value='2007'>2007</option>
+                <option value='2006'>2006</option>
+                <option value='2005'>2005</option>
+                <option value='2004'>2004</option>
+                <option value='2003'>2003</option>
+                <option value='2002'>2002</option>
+                <option value='2001'>2001</option>
+            </select>
+            <select id='bm'>
+                <option value='Jan'>Jan</option>
+                <option value='Feb'>Feb</option>
+                <option value='Wed'>Wed</option>
+                <option value='Apr'>Apr</option>
+                <option value='May'>May</option>
+                <option value='Jun'>Jun</option>
+                <option value='Jul'>Jul</option>
+                <option value='Aug'>Aug</option>
+                <option value='Sep'>Sep</option>
+                <option value='Oct'>Oct</option>
+                <option value='Nov'>Nov</option>
+                <option value='Dec'>Dec</option>
+            </select>`,
+            'Next',
+            () => {
+                profile.userInfo = {
+                    school: school.value.trim(),
+                    birth_year: birthYear.options[birthYear.options.selectedIndex].value,
+                };
+
+                popup.message.innerHTML = `Ask your parent to fill out this section<br>
+                    Parent Name<br>
+                    <input id='parentFirstName' type='text' placeholder='First Name'><br>
+                    <input id='parentLastName' type='text' placeholder='Last Name'><br>
+                    Contact Number<br>
+                    <input id='parentContactNumber' type='text'>
+                    Email<br>
+                    <input id='parentEmail' type='text'>`;
+                
+                popup.button.textContent = 'Submit';
+                popup.button.onclick = () => {
+                    profile.userInfo.parent_name = `${parentFirstName.value.trim()} ${parentLastName.value.trim()}`;
+                    profile.userInfo.parent_contact = parentContactNumber.value.trim();
+                    profile.userInfo.parent_email = parentEmail.value.trim();
+                    document.body.removeChild(popup.element);
+                    localStorage.setItem('userInfo', profile.userInfo);
+                };
+            }
+        );
+    };
 };
 
 window.ontouchstart = (evt) => {
