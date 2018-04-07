@@ -67,22 +67,6 @@ const val = (v) => {
     };
 };
 
-// function flatten(srcArray, n = 0, end = srcArray.length) {
-//     if (n < 0 || end > srcArray.length) throw new Error(`${srcArray}[${n} to ${end}] can not be flattened due to invalid index range`);
-
-//     const addToSrcArray = (e, i) => srcArray.splice(n + i, 0, e);
-
-//     while (n < end) {
-//         if (Array.isArray(srcArray[n])) {
-//             const _arr = srcArray[n];
-//             srcArray.splice(n, 1);
-//             _arr.forEach(addToSrcArray);
-//         }
-//         n++;
-//     }
-//     return srcArray;
-// }
-
 let verdict, inputClone, ambiguous = {elem: [], closingTag:[]};
 
 function HtmlAst(strHTML, origin) {
@@ -104,7 +88,6 @@ function HtmlAst(strHTML, origin) {
         if (!e) break;
         tree.push(e);
     }
-
 
     // input string can only contain, if any, valid closing tag(s) at this point
     if (inputClone.length) {
