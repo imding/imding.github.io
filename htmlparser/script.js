@@ -1,10 +1,11 @@
 const
-    ti = `<div>
+    ti = `<div class='wrapper top'>
+    <h1 id='title'>Hello</h1>
     <h3 id="subtitle">world</h3>
 </div>`,
-    li = `<div>
+    li = `<div class='top wrapper'>
+    <h1>hello</h1>
     <h3 id="subtitle">world</h3>
-    <h1></h1>
 </div>`;
 
 let ctrl;
@@ -453,7 +454,7 @@ function compare(t, l) {
                         }
                     }
                     else {
-                        verdict = `An attribute is missing in the ${lt.tagName} tag.`;
+                        verdict = `An attribute is missing in ${lt.raw.trim()}.`;
                     }
 
                     return !verdict;
@@ -495,6 +496,23 @@ function initialize() {
         compare(teacher.value, learner.value);
         info.textContent = verdict || 'All good.';
     };
+
+    teacher.addEventListener('keydown', tabHandler, false);
+    learner.addEventListener('keydown', tabHandler, false);
+}
+
+function tabHandler(e) {
+    const TABKEY = 9;
+    if (e.keyCode == TABKEY) {
+        const bc = this.value.slice(0, this.selectionStart),
+            ac = this.value.slice(this.selectionStart, this.value.length);
+        this.value = `${bc}    ${ac}`;
+        this.setSelectionRange(this.value.length - ac.length, this.value.length - ac.length);
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        return false;
+    }
 }
 
 window.onload = () => initialize();
