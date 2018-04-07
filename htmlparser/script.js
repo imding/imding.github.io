@@ -1,9 +1,10 @@
 const
     ti = `<div>
-    <h3></h2></h3>
+    <h3 id="subtitle">world</h3>
 </div>`,
     li = `<div>
-    <h3></h3>
+    <h3 id="subtitle">world</h3>
+    <h1></h1>
 </div>`;
 
 let ctrl;
@@ -66,21 +67,21 @@ const val = (v) => {
     };
 };
 
-function flatten(srcArray, n = 0, end = srcArray.length) {
-    if (n < 0 || end > srcArray.length) throw new Error(`${srcArray}[${n} to ${end}] can not be flattened due to invalid index range`);
+// function flatten(srcArray, n = 0, end = srcArray.length) {
+//     if (n < 0 || end > srcArray.length) throw new Error(`${srcArray}[${n} to ${end}] can not be flattened due to invalid index range`);
 
-    const addToSrcArray = (e, i) => srcArray.splice(n + i, 0, e);
+//     const addToSrcArray = (e, i) => srcArray.splice(n + i, 0, e);
 
-    while (n < end) {
-        if (Array.isArray(srcArray[n])) {
-            const _arr = srcArray[n];
-            srcArray.splice(n, 1);
-            _arr.forEach(addToSrcArray);
-        }
-        n++;
-    }
-    return srcArray;
-}
+//     while (n < end) {
+//         if (Array.isArray(srcArray[n])) {
+//             const _arr = srcArray[n];
+//             srcArray.splice(n, 1);
+//             _arr.forEach(addToSrcArray);
+//         }
+//         n++;
+//     }
+//     return srcArray;
+// }
 
 let verdict, inputClone, ambiguous = {elem: [], closingTag:[]};
 
@@ -207,11 +208,12 @@ function HtmlAst(strHTML, origin) {
                 if (textContent) {
                     inputClone = inputClone.slice(textContent[0].length);
                     // text node containing only white spaces are ignored
-                    if (textContent[0].trim().length) element.content.push({ raw: textContent[0], type: 'text' });
+                    if (textContent[0].trim().length) element.content.push({ raw: textContent[0], type: 'text', parent: element });
                 }
                 else {
                     nestedElement = checkElement();
                     if (!nestedElement) return;
+                    nestedElement.parent = element;
                     if (!nestedElement.isVoid && !nestedElement.closingTag.raw) ambiguous.elem.push(nestedElement);
                     element.content.push(nestedElement);
                 }
@@ -223,15 +225,13 @@ function HtmlAst(strHTML, origin) {
             // look for closing tag
             if (ambiguous.closingTag.length && ambiguous.closingTag[0].tagName === element.openingTag.tagName) {
                 element.closingTag = ambiguous.closingTag.shift();
-                // if (!checkContent()) return;
             }
             else {
-                const closingTag = checkClosingTag(element.openingTag.raw.trim(), element.openingTag.tagName);
+                const closingTag = checkClosingTag(element.openingTag.raw.trim());
 
                 if (closingTag) {
                     if (closingTag.tagName === element.openingTag.tagName) {
                         element.closingTag = closingTag;
-                        // if (!checkContent()) return;
                     }
                     else {
                         ambiguous.closingTag.push(closingTag);
@@ -265,7 +265,7 @@ function HtmlAst(strHTML, origin) {
         return true;
     }
 
-    function checkClosingTag(element, tag) {
+    function checkClosingTag(element) {
         const m = inputClone.match(pClosingTag);
 
         if (!m) {
@@ -416,6 +416,10 @@ function compare(t, l) {
                             if (tn.content.length) {
                                 tn.content.every((e, j) => {
                                     if (ln.content[j]) {
+                                        if (j === tn.content.length - 1 && ln.content[j + 1]) {
+                                            verdict = `In the ${ln.content[j + 1].parent.openingTag.tagName} element, ${ln.content[j + 1].openingTag ? `${ln.content[j + 1].openingTag.raw.trim()}${ln.content[j + 1].content.length ? '...' : ''}${ln.content[j + 1].isVoid ? '' : ln.content[j + 1].closingTag.raw.trim()}` : `"${ln.content[j + 1].raw.trim()}"`} is not required. Please remove it.`;
+                                            return;
+                                        }
                                         return matchElements(e, ln.content[j]);
                                     }
                                     else if (e.type) {
@@ -428,6 +432,14 @@ function compare(t, l) {
                     }
                     else if (ln.type === 'text') {
                         verdict = `"${ln.raw.trim()}" is not an element. You can create elements using tags.`;
+                    }
+                }
+                else if (tn.type === 'text') {
+                    if (!ln.raw) {
+                        verdict = `Text content "${tn.raw.trim()}" is missing from the ${tn.parent.openingTag.tagName} element. Please add it in.`;
+                    }
+                    else if (tn.raw.trim().toLowerCase() !== ln.raw.trim().toLowerCase()) {
+                        verdict = `In the ${tn.parent.openingTag.tagName} element, text content "${ln.raw.trim()}" is incorrect. Try "${tn.raw.trim()}".`;
                     }
                 }
                 return !verdict;
@@ -465,10 +477,11 @@ function compare(t, l) {
                 });
             };
 
-            model.every((e, i) => {
+            // loop through every teacher node and find equivalent node in learner code
+            return model.every((e, i) => {
                 if (input[i]) {
                     if (matchElements(e, input[i]) && i === model.length - 1 && input[i + 1]) {
-                        verdict = `${input[i + 1].openingTag ? input[i + 1].openingTag.raw : `"${input[i + 1].raw.trim()}"`} is not required. Please remove it.`;
+                        verdict = `${input[i + 1].openingTag ? `${input[i + 1].openingTag.raw.trim()}${input[i + 1].content.length ? '...' : ''}${input[i + 1].isVoid ? '' : input[i + 1].closingTag.raw.trim()}` : `"${input[i + 1].raw.trim()}"`} is not required. Please remove it.`;
                     }
                 }
                 else {
@@ -478,6 +491,8 @@ function compare(t, l) {
             });
         }
     }
+
+    return;
 }
 
 // ===== LB IRRELEVANT ===== //
