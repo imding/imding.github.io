@@ -104,19 +104,22 @@ function HtmlAst(strHTML, origin) {
         tree.push(e);
     }
 
+
     // input string can only contain, if any, valid closing tag(s) at this point
     if (inputClone.length) {
-        verdict = `${ambiguous.closingTag[0].raw} is not paired with anything. Please add an opening tag or remove it.`;
+        if (!verdict) verdict = `${ambiguous.closingTag[0].raw} is not paired with anything. Please add an opening tag or remove it.`;
     }
-    // deal with ambiguous code
-    else if (ambiguous.elem.length < ambiguous.closingTag) {
-        verdict = `${lastOf(ambiguous.closingTag).raw} is not paired with anything. Please add an opening tag or remove it.`;
-    }
-    else if (ambiguous.elem.length > ambiguous.closingTag) {
-        verdict = `${lastOf(ambiguous.elem).openingTag.tagName} is not a void element. Please add a closing tag for ${lastOf(ambiguous.elem).openingTag.raw} or remove it.`;
-    }
-    else {
-        verdict = `${lastOf(ambiguous.closingTag).raw} is not a valid closing tag for ${lastOf(ambiguous.elem).openingTag.raw}.`;
+    else if (ambiguous.elem.length + ambiguous.closingTag.length) {
+        // deal with ambiguous code
+        if (ambiguous.elem.length < ambiguous.closingTag.length) {
+            verdict = `${lastOf(ambiguous.closingTag).raw} is not paired with anything. Please add an opening tag or remove it.`;
+        }
+        else if (ambiguous.elem.length > ambiguous.closingTag.length) {
+            verdict = `${lastOf(ambiguous.elem).openingTag.tagName} is not a void element. Please add a closing tag for ${lastOf(ambiguous.elem).openingTag.raw} or remove it.`;
+        }
+        else {
+            verdict = `${lastOf(ambiguous.closingTag).raw} is not a valid closing tag for ${lastOf(ambiguous.elem).openingTag.raw}.`;
+        }
     }
 
     // console.log(`${origin}:`, tree);
@@ -209,7 +212,7 @@ function HtmlAst(strHTML, origin) {
                 else {
                     nestedElement = checkElement();
                     if (!nestedElement) return;
-                    if (!nestedElement.closingTag.raw) ambiguous.elem.push(nestedElement);
+                    if (!nestedElement.isVoid && !nestedElement.closingTag.raw) ambiguous.elem.push(nestedElement);
                     element.content.push(nestedElement);
                 }
 
@@ -412,14 +415,11 @@ function compare(t, l) {
                             // compare content
                             if (tn.content.length) {
                                 tn.content.every((e, j) => {
-                                    if (ln.content.hasOwnProperty(j)) {
+                                    if (ln.content[j]) {
                                         return matchElements(e, ln.content[j]);
                                     }
-                                    else if (e.type === 'element') {
-                                        verdict = `The ${e.openingTag.tagName} element is missing from your code. Please add it in.`;
-                                    }
-                                    else if (ln.content[j].type === 'text') {
-                                        verdict = `${ln.content[j].raw} is not the correct text content for the ${tn.openingTag.tagName} element.`;
+                                    else if (e.type) {
+                                        verdict = `${e.type === 'text' ? `Text content "${e.raw.trim()}"` : `The ${e.openingTag.tagName} element`} is missing from the ${tn.openingTag.tagName} element. Please add it in.`;
                                     }
                                     return;
                                 });
@@ -427,7 +427,7 @@ function compare(t, l) {
                         }
                     }
                     else if (ln.type === 'text') {
-                        verdict = `${ln.raw} is not an element. You can create elements using tags.`;
+                        verdict = `"${ln.raw.trim()}" is not an element. You can create elements using tags.`;
                     }
                 }
                 return !verdict;
@@ -468,7 +468,7 @@ function compare(t, l) {
             model.every((e, i) => {
                 if (input[i]) {
                     if (matchElements(e, input[i]) && i === model.length - 1 && input[i + 1]) {
-                        verdict = `${input[i + 1].openingTag ? input[i + 1].openingTag.raw : input[i + 1].raw} is not required. Please remove it.`;
+                        verdict = `${input[i + 1].openingTag ? input[i + 1].openingTag.raw : `"${input[i + 1].raw.trim()}"`} is not required. Please remove it.`;
                     }
                 }
                 else {
