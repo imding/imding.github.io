@@ -45,6 +45,10 @@ h1 {
     cursor: -webkit-grabbing;
 }
 
+.small {
+    font-size: 0.6em;
+}
+
 .blue {
     color: skyblue;
 }

@@ -22,18 +22,18 @@ const
             link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-keys.jpeg',
             grid: 2,
         },
-        {
-            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-newyork.png',
-            grid: 3,
-        },
-        {
-            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
-            grid: 4,
-        },
-        {
-            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
-            grid: 4,
-        }
+        // {
+        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-newyork.png',
+        //     grid: 3,
+        // },
+        // {
+        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
+        //     grid: 4,
+        // },
+        // {
+        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
+        //     grid: 4,
+        // }
     ],
     leaderboard = {
         best: {
@@ -340,10 +340,22 @@ function checkPuzzle() {
             });
         }
         else {
-            if (!profile.userInfo) {
-                
+            const info = Object.keys(localStorage.getItem('userInfo') || profile.userInfo);
+            if (info.length === 5 && info.every(k => profile.userInfo[k] && profile.userInfo[k].trim())) {
+                leaderboard.add(Math.ceil((Date.now() - time) / 1000));
             }
-            leaderboard.add(Math.ceil((Date.now() - time) / 1000));
+            else {
+                showPopup(
+                    'Please fill out the form to enter ranked play and win our amazing prize.',
+                    'Sure',
+                    () => {
+                        document.body.removeChild(popup.element);
+                        showForm();
+                    },
+                    true,
+                    () => window.location.reload(true),
+                );
+            }
         }
     }
 }
@@ -375,12 +387,13 @@ function toggleFullScreen() {
     }
 }
 
-function showPopup(messageContent, buttonText, action) {
+function showPopup(messageContent, buttonText, action, close = false, closeAction) {
     const
         wrapper = document.createElement('div'),
         logo = document.createElement('img'),
         message = document.createElement('h2'),
-        button = document.createElement('button');
+        button = document.createElement('button'),
+        btnClose = document.createElement('button');
 
     popup = {
         element: document.createElement('div'),
@@ -397,6 +410,12 @@ function showPopup(messageContent, buttonText, action) {
         button.textContent = buttonText;
         button.onclick = action;
         wrapper.appendChild(button);
+        if (close) {
+            style([btnClose], {margin_left: '10px'});
+            btnClose.textContent = 'Cancel';
+            btnClose.onclick = closeAction;
+            wrapper.appendChild(btnClose);
+        }
     }
 
     document.body.appendChild(popup.element);
@@ -431,7 +450,7 @@ function showPopup(messageContent, buttonText, action) {
         line_height: '1.5em',
     });
     
-    if (buttonText) style([button], {
+    if (buttonText || close) style([button, btnClose], {
         border: 'none',
         border_radius: `${button.offsetHeight / 2}px`,
         padding: '5px 10px',
@@ -455,6 +474,69 @@ function showPopup(messageContent, buttonText, action) {
     };
 }
 
+function showForm() {
+    showPopup(
+        `...<hr>
+        <div style='text-align: left; margin: auto'>
+            <span class='small'>School Name:</span> <input id='school' type='text' style='width: 50%'><br>
+            <span class='small'>Birthday:</span> <select id='birthYear'>
+                <option value='2015'>2015</option>
+                <option value='2014'>2014</option>
+                <option value='2013'>2013</option>
+                <option value='2012'>2012</option>
+                <option value='2011'>2011</option>
+                <option value='2010'>2010</option>
+                <option value='2009'>2009</option>
+                <option value='2008'>2008</option>
+                <option value='2007'>2007</option>
+                <option value='2006'>2006</option>
+                <option value='2005'>2005</option>
+                <option value='2004'>2004</option>
+                <option value='2003'>2003</option>
+                <option value='2002'>2002</option>
+                <option value='2001'>2001</option>
+            </select>
+            <select id='birthMonth'>
+                <option value='Jan'>Jan</option>
+                <option value='Feb'>Feb</option>
+                <option value='Wed'>Wed</option>
+                <option value='Apr'>Apr</option>
+                <option value='May'>May</option>
+                <option value='Jun'>Jun</option>
+                <option value='Jul'>Jul</option>
+                <option value='Aug'>Aug</option>
+                <option value='Sep'>Sep</option>
+                <option value='Oct'>Oct</option>
+                <option value='Nov'>Nov</option>
+                <option value='Dec'>Dec</option>
+            </select>
+        </div><hr>`,
+        'Next',
+        () => {
+            profile.userInfo = {
+                school_name: school.value.trim(),
+                birth_date: `${birthYear.options[birthYear.options.selectedIndex].value} ${birthMonth.options[birthMonth.options.selectedIndex].value}`,
+            };
+            document.body.removeChild(popup.element);
+            showPopup(
+                `...<hr>
+                <div style='text-align: left; margin: auto'>
+                    <span class='small'>Parent Name:</span> <input id='parentFirstName' type='text' placeholder='First Name' style='width: 25%'> <input id='parentLastName' type='text' placeholder='Last Name' style='width: 25%'><br>
+                    <span class='small'>Contact Number:</span> <input id='parentContactNumber' type='text' style='width: 50%'><br>
+                    <span class='small'>Email:</span> <input id='parentEmail' type='text' style='width: 50%'>
+                </div><hr>`,
+                'Submit',
+                () => {
+                    profile.userInfo.parent_name = `${parentFirstName.value.trim()} ${parentLastName.value.trim()}`;
+                    profile.userInfo.parent_contact = parentContactNumber.value.trim();
+                    profile.userInfo.parent_email = parentEmail.value.trim();
+                    document.body.removeChild(popup.element);
+                    localStorage.setItem('userInfo', profile.userInfo);
+                },
+            );
+        }
+    );
+}
 // ===== EVENTS ===== //
 
 window.onresize = () => style([spare], {height: `${window.innerHeight - spare.offsetTop}px`});
@@ -473,68 +555,7 @@ window.onload = () => {
     }
 
     btnPopup.onclick = () => {
-        showPopup(
-            `...<br>
-            School<br>
-            <input id='school' type='text'><br>
-            Your date of birth
-            <select id='birthYear'>
-                <option value='2015'>2015</option>
-                <option value='2014'>2014</option>
-                <option value='2013'>2013</option>
-                <option value='2012'>2012</option>
-                <option value='2011'>2011</option>
-                <option value='2010'>2010</option>
-                <option value='2009'>2009</option>
-                <option value='2008'>2008</option>
-                <option value='2007'>2007</option>
-                <option value='2006'>2006</option>
-                <option value='2005'>2005</option>
-                <option value='2004'>2004</option>
-                <option value='2003'>2003</option>
-                <option value='2002'>2002</option>
-                <option value='2001'>2001</option>
-            </select>
-            <select id='bm'>
-                <option value='Jan'>Jan</option>
-                <option value='Feb'>Feb</option>
-                <option value='Wed'>Wed</option>
-                <option value='Apr'>Apr</option>
-                <option value='May'>May</option>
-                <option value='Jun'>Jun</option>
-                <option value='Jul'>Jul</option>
-                <option value='Aug'>Aug</option>
-                <option value='Sep'>Sep</option>
-                <option value='Oct'>Oct</option>
-                <option value='Nov'>Nov</option>
-                <option value='Dec'>Dec</option>
-            </select>`,
-            'Next',
-            () => {
-                profile.userInfo = {
-                    school: school.value.trim(),
-                    birth_year: birthYear.options[birthYear.options.selectedIndex].value,
-                };
-
-                popup.message.innerHTML = `Ask your parent to fill out this section<br>
-                    Parent Name<br>
-                    <input id='parentFirstName' type='text' placeholder='First Name'><br>
-                    <input id='parentLastName' type='text' placeholder='Last Name'><br>
-                    Contact Number<br>
-                    <input id='parentContactNumber' type='text'>
-                    Email<br>
-                    <input id='parentEmail' type='text'>`;
-                
-                popup.button.textContent = 'Submit';
-                popup.button.onclick = () => {
-                    profile.userInfo.parent_name = `${parentFirstName.value.trim()} ${parentLastName.value.trim()}`;
-                    profile.userInfo.parent_contact = parentContactNumber.value.trim();
-                    profile.userInfo.parent_email = parentEmail.value.trim();
-                    document.body.removeChild(popup.element);
-                    localStorage.setItem('userInfo', profile.userInfo);
-                };
-            }
-        );
+        
     };
 };
 
