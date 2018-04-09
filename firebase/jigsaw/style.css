@@ -10,6 +10,20 @@ h1 {
     margin: 10px 0 5px 0;
 }
 
+input[type='text'] {
+    width: 50%;
+}
+
+label {
+    color: grey;
+    font-size: 0.5em;
+}
+
+a {
+    color: ghostwhite;
+    text-decoration: none;
+}
+
 #puzzleContainer {
     position: relative;
     margin: auto;

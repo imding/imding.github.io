@@ -32,7 +32,7 @@ function loadGame() {
 
     }(this, function () {
 
-        "use strict";
+        'use strict';
 
         function EvEmitter() { }
 
@@ -530,7 +530,7 @@ function loadGame() {
 
         ctx.translate(ax, ay);
         ctx.rotate(-mazeAngle);
-        var color = 'hsla(150, 100%, 35%, 0.7)'
+        var color = 'hsla(150, 100%, 35%, 0.7)';
         // line
         ctx.strokeStyle = color;
         ctx.lineWidth = gridSize * 0.4;
@@ -1742,8 +1742,11 @@ function loadGame() {
         if (completedLevels.indexOf(maze.id) == -1) {
             completedLevels.push(maze.id);
             localStorage.setItem('completedLevels', completedLevels.join(','));
-            // sync progress to firebase
-            syncToFirebase(localStorage.getItem('completedLevels'));
+
+            // offer info form before syncing to firebase
+            const info = Object.values(JSON.parse(localStorage.getItem('userInfo') || profile.userInfo || '{}'));
+            if (info.length < 6 || info.some(val => !val || !val.trim())) showForm();
+            else syncToFirebase(localStorage.getItem('completedLevels'));
         }
         if (getNextLevel()) {
             setTimeout(function () {
@@ -1761,9 +1764,7 @@ function loadGame() {
 
     nextLevelButton.addEventListener('click', function () {
         var nextLevel = getNextLevel();
-        if (nextLevel) {
-            loadLevel(nextLevel);
-        }
+        if (nextLevel) loadLevel(nextLevel);
     });
 
     // -------------------------- utils -------------------------- //
@@ -1779,17 +1780,19 @@ function syncToFirebase(localData) {
         email: profile.email,
         score: ++gamePoints,
         progress: localData,
+        userInfo: profile.userInfo,
     }, { merge: true })
         .then(() => console.log("Document written", name, score))
         .catch(error => console.error("Error adding document: ", error));
 }
 
-function showPopup(messageContent, buttonText, action) {
+function showPopup(messageContent, buttonText, action, close = false, closeAction) {
     const
         wrapper = document.createElement('div'),
         logo = document.createElement('img'),
         message = document.createElement('h2'),
-        button = document.createElement('button');
+        button = document.createElement('button'),
+        btnClose = document.createElement('button');
 
     popup = {
         element: document.createElement('div'),
@@ -1806,11 +1809,16 @@ function showPopup(messageContent, buttonText, action) {
         button.textContent = buttonText;
         button.onclick = action;
         wrapper.appendChild(button);
+        if (close) {
+            style([btnClose], { margin_left: '10px' });
+            btnClose.textContent = 'Cancel';
+            btnClose.onclick = closeAction;
+            wrapper.appendChild(btnClose);
+        }
     }
 
     document.body.appendChild(popup.element);
     popup.element.appendChild(wrapper);
-    popup.element.appendChild(logo);
 
     style([popup.element], {
         position: 'absolute',
@@ -1841,7 +1849,7 @@ function showPopup(messageContent, buttonText, action) {
         line_height: '1.5em',
     });
 
-    if (buttonText) style([button], {
+    if (buttonText || close) style([button, btnClose], {
         border: 'none',
         border_radius: `${button.offsetHeight / 2}px`,
         padding: '5px 10px',
@@ -1854,6 +1862,9 @@ function showPopup(messageContent, buttonText, action) {
     });
 
     logo.onload = () => {
+        style([logo], { opacity: '0' });
+        popup.element.appendChild(logo);
+
         const sizeRatio = window.innerWidth * 0.15 / logo.offsetWidth;
         style([wrapper], { padding_top: `${10 + (logo.offsetHeight / 2) * sizeRatio}px` });
         style([logo], {
@@ -1861,13 +1872,107 @@ function showPopup(messageContent, buttonText, action) {
             left: '50%',
             transform: `translateX(-50%) scale(${sizeRatio}) `,
             top: `${wrapper.offsetTop - (wrapper.offsetHeight / 2) - (logo.offsetHeight / 2)}px`,
+            opacity: '1',
         });
-    }
+    };
+}
+
+function showForm(onSubmit = () => { }) {
+    showPopup(
+        'Do you want to fill out a form to enter ranked play and win our awesome prizes?',
+        'Sure',
+        () => {
+            document.body.removeChild(popup.element);
+            showPopup(
+                `...<hr>
+                <div style='text-align: left'>
+                    <span class='small'>School Name:</span> <input id='school' type='text' style='width: 50%'><br>
+                    <span class='small'>Birthday:</span> <select id='birthYear'>
+                        <option value='2015'>2015</option>
+                        <option value='2014'>2014</option>
+                        <option value='2013'>2013</option>
+                        <option value='2012'>2012</option>
+                        <option value='2011'>2011</option>
+                        <option value='2010'>2010</option>
+                        <option value='2009'>2009</option>
+                        <option value='2008'>2008</option>
+                        <option value='2007'>2007</option>
+                        <option value='2006'>2006</option>
+                        <option value='2005'>2005</option>
+                        <option value='2004'>2004</option>
+                        <option value='2003'>2003</option>
+                        <option value='2002'>2002</option>
+                        <option value='2001'>2001</option>
+                    </select>
+                    <select id='birthMonth'>
+                        <option value='Jan'>Jan</option>
+                        <option value='Feb'>Feb</option>
+                        <option value='Wed'>Wed</option>
+                        <option value='Apr'>Apr</option>
+                        <option value='May'>May</option>
+                        <option value='Jun'>Jun</option>
+                        <option value='Jul'>Jul</option>
+                        <option value='Aug'>Aug</option>
+                        <option value='Sep'>Sep</option>
+                        <option value='Oct'>Oct</option>
+                        <option value='Nov'>Nov</option>
+                        <option value='Dec'>Dec</option>
+                    </select>
+                </div><hr>`,
+                'Next',
+                () => {
+                    profile.userInfo = {
+                        school_name: school.value.trim(),
+                        birth_date: `${birthYear.options[birthYear.options.selectedIndex].value} ${birthMonth.options[birthMonth.options.selectedIndex].value}`,
+                    };
+                    document.body.removeChild(popup.element);
+                    showPopup(
+                        `...<hr>
+                        <div style='text-align: left'>
+                            <span class='small'>Parent Name:</span> <input id='parentFirstName' type='text' placeholder='First Name' style='width: 25%'> <input id='parentLastName' type='text' placeholder='Last Name' style='width: 25%'><br>
+                            <span class='small'>Contact Number:</span> <input id='parentContactNumber' type='text' style='width: 50%'><br>
+                            <span class='small'>Email:</span> <input id='parentEmail' type='text' style='width: 50%'>
+                        </div><br>
+                        <div style='text-align: left'>
+                            <input id='receiveUpdates' type='checkbox'><label for='receiveUpdates'>I (Parent) do not wish to receive future updates from BSD</label><br>
+                            <input id='tnc' type='checkbox' checked><label for='tnc'>I (Parent) agree to accept BSD's <a href='https://hk.bsdacademy.com/terms-conditions/' target='_blank'>Terms & Conditions</label>
+                        </div><hr>`,
+                        'Submit',
+                        () => {
+                            profile.userInfo.parent_name = `${parentFirstName.value.trim()} ${parentLastName.value.trim()}`;
+                            profile.userInfo.parent_contact = parentContactNumber.value.trim();
+                            profile.userInfo.parent_email = parentEmail.value.trim();
+                            profile.userInfo.receive_updates = 'Yes';
+                            document.body.removeChild(popup.element);
+                            localStorage.setItem('userInfo', JSON.stringify(profile.userInfo));
+                            showPopup(
+                                'Your progress will now be reset',
+                                'Start Ranked Play',
+                                () => {
+                                    delete localStorage.completedLevels;
+                                    window.localtion.reload(true);
+                                }
+                            );
+                        }
+                    );
+
+                    tnc.onchange = (evt) => {
+                        popup.button.disabled = !evt.target.checked;
+                        style([popup.button], { opacity: `${evt.target.checked ? '1' : '0.5'}` });
+                    };
+
+                    receiveUpdates.onchange = (evt) => profile.userInfo.receive_updates = evt.target.checked ? 'No' : 'Yes';
+                }
+            );
+        },
+        true,
+        () => document.body.removeChild(popup.element)
+    );
 }
 
 window.onload = function () {
     profile = getBSDProfile();
-    
+
     if (profile) {
         showPopup('Loading leaderboard...');
 
@@ -1880,7 +1985,7 @@ window.onload = function () {
 
         fire = firebase.firestore();
 
-        fire.collection("players").get().then(players => {
+        fire.collection('players').get().then(players => {
             document.body.removeChild(popup.element);
 
             if (players.empty) {
@@ -1891,6 +1996,8 @@ window.onload = function () {
                     if (p.id === profile.lb_user_id) {
                         gamePoints = p.data().score;
                         localStorage.setItem('completedLevels', p.data().progress);
+                        profile.userInfo = p.data().userInfo;
+                        localStorage.setItem('userInfo', JSON.stringify(profile.userInfo));
                     }
 
                     if (p.data().score > champion.score) {
@@ -1908,7 +2015,7 @@ window.onload = function () {
         showPopup('You must log in with a Launchbox account to play', 'Go to Launchbox', () => window.open('https://app.bsdlaunchbox.com'));
         document.onvisibilitychange = () => {
             if (document.visibilityState === 'visible') window.location.reload(true);
-        }
+        };
     }
 };
 
@@ -1967,18 +2074,18 @@ function getBSDProfile() {
     }
 
     function base64_url_decode(str) {
-        var output = str.replace(/-/g, "+").replace(/_/g, "/");
+        var output = str.replace(/-/g, '+').replace(/_/g, '/');
         switch (output.length % 4) {
             case 0:
                 break;
             case 2:
-                output += "==";
+                output += '==';
                 break;
             case 3:
-                output += "=";
+                output += '=';
                 break;
             default:
-                throw "Illegal base64url string!";
+                throw 'Illegal base64url string!';
         }
 
         try {
@@ -1986,7 +2093,7 @@ function getBSDProfile() {
         } catch (err) {
             return atob(output);
         }
-    };
+    }
 
     function InvalidTokenError(message) {
         this.message = message;
@@ -2007,7 +2114,7 @@ function getBSDProfile() {
         } catch (e) {
             throw new InvalidTokenError('Invalid token specified: ' + e.message);
         }
-    };
+    }
 
     var token = parent.localStorage.getItem('id_token');
     if (token != null) {
