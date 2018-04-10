@@ -1739,19 +1739,28 @@ function loadGame() {
         var cubPosition = getCubPosition();
         winAnim = new WinAnimation(cubPosition.x, cubPosition.y);
         levelList.querySelector('[data-id="' + maze.id + '"]').classList.add('did-complete');
+
         if (completedLevels.indexOf(maze.id) == -1) {
             completedLevels.push(maze.id);
             localStorage.setItem('completedLevels', completedLevels.join(','));
 
             // offer info form before syncing to firebase
-            const info = Object.values(JSON.parse(localStorage.getItem('userInfo') || profile.userInfo || '{}'));
+            const info = Object.values(profile.userInfo);
             if (info.length < 6 || info.some(val => !val || !val.trim())) showForm();
             else syncToFirebase(localStorage.getItem('completedLevels'));
         }
+        else if (Number.isInteger(profile.time)) {
+            const
+                total = (Date.now() - profile.time) / 1000,
+                h = Math.floor(total / 360),
+                m = Math.floor((total - h * 360) / 60),
+                s = total - (h * 360) - (m * 60);
+
+            profile.time = `${h}:${m}:${s}`;
+        }
+
         if (getNextLevel()) {
-            setTimeout(function () {
-                nextLevelButton.classList.add('is-open');
-            }, 1000);
+            setTimeout(() => {nextLevelButton.classList.add('is-open');}, 500);
         }
     }
 
@@ -1782,8 +1791,8 @@ function syncToFirebase(localData) {
         progress: localData,
         userInfo: profile.userInfo,
     }, { merge: true })
-        .then(() => console.log("Document written", name, score))
-        .catch(error => console.error("Error adding document: ", error));
+        .then(() => console.log('Document written', profile.name, gamePoints))
+        .catch(error => console.error('Error adding document: ', error));
 }
 
 function showPopup(messageContent, buttonText, action, close = false, closeAction) {
@@ -1944,13 +1953,17 @@ function showForm(onSubmit = () => { }) {
                             profile.userInfo.parent_email = parentEmail.value.trim();
                             profile.userInfo.receive_updates = 'Yes';
                             document.body.removeChild(popup.element);
-                            localStorage.setItem('userInfo', JSON.stringify(profile.userInfo));
                             showPopup(
-                                'Your progress will now be reset',
+                                'To encourage fair play, your progress will be reset.',
                                 'Start Ranked Play',
                                 () => {
-                                    delete localStorage.completedLevels;
-                                    window.localtion.reload(true);
+                                    fire.doc(`players/${profile.lb_user_id}`).set({progress: '', score: 0, userInfo: profile.userInfo}, { merge: true })
+                                        .then(() => {
+                                            delete localStorage.completedLevels;
+                                            window.location.reload(true);
+                                            console.log('Reset progress & score, added', profile.userInfo);
+                                        })
+                                        .catch(error => console.error('Error adding document: ', error));
                                 }
                             );
                         }
@@ -1989,15 +2002,15 @@ window.onload = function () {
             document.body.removeChild(popup.element);
 
             if (players.empty) {
-                showPopup("You're the first one to challenge this puzzle. Good Luck!", 'Play', () => document.body.removeChild(popup.element));
+                showPopup('You\'re the first one to challenge this puzzle. Good Luck!', 'Play', () => document.body.removeChild(popup.element));
             }
             else {
                 players.forEach(p => {
                     if (p.id === profile.lb_user_id) {
                         gamePoints = p.data().score;
                         localStorage.setItem('completedLevels', p.data().progress);
-                        profile.userInfo = p.data().userInfo;
-                        localStorage.setItem('userInfo', JSON.stringify(profile.userInfo));
+                        profile.userInfo = p.data().userInfo || {};
+                        profile.time = p.data().time || null;
                     }
 
                     if (p.data().score > champion.score) {
@@ -2005,7 +2018,20 @@ window.onload = function () {
                         champion.score = p.data().score;
                     }
                 });
-                showPopup(`Top player<br><span class='blue'>${champion.name}</span><br>solved a total of<br><span class='gold'>${champion.score}</span> levels`, 'Play', () => document.body.removeChild(popup.element));
+
+                showPopup(
+                    `Top player<br><span class='blue'>${champion.name}</span><br>solved a total of<br><span class='gold'>${champion.score}</span> levels`,
+                    'Play',
+                    () => {
+                        document.body.removeChild(popup.element);
+                        const info = Object.values(profile.userInfo);
+                        if (info.length === 6 && info.every(val => val && val.trim()) && !profile.time) {
+                            fire.doc(`players/${profile.lb_user_id}`).set({time: profile.time = Date.now()}, { merge: true })
+                                .then(() => console.log('Added time', profile.time))
+                                .catch(error => console.error('Error adding document: ', error));
+                        }
+                    }
+                );
             }
 
             loadGame();
