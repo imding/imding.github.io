@@ -22,7 +22,7 @@ const
             'div', 'img', 'sup', 'sub', 'pre',
             'code', 'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
             'input', 'small', 'table', 'frame',
-            'button', 'strong', 'select', 'option', 'strike',
+            'button', 'strong', 'select', 'option', 'script', 'strike',
             'textarea', 'frameset', 'noframes',
             'blockquote',
         ],

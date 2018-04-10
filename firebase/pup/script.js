@@ -4,8 +4,7 @@ const champion = {
 };
 
 let fire,
-    profile,
-    gamePoints = 0;
+    profile;
 
 function loadGame() {
     /**
@@ -1745,7 +1744,7 @@ function loadGame() {
             localStorage.setItem('completedLevels', completedLevels.join(','));
 
             // offer info form before syncing to firebase
-            const info = Object.values(profile.userInfo);
+            const info = Object.values(profile.userInfo || {});
             if (info.length < 6 || info.some(val => !val || !val.trim())) showForm();
             else syncToFirebase(localStorage.getItem('completedLevels'));
         }
@@ -1787,11 +1786,11 @@ function syncToFirebase(localData) {
     fire.doc(`players/${profile.lb_user_id}`).set({
         name: profile.name,
         email: profile.email,
-        score: ++gamePoints,
+        score: localData.split(',').length,
         progress: localData,
         userInfo: profile.userInfo,
     }, { merge: true })
-        .then(() => console.log('Document written', profile.name, gamePoints))
+        .then(() => console.log('Document written', profile.name, profile.score))
         .catch(error => console.error('Error adding document: ', error));
 }
 
@@ -1957,6 +1956,9 @@ function showForm(onSubmit = () => { }) {
                                 'To encourage fair play, your progress will be reset.',
                                 'Start Ranked Play',
                                 () => {
+                                    popup.button.disabled = true;
+                                    popup.button.textContent = 'Saving your info...';
+                                    style([popup.button], {opacity: '0.5'});
                                     fire.doc(`players/${profile.lb_user_id}`).set({progress: '', score: 0, userInfo: profile.userInfo}, { merge: true })
                                         .then(() => {
                                             delete localStorage.completedLevels;
@@ -2005,26 +2007,35 @@ window.onload = function () {
                 showPopup('You\'re the first one to challenge this puzzle. Good Luck!', 'Play', () => document.body.removeChild(popup.element));
             }
             else {
-                players.forEach(p => {
-                    if (p.id === profile.lb_user_id) {
-                        gamePoints = p.data().score;
-                        localStorage.setItem('completedLevels', p.data().progress);
-                        profile.userInfo = p.data().userInfo || {};
-                        profile.time = p.data().time || null;
-                    }
+                const playerArray = [];
 
+                players.forEach(p => {
                     if (p.data().score > champion.score) {
                         champion.name = p.data().name;
                         champion.score = p.data().score;
                     }
+                    playerArray.push(p);
                 });
+
+                if (!playerArray.some(p => {
+                    const playerExists = p.id === profile.lb_user_id;
+                    if (playerExists) {
+                        profile.score = p.data().progress.split(',').length;
+                        profile.time = p.data().time || null;
+                        profile.userInfo = p.data().userInfo || {};
+                        localStorage.setItem('completedLevels', p.data().progress);
+                    }
+                    return playerExists;
+                })) {
+                    localStorage.setItem('completedLevels', '');
+                }
 
                 showPopup(
                     `Top player<br><span class='blue'>${champion.name}</span><br>solved a total of<br><span class='gold'>${champion.score}</span> levels`,
                     'Play',
                     () => {
                         document.body.removeChild(popup.element);
-                        const info = Object.values(profile.userInfo);
+                        const info = Object.values(profile.userInfo || {});
                         if (info.length === 6 && info.every(val => val && val.trim()) && !profile.time) {
                             fire.doc(`players/${profile.lb_user_id}`).set({time: profile.time = Date.now()}, { merge: true })
                                 .then(() => console.log('Added time', profile.time))
