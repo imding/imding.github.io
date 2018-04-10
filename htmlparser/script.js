@@ -20,7 +20,7 @@ const
             'p', 'b', 'u', 'i', 'a',
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'em', 'hr', 'tt', 'dl', 'dt', 'dd', 'tr', 'th', 'td',
             'div', 'img', 'sup', 'sub', 'pre',
-            'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
+            'code', 'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
             'input', 'small', 'table', 'frame',
             'button', 'strong', 'select', 'option', 'strike',
             'textarea', 'frameset', 'noframes',
