@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="style.css"/>
+	<script type="text/javascript" src="script.js"></script>
+</head>
+<body>
+    <h4>MALVERN CODING CHALLENGE</h4>
+    <h6>CAN YOU FINISH THE LEDDER?</h6>
+    
+    <h4 id="stopwatch">00:00:00</h4>
+    
+    <div id="world">
+        <h6>Progress</h6>
+        <progress id="progress"></progress>
+        <h6 id="info"></h6>
+        <progress id="energy"></progress>
+        <img id="ground" src="http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/11/ground.png">
+    </div>
+    
+    <button id="start">Go!</button>
+    <button id="jog" onclick="setMode(1)">Jog</button>
+    <button id="run" onclick="setMode(2)">Run</button>
+    <button id="sprint" onclick="setMode(3)">Sprint</button>
+</body>
+</html>
