@@ -90,12 +90,8 @@ function HtmlAst(strHTML, origin) {
         tree.push(e);
     }
 
-    // input string can only contain, if any, valid closing tag(s) at this point
-    if (inputClone.length) {
-        if (!verdict) verdict = `${ambiguous.closingTag[0].raw} is not paired with anything. Please add an opening tag or remove it.`;
-    }
-    else if (ambiguous.elem.length + ambiguous.closingTag.length) {
-        // deal with ambiguous code
+    // deal with ambiguous code
+    if (ambiguous.elem.length + ambiguous.closingTag.length) {
         if (ambiguous.elem.length < ambiguous.closingTag.length) {
             verdict = `${lastOf(ambiguous.closingTag).raw} is not paired with anything. Please add an opening tag or remove it.`;
         }
@@ -105,6 +101,16 @@ function HtmlAst(strHTML, origin) {
         else {
             verdict = `${lastOf(ambiguous.closingTag).raw} is not a valid closing tag for ${lastOf(ambiguous.elem).openingTag.raw}.`;
         }
+    }
+    // if input string has content
+    else if (inputClone.length) {
+        const ct = checkClosingTag();
+        if (ct && !ambiguous.closingTag.length) {
+            if (tags.all.some(t => t === ct.tagName)) ambiguous.closingTag.push(ct);
+            else verdict = `${ct.raw.trim()} is not a valid closing tag. Pleae read the instructions again.`;
+        }
+
+        if (!verdict) verdict = `${ambiguous.closingTag[0].raw} is not paired with anything. Please add an opening tag or remove it.`;
     }
 
     // console.log(`${origin}:`, tree);
@@ -261,6 +267,9 @@ function HtmlAst(strHTML, origin) {
         else if (!m[4]) {
             verdict = `Please close off ${m[0].trim()} with a > symbol.`;
         }
+        // else if (!tags.all.some(t => t === m[3].trim())) {
+        //     verdict = `${m[0].trim()} is not a valid closing tag. Please read the instructions again.`;
+        // }
 
         if (verdict) return;
 
