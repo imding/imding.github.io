@@ -61,6 +61,10 @@ const
                 if (!records.length) return showInfo();
 
                 records.forEach(uid => {
+                    if (uid === profile.lb_user_id) {
+                        profile.userInfo = snapshot.val()[uid].userInfo || {};
+                    }
+
                     if (snapshot.val()[uid].time < leaderboard.best.time || !leaderboard.best.time) {
                         leaderboard.best = {
                             name: snapshot.val()[uid].name,
@@ -100,7 +104,6 @@ const
                 }
                 else {
                     showPopup(`You finished in<br><span class='green'>${newScore}</span> seconds<br><br>The current best score is<br><span class='gold'>${leaderboard.best.time}</span> seconds`);
-                    // alert(`You finished in ${newScore} seconds, ${newScore - leaderboard.best.time}s more than the fastest solver.`);
                 }
             });
         },
@@ -339,10 +342,40 @@ function checkPuzzle() {
                 resetPuzzle();
             });
         }
+        else if (new Date().getHours() < 17) {
+            const newScore = Math.ceil((Date.now() - time) / 1000);
+            let info = Object.values(profile.userInfo || {});
+            if (info.length < 6 || info.some(val => !val || !val.trim())) {
+                // check the other game database for user info
+                const
+                    pupConfig = {
+                        apiKey: 'AIzaSyCk7YyJ7d9VUjED8vQbeWLnvYZH9BHTwVI',
+                        authDomain: 'bsd-pup.firebaseapp.com',
+                        projectId: 'bsd-pup',
+                    },
+                    pupDB = new firebase.initializeApp(pupConfig).firestore();
+
+                showPopup('Connecting to database...');
+
+                pupDB.doc(`players/${profile.lb_user_id}`).get().then(player => {
+                    document.body.removeChild(popup.element);
+                    if (player.exists) {
+                        profile.userInfo = player.data().userInfo || {};
+                        info = Object.values(profile.userInfo || {});
+                        if (info.length < 6 || info.some(val => !val || !val.trim())) showForm(() => leaderboard.add(newScore));
+                        else leaderboard.add(newScore);
+                    }
+                    else showForm(() => leaderboard.add(newScore));
+                });
+            }
+            else leaderboard.add(newScore);
+        }
         else {
-            const info = Object.values(JSON.parse(localStorage.getItem('userInfo') || profile.userInfo || '{}'));
-            if (info.length < 6 || info.some(val => !val || !val.trim())) showForm(() => leaderboard.add(Math.ceil((Date.now() - time) / 1000)));
-            else leaderboard.add(Math.ceil((Date.now() - time) / 1000));
+            showPopup(
+                'Leaderboard is closed after 5pm. You can still play the game though ^_^',
+                'Play Again',
+                () => window.location.reload(true)
+            );
         }
     }
 }
@@ -531,7 +564,6 @@ function showForm(onSubmit = () => { }) {
                             profile.userInfo.parent_email = parentEmail.value.trim();
                             profile.userInfo.receive_updates = 'Yes';
                             document.body.removeChild(popup.element);
-                            localStorage.setItem('userInfo', JSON.stringify(profile.userInfo));
                             onSubmit();
                         }
                     );
@@ -546,10 +578,7 @@ function showForm(onSubmit = () => { }) {
             );
         },
         true,
-        () => {
-            if (nth === levels.length - 1) window.location.reload(true);
-            else document.body.removeChild(popup.element);
-        }
+        () => document.body.removeChild(popup.element)
     );
 }
 // ===== EVENTS ===== //
@@ -562,15 +591,10 @@ window.onload = () => {
     profile = getBSDProfile();
 
     if (profile) {
-        leaderboard.load(() => {
-            time = Date.now();
-            profile.userInfo = JSON.parse(localStorage.getItem('userInfo'));
-            // const info = Object.values(profile.userInfo || {});
-            // if (info.length < 6 || info.some(val => !val || !val.trim())) showForm();
-        });
+        leaderboard.load(() => time = Date.now());
     }
     else {
-        showPopup('You must log in with a Launchbox account to play', 'Go to Launchbox', () => window.open('https://app.bsdlaunchbox.com'));
+        showPopup('You must log in with a BSD Online account to play', 'Go to BSD Online', () => window.open('https://app.bsdlaunchbox.com'));
         document.onvisibilitychange = () => {
             if (document.visibilityState === 'visible') window.location.reload(true);
         };

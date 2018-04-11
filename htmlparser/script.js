@@ -267,9 +267,6 @@ function HtmlAst(strHTML, origin) {
         else if (!m[4]) {
             verdict = `Please close off ${m[0].trim()} with a > symbol.`;
         }
-        // else if (!tags.all.some(t => t === m[3].trim())) {
-        //     verdict = `${m[0].trim()} is not a valid closing tag. Please read the instructions again.`;
-        // }
 
         if (verdict) return;
 

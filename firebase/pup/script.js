@@ -1739,14 +1739,38 @@ function loadGame() {
         winAnim = new WinAnimation(cubPosition.x, cubPosition.y);
         levelList.querySelector('[data-id="' + maze.id + '"]').classList.add('did-complete');
 
+        // if completing level for the first time
         if (completedLevels.indexOf(maze.id) == -1) {
-            completedLevels.push(maze.id);
-            localStorage.setItem('completedLevels', completedLevels.join(','));
-
-            // offer info form before syncing to firebase
-            const info = Object.values(profile.userInfo || {});
-            if (info.length < 6 || info.some(val => !val || !val.trim())) showForm();
-            else syncToFirebase(localStorage.getItem('completedLevels'));
+            if (new Date().getHours() < 17) {
+                completedLevels.push(maze.id);
+                localStorage.setItem('completedLevels', completedLevels.join(','));
+    
+                let info = Object.values(profile.userInfo || {});
+                if (info.length < 6 || info.some(val => !val || !val.trim())) {
+                    // check other game database for user info
+                    const jigsawDB = new Firebase('https://bsd-jigsaw.firebaseio.com/');
+                    jigsawDB.once('value', (records) => {
+                        records = records.val();
+                        Object.keys(records).forEach(key => {
+                            if (key === profile.lb_user_id) {
+                                profile.userInfo = records[key].userInfo;
+                                // offer info form before syncing to firebase
+                                info = Object.values(profile.userInfo || {});
+                                if (info.length < 6 || info.some(val => !val || !val.trim())) showForm();
+                                else syncToFirebase(localStorage.getItem('completedLevels'));
+                            }
+                        });
+                    });
+                }
+                else syncToFirebase(localStorage.getItem('completedLevels'));
+            }
+            else {
+                showPopup(
+                    'Leaderboard is closed after 5pm. You can still play the game though ^_^',
+                    'Play Again',
+                    () => window.location.reload(true)
+                );
+            }
         }
         else if (Number.isInteger(profile.time)) {
             const
@@ -2049,7 +2073,7 @@ window.onload = function () {
         });
     }
     else {
-        showPopup('You must log in with a Launchbox account to play', 'Go to Launchbox', () => window.open('https://app.bsdlaunchbox.com'));
+        showPopup('You must log in with a BSD Online account to play', 'Go to BSD Online', () => window.open('https://app.bsdlaunchbox.com'));
         document.onvisibilitychange = () => {
             if (document.visibilityState === 'visible') window.location.reload(true);
         };
