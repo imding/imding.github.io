@@ -103,7 +103,7 @@ function HtmlAst(strHTML, origin) {
         }
     }
     // if input string has content
-    else if (inputClone.length) {
+    else if (!verdict && inputClone.length) {
         const ct = checkClosingTag();
         if (ct && !ambiguous.closingTag.length) {
             if (tags.all.some(t => t === ct.tagName)) ambiguous.closingTag.push(ct);
@@ -371,6 +371,8 @@ function HtmlAst(strHTML, origin) {
 
             if (verdict) break;
         }
+
+        if (verdict) return;
 
         // check for duplicate attributes
         attrsArray.every(attr => {
