@@ -1,6 +1,6 @@
 const
     ti = '<div class="top wrapper" title="wrapper"></div>',
-    li = '<div id="wrapper" value="wapper top"></div>';
+    li = '<div title="wapper" value="wapper top"></div>';
 
 let ctrl;
 
@@ -136,7 +136,7 @@ function HtmlAst(strHTML, origin) {
             verdict = 'Please write a tag name after the < symbol.';
         }
         else if (!m[3]) {
-            verdict = `${m[0].trim()} needs to be closed off using the > symbol.`;
+            verdict = `Plese close off ${m[0].trim()} using the > symbol.`;
         }
 
         if (verdict) return;
@@ -264,7 +264,7 @@ function HtmlAst(strHTML, origin) {
             verdict = `${m[0].trim()} is incorrect. Make sure there is no space after <${m[2] ? '/' : ''}.`;
         }
         else if (!m[4]) {
-            verdict = `Please close off ${m[0].trim()} with a > symbol.`;
+            verdict = `Please close off ${m[0].trim()} with the > symbol.`;
         }
         else if (!m[3]) {
             verdict = 'Please add a tag name after </.';
@@ -491,6 +491,7 @@ function compare(model, input) {
             const weak = lt.attrs, due = [];
 
             tt.attrs.every(a => {
+                // if teacher attribute name is found in learner code
                 if (val(a.name).isFoundIn(weak.map(_a => _a.name))) {
                     let
                         // it's safe to use the first occurence of an attribute with matching name because duplicate attribute name is an error HtmlAst.js would've caught
@@ -514,7 +515,10 @@ function compare(model, input) {
                     }
 
                     // remove matched attribute from the list of weak attributes
-                    if (!verdict) weak.splice(weak.map(_a => _a.name).indexOf(a.name), 1);
+                    if (!verdict) {
+                        weak.splice(weak.map(_a => _a.name).indexOf(a.name), 1);
+                    }
+                    else due.push(a);
                 }
                 else {
                     due.push(a);
@@ -525,7 +529,7 @@ function compare(model, input) {
             });
 
             // if any teacher defined attribute is not found in learner code
-            if (due.length) {
+            if (!verdict && due.length) {
                 if (due.length !== weak.length) throw new Error('The number of unmatched attribute should equal to the number of weak attribute.');
 
                 // estimate association between due and weak attributes
