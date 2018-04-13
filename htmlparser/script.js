@@ -1,12 +1,6 @@
 const
-    ti = `<div class='top wrapper'>
-    <h1>hello</h1>
-    <h3 id="subtitle">world</h3>
-</div>`,
-    li = `<div class='top wrapper'>
-    <h1>hello</h1>
-    <h3 id="subtitle">world</h3>
-</div>`;
+    ti = '<div class="top wrapper" title="wrapper"></div>',
+    li = '<div id="wrapper" value="wapper top"></div>';
 
 let ctrl;
 
@@ -34,10 +28,10 @@ const
             'alt', 'dir', 'for', 'low', 'max', 'min', 'rel', 'src',
             'cite', 'code', 'cols', 'data', 'form', 'high', 'href', 'icon', 'kind', 'lang', 'list', 'loop', 'name', 'open', 'ping', 'rows', 'size', 'slot', 'span', 'step', 'type', 'wrap',
             'align', 'async', 'class', 'defer', 'ismap', 'label', 'media', 'muted', 'scope', 'shape', 'sizes', 'start', 'style', 'title', 'value', 'width',
-            'accept', 'action', 'coords', 'height', 'hidden', 'method', 'poster', 'scoped', 'srcdoc', 'srcset', 'target', 'usemap',
-            'charset', 'checked', 'colspan', 'content', 'default', 'dirname', 'enctype', 'headers', 'keytype', 'optimum', 'pattern', 'preload', 'rowspan', 'sandbox', 'srclang', 'summary',
+            'accept', 'action', 'coords', 'height', 'hidden', 'method', 'nowrap', 'poster', 'scoped', 'srcdoc', 'srcset', 'target', 'usemap',
+            'charset', 'checked', 'colspan', 'compact', 'content', 'declare', 'default', 'dirname', 'enctype', 'headers', 'keytype', 'noshade', 'optimum', 'pattern', 'preload', 'rowspan', 'sandbox', 'srclang', 'summary',
             'autoplay', 'buffered', 'codebase', 'controls', 'datetime', 'disabled', 'download', 'dropzone', 'hreflang', 'itemprop', 'language', 'manifest', 'multiple', 'readonly', 'required', 'reversed', 'seamless', 'selected', 'tabindex',
-            'accesskey', 'autofocus', 'challenge', 'draggable', 'integrity', 'maxlength', 'minlength', 'translate',
+            'accesskey', 'autofocus', 'challenge', 'draggable', 'integrity', 'maxlength', 'minlength', 'noresize', 'translate',
             'formaction', 'http-equiv', 'novalidate', 'radiogroup', 'spellcheck',
             'contextmenu', 'crossorigin', 'placeholder',
             'autocomplete',
@@ -82,7 +76,7 @@ function HtmlAst(strHTML, origin) {
         if (t) {
             inputClone = inputClone.slice(t[0].length);
             // text node containing only white spaces are ignored
-            if (t[0].trim().length) tree.push({ raw: t[0], type: 'text' });
+            if (t[0].trim().length) tree.push({ raw: t[0], rawCollapsed: t[0].replace(/\s+/g, ' '), type: 'text' });
         }
 
         // extract element node
@@ -202,7 +196,7 @@ function HtmlAst(strHTML, origin) {
                 if (textContent) {
                     inputClone = inputClone.slice(textContent[0].length);
                     // text node containing only white spaces are ignored
-                    if (textContent[0].trim().length) element.content.push({ raw: textContent[0], type: 'text', parent: element });
+                    if (textContent[0].trim().length) element.content.push({ raw: textContent[0], rawCollapsed: textContent[0].replace(/\s+/g, ' '), type: 'text', parent: element });
                 }
                 else {
                     nestedElement = checkElement();
@@ -394,6 +388,46 @@ function HtmlAst(strHTML, origin) {
 }
 
 // ===== HtmlAstComparer.js ===== //
+function similarity(s1, s2) {
+    let longer = s1;
+    let shorter = s2;
+    if (s1.length < s2.length) {
+        longer = s2;
+        shorter = s1;
+    }
+    let longerLength = longer.length;
+    if (longerLength == 0) return 1.0;
+    return (longerLength - levenshtein_distance(longer, shorter)) / parseFloat(longerLength);
+}
+
+function levenshtein_distance(a, b) {
+    if (a.length == 0) return b.length;
+    if (b.length == 0) return a.length;
+
+    let matrix = [];
+
+    // increment along the first column of each row
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+
+    // increment each column in the first row
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+    // Fill in the rest of the matrix
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) == a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1,   // substitution
+                    Math.min(matrix[i][j - 1] + 1,  // insertion
+                        matrix[i - 1][j] + 1));     // deletion
+            }
+        }
+    }
+
+    return matrix[b.length][a.length];
+}
+
 function compare(model, input) {
     // compare elements using teacher node(tn) & learner node(ln)
     const matchElement = (tn, ln) => {
@@ -449,38 +483,77 @@ function compare(model, input) {
 
     // compare attributes and values between teacher tag(tt) & learner tag(lt)
     const matchAttrs = (tt, lt) => {
-        return tt.attrs.every(a => {
-            if (val(a.name).isFoundIn(lt.attrs.map(_a => _a.name))) {
-                let
-                    inputVal = lt.attrs.filter(_a => _a.name === a.name)[0].value,
-                    missingVal;
+        if (!(tt.attrs.length + lt.attrs.length)) {
+            return true;
+        }
+        else if (tt.attrs.length === lt.attrs.length) {
+            // copy of learner attributes(weak) that will be trimmed down to identify incorrect attributes
+            const weak = lt.attrs, due = [];
 
-                if (a.name === 'class') {
-                    a.value.split(/\s+/).forEach(v => {
-                        inputVal.includes(v) ? inputVal = inputVal.replace(v, '').trim() : missingVal = true;
-                    });
+            tt.attrs.every(a => {
+                if (val(a.name).isFoundIn(weak.map(_a => _a.name))) {
+                    let
+                        // it's safe to use the first occurence of an attribute with matching name because duplicate attribute name is an error HtmlAst.js would've caught
+                        inputVal = weak.filter(_a => _a.name === a.name)[0].value,
+                        missingVal;
 
-                    if (inputVal.length) {
+                    if (a.name === 'class') {
+                        a.value.split(/\s+/).forEach(v => {
+                            inputVal.includes(v) ? inputVal = inputVal.replace(v, '').trim() : missingVal = true;
+                        });
+
+                        if (inputVal.length) {
+                            verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
+                        }
+                        else if (missingVal) {
+                            verdict = `In the ${tt.tagName} tag, some value is missing from the ${a.name} attribute.`;
+                        }
+                    }
+                    else if (a.value !== inputVal) {
                         verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
                     }
-                    else if (missingVal) {
-                        verdict = `In the ${tt.tagName} tag, some value is missing from the ${a.name} attribute.`;
+
+                    // remove matched attribute from the list of weak attributes
+                    if (!verdict) weak.splice(weak.map(_a => _a.name).indexOf(a.name), 1);
+                }
+                else {
+                    due.push(a);
+                    // verdict = `The ${a.name} attribute is missing in ${lt.raw.trim()}.`;
+                }
+
+                return !verdict;
+            });
+
+            // if any teacher defined attribute is not found in learner code
+            if (due.length) {
+                if (due.length !== weak.length) throw new Error('The number of unmatched attribute should equal to the number of weak attribute.');
+
+                // estimate association between due and weak attributes
+                let s, suggest;
+                due.some(da => {
+                    const _s = similarity(weak[0].value.trim().toLowerCase().split(/\s+/).sort().join(), da.value.trim().toLowerCase().split(/\s+/).sort().join());
+                    if (_s > (s || 0)) {
+                        s = _s;
+                        suggest = da;
                     }
-                }
-                else if (a.value !== inputVal) {
-                    verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
-                }
-            }
-            else {
-                verdict = `An attribute is missing in ${lt.raw.trim()}.`;
+                    return s === 1;
+                });
+
+                if (suggest) verdict = `In the ${tt.tagName} tag, ${weak[0].raw.trim()} is incorrect. Try changing the attribute name to ${suggest.name}.`;
+                else verdict = `In the ${tt.tagName} tag, ${weak[0].raw.trim()} is incorrect. Please read the instructions again.`;
             }
 
             return !verdict;
-        });
+        }
+        else {
+            verdict = `There should be ${tt.attrs.length ? `${tt.attrs.length > lt.attrs.length ? '' : 'only'}` : 'no'} attribute${tt.attrs.length > 1 ? 's' : ''} in ${tt.raw}.`;
+        }
+
+        return;
     };
 
     if (model.length !== input.length) {
-        verdict = `There should be${model.length < input.length ? ' only' : ''} ${model.length || 'no'} child element${model.length ? model.length > 1 ? 's' : '' : ''} in ${model.openingTag.raw}${model.closingTag.raw}.`;
+        verdict = `There should be${model.length < input.length ? ' only' : ''} ${model.length || 'no'} element${model.length ? model.length > 1 ? 's' : '' : ''} in your code.`;
     }
     else {
         // loop through every teacher node and find equivalent node in learner code
