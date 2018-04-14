@@ -24,16 +24,44 @@ const
         },
         {
             link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-newyork.png',
+            grid: 3,
+        },
+        {
+            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
+            grid: 4,
+        },
+        {
+            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
+            grid: 4,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-2942.jpg',
+            grid: 3,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-3927.jpg',
             grid: 2,
         },
-        // {
-        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
-        //     grid: 4,
-        // },
-        // {
-        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
-        //     grid: 4,
-        // }
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-4285.jpg',
+            grid: 3,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-5739.jpeg',
+            grid: 2,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-5749.jpg',
+            grid: 3,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-7383.jpeg',
+            grid: 2,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-8372.jpg',
+            grid: 2,
+        }
     ],
     leaderboard = {
         best: {
@@ -47,9 +75,8 @@ const
             fire.once('value', (snapshot) => {
                 document.body.removeChild(popup.element);
                 const showInfo = () => {
-                    showPopup('No one has solved all 5 puzzles yet. Good Luck!', 'Play', () => {
+                    showPopup(`No one has solved all ${levels.length} puzzles yet. Good Luck!`, 'Play', () => {
                         document.body.removeChild(popup.element);
-                        // toggleFullScreen();
                         afterLoad();
                     });
                 };
@@ -75,7 +102,6 @@ const
 
                 showPopup(`<span class='blue'>${leaderboard.best.name}</span><br>solved all puzzles in<br><span class='gold'>${leaderboard.best.time}</span> seconds`, 'Play', () => {
                     document.body.removeChild(popup.element);
-                    // toggleFullScreen();
                     afterLoad();
                 });
             });
@@ -417,8 +443,10 @@ function showPopup(messageContent, buttonText, action, close = false, closeActio
 
     popup = {
         element: document.createElement('div'),
+        wrapper: wrapper,
         message: message,
         button: button,
+        logo: logo,
     };
 
     logo.src = 'https://app.bsdlaunchbox.com/resources/bsdlogo.png';
@@ -583,15 +611,39 @@ function showForm(onSubmit = () => { }) {
 }
 // ===== EVENTS ===== //
 
-window.onresize = () => style([spare], { height: `${window.innerHeight - spare.offsetTop}px` });
+window.onresize = () => {
+    style([spare], { height: `${window.innerHeight - spare.offsetTop}px` });
+
+    if (popup) {
+        style([popup.element], { height: `${window.innerHeight}px` });
+        style([popup.logo], { top: `${popup.wrapper.offsetTop - (popup.wrapper.offsetHeight / 2) - (popup.logo.offsetHeight / 2)}px` });
+    }
+};
 
 window.onload = () => {
+    shuffle(levels);
     loadImage();
 
     profile = getBSDProfile();
 
     if (profile) {
-        leaderboard.load(() => time = Date.now());
+        leaderboard.load(() => {
+            time = Date.now();
+
+            const requestFullScreen =
+                window.document.documentElement.requestFullscreen ||
+                window.document.documentElement.mozRequestFullScreen ||
+                window.document.documentElement.webkitRequestFullScreen ||
+                window.document.documentElement.msRequestFullscreen;
+
+            if (requestFullScreen) {
+                showPopup(
+                    'You can double tab the screen to go full screen mode',
+                    'Okay',
+                    () => document.body.removeChild(popup.element)
+                );
+            }
+        });
     }
     else {
         showPopup('You must log in with a BSD Online account to play', 'Go to BSD Online', () => window.open('https://app.bsdlaunchbox.com'));
