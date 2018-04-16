@@ -1,43 +1,6 @@
-ide.value =
-`@import url('http://google.com');
+ide.value = 'color: red;';
 
-p{}
-
-body {
-    width: 100%;
-    animation: anim 10s infinite;
-    background: url('http://image.png');
-}
-
-@keyframes cool-anim {
-
-
-
-0%
-     { width  : 99% ;
-        background-color : green;
-     }
-    100% {
-        border: 90%;
-        height: 100%;
-    }
-}
-
-img {
-    border: none;
-}
-
-@media (max-width: 12450px) {
-    body > img, body > h1, h3 {
-        height: 99%;
-    }
-
-    h1 {}
-}
-
-`;
-
-let input;
+let input, AUTO_ADDED_SELECTOR = '.LAUNCHBOX_auto_added_selector';
 
 //================================
 
@@ -47,11 +10,14 @@ const
     pRule = /^\s*([^@/;{}\s]+[^/;{}]*){\s*([^{}]*)}/i,
     pDeclaration = /([^:]+)?\s*(:)?\s*([^;]+)?\s*(;)?/i,
     tags = [
-        'html', 'meta', 'head', 'link', 'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'p', 'b', 'u', 'i', 'a', 'div', 'img', 'ul', 'ol', 'li', 'span', 'strike',
-        'sup', 'sub', 'small', 'tt', 'pre', 'blockquote', 'strong', 'em', 'hr', 'nobr',
-        'dl', 'dt', 'dd', 'table', 'tr', 'th', 'td', 'frameset', 'frame', 'noframes',
-        'form', 'input', 'select', 'option', 'textarea',
+        'p', 'b', 'u', 'i', 'a',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'em', 'hr', 'tt', 'dl', 'dt', 'dd', 'tr', 'th', 'td',
+        'div', 'img', 'sup', 'sub', 'pre',
+        'code', 'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
+        'input', 'small', 'table', 'frame',
+        'button', 'strong', 'select', 'option', 'script', 'strike',
+        'textarea', 'frameset', 'noframes',
+        'blockquote',
     ];
 
 // ===========================================
@@ -63,9 +29,9 @@ function rank(n) {
 }
 
 function toSpace(srcString, target) {
-  return target ?
-    srcString.replace(target, target.replace(/[^\s]/g, ' ')) :
-    srcString.replace(/[^\s]/g, ' ');
+    return target ?
+        srcString.replace(target, target.replace(/[^\s]/g, ' ')) :
+        srcString.replace(/[^\s]/g, ' ');
 }
 
 function lastOf(arr) {
@@ -76,7 +42,7 @@ function flatten(srcArray, n = 0, end = srcArray.length) {
     if (n < 0 || end > srcArray.length) throw new Error(`${srcArray}[${n} to ${end}] can not be flattened due to invalid index range`);
 
     const addToSrcArray = (e, i) => srcArray.splice(n + i, 0, e);
-    
+
     while (n < end) {
         if (Array.isArray(srcArray[n])) {
             const _arr = srcArray[n];
@@ -90,22 +56,22 @@ function flatten(srcArray, n = 0, end = srcArray.length) {
 
 // =======================================
 
-let verdict = '', pass = true, inputClone = input, ruleCount = 0, tree = {atRules: [], rules: []};
+let verdict = '', pass = true, inputClone = input, ruleCount = 0, tree = { atRules: [], rules: [] };
 
 function latestNode() {
     return lastOf([tree.rules, tree.atRules].filter(arr => arr.some(r => r.nth == ruleCount))[0]);
 }
 
-function buildInvalidCode(nextValid = [pRule, pNestedAtRule, pAtRule], invalidCode = '') {
-    let ob, cb, ln, isNestedAtRule;
+function buildInvalidCode(invalidCode = '') {
+    let ln, isNestedAtRule;
 
     // error position can be retrieved before trim
     inputClone = inputClone.trim();
-    
+
     // build invalid code
     while (inputClone.length) {
         invalidCode += inputClone[0];
-        
+
         if (inputClone[0] == '}') break;
 
         inputClone = inputClone.slice(1);
@@ -135,7 +101,7 @@ function buildInvalidCode(nextValid = [pRule, pNestedAtRule, pAtRule], invalidCo
             ln ?
                 `Your CSS is incorrect after the ${rank(ln.nth)} rule. Please read the instructions again.` :
                 `${invalidCode} is incorrect. Please read the instructions again.`;
-    }    
+    }
 }
 
 function pushAtRule(nested, data) {
@@ -155,17 +121,17 @@ function pushAtRule(nested, data) {
                         }
                     }
                 }
-                tree.atRules.push({type: 'media', media: data[3] ? data[3].trim() : '', rules: [], nth: ruleCount += 1});
+                tree.atRules.push({ type: 'media', media: data[3] ? data[3].trim() : '', rules: [], nth: ruleCount += 1 });
                 break;
 
             case 'keyframes':
-                tree.atRules.push({type: 'keyframes', name: data[3] ? data[3].trim() : '', vendor: '', keyframes: [], nth: ruleCount += 1});
+                tree.atRules.push({ type: 'keyframes', name: data[3] ? data[3].trim() : '', vendor: '', keyframes: [], nth: ruleCount += 1 });
                 break;
-            
+
             default: throw new Error(`Expectation for the @${data[1]} at-rule is not yet implemented.`);
         }
     } else {
-        tree.atRules.push({type: data[1], value: data[3], nth: ruleCount += 1});
+        tree.atRules.push({ type: data[1], value: data[3], nth: ruleCount += 1 });
     }
 }
 
@@ -173,7 +139,7 @@ function pushNestedRule(type, data) {
     switch (type) {
         case 'media':
             if (checkRule(data, true)) {
-                lastOf(tree.atRules).rules.push({type: 'rule', selectors: data[1], declarations: data[2]});
+                lastOf(tree.atRules).rules.push({ type: 'rule', selectors: data[1], declarations: data[2] });
             }
             break;
 
@@ -184,13 +150,13 @@ function pushNestedRule(type, data) {
             else if (!/^[\d]+(\.[\d]+)?%$/.test(data[1])) {
                 verdict = `${data[1]} is not a valid selector for the @keyframes at-rule. Use a number followed by the % symbol.`;
             } else {
-                lastOf(tree.atRules).keyframes.push({type: 'keyframe', values: data[1], declarations: data[2]});
+                lastOf(tree.atRules).keyframes.push({ type: 'keyframe', values: data[1], declarations: data[2] });
             }
             break;
     }
 
     if (data[2] && !verdict) {
-        const 
+        const
             r = lastOf(tree.atRules).rules || lastOf(tree.atRules).keyframes,
             d = checkDeclaration(lastOf(r));
 
@@ -203,13 +169,20 @@ function parse() {
     const foundAndMatched = (p, i) => {
         let match = inputClone.match(p);
 
+        // if (!i && !match /* && opts.declarationOnly */) {
+        //     // simulate matched behaviour for learner code under the condition that declarationOnly is true
+        //     match = [`${AUTO_ADDED_SELECTOR} {\n\t${inputClone}\n}`, AUTO_ADDED_SELECTOR, inputClone];
+        // }
+
         if (match && pass) {
+            // invalidate matched string containing white spaces only
             match = match.map(m => m ? m.trim() || m : m);
             pass = i ? checkAtRule(match, i == 1) : checkRule(match);
         }
+
         return match && pass;
     };
-        
+
     while (inputClone.trim().length && !verdict) {
         pass = [pRule, pNestedAtRule, pAtRule].some(foundAndMatched);
 
@@ -228,27 +201,27 @@ function checkAtRule(match, nested) {
         const
             ob = inputClone.match(/^\s*\{/),      // opening brace
             checker = [
-            {
-                error: /[A-Z]/.test(match[1]),
-                feedback: `@${match[1]} is incorrect. Make sure all letters are lowercase.`,
-            },
-            {
-                error: !match[3],
-                feedback: `The @${match[1]} at-rule needs a${match[1] == 'media' ? 'n identifier' : ' name'}.`,
-            },
-            {
-                error: match[1] == 'keyframes' && /\s/.test(match[3]),
-                feedback: `${match[3]} is incorrect. Spaces are not allowed in the name of the @keyframes at-rule.`,
-            },
-            {
-                error: !match[2],
-                feedback: `There should be a space between @${match[1]} and ${String(match[3]).trim()}.`,
-            }];
+                {
+                    error: /[A-Z]/.test(match[1]),
+                    feedback: `@${match[1]} is incorrect. Make sure all letters are lowercase.`,
+                },
+                {
+                    error: !match[3],
+                    feedback: `The @${match[1]} at-rule needs a${match[1] == 'media' ? 'n identifier' : ' name'}.`,
+                },
+                {
+                    error: match[1] == 'keyframes' && /\s/.test(match[3]),
+                    feedback: `${match[3]} is incorrect. Spaces are not allowed in the name of the @keyframes at-rule.`,
+                },
+                {
+                    error: !match[2],
+                    feedback: `There should be a space between @${match[1]} and ${String(match[3]).trim()}.`,
+                }];
 
         if (ob) {
-            if (checker.every(c => {return !(verdict = c.error ? c.feedback : '')})) {
+            if (checker.every(c => { return !(verdict = c.error ? c.feedback : ''); })) {
                 pushAtRule(nested, match);
-                inputClone = toSpace(inputClone, ob[0]);            
+                inputClone = toSpace(inputClone, ob[0]);
 
                 // remove valid rules
                 while (pRule.test(inputClone)) {
@@ -278,7 +251,7 @@ function checkAtRule(match, nested) {
     // @import, @charset or @namespace
     else {
         const checker = [
-            () => { return match[1] ? '' : 'Please write the type of at-rule after the @ symbol.' },
+            () => { return match[1] ? '' : 'Please write the type of at-rule after the @ symbol.'; },
             () => {
                 const _match = match[1].match(/^(charset|import|namespace)([^\s\n]*)/i);
 
@@ -289,18 +262,18 @@ function checkAtRule(match, nested) {
                     return `There should be a space between @${_match[1]} and ${_match[2]}.`;
                 }
             },
-            () => { return /[A-Z]/.test(match[1]) ? `@${match[1]} is incorrect. Make sure all letters are lowercase.` : '' },
+            () => { return /[A-Z]/.test(match[1]) ? `@${match[1]} is incorrect. Make sure all letters are lowercase.` : ''; },
             () => {
                 const word = match[1] == 'import' ? 'link' : match[1] == 'charset' ? 'character code' : 'name';
                 return match[3] ? '' : `The @${match[1]} at-rule needs a ${word}.`;
-            },            
-            () => { return match[4] ? '' : `Don't forget the semi-colon(;) after ${match[3]}` },
+            },
+            () => { return match[4] ? '' : `Don't forget the semi-colon(;) after ${match[3]}`; },
         ];
-        
+
         if (checker.every(check => !(verdict = check()))) {
             pushAtRule(nested, match);
             // disguise as declaration
-            checkValue([{property: '@import', value: match[3]}]);
+            checkValue([{ property: '@import', value: match[3] }]);
         }
     }
     return !verdict;
@@ -342,12 +315,11 @@ function checkRule(match, nested) {
         ];
 
     if (checker.every(check => !(verdict = check())) && !nested) {
-        tree.rules.push({type: 'rule', selector: match[1].replace(/\s+/g, ' '), declarations: match[2], nth: ruleCount += 1});
-        inputClone = toSpace(inputClone, match[0]);
-        
+        tree.rules.push({ type: 'rule', selector: match[1], declarations: match[2], nth: ruleCount += 1 });
+        inputClone = toSpace(inputClone, /* match[1] === AUTO_ADDED_SELECTOR ? match[2] : */ match[0]);
+
         if (match[2]) {
             const d = checkDeclaration();
-            
             if (d) checkProperty(d) && checkValue(d);
         }
     }
@@ -356,66 +328,68 @@ function checkRule(match, nested) {
 
 function checkDeclaration(target = lastOf(tree.rules)) {
     const p = /[^:]+\s*:\s*[^;]+\s*;/i;     // fixed declaration pattern
-    let da = [];        // declaration array    
+    let da = [];        // declaration array
 
     target.declarations.trim().split(/\s*\r?\n\s*/).every(line => {
         let s;      // temporary string
         const
             match = line.match(pDeclaration),
             checker = [
-            {
-                error: function(){
-                    s = line.match(/(?:[:;]\s*){2,}/);
-                    return (s = s ? s[0].trim() : s);
-                }(),
-                feedback: `${s} in ${line} is incorrect.`,
-            },
-            {
-                error: !match[2],
-                feedback: `${line} is incorrect. Remove it or add a colon(:).`,
-            },
-            {
-                error: !match[1],
-                feedback: `${line} is incorrect. Property name is missing.`,
-            },
-            {
-                error: !match[3],
-                feedback: `${line} is incorrect. The ${match[1] ? match[1].trim() : ''} property needs a value.`,
-            },
-            {
-                error: !match[4],
-                feedback: `${line} is incorrect. There should be a semi-colon(;) at the end.`,
-            },
-            {
-                error: function(){
-                    s = line;
-                    while (p.test(s)) {s = s.replace(p, '').trim()}
-                    return s;
-                }(),
-                feedback: `${line} is incorrect. Please correct or remove ${s}.`,
-            },
-            {
-                error: p.test(line.replace(p, '')),
-                feedback: `${line} contains multiple declarations. Please write one declaration per line.`,
-            },
-            {
-                error: line.includes(';') && line.match(/[;]/g).length > 1,
-                feedback: `${line.match(/;[^;]+;/)} in ${line} is incorrect. Only one semi-colon(;) is allowed per declaration.`,
-            }];
+                {
+                    error: function () {
+                        s = line.match(/(?:[:;]\s*){2,}/);
+                        return (s = s ? s[0].trim() : s);
+                    }(),
+                    feedback: `${s} in ${line} is incorrect.`,
+                },
+                {
+                    error: !match[2],
+                    feedback: `${line} is incorrect. Remove it or add a colon(:).`,
+                },
+                {
+                    error: !match[1],
+                    feedback: `${line} is incorrect. Property name is missing.`,
+                },
+                {
+                    error: !match[3],
+                    feedback: `${line} is incorrect. The ${match[1] ? match[1].trim() : ''} property needs a value.`,
+                },
+                {
+                    error: !match[4],
+                    feedback: `${line} is incorrect. There should be a semi-colon(;) at the end.`,
+                },
+                {
+                    error: function () {
+                        s = line;
+                        while (p.test(s)) { s = s.replace(p, '').trim(); }
+                        return s;
+                    }(),
+                    feedback: `${line} is incorrect. Please correct or remove ${s}.`,
+                },
+                {
+                    // skip this test for teacher code (opts === null)
+                    error: (p.test(line.replace(p, '')) && opts !== null),
+                    feedback: `${line} contains multiple declarations. Please write one declaration per line.`,
+                },
+                {
+                    // skip this test for teacher code (opts === null)
+                    error: line.includes(';') && line.match(/[;]/g).length > 1 && opts !== null,
+                    feedback: `${line.match(/;[^;]+;/)} in ${line} is incorrect. Only one semi-colon(;) is allowed per declaration.`,
+                }];
 
-        checker.every(c => {return !(c.error ? verdict = c.feedback : false)});
-        return !verdict ? da.push({type: 'declaration', property: match[1].trim(), value: match[3].trim()}) : false;
+        checker.every(c => { return !(c.error ? verdict = c.feedback : false); });
+        return !verdict ? da.push({ type: 'declaration', property: match[1].trim(), value: match[3].trim() }) : false;
     });
 
-    return !verdict ? target.declarations = da : false;    
+    return verdict ? false : target.declarations = da;
 }
 
 function checkProperty(target) {
     //each item, when found, should have a response message defined in the switch case below
     const pInvalid = [
-        /*0*//[A-Z]/,
-        /*1*//\s+/g,
-        /*2*//[^a-z-]/,
+      /*0*//[A-Z]/,
+      /*1*//\s+/g,
+      /*2*//[^a-z-]/,
     ];
 
     return target.every(d => {
@@ -427,7 +401,7 @@ function checkProperty(target) {
                     case 2: verdict = `${d.property.match(err)} in ${d.property} is incorrect. Please read the instructions again.`; break;
                     default:
                         verdict = `${d.property} is incorrect. Please read the instructions again.`;
-                        console.log(`${d.property} is found in ${d.property} but message is missing. Go to checkProperty() in CssAst.`);
+                        console.log(`Error is found in ${d.property} but message is missing. Go to checkProperty() in CssAst.`);
                 }
             }
             return !verdict;
@@ -437,10 +411,10 @@ function checkProperty(target) {
 
 function checkValue(target) {
     const pInvalid = [
-        /*0*//^url([^\S\n]+)?(\(\s*)?(['"])?([^'"()]+)?(['"])?(\s*\))?/i,
-        /*1*//[^:]+:/,
+      /*0*//^url([^\S\n]+)?(\(\s*)?(['"])?([^'"()]+)?(['"])?(\s*\))?/i,
+      /*1*//[^:]+:/,
     ];
-    
+
     return target.every(d => {
         return pInvalid.every((err, i) => {
             const match = d.value.match(err);
@@ -456,7 +430,11 @@ function checkValue(target) {
                         else if (!match[6]) verdict = `Add closing bracket at the end of ${match[0]}.`;
                         break;
                     case 1:
-                        if (/:/.test(d.value.replace(/htt?p:/, ''))) verdict = `${d.value} is incorrect. Please remove extra colons(:).`; break;
+                        if (/:/.test(d.value.replace(/https?:/, ''))) verdict = `${d.value} is incorrect. Please remove extra colons(:).`;
+                        break;
+                    default:
+                        verdict = `${d.value} is incorrect. Please read the instructions again.`;
+                        console.log(`Error is found in ${d.value} but message is missing. Go to checkValue() in CssAst.`);
                 }
             }
             return !verdict;
@@ -482,7 +460,7 @@ function getTree() {
         if (r.value) t += `, ${r.value}`;
         else if (r.media) {
             t += `, ${r.media}, rules: `;
-            
+
             r.rules ? r.rules.forEach(ns => {
                 t += `\n\t\t${ns.selectors}, declarations: `;
                 Array.isArray(ns.declarations) ? ns.declarations.forEach(nd => {
@@ -492,7 +470,7 @@ function getTree() {
         }
         else if (r.keyframes) {
             t += `, ${r.name}, "", keyframes: `;
-            
+
             r.keyframes ? r.keyframes.forEach(kf => {
                 t += `\n\t\t${kf.values}, declarations: `;
                 Array.isArray(kf.declarations) ? kf.declarations.forEach(nd => {
@@ -515,20 +493,20 @@ function getTree() {
     return t;
 }
 
-btnParse.onclick = function() {
+btnParse.onclick = function () {
     console.clear();
 
     ruleCount = 0;
-    tree = {atRules: [], rules: []};
+    tree = { atRules: [], rules: [] };
     verdict = '';
     pass = true;
     info.innerHTML = '';
     input = ide.value;
     inputClone = input;
 
-    parse();    console.log(tree);
+    parse(); console.log(tree);
 
-    if (pass) {        
+    if (pass) {
         console.log(getTree());
         log('All good.');
     } else {
@@ -538,11 +516,11 @@ btnParse.onclick = function() {
 
 let ctrl;
 
-window.onkeydown = function(evt) {
+window.onkeydown = function (evt) {
     if (!ctrl) ctrl = evt.keyCode == 17;
 };
 
-window.onkeyup = function(evt) {
+window.onkeyup = function (evt) {
     if (ctrl && evt.keyCode == 17) ctrl = false;
     if (evt.keyCode == 13 && ctrl) btnParse.click();
 };

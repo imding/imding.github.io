@@ -1747,20 +1747,26 @@ function loadGame() {
     
                 let info = Object.values(profile.userInfo || {});
                 if (info.length < 6 || info.some(val => !val || !val.trim())) {
+                    showForm();
                     // check other game database for user info
-                    const jigsawDB = new Firebase('https://bsd-jigsaw.firebaseio.com/');
-                    jigsawDB.once('value', (records) => {
-                        records = records.val();
-                        Object.keys(records).forEach(key => {
-                            if (key === profile.lb_user_id) {
-                                profile.userInfo = records[key].userInfo;
-                                // offer info form before syncing to firebase
-                                info = Object.values(profile.userInfo || {});
-                                if (info.length < 6 || info.some(val => !val || !val.trim())) showForm();
-                                else syncToFirebase(localStorage.getItem('completedLevels'));
-                            }
-                        });
-                    });
+                    // const jigsawDB = new Firebase('https://bsd-jigsaw.firebaseio.com/');
+                    // jigsawDB.once('value', (records) => {
+                    //     records = records.val();
+                    //     Object.keys(records).forEach(key => {
+                    //         if (key === profile.lb_user_id) {
+                    //             profile.userInfo = records[key].userInfo;
+                    //             // offer info form before syncing to firebase
+                    //             info = Object.values(profile.userInfo || {});
+                    //             alert(info);
+                    //             if (info.length < 6 || info.some(val => !val || !val.trim())) {
+                    //                 showForm();
+                    //             }
+                    //             else {
+                    //                 syncToFirebase(localStorage.getItem('completedLevels'));
+                    //             }
+                    //         }
+                    //     });
+                    // });
                 }
                 else syncToFirebase(localStorage.getItem('completedLevels'));
             }

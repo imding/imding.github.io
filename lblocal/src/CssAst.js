@@ -90,9 +90,9 @@ export default class CssAst extends Ast {
         output = input.replace(/([^\s{};])(\s*)}/g, '$1;$2}');    // insert semi-colon before } that isn't preceded by ; or { or }
       }
     }
-    else if (opts.declarationsOnly) {
-      output = this._wrapWithSelector(input);
-    }
+    // else if (opts.declarationsOnly) {
+    //   output = this._wrapWithSelector(input);
+    // }
 
     return (output ? output : input);
   }
@@ -105,8 +105,8 @@ export default class CssAst extends Ast {
       return lastOf([tree.rules, tree.atRules].filter(arr => arr.some(r => r.nth == ruleCount))[0]);
     }
 
-    function buildInvalidCode(nextValid = [pRule, pNestedAtRule, pAtRule], invalidCode = '') {
-      let ob, cb, ln, isNestedAtRule;
+    function buildInvalidCode(invalidCode = '') {
+      let ln, isNestedAtRule;
 
       // error position can be retrieved before trim
       inputClone = inputClone.trim();
@@ -212,10 +212,11 @@ export default class CssAst extends Ast {
       const foundAndMatched = (p, i) => {
         let match = inputClone.match(p);
 
-        if (match && pass) {
-          match = match.map(m => m ? m.trim() || m : m);
-          pass = i ? checkAtRule(match, i == 1) : checkRule(match);
+        if (!i && !match && opts.declarationOnly) {
+          // simulate matched behaviour for learner code under the condition that declarationOnly is true
+          match = [`${AUTO_ADDED_SELECTOR} {\n\t${inputClone}\n}`, AUTO_ADDED_SELECTOR, inputClone];
         }
+
         return match && pass;
       };
 
@@ -352,7 +353,7 @@ export default class CssAst extends Ast {
 
       if (checker.every(check => !(verdict = check())) && !nested) {
         tree.rules.push({ type: 'rule', selector: match[1], declarations: match[2], nth: ruleCount += 1 });
-        inputClone = toSpace(inputClone, match[0]);
+        inputClone = toSpace(inputClone, match[1] === AUTO_ADDED_SELECTOR ? match[2] : match[0]);
 
         if (match[2]) {
           const d = checkDeclaration();
@@ -365,7 +366,7 @@ export default class CssAst extends Ast {
 
     function checkDeclaration(target = lastOf(tree.rules)) {
       const p = /[^:]+\s*:\s*[^;]+\s*;/i;     // fixed declaration pattern
-      let da = [];        // declaration array    
+      let da = [];        // declaration array
 
       target.declarations.trim().split(/\s*\r?\n\s*/).every(line => {
         let s;      // temporary string
@@ -467,7 +468,7 @@ export default class CssAst extends Ast {
                 else if (!match[6]) verdict = `Add closing bracket at the end of ${match[0]}.`;
                 break;
               case 1:
-                if (/:/.test(d.value.replace(/htt?p:/, ''))) verdict = `${d.value} is incorrect. Please remove extra colons(:).`;
+                if (/:/.test(d.value.replace(/https?:/, ''))) verdict = `${d.value} is incorrect. Please remove extra colons(:).`;
                 break;
               default:
                 verdict = `${d.value} is incorrect. Please read the instructions again.`;

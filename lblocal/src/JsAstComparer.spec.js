@@ -180,10 +180,10 @@ describe('JsAstComparerTest', function() {
 });
 
 function verify(t, l, messages = []) {
-  const teacher = new JsAst(t);                                         let msg = teacher.messages.length ? JSON.stringify(teacher.messages) : `TEACHER SYNTAX CHECK PASS: ${t}\n`;
+  const teacher = new JsAst(t);                                         //let msg = teacher.messages.length ? JSON.stringify(teacher.messages) : `TEACHER SYNTAX CHECK PASS: ${t}\n`;
 
   if (teacher.messages.length === 0) {
-    const learner = new JsAst(l, teacher.autoCompleteMethod);           msg += (learner.messages.length ? JSON.stringify(learner.messages) : `LEARNER SYNTAX CHECK PASS: ${l}\n`);
+    const learner = new JsAst(l, teacher.autoCompleteMethod);           //msg += (learner.messages.length ? JSON.stringify(learner.messages) : `LEARNER SYNTAX CHECK PASS: ${l}\n`);
     const compareJs = new JsAstComparer();
 
     if (learner.messages.length !== 0) {
@@ -195,7 +195,7 @@ function verify(t, l, messages = []) {
         expect(result[ms].position).toEqual(messages[ms].position);
       }
     } else {
-      compareJs.compare(teacher.tokens, learner.tokens);                console.log(`${msg}${compareJs.messages.length ? JSON.stringify(compareJs.messages) : 'COMPARISON CHECK PASS'}`);
+      compareJs.compare(teacher.tokens, learner.tokens);                //console.log(`${msg}${compareJs.messages.length ? JSON.stringify(compareJs.messages) : 'COMPARISON CHECK PASS'}`);
       const result = compareJs.messages;
       expect(compareJs.messages.length).toEqual(messages.length);
       for (let ms in messages) {

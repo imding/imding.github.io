@@ -152,7 +152,7 @@ class StepExpectation {
     const wrapCss = (f) => {
       const that = this;
       f = f.bind(this);
-      return function() {
+      return function () {
         that._ensureCssCodeAvailable();
         that._called.codeType = 'css';
         that._called.whenIf = true;
@@ -164,7 +164,7 @@ class StepExpectation {
     const wrapHtml = (f) => {
       const that = this;
       f = f.bind(this);
-      return function() {
+      return function () {
         that._ensureHtmlCodeAvailable();
         that._called.codeType = 'html';
         that._called.whenIf = true;
@@ -176,7 +176,7 @@ class StepExpectation {
     const wrapJs = (f) => {
       const that = this;
       f = f.bind(this);
-      return function() {
+      return function () {
         that._ensureJsCodeAvailable();
         that._called.codeType = 'js';
         that._called.whenIf = true;
@@ -743,7 +743,7 @@ class StepExpectation {
 
   _compareCss(value, result, opts = {}) {
     const expectedCss = new CssAst(value);
-    
+
     if (expectedCss.messages.length > 0) {
       _(expectedCss.messages).each((l) => console.log(JSON.stringify(l)));
       throw new Error('Found errors in expected CSS.');
@@ -764,27 +764,48 @@ class StepExpectation {
   }
 
   _compareHtml(value, result, opts = {}) {
-    const expectedHtml = new HtmlAst(value);
-    const valueHtml = new HtmlAst(this._value);
-    const compareHtml = new HtmlAstComparer();
+    const teacher = new HtmlAst(value);
+    if (teacher.messages.length) throw new Error(`Error in teacher code: ${teacher.messages[0].message}.`);
 
-    if (expectedHtml.messages.length > 0) {
-      _(expectedHtml.messages).each((l) => console.log(JSON.stringify(l)));
-      throw 'Found errors in expected HTML.';
-    }
+    const learner = new HtmlAst(this._value);
 
-    result.ok = valueHtml.messages.length == 0;
+    result.ok = !learner.messages.length;
+    
     if (!result.ok) {
-      result.errors = valueHtml.messages;
+      result.errors = learner.messages;
     }
+    else if (teacher.tree && learner.tree) {
+      const compareHtml = new HtmlAstComparer();
 
-    if (expectedHtml.tree !== undefined && valueHtml.tree !== undefined) {
-      compareHtml.compare(expectedHtml.tree.blocks, valueHtml.tree.blocks, opts);
-      result.ok = compareHtml.messages.length == 0;
+      compareHtml.compare(teacher.tree, learner.tree);
+      result.ok = !compareHtml.messages.length;
+
       if (!result.ok) {
         result.errors = compareHtml.messages;
       }
     }
+
+    // const expectedHtml = new HtmlAst(value);
+    // const valueHtml = new HtmlAst(this._value);
+    // const compareHtml = new HtmlAstComparer();
+
+    // if (expectedHtml.messages.length > 0) {
+    //   _(expectedHtml.messages).each((l) => console.log(JSON.stringify(l)));
+    //   throw 'Found errors in expected HTML.';
+    // }
+
+    // result.ok = valueHtml.messages.length == 0;
+    // if (!result.ok) {
+    //   result.errors = valueHtml.messages;
+    // }
+
+    // if (expectedHtml.tree !== undefined && valueHtml.tree !== undefined) {
+    //   compareHtml.compare(expectedHtml.tree.blocks, valueHtml.tree.blocks, opts);
+    //   result.ok = compareHtml.messages.length == 0;
+    //   if (!result.ok) {
+    //     result.errors = compareHtml.messages;
+    //   }
+    // }
   }
 
   _compareJs(value, result) {
@@ -805,7 +826,7 @@ class StepExpectation {
         if (!result.ok) {
           result.errors = compareJs.messages;
         }
-      }     
+      }
     }
   }
 
@@ -835,7 +856,7 @@ class StepExpectation {
           if (this._called.codeType == 'css') {
             this._compareCss(value, result);
           } else if (this._called.codeType == 'html') {
-            this._compareHtml(value,result);
+            this._compareHtml(value, result);
           } else if (this._called.codeType == 'js') {    // test JS
             this._compareJs(value, result);
           }
@@ -1006,7 +1027,7 @@ class StepExpectation {
     } else {
       skipped = true;
     }
-    return {result, skipped, error};
+    return { result, skipped, error };
   }
 }
 

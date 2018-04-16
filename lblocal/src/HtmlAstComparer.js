@@ -180,17 +180,18 @@ export default class HtmlAstComparer extends AstComparer {
             }
 
             // remove matched attribute from the list of weak attributes
-            if (!verdict) weak.splice(weak.map(_a => _a.name).indexOf(a.name), 1);
+            if (!verdict) {
+              weak.splice(weak.map(_a => _a.name).indexOf(a.name), 1);
+            }
+            else due.push(a);
           }
-          else {
-            due.push(a);
-          }
+          else due.push(a);
 
           return !verdict;
         });
 
         // if any teacher defined attribute is not found in learner code
-        if (due.length) {
+        if (!verdict && due.length) {
           if (due.length !== weak.length) throw new Error('The number of unmatched attribute should equal to the number of weak attribute.');
 
           // estimate association between due and weak attributes

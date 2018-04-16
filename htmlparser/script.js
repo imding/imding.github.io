@@ -520,10 +520,7 @@ function compare(model, input) {
                     }
                     else due.push(a);
                 }
-                else {
-                    due.push(a);
-                    // verdict = `The ${a.name} attribute is missing in ${lt.raw.trim()}.`;
-                }
+                else due.push(a);
 
                 return !verdict;
             });

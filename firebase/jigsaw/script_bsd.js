@@ -91,6 +91,7 @@ const
                     if (uid === profile.lb_user_id) {
                         profile.userInfo = snapshot.val()[uid].userInfo || {};
                     }
+                    else if (spanshot.val()[uid])
 
                     if (snapshot.val()[uid].time < leaderboard.best.time || !leaderboard.best.time) {
                         leaderboard.best = {
@@ -373,26 +374,27 @@ function checkPuzzle() {
             let info = Object.values(profile.userInfo || {});
             if (info.length < 6 || info.some(val => !val || !val.trim())) {
                 // check the other game database for user info
-                const
-                    pupConfig = {
-                        apiKey: 'AIzaSyCk7YyJ7d9VUjED8vQbeWLnvYZH9BHTwVI',
-                        authDomain: 'bsd-pup.firebaseapp.com',
-                        projectId: 'bsd-pup',
-                    },
-                    pupDB = new firebase.initializeApp(pupConfig).firestore();
+                // const
+                //     pupConfig = {
+                //         apiKey: 'AIzaSyCk7YyJ7d9VUjED8vQbeWLnvYZH9BHTwVI',
+                //         authDomain: 'bsd-pup.firebaseapp.com',
+                //         projectId: 'bsd-pup',
+                //     },
+                //     pupDB = new firebase.initializeApp(pupConfig).firestore();
 
-                showPopup('Connecting to database...');
+                // showPopup('Connecting to database...');
 
-                pupDB.doc(`players/${profile.lb_user_id}`).get().then(player => {
-                    document.body.removeChild(popup.element);
-                    if (player.exists) {
-                        profile.userInfo = player.data().userInfo || {};
-                        info = Object.values(profile.userInfo || {});
-                        if (info.length < 6 || info.some(val => !val || !val.trim())) showForm(() => leaderboard.add(newScore));
-                        else leaderboard.add(newScore);
-                    }
-                    else showForm(() => leaderboard.add(newScore));
-                });
+                // pupDB.doc(`players/${profile.lb_user_id}`).get().then(player => {
+                //     document.body.removeChild(popup.element);
+                //     if (player.exists) {
+                //         profile.userInfo = player.data().userInfo || {};
+                //         info = Object.values(profile.userInfo || {});
+                //         if (info.length < 6 || info.some(val => !val || !val.trim())) showForm(() => leaderboard.add(newScore));
+                //         else leaderboard.add(newScore);
+                //     }
+                //     else showForm(() => leaderboard.add(newScore));
+                // });
+                showForm(() => leaderboard.add(newScore));
             }
             else leaderboard.add(newScore);
         }
@@ -555,7 +557,7 @@ function showForm(onSubmit = () => { }) {
                     <select id='birthMonth'>
                         <option value='Jan'>Jan</option>
                         <option value='Feb'>Feb</option>
-                        <option value='Wed'>Wed</option>
+                        <option value='Mar'>Mar</option>
                         <option value='Apr'>Apr</option>
                         <option value='May'>May</option>
                         <option value='Jun'>Jun</option>

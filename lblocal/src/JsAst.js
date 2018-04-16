@@ -1,7 +1,7 @@
 import Ast, {messageType} from './Ast';
 import {removeComments, replaceStrings} from './AstComparer';
 
-var esprima = require('esprima'), markup = /(.*)##\s*([A-Z\s]+[(A-Z;\s)]*)\s*##(.*)/, teacherRawCode;
+var esprima = require('esprima'), markup = /([^#]*)##\s*([A-Z]+)\s*(?:\((.*)\))?\s*##(.*)/, teacherRawCode;
 
 // verifies that the JS code is syntactically correct
 export default class JsAst extends Ast {
@@ -65,7 +65,7 @@ export default class JsAst extends Ast {
       }
     } else /* input contains teacher code */ {
       teacherRawCode = input;
-      input = convertMarkup(input);
+      input = validateMarkup(input);
       partialSyntax.some((syntax, i) => {
         if (syntax.test(input)) {
           this._acMethod = i;
@@ -164,12 +164,13 @@ export default class JsAst extends Ast {
 
     if (teacherRawCode) {
       tokens.forEach((t, i, arr) => {
+        // every token value should be found in the code unless modified by validateMarkup() function
         if (teacherRawCode.startsWith(t.value)) {
           teacherRawCode = teacherRawCode.slice(t.value.length).trim();
         } else {
           tokens[i].type = `Markup${t.type}`;
           tokens[i].value = null;
-          teacherRawCode = teacherRawCode.replace(/^##\s*([A-Z\s]+[(A-Z;\s)]*)\s*##\s*(.*)/, '$2');
+          teacherRawCode = teacherRawCode.replace(/^##\s*([A-Z]+)\s*(?:\((.*)\))?\s*##\s*(.*)/, '$3');
         }
       });
     }
@@ -288,17 +289,19 @@ function replaceBrackets(str) {
   return str;
 }
 
-function convertMarkup(code) {
+function validateMarkup(code) {
   while (markup.test(code)) {
-    let type = code.replace(markup, '$2').toUpperCase().trim(), value;
+    const m = code.match(markup);
+    let value;
+    // let type = code.replace(markup, '$2').toUpperCase().trim(), value;
 
-    switch (true) {
-      case /^STRING(\s*\(.*\))?$/.test(type): value = '""'; break;
-      case /^NUMBER(\s*\(.*\))?$/.test(type): value = 0; break;
-      default: throw new Error(`Missing convertMarkup() response for ##${type}##.`);
+    switch (m[2]) {
+      case 'STRING': value = '""'; break;
+      case 'NUMBER': value = 0; break;
+      default: throw new Error(`Missing validateMarkup() response for ##${m[2]}##.`);
     }
-
-    code = code.replace(markup, `$1${value}$3`);
+    
+    code = `${m[1]}${value}${m[4]}`;
   }
 
   return code;

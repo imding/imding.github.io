@@ -94,10 +94,10 @@ describe('HtmlAstComparerTest', function () {
 
   it('fail same number of attributes with similar values but different attribute names', () => {
     const t = '<h1 class="title tilted" id = "bigTitle">title</h1>';
-    const l = '<h1 id = "bigtitle" value="tile tilte">title</h1>';
+    const l = '<h1 title = "bigtitle" value="tile tilte">title</h1>';
     const message = [{
       type: 'fail',
-      message: 'In the h1 tag, value="tile tilte" is incorrect. Try changing the attribute name to class.',
+      message: 'In the h1 tag, title = "bigtitle" is incorrect. Try changing the attribute name to id.',
     }];
     verify(t, l, message);
   });

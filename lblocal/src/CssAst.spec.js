@@ -2,10 +2,15 @@ import CssAst from './CssAst';
 
 describe('CssAstTest', function() {
   it('ok when empty rule', () => {
+    const css = 'button {}';
+    verify(css);
+  });
+
+  it('ok when empty rule', () => {
     const css = 'h1 {}';
     verify(css);
   });
-  
+
   it('ok when valid css', () => {
     const css = 'div { font-family:arial; }';
     verify(css);
@@ -15,12 +20,12 @@ describe('CssAstTest', function() {
     const css = 'margin: 0px;';
     verify(css);
   });
-  
+
   it('ok when contain : in "#", \'#\'', () => {
     const css = 'content: url("http://et-38d7.kxcdn.com/emojione-3.0/2755.png")';
     verify(css);
   });
-  
+
   it('okay when code contains comments', () => {
     const css = 'h1 { background-color: red; } /* comment */';
     verify(css);
@@ -193,6 +198,56 @@ describe('CssAstTest', function() {
     verify(css, message);
   });
 
+  it('pass when an url() contains no extra colons', () => {
+    const css = "h1 { background-image:  url('www.pic.com/pic.jpg'); }";
+    const message = [];
+    verify(css, message);
+  });
+
+  it('fail when a url() contains an extra colon', () => {
+    const css = "h1 { background-image:  url('www.pic.com/pic:jpg'); }";
+    const message = [
+      {error: "url('www.pic.com/pic:jpg') is incorrect. Please remove extra colons(:)."},
+    ];
+    verify(css, message);
+  });
+
+  it('fail when a url() contains multiple extra colons', () => {
+    const css = "h1 { background-image:  url('www.pic.com/p:i:c:jpg'); }";
+    const message = [
+      {error: "url('www.pic.com/p:i:c:jpg') is incorrect. Please remove extra colons(:)."},
+    ];
+    verify(css, message);
+  });
+
+  it('pass when a url() containing the http:// protocol contains no additional colons', () => {
+    const css = "h1 { background-image:  url('http://www.pic.com/pic.jpg'); }";
+    const message = [];
+    verify(css, message);
+  });
+
+  it('fail when a url() containing the http:// protocol contains extra colons', () => {
+    const css = "h1 { background-image:  url('http://www.pic.com/pic:jpg'); }";
+    const message = [
+      {error: "url('http://www.pic.com/pic:jpg') is incorrect. Please remove extra colons(:)."},
+    ];
+    verify(css, message);
+  });
+
+  it('pass when a url() containing the https:// protocol contains no additional colons', () => {
+    const css = "h1 { background-image:  url('https://www.pic.com/pic.jpg'); }";
+    const message = [];
+    verify(css, message);
+  });
+
+  it('fail when a url() containing the https:// protocol contains extra colons', () => {
+    const css = "h1 { background-image:  url('https://www.pic.com/pic:jpg'); }";
+    const message = [
+      {error: "url('https://www.pic.com/pic:jpg') is incorrect. Please remove extra colons(:)."},
+    ];
+    verify(css, message);
+  });
+
   it('@keyframes pass', () => {
     const css = '@keyframes anim{ 0% { width: 100%;}} @media print { body { width: 90%; }}';
     verify(css);
@@ -203,7 +258,7 @@ describe('CssAstTest', function() {
     const message = [{error: 'The @keyframes at-rule needs a name.'}];
     verify(css, message);
   });
-  
+
   it('@keyframes fail when upper case', () => {
     const css = '@KEYFRAMES anim {}';
     const message = [{error: '@KEYFRAMES is incorrect. Make sure all letters are lowercase.'}];
@@ -263,17 +318,23 @@ describe('CssAstTest', function() {
     const message = [{error: '@hello is not a valid type of at-rule.'}];
     verify(css, message);
   });
+
+  it.only('fail when type of at-rule is invalid', () => {
+    const css = `color: red;`;
+    verify(css, [], {declarationsOnly: false});
+  });
 });
 
 function verify(css, expectedMessages = [], context = null) {
-  const result = new CssAst(css, context); //console.log(result.rules[0].keyframes);
+  const result = new CssAst(css, context);
+  if (result.messages.length !== expectedMessages.length) console.log(result.messages);
   expect(result.messages.length).toEqual(expectedMessages.length);
-  
+console.log(result._tree);
   for (let em in expectedMessages) {
     const msgType = Object.keys(expectedMessages[em]);
     const expectedMsg = expectedMessages[em][msgType];
     const actualMsg = result.messages[em];
-    
+
     expect(actualMsg.type).toEqual(msgType[0]);
     expect(actualMsg.message).toEqual(expectedMsg);
   }

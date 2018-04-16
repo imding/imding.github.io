@@ -505,6 +505,8 @@ describe('StepExpectation', function() {
     verify(pass, false);
   });
 
+  // ==================================================================================== start of HTML tests == //
+
   it('pass.if.html().is.equivalent() PASS', () => {
     pass.if.html('<div>PPP</div>').is.equivalent('<div>##ANY##</div>');
     verify(pass, true);
@@ -540,11 +542,6 @@ describe('StepExpectation', function() {
     verify(pass, false);
   });
 
-  it('pass.if.html().is.equivalent() PASS', () => {
-    pass.if.html('<div class="OOO">XXX</div>').is.equivalent('<div class="##ANY(MMM; OOO)##">XXX</div>');
-    verify(pass, true);
-  });
-
   it('fail.if.html().is.not.equivalent() FAIL', () => {
     fail.if.html('<div>DDD</div>').is.not.equivalent('<p>PPP</p>');
     verify(fail, false);
@@ -562,12 +559,12 @@ describe('StepExpectation', function() {
 
   it('fail.when.html().is.not.equivalent() PASS', () => {
     fail.when.html('<p>PPP</p>').is.not.equivalent('<p>PPP      </p>');
-    verify(fail, true);
+    verify(fail, false);
   });
 
   it('fail.when.html().is.equivalent() FAIL', () => {
     fail.when.html('<p>PPP</p>').is.equivalent('<p>      PPP</p>');
-    verify(fail, false);
+    verify(fail, true);
   });
 
   it('fail.when.html().is.not.equivalent.to().or() PASS', () => {
@@ -597,21 +594,8 @@ describe('StepExpectation', function() {
     verify(fail, false);
   });
 
-  it('fail.when.html.editable().contains() PASS', () => {
-    fail.when.html.editable(1).contains(' <h1 >LLL</h1> ');
-    verify(fail, true);
-  });
-
-  it('fail.when.html.editable().contains() FAIL', () => {
-    fail.when.html.editable(1).contains(' <h1 id="Y">LLL</h1> ');
-    verify(fail, false);
-  });
-
-  it('fail.when.html.editable().contains("text") PASS', () => {
-    fail.when.html.editable(2).not.contains('text');
-    verify(fail, true);
-  });
   // ======================================================================================= start of JavaScript tests
+  
   it('PASS pass.if.js.editable().equivalent()', () => {
     pass.if.js.editable(0).equivalent('var health = 99;');
     verify(pass, true);
