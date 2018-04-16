@@ -165,19 +165,19 @@ export default class CssAstComparer extends AstComparer {
   _matchRules(teacherRules, learnerRules, options) {
     // loop to check each selector of teacher
     teacherRules.forEach((tr) => {
-      const failedMsg = this._matchingCSS(learnerRules, tr.selectors || [tr.values], tr.declarations, options);
-      failedMsg.teacherSels.map((ts) => this._teacherSelectors.push(ts));
-      failedMsg.matchedSelectors.map((ms) => this._matchedSelectors.push(ms));
-      failedMsg.messages.map((m) => this._messages.push(m));
+      const matchResult = this._matchingCSS(learnerRules, tr.selectors || [tr.values], tr.declarations, options);
+      matchResult.teacherSels.forEach((ts) => this._teacherSelectors.push(ts));
+      matchResult.matchedSelectors.forEach((ms) => this._matchedSelectors.push(ms));
+      matchResult.messages.forEach((m) => this._messages.push(m));
     });
 
     const learnerDuplicatedSelectors = this._findDuplicatedSelectors(learnerRules);
-    learnerDuplicatedSelectors.map((e) => this._messages.push(e));
+    learnerDuplicatedSelectors.forEach((e) => this._messages.push(e));
 
     if (!options.allowExtraSelectors) {
       const unexpectedSelectors = this._findUnexpectedSelectors(this._matchedSelectors, learnerRules);
       if (unexpectedSelectors != null) {
-        unexpectedSelectors.map((us) => {
+        unexpectedSelectors.forEach((us) => {
           this._pushError(`The ${collapseWhitespace(us)} selector is not required. Please remove or correct it.`);
         });
       }
@@ -185,8 +185,8 @@ export default class CssAstComparer extends AstComparer {
 
     const missingSelectors = this._findMissingSelectors(this._matchedSelectors, this._teacherSelectors);
     if (missingSelectors != null) {
-      missingSelectors.map((ne) => {
-        this._pushError(`Don't forget to add the selector for ${collapseWhitespace(ne)}.`);
+      missingSelectors.forEach((ne) => {
+        if (ne !== AUTO_ADDED_SELECTOR) this._pushError(`Don't forget to add the selector for ${collapseWhitespace(ne)}.`);
       });
     }
 
@@ -238,17 +238,17 @@ export default class CssAstComparer extends AstComparer {
 
     // loop through learner AST
     // break this loop if found selector
-    teacherSelectors.forEach(ts => {
+    teacherSelectors.some(ts => {
       ts = ts.trim();
       teacherSels.push(ts);
 
-      learnerRules.forEach((lr, i) => {
+      return learnerRules.some((lr, i) => {
         if (!learnerRules.hasOwnProperty(i)) return;
         if (lr.selectors == null) return;
 
         // loop through learner's selector
         // break this loop if found selector
-        lr.selectors.forEach((ls, j) => {
+        return lr.selectors.some((ls, j) => {
           if (!lr.selectors.hasOwnProperty(j)) return;
 
           // found matched selector
@@ -265,7 +265,7 @@ export default class CssAstComparer extends AstComparer {
 
             // Matching selector was found. Exit now.
             messages = messages.filter(Boolean);
-            return {teacherSels, messages, matchedSelectors};
+            return true;
           }
         });
       });
@@ -311,7 +311,7 @@ export default class CssAstComparer extends AstComparer {
     const tempTeacherDecl = [];
     const duplicatedDeclList = this._findDuplicatedDeclarations(teacherSelector, learnerDec, declarationsOnly);
 
-    duplicatedDeclList.map((dl) => messages.push(dl));
+    duplicatedDeclList.forEach((dl) => messages.push(dl));
 
     teacherDecls.forEach((td, i) => {
       if (!teacherDecls.hasOwnProperty(i)) return;
@@ -402,7 +402,7 @@ export default class CssAstComparer extends AstComparer {
 
     learnerRules.forEach((lr, i) => {
       if (!learnerRules.hasOwnProperty(i)) return;
-      if (lr.type == 'rule') lr.selectors.map(e => selectors.push(e));
+      if (lr.type == 'rule') lr.selectors.forEach(e => selectors.push(e));
     });
 
     const nonWhiteSpace = matchedSelectors.map((e) => removeWhitespace(e));

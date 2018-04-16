@@ -1,6 +1,6 @@
 ide.value = 'color: red;';
 
-let input, AUTO_ADDED_SELECTOR = '.LAUNCHBOX_auto_added_selector';
+let input, AUTO_ADDED_SELECTOR = 'LAUNCHBOX_auto_added_selector';
 
 //================================
 
@@ -18,6 +18,7 @@ const
         'button', 'strong', 'select', 'option', 'script', 'strike',
         'textarea', 'frameset', 'noframes',
         'blockquote',
+        AUTO_ADDED_SELECTOR,
     ];
 
 // ===========================================
@@ -169,10 +170,10 @@ function parse() {
     const foundAndMatched = (p, i) => {
         let match = inputClone.match(p);
 
-        // if (!i && !match /* && opts.declarationOnly */) {
-        //     // simulate matched behaviour for learner code under the condition that declarationOnly is true
-        //     match = [`${AUTO_ADDED_SELECTOR} {\n\t${inputClone}\n}`, AUTO_ADDED_SELECTOR, inputClone];
-        // }
+        if (!i && !match /* && opts.declarationOnly */) {
+            // simulate matched behaviour for learner code under the condition that declarationOnly is true
+            match = [`${AUTO_ADDED_SELECTOR} {\n\t${inputClone}\n}`, AUTO_ADDED_SELECTOR, inputClone];
+        }
 
         if (match && pass) {
             // invalidate matched string containing white spaces only
@@ -183,12 +184,17 @@ function parse() {
         return match && pass;
     };
 
+    let ccc = 0;
+
     while (inputClone.trim().length && !verdict) {
         pass = [pRule, pNestedAtRule, pAtRule].some(foundAndMatched);
 
         if (verdict) break;
 
         if (!pass) buildInvalidCode();
+        
+        ccc++;
+        if (ccc > 100) break;
     }
 }
 
@@ -316,7 +322,7 @@ function checkRule(match, nested) {
 
     if (checker.every(check => !(verdict = check())) && !nested) {
         tree.rules.push({ type: 'rule', selector: match[1], declarations: match[2], nth: ruleCount += 1 });
-        inputClone = toSpace(inputClone, /* match[1] === AUTO_ADDED_SELECTOR ? match[2] : */ match[0]);
+        inputClone = toSpace(inputClone, match[1] === AUTO_ADDED_SELECTOR ? match[2] : match[0]);
 
         if (match[2]) {
             const d = checkDeclaration();

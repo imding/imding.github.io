@@ -584,7 +584,7 @@ describe('CssAstComparerTest', function() {
     verify(l, t);
   });
 
-  it.only('error messages when compare declarations to selector', () => {
+  it('error messages when compare declarations to selector', () => {
     const l = `h1 {
                 color: red;
               }`;
@@ -715,8 +715,8 @@ function verify(l, t, expectedMessages = [], opts = null) {
       const comparer = new CssAstComparer(teacherAst.options);
       comparer.compare(teacherAst, learnerAst, opts);
 
-      if (comparer.messages.length > 0 && expectedMessages.length == 0) {
-        console.log('Received failures:', comparer);
+      if (comparer.messages.length !== expectedMessages.length) {
+        console.log('Received failures:', comparer.messages);
       }
 
       for (let m of comparer.messages) {

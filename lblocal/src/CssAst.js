@@ -20,6 +20,7 @@ const
     'button', 'strong', 'select', 'option', 'script', 'strike',
     'textarea', 'frameset', 'noframes',
     'blockquote',
+    AUTO_ADDED_SELECTOR,
   ];
 
 function rank(n) {
@@ -90,9 +91,9 @@ export default class CssAst extends Ast {
         output = input.replace(/([^\s{};])(\s*)}/g, '$1;$2}');    // insert semi-colon before } that isn't preceded by ; or { or }
       }
     }
-    // else if (opts.declarationsOnly) {
-    //   output = this._wrapWithSelector(input);
-    // }
+    else if (opts.declarationsOnly) {
+      if (!pRule.test(input)) output = this._wrapWithSelector(input);
+    }
 
     return (output ? output : input);
   }
@@ -212,9 +213,10 @@ export default class CssAst extends Ast {
       const foundAndMatched = (p, i) => {
         let match = inputClone.match(p);
 
-        if (!i && !match && opts.declarationOnly) {
-          // simulate matched behaviour for learner code under the condition that declarationOnly is true
-          match = [`${AUTO_ADDED_SELECTOR} {\n\t${inputClone}\n}`, AUTO_ADDED_SELECTOR, inputClone];
+        if (match && pass) {
+          // invalidate matched string containing white spaces only
+          match = match.map(m => m ? m.trim() || m : m);
+          pass = i ? checkAtRule(match, i == 1) : checkRule(match);
         }
 
         return match && pass;
@@ -353,7 +355,7 @@ export default class CssAst extends Ast {
 
       if (checker.every(check => !(verdict = check())) && !nested) {
         tree.rules.push({ type: 'rule', selector: match[1], declarations: match[2], nth: ruleCount += 1 });
-        inputClone = toSpace(inputClone, match[1] === AUTO_ADDED_SELECTOR ? match[2] : match[0]);
+        inputClone = toSpace(inputClone, match[0]);
 
         if (match[2]) {
           const d = checkDeclaration();
@@ -504,7 +506,7 @@ export default class CssAst extends Ast {
 
   // It will wrap CSS code into {} in case of comparing only declarations
   _wrapWithSelector(v) {
-    return `.${AUTO_ADDED_SELECTOR} { ${v} }`;
+    return `${AUTO_ADDED_SELECTOR} { ${v} }`;
   }
 
   get messages() {
