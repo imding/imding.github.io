@@ -690,7 +690,7 @@ window.onresize = () => {
     }
 };
 
-window.onload = () => {
+// window.onload = () => {
     fire = new Firebase('https://bsd-jigsaw.firebaseio.com/');
 
     loadImage();
@@ -714,7 +714,7 @@ window.onload = () => {
         }
         else personalInfo();
     });
-};
+// };
 
 window.ontouchstart = (evt) => {
     if (evt.touches.length === 1) selectPiece(evt.target);
