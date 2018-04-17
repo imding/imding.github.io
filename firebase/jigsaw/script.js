@@ -350,7 +350,7 @@ function checkPuzzle() {
     if (pass && puzzleGrid.every(grid => !grid.isEmpty)) {
         nth++;
 
-        if (Date().getHours() < cutoff) {
+        if (new Date().getHours() < cutoff) {
             // total puzzles sovled greater than server side score
             if (nth > userInfo.jigsaw.score) {
                 // not the last level
