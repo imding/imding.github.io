@@ -66,6 +66,7 @@ const
     leaderboard = {
         best: {
             name: '',
+            score: 0,
             time: 0,
         },
         load: (then) => {
@@ -691,29 +692,29 @@ window.onresize = () => {
 };
 
 // window.onload = () => {
-    fire = new Firebase('https://bsd-jigsaw.firebaseio.com/');
+    // fire = new Firebase('https://bsd-jigsaw.firebaseio.com/');
 
-    loadImage();
+    // loadImage();
 
-    leaderboard.load(() => {
-        const requestFullScreen =
-            window.document.documentElement.requestFullscreen ||
-            window.document.documentElement.mozRequestFullScreen ||
-            window.document.documentElement.webkitRequestFullScreen ||
-            window.document.documentElement.msRequestFullscreen;
+    // leaderboard.load(() => {
+    //     const requestFullScreen =
+    //         window.document.documentElement.requestFullscreen ||
+    //         window.document.documentElement.mozRequestFullScreen ||
+    //         window.document.documentElement.webkitRequestFullScreen ||
+    //         window.document.documentElement.msRequestFullscreen;
 
-        if (requestFullScreen) {
-            showPopup(
-                'You can double tab the screen to go full screen mode',
-                'Okay',
-                () => {
-                    document.body.removeChild(popup.element);
-                    personalInfo();
-                }
-            );
-        }
-        else personalInfo();
-    });
+    //     if (requestFullScreen) {
+    //         showPopup(
+    //             'You can double tab the screen to go full screen mode',
+    //             'Okay',
+    //             () => {
+    //                 document.body.removeChild(popup.element);
+    //                 personalInfo();
+    //             }
+    //         );
+    //     }
+    //     else personalInfo();
+    // });
 // };
 
 window.ontouchstart = (evt) => {
