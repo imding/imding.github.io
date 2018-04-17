@@ -10,8 +10,18 @@ h1 {
     margin: 10px 0 5px 0;
 }
 
-input[type='text'] {
-    width: 50%;
+input, select {
+    padding: 2px 0;
+    font-family: monospace;
+    font-size: 0.8em;
+    text-align: center;
+    border: none;
+    border-radius: 5px;
+    outline: none;
+}
+
+select {
+    margin: 0;
 }
 
 label {

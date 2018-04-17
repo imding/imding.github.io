@@ -1,18 +1,20 @@
 let
-    time = 0,
+    cutoff = 18,
     nth = 0,
     sizeRatio = 0.9,
     puzzle = [],
     puzzleGrid = [],
     fire,
-    name,
+    userInfo = {},
     image,
+    popup,
     resolution,
     activeIndex,
     activeGrid,
     secondaryLocation,
-    bg = {wrapper: null, image: null},
-    mouseDown = false;
+    bg = { wrapper: null, image: null },
+    mouseDown = false,
+    tap = Date.now();
 
 const
     levels = [
@@ -22,75 +24,104 @@ const
         },
         {
             link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-newyork.png',
-            grid: 3,
+            grid: 2,
         },
         {
             link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
-            grid: 4,
+            grid: 2,
         },
-        {
-            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
-            grid: 4,
-        }
+        // {
+        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
+        //     grid: 2,
+        // },
+        // {
+        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-2942.jpg',
+        //     grid: 2,
+        // },
+        // {
+        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-3927.jpg',
+        //     grid: 2,
+        // },
+        // {
+        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-4285.jpg',
+        //     grid: 2,
+        // },
+        // {
+        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-5739.jpeg',
+        //     grid: 2,
+        // },
+        // {
+        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-5749.jpg',
+        //     grid: 2,
+        // },
+        // {
+        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-7383.jpeg',
+        //     grid: 2,
+        // },
+        // {
+        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-8372.jpg',
+        //     grid: 2,
+        // }
     ],
     leaderboard = {
         best: {
             name: '',
             time: 0,
         },
-        load: (afterLoad) => {
-            fire = new Firebase('https://ding-test-test.firebaseio.com/');
-            info.textContent = 'Loading leaderboard...';
-            
-            fire.once('value', (snapshot) => {
-                const
-                    data = snapshot.val() || {},
-                    showInfo = () => {
-                        alert("No one has solved all 5 puzzles yet, be the first. Good Luck!");
-                        afterLoad();
-                    };
+        load: (then) => {
+            showPopup('Loading leaderboard...');
 
-                if (!data.hasOwnProperty('Jigsaw')) return showInfo();
-                
-                const records = Object.keys(data.Jigsaw);
+            console.log('fetching data...');
+            fire.once('value', (snapshot) => {
+                document.body.removeChild(popup.element);
+                const showInfo = () => {
+                    showPopup(`No one has solved all ${levels.length} puzzles yet. Good Luck!`, 'Play', () => {
+                        document.body.removeChild(popup.element);
+                        then();
+                    });
+                };
+
+                if (!snapshot.hasChildren()) return showInfo();
+
+                const records = Object.keys(snapshot.val());
 
                 if (!records.length) return showInfo();
 
-                records.forEach(name => {
-                    if (data.Jigsaw[name] < leaderboard.best.time || !leaderboard.best.time) {
+                records.forEach(uid => {
+                    console.log('fetched:', snapshot.val()[uid]);
+                    if (uid === localStorage.getItem('BSDUID')) {
+                        console.log(`${uid} found in local storage`);
+                        Object.assign(userInfo, snapshot.val()[uid]);
+                    }
+
+                    if (snapshot.val()[uid].score < leaderboard.best.score || !leaderboard.best.score) {
                         leaderboard.best = {
-                            name: name,
-                            time: data.Jigsaw[name],
+                            name: snapshot.val()[uid].name,
+                            score: snapshot.val()[uid].jigsaw.hasOwnProperty('score') ? snapshot.val()[uid].jigsaw.score : 0,
+                            time: snapshot.val()[uid].jigsaw.hasOwnProperty('elapsed_time') ? snapshot.val()[uid].jigsaw.elapsed_time : 0,
                         };
                     }
                 });
 
-                alert(`The fastest solve is ${leaderboard.best.time}s kept by ${leaderboard.best.name}.`);
-                afterLoad();
+                showPopup(`<span class='blue'>${leaderboard.best.name}</span><br>solved ${leaderboard.best.score} puzzles in<br><span class='gold'>${Math.ceil(leaderboard.best.time / 1000)}</span> seconds`, 'Play', () => {
+                    document.body.removeChild(popup.element);
+                    then();
+                });
             });
         },
-        add: (newScore) => {
-            if (!newScore || newScore < 0) throw new Error('New score must be a non-zero positive integer.');
-            
-            const ref = fire.child(`Jigsaw/${name}`);
-            ref.transaction(() => newScore, () => {
-                if (newScore <= leaderboard.best.time || !leaderboard.best.time) {
-                    alert(`Well done! You have ${leaderboard.best.name ? `defeated ${leaderboard.best.name} to` : ''} become the fastest puzzle solver.`);
-                    leaderboard.best = {
-                        name: name,
-                        time: newScore,
-                    };
-                }
-                else {
-                    alert(`You finished in ${newScore} seconds, ${newScore - leaderboard.best.time}s more than the fastest solver.`);
-                }
+        add: (data, then = () => { }) => {
+            showPopup('Saving info to database...');
+            const ref = fire.child(userInfo.uid);
+            ref.transaction(() => data, () => {
+                document.body.removeChild(popup.element);
+                then();
             });
         },
     };
 
 // ===== FUNCTIONS ===== //
 
-function setBackground(ir, wr) {
+function setBackground() {
     if (!Array.from(document.body.children).includes(bg.wrapper)) {
         bg.wrapper = document.createElement('div');
         bg.image = document.createElement('img');
@@ -131,15 +162,13 @@ function loadImage() {
     info.textContent = `Loading the ${rank(nth + 1)} puzzle...`;
 
     image.onload = () => {
-        const
-            ir = image.width / image.height,
-            wr = window.innerWidth / window.innerHeight;
-        
+        const ir = image.width / image.height;
+
         resolution = [
             ir >= 0 ? Math.round(levels[nth].grid * ir) : levels[nth].grid,
             ir >= 0 ? levels[nth].grid : Math.round(levels[nth].grid * ir),
         ];
-        setBackground(ir, wr);
+        setBackground();
         initialze();
         info.textContent = `You're solving the ${rank(nth + 1)} puzzle.`;
     };
@@ -149,12 +178,11 @@ function initialze() {
     generatePuzzle();
     shuffle(puzzle);
 
-    spare.style.height = window.innerHeight - spare.offsetTop + 'px';
+    spare.style.height = `${window.innerHeight - spare.offsetTop}px`;
 
     puzzle.forEach((piece, i) => {
         puzzleContainer.appendChild(piece);
         piece.location = puzzleGrid[i];
-// console.log(puzzleGrid.filter(g => g.isEmpty).length / puzzleGrid.length);
         if (Math.random() > 0.7) {
             puzzleGrid[i].isEmpty = false;
             piece.style.left = puzzleGrid[i].x;
@@ -181,7 +209,7 @@ function generatePuzzle() {
             y = Math.floor(i / resolution[0]) * (image.height * r / resolution[1]);
 
         piece.id = `piece${i}`;
-        piece.className = "piece";
+        piece.className = 'piece';
         piece.style.width = `${image.width * r / resolution[0]}px`;
         piece.style.height = `${image.height * r / resolution[1]}px`;
         piece.style.backgroundImage = `url(${image.src})`;
@@ -285,8 +313,8 @@ function dropPiece(clientX, clientY) {
         activeIndex = null;
     }
 
-    const selection = window.getSelection();
-    if (selection.type == 'Range') selection.removeAllRanges();
+    // const selection = window.getSelection();
+    // if (selection.type == 'Range') selection.removeAllRanges();
 }
 
 function placePiece(target) {
@@ -317,14 +345,61 @@ function checkPuzzle() {
         return piece.id == `piece${i}`;
     });
 
+    // solved current puzzle
     if (pass && puzzleGrid.every(grid => !grid.isEmpty)) {
-        if (nth < levels.length - 1) {
-            nth++;
-            resetPuzzle();
+        nth++;
+
+        if (Date().getHours() < cutoff) {
+            // total puzzles sovled greater than server side score
+            if (nth > userInfo.jigsaw.score) {
+                // not the last level
+                if (nth < levels.length) {
+                    Object.assign(userInfo.jigsaw, {
+                        score: nth,
+                        elapsed_time: Date.now() - userInfo.jigsaw.start_time,
+                    });
+                    leaderboard.add(userInfo, () => {
+                        showPopup(`Well done! You solved the ${rank(nth)} puzzle!`, 'Next puzzle', () => {
+                            document.body.removeChild(popup.element);
+                            resetPuzzle();
+                        });
+                    });
+                }
+                // last level
+                else {
+                    userInfo.jigsaw.elapsed_time = Date.now() - userInfo.jigsaw.start_time;
+                    leaderboard.add(Object.assign(userInfo, {
+                        jigsaw: {
+                            score: nth,
+                            elapsed_time: userInfo.jigsaw.elapsed_time,
+                        }
+                    }), () => {
+                        showPopup(
+                            `Congratulations!<br>You solved all ${levels.length} puzzles in<br><span class='gold'>${Math.ceil(userInfo.jigsaw.elapsed_time / 1000)}</span> seconds<br><br>`,
+                            'Play again',
+                            () => window.location.reload(true)
+                        );
+                    });
+                }
+            }
+            // solved already
+            else {
+                showPopup(
+                    'You\'ve already solved this puzzle',
+                    'Next Puzzle',
+                    () => {
+                        document.body.removeChild(popup.element);
+                        resetPuzzle();
+                    }
+                );
+            }
         }
         else {
-            leaderboard.add(Math.ceil((Date.now() - time) / 1000));
-            info.textContent = 'Well done! You solved all 5 puzzles.';
+            showPopup(
+                `Leaderboard is closed after ${cutoff > 12 ? cutoff - 12 : cutoff}${cutoff >= 12 ? 'p' : 'a'}m`,
+                'Continue',
+                () => document.body.removeChild(popup.element)
+            );
         }
     }
 }
@@ -340,6 +415,341 @@ function resetPuzzle() {
 
     loadImage();
 }
+
+function toggleFullScreen() {
+    var doc = window.document;
+    var docEl = doc.documentElement;
+
+    var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+    var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+    if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        requestFullScreen.call(docEl);
+    }
+    else {
+        cancelFullScreen.call(doc);
+    }
+}
+
+function showPopup(messageContent, buttonText, action, close = false, closeAction) {
+    const
+        wrapper = document.createElement('div'),
+        logo = document.createElement('img'),
+        message = document.createElement('h2'),
+        button = document.createElement('button'),
+        btnClose = document.createElement('button');
+
+    popup = {
+        element: document.createElement('div'),
+        wrapper: wrapper,
+        message: message,
+        button: button,
+        logo: logo,
+    };
+
+    logo.src = 'https://app.bsdlaunchbox.com/resources/bsdlogo.png';
+    message.innerHTML = messageContent;
+
+    wrapper.appendChild(message);
+
+    if (buttonText) {
+        button.textContent = buttonText;
+        button.onclick = action;
+        wrapper.appendChild(button);
+        if (close) {
+            style([btnClose], { margin_left: '10px' });
+            btnClose.textContent = 'Cancel';
+            btnClose.onclick = closeAction;
+            wrapper.appendChild(btnClose);
+        }
+    }
+
+    document.body.appendChild(popup.element);
+    popup.element.appendChild(wrapper);
+
+    style([popup.element], {
+        position: 'absolute',
+        top: '0',
+        width: `${window.innerWidth}px`,
+        height: `${window.innerHeight}px`,
+        background_color: 'rgba(255, 255, 255, 0.8)',
+        z_index: '2',
+    });
+
+    style([wrapper], {
+        position: 'absolute',
+        width: `${window.innerWidth - 50}px`,
+        left: '50%',
+        top: '50%',
+        transform: 'translate(-50%, -50%)',
+        border_radius: '10px',
+        padding: '0 20px 20px 20px',
+        background_color: 'rgba(0, 0, 0, 0.8)',
+        box_sizing: 'border-box',
+    });
+
+    style([message], {
+        margin_top: '0',
+        font_family: 'Monospace',
+        color: 'ghostwhite',
+        line_height: '1.5em',
+    });
+
+    if (buttonText || close) style([button, btnClose], {
+        border: 'none',
+        border_radius: `${button.offsetHeight / 2}px`,
+        padding: '5px 10px',
+        cursor: 'pointer',
+        outline: 'none',
+        font_family: 'Monospace',
+        font_size: '1.2em',
+        color: 'black',
+        background_color: 'ghostwhite',
+    });
+
+    logo.onload = () => {
+        style([logo], { opacity: '0' });
+        popup.element.appendChild(logo);
+
+        const sizeRatio = window.innerWidth * 0.15 / logo.offsetWidth;
+        style([wrapper], { padding_top: `${10 + (logo.offsetHeight / 2) * sizeRatio}px` });
+        style([logo], {
+            position: 'absolute',
+            left: '50%',
+            transform: `translateX(-50%) scale(${sizeRatio}) `,
+            top: `${wrapper.offsetTop - (wrapper.offsetHeight / 2) - (logo.offsetHeight / 2)}px`,
+            opacity: '1',
+        });
+    };
+}
+
+function showForm(onSubmit = () => { }) {
+    showPopup(
+        'Do you want to fill out a form to enter ranked play and win our awesome prizes?',
+        'Sure',
+        () => {
+            document.body.removeChild(popup.element);
+            showPopup(
+                `...<hr>
+                <div style='text-align: left'>
+                    <span class='small'>School Name:</span> <input id='school' type='text' style='width: 50%'><br>
+                    <span class='small'>Birthday:</span> <select id='birthYear'>
+                        <option value='2015'>2015</option>
+                        <option value='2014'>2014</option>
+                        <option value='2013'>2013</option>
+                        <option value='2012'>2012</option>
+                        <option value='2011'>2011</option>
+                        <option value='2010'>2010</option>
+                        <option value='2009'>2009</option>
+                        <option value='2008'>2008</option>
+                        <option value='2007'>2007</option>
+                        <option value='2006'>2006</option>
+                        <option value='2005'>2005</option>
+                        <option value='2004'>2004</option>
+                        <option value='2003'>2003</option>
+                        <option value='2002'>2002</option>
+                        <option value='2001'>2001</option>
+                    </select>
+                    <select id='birthMonth'>
+                        <option value='Jan'>Jan</option>
+                        <option value='Feb'>Feb</option>
+                        <option value='Mar'>Mar</option>
+                        <option value='Apr'>Apr</option>
+                        <option value='May'>May</option>
+                        <option value='Jun'>Jun</option>
+                        <option value='Jul'>Jul</option>
+                        <option value='Aug'>Aug</option>
+                        <option value='Sep'>Sep</option>
+                        <option value='Oct'>Oct</option>
+                        <option value='Nov'>Nov</option>
+                        <option value='Dec'>Dec</option>
+                    </select>
+                </div><hr>`,
+                'Next',
+                () => {
+                    profile.userInfo = {
+                        school_name: school.value.trim(),
+                        birth_date: `${birthYear.options[birthYear.options.selectedIndex].value} ${birthMonth.options[birthMonth.options.selectedIndex].value}`,
+                    };
+                    document.body.removeChild(popup.element);
+                    showPopup(
+                        `...<hr>
+                        <div style='text-align: left'>
+                            <span class='small'>Parent Name:</span> <input id='parentFirstName' type='text' placeholder='First Name' style='width: 25%'> <input id='parentLastName' type='text' placeholder='Last Name' style='width: 25%'><br>
+                            <span class='small'>Contact Number:</span> <input id='parentContactNumber' type='text' style='width: 50%'><br>
+                            <span class='small'>Email:</span> <input id='parentEmail' type='text' style='width: 50%'>
+                        </div><br>
+                        <div style='text-align: left'>
+                            <input id='receiveUpdates' type='checkbox'><label for='receiveUpdates'>I (Parent) do not wish to receive future updates from BSD</label><br>
+                            <input id='tnc' type='checkbox' checked><label for='tnc'>I (Parent) agree to accept BSD's <a href='https://hk.bsdacademy.com/terms-conditions/' target='_blank'>Terms & Conditions</label>
+                        </div><hr>`,
+                        'Submit',
+                        () => {
+                            profile.userInfo.parent_name = `${parentFirstName.value.trim()} ${parentLastName.value.trim()}`;
+                            profile.userInfo.parent_contact = parentContactNumber.value.trim();
+                            profile.userInfo.parent_email = parentEmail.value.trim();
+                            profile.userInfo.receive_updates = 'Yes';
+                            document.body.removeChild(popup.element);
+                            onSubmit();
+                        }
+                    );
+
+                    tnc.onchange = (evt) => {
+                        popup.button.disabled = !evt.target.checked;
+                        style([popup.button], { opacity: `${evt.target.checked ? '1' : '0.5'}` });
+                    };
+
+                    receiveUpdates.onchange = (evt) => profile.userInfo.receive_updates = evt.target.checked ? 'No' : 'Yes';
+                }
+            );
+        },
+        true,
+        () => document.body.removeChild(popup.element)
+    );
+}
+
+function personalInfo() {
+    console.log('userInfo:', userInfo);
+    if (userInfo.hasOwnProperty('uid')) {
+        //
+    }
+    else {
+        const toggleSubmitButton = () => {
+            popup.button.disabled = ![playerAge, playerFirstName, playerLastName, schoolName].every((field, i) => {
+                return i ? field.value.trim().length : Number.isInteger(Number(field.value));
+            });
+            style([popup.button], { opacity: `${popup.button.disabled ? '0.5' : '1'}` });
+        };
+
+        showPopup(
+            `Please tell us a little about yourself<hr>
+                    <input id='playerFirstName' type='text' placeholder='First name' style='width:45%'> <input id='playerLastName' type='text' placeholder='Last name' style='width:45%'><br>
+                    <select id='playerAge' style='margin-top:10px'>
+                        <option selected> Age </option>
+                        <option>5</option>
+                        <option>6</option>
+                        <option>7</option>
+                        <option>8</option>
+                        <option>9</option>
+                        <option>10</option>
+                        <option>11</option>
+                        <option>12</option>
+                        <option>13</option>
+                        <option>14</option>
+                        <option>15</option>
+                        <option>16</option>
+                        <option>17</option>
+                        <option>18</option>
+                    </select> <input id='schoolName' type='text' placeholder='Your school name' style='width:70%'><hr>`,
+            'Submit',
+            () => {
+                // create new user in database
+                userInfo.uid = guid();
+                localStorage.setItem('BSDUID', userInfo.uid);
+                console.log('saved uid to local storage:', localStorage.BSDUID);
+
+                userInfo.age = playerAge.value;
+                userInfo.name = `${playerFirstName.value.trim()} ${playerLastName.value.trim().toUpperCase()}`;
+                userInfo.school = schoolName.value.trim().toUpperCase();
+                userInfo.jigsaw = {
+                    score: 0,
+                    start_time: Date.now(),
+                };
+
+                document.body.removeChild(popup.element);
+                leaderboard.add(userInfo);
+            }
+        );
+
+        playerAge.onchange = toggleSubmitButton;
+        playerFirstName.oninput = toggleSubmitButton;
+        playerLastName.oninput = toggleSubmitButton;
+        schoolName.oninput = toggleSubmitButton;
+
+        toggleSubmitButton();
+    }
+}
+
+function guid() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    }
+
+    return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+    // return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+}
+
+// ===== EVENTS ===== //
+
+window.onresize = () => {
+    style([spare], { height: `${window.innerHeight - spare.offsetTop}px` });
+
+    if (popup) {
+        style([popup.element], { height: `${window.innerHeight}px` });
+        style([popup.logo], { top: `${popup.wrapper.offsetTop - (popup.wrapper.offsetHeight / 2) - (popup.logo.offsetHeight / 2)}px` });
+    }
+};
+
+window.onload = () => {
+    fire = new Firebase('https://bsd-jigsaw.firebaseio.com/');
+
+    loadImage();
+
+    leaderboard.load(() => {
+        const requestFullScreen =
+            window.document.documentElement.requestFullscreen ||
+            window.document.documentElement.mozRequestFullScreen ||
+            window.document.documentElement.webkitRequestFullScreen ||
+            window.document.documentElement.msRequestFullscreen;
+
+        if (requestFullScreen) {
+            showPopup(
+                'You can double tab the screen to go full screen mode',
+                'Okay',
+                () => {
+                    document.body.removeChild(popup.element);
+                    personalInfo();
+                }
+            );
+        }
+        else personalInfo();
+    });
+};
+
+window.ontouchstart = (evt) => {
+    if (evt.touches.length === 1) selectPiece(evt.target);
+};
+
+window.onmousedown = (evt) => {
+    mouseDown = true;
+    selectPiece(evt.target);
+};
+
+window.ontouchmove = (evt) => {
+    if (evt.touches.length === 1) movePiece(evt.touches[0].clientX, evt.touches[0].clientY);
+    evt.preventDefault();
+};
+
+window.onmousemove = (evt) => {
+    if (mouseDown) movePiece(evt.clientX, evt.clientY);
+};
+
+window.ontouchend = (evt) => {
+    if (!activeIndex && !evt.touches.length) {
+        const time = Date.now();
+        if (time - tap < 200) toggleFullScreen();
+        tap = time;
+    }
+
+    dropPiece(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
+};
+
+window.onmouseup = (evt) => {
+    mouseDown = false;
+    dropPiece(evt.clientX, evt.clientY);
+};
+
+// ===== UTILITY ===== //
 
 function rank(n) {
     return n > 0 ?
@@ -359,31 +769,3 @@ function style(elem, declarations) {
         });
     });
 }
-
-// ===== EVENTS ===== //
-
-window.onload = () => {
-    while (!name || !name.trim().length) {
-        name = prompt("What's your name?");
-    }
-
-    leaderboard.load(() => {time = Date.now()});
-    loadImage();
-};
-
-window.ontouchstart = (evt) => selectPiece(evt.target);
-window.onmousedown = (evt) => {
-    mouseDown = true;
-    selectPiece(evt.target);
-};
-
-window.ontouchmove = (evt) => movePiece(evt.touches[0].clientX, evt.touches[0].clientY);
-window.onmousemove = (evt) => {
-    if (mouseDown) movePiece(evt.clientX, evt.clientY);
-};
-
-window.ontouchend = (evt) => dropPiece(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
-window.onmouseup = (evt) => {
-    mouseDown = false;
-    dropPiece(evt.clientX, evt.clientY);
-};
