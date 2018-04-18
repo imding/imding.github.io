@@ -1958,8 +1958,8 @@ function parentInfo() {
     const validateParentInfo = () => {
         return [
             userInfo.hasOwnProperty('parent_name') && userInfo.parent_name.trim().length,
-            userInfo.hasOwnProperty('parent_email') && userInfo.parent_name.trim().length,
-            userInfo.hasOwnProperty('parent_number') && userInfo.parent_name.trim().length,
+            userInfo.hasOwnProperty('parent_email') && userInfo.parent_email.trim().length,
+            userInfo.hasOwnProperty('parent_number') && userInfo.parent_number.trim().length,
         ].every(c => c);
     };
 
