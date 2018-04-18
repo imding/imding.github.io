@@ -20,10 +20,6 @@ input, select {
     outline: none;
 }
 
-select {
-    margin: 0;
-}
-
 label {
     color: grey;
     font-size: 0.5em;
@@ -67,10 +63,6 @@ a {
 
 .piece:active {
     cursor: -webkit-grabbing;
-}
-
-.small {
-    font-size: 0.6em;
 }
 
 .blue {

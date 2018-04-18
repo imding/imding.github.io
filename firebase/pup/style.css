@@ -23,8 +23,18 @@ canvas {
     top: 0;
 }
 
-input[type='text'] {
-    width: 50%;
+h2 {
+    font-size: inherit;
+}
+
+input, select {
+    padding: 2px 0;
+    font-family: monospace;
+    font-size: 0.8em;
+    text-align: center;
+    border: none;
+    border-radius: 5px;
+    outline: none;
 }
 
 label {

@@ -1,10 +1,69 @@
-const champion = {
-    name: '',
-    score: 0,
+const leaderboard = {
+    best: {
+        name: '',
+        score: 0,
+        time: 0,
+    },
+    load: (then) => {
+        showPopup('Loading leaderboard...');
+
+        console.log('fetching data...');
+        fire.once('value', (snapshot) => {
+            document.body.removeChild(popup.element);
+            const showInfo = () => {
+                showPopup('No one has solved all 61 puzzles yet. Good Luck!', 'Play', () => {
+                    document.body.removeChild(popup.element);
+                    then();
+                });
+            };
+
+            if (!snapshot.hasChildren()) return showInfo();
+
+            const records = Object.keys(snapshot.val());
+
+            if (!records.length) return showInfo();
+
+            records.forEach(uid => {
+                console.log('fetched:', snapshot.val()[uid]);
+                if (uid === localStorage.getItem('BSDUID')) {
+                    console.log(`${uid} found in local storage`);
+                    Object.assign(userInfo, snapshot.val()[uid]);
+                }
+
+                if (!snapshot.val()[uid].hasOwnProperty('pup')) {
+                    delete localStorage.completedLevels;
+                    return;
+                }
+
+                if (snapshot.val()[uid].pup.score > leaderboard.best.score || !leaderboard.best.score) {
+                    leaderboard.best = {
+                        name: snapshot.val()[uid].name,
+                        score: snapshot.val()[uid].pup.hasOwnProperty('score') ? snapshot.val()[uid].pup.score : 0,
+                        time: snapshot.val()[uid].pup.hasOwnProperty('elapsed_time') ? snapshot.val()[uid].pup.elapsed_time : 0,
+                    };
+                }
+            });
+
+            if (leaderboard.best.name) {
+                showPopup(`<span class='blue'>${leaderboard.best.name}</span><br>solved ${leaderboard.best.score} puzzles in<br><span class='gold'>${Math.ceil(leaderboard.best.time / 1000)}</span> seconds`, 'Play', () => {
+                    document.body.removeChild(popup.element);
+                    then();
+                });
+            }
+            else then();
+        });
+    },
+    add: (data, then = () => { }) => {
+        showPopup('Saving info to database...');
+        const ref = fire.child(userInfo.uid);
+        ref.transaction(() => data, () => {
+            document.body.removeChild(popup.element);
+            then();
+        });
+    },
 };
 
-let fire,
-    profile;
+let fire, userInfo = {}, cutoff = 24;
 
 function loadGame() {
     /**
@@ -1741,55 +1800,39 @@ function loadGame() {
 
         // if completing level for the first time
         if (completedLevels.indexOf(maze.id) == -1) {
-            if (new Date().getHours() < 17) {
-                completedLevels.push(maze.id);
-                localStorage.setItem('completedLevels', completedLevels.join(','));
-    
-                let info = Object.values(profile.userInfo || {});
-                if (info.length < 6 || info.some(val => !val || !val.trim())) {
-                    showForm();
-                    // check other game database for user info
-                    // const jigsawDB = new Firebase('https://bsd-jigsaw.firebaseio.com/');
-                    // jigsawDB.once('value', (records) => {
-                    //     records = records.val();
-                    //     Object.keys(records).forEach(key => {
-                    //         if (key === profile.lb_user_id) {
-                    //             profile.userInfo = records[key].userInfo;
-                    //             // offer info form before syncing to firebase
-                    //             info = Object.values(profile.userInfo || {});
-                    //             alert(info);
-                    //             if (info.length < 6 || info.some(val => !val || !val.trim())) {
-                    //                 showForm();
-                    //             }
-                    //             else {
-                    //                 syncToFirebase(localStorage.getItem('completedLevels'));
-                    //             }
-                    //         }
-                    //     });
-                    // });
+            completedLevels.push(maze.id);
+            localStorage.setItem('completedLevels', completedLevels.join(','));
+
+            if (new Date().getHours() < cutoff) {
+                if (completedLevels.length > userInfo.pup.score) {
+                    Object.assign(userInfo.pup, {
+                        score: completedLevels.length,
+                        elapsed_time: Date.now() - userInfo.pup.start_time,
+                        completed_levels: completedLevels.join(','),
+                    });
+
+                    leaderboard.add(userInfo, () => {
+                        if (completedLevels.length === 61) {
+                            showPopup(
+                                `Congratulations!<br>You solved all 61 puzzles in<br><span class='gold'>${Math.ceil(userInfo.pup.elapsed_time / 1000)}</span> seconds<br><br>`,
+                                'Continue',
+                                () => document.body.removeChild(popup.element)
+                            );
+                        }
+                    });
                 }
-                else syncToFirebase(localStorage.getItem('completedLevels'));
             }
             else {
                 showPopup(
-                    'Leaderboard is closed after 5pm. You can still play the game though ^_^',
-                    'Play Again',
+                    `Leaderboard is closed after ${cutoff > 12 ? cutoff - 12 : cutoff}${cutoff >= 12 ? 'P' : 'A'}M`,
+                    'Continue',
                     () => window.location.reload(true)
                 );
             }
         }
-        else if (Number.isInteger(profile.time)) {
-            const
-                total = (Date.now() - profile.time) / 1000,
-                h = Math.floor(total / 360),
-                m = Math.floor((total - h * 360) / 60),
-                s = total - (h * 360) - (m * 60);
-
-            profile.time = `${h}:${m}:${s}`;
-        }
 
         if (getNextLevel()) {
-            setTimeout(() => {nextLevelButton.classList.add('is-open');}, 500);
+            setTimeout(() => { nextLevelButton.classList.add('is-open'); }, 500);
         }
     }
 
@@ -1812,18 +1855,6 @@ function loadGame() {
     }
 }
 
-function syncToFirebase(localData) {
-    fire.doc(`players/${profile.lb_user_id}`).set({
-        name: profile.name,
-        email: profile.email,
-        score: localData.split(',').length,
-        progress: localData,
-        userInfo: profile.userInfo,
-    }, { merge: true })
-        .then(() => console.log('Document written', profile.name, profile.score))
-        .catch(error => console.error('Error adding document: ', error));
-}
-
 function showPopup(messageContent, buttonText, action, close = false, closeAction) {
     const
         wrapper = document.createElement('div'),
@@ -1834,8 +1865,10 @@ function showPopup(messageContent, buttonText, action, close = false, closeActio
 
     popup = {
         element: document.createElement('div'),
+        wrapper: wrapper,
         message: message,
         button: button,
+        logo: logo,
     };
 
     logo.src = 'https://app.bsdlaunchbox.com/resources/bsdlogo.png';
@@ -1883,7 +1916,6 @@ function showPopup(messageContent, buttonText, action, close = false, closeActio
         margin_top: '0',
         font_family: 'Monospace',
         color: 'ghostwhite',
-        font_size: '1em',
         line_height: '1.5em',
     });
 
@@ -1894,7 +1926,7 @@ function showPopup(messageContent, buttonText, action, close = false, closeActio
         cursor: 'pointer',
         outline: 'none',
         font_family: 'Monospace',
-        font_size: '1em',
+        font_size: 'large',
         color: 'black',
         background_color: 'ghostwhite',
     });
@@ -1915,176 +1947,176 @@ function showPopup(messageContent, buttonText, action, close = false, closeActio
     };
 }
 
-function showForm(onSubmit = () => { }) {
-    showPopup(
-        'Do you want to fill out a form to enter ranked play and win our awesome prizes?',
-        'Sure',
-        () => {
-            document.body.removeChild(popup.element);
-            showPopup(
-                `...<hr>
-                <div style='text-align: left'>
-                    <span class='small'>School Name:</span> <input id='school' type='text' style='width: 50%'><br>
-                    <span class='small'>Birthday:</span> <select id='birthYear'>
-                        <option value='2015'>2015</option>
-                        <option value='2014'>2014</option>
-                        <option value='2013'>2013</option>
-                        <option value='2012'>2012</option>
-                        <option value='2011'>2011</option>
-                        <option value='2010'>2010</option>
-                        <option value='2009'>2009</option>
-                        <option value='2008'>2008</option>
-                        <option value='2007'>2007</option>
-                        <option value='2006'>2006</option>
-                        <option value='2005'>2005</option>
-                        <option value='2004'>2004</option>
-                        <option value='2003'>2003</option>
-                        <option value='2002'>2002</option>
-                        <option value='2001'>2001</option>
-                    </select>
-                    <select id='birthMonth'>
-                        <option value='Jan'>Jan</option>
-                        <option value='Feb'>Feb</option>
-                        <option value='Wed'>Wed</option>
-                        <option value='Apr'>Apr</option>
-                        <option value='May'>May</option>
-                        <option value='Jun'>Jun</option>
-                        <option value='Jul'>Jul</option>
-                        <option value='Aug'>Aug</option>
-                        <option value='Sep'>Sep</option>
-                        <option value='Oct'>Oct</option>
-                        <option value='Nov'>Nov</option>
-                        <option value='Dec'>Dec</option>
-                    </select>
-                </div><hr>`,
-                'Next',
-                () => {
-                    profile.userInfo = {
-                        school_name: school.value.trim(),
-                        birth_date: `${birthYear.options[birthYear.options.selectedIndex].value} ${birthMonth.options[birthMonth.options.selectedIndex].value}`,
-                    };
-                    document.body.removeChild(popup.element);
-                    showPopup(
-                        `...<hr>
-                        <div style='text-align: left'>
-                            <span class='small'>Parent Name:</span> <input id='parentFirstName' type='text' placeholder='First Name' style='width: 25%'> <input id='parentLastName' type='text' placeholder='Last Name' style='width: 25%'><br>
-                            <span class='small'>Contact Number:</span> <input id='parentContactNumber' type='text' style='width: 50%'><br>
-                            <span class='small'>Email:</span> <input id='parentEmail' type='text' style='width: 50%'>
-                        </div><br>
-                        <div style='text-align: left'>
-                            <input id='receiveUpdates' type='checkbox'><label for='receiveUpdates'>I (Parent) do not wish to receive future updates from BSD</label><br>
-                            <input id='tnc' type='checkbox' checked><label for='tnc'>I (Parent) agree to accept BSD's <a href='https://hk.bsdacademy.com/terms-conditions/' target='_blank'>Terms & Conditions</label>
-                        </div><hr>`,
-                        'Submit',
-                        () => {
-                            profile.userInfo.parent_name = `${parentFirstName.value.trim()} ${parentLastName.value.trim()}`;
-                            profile.userInfo.parent_contact = parentContactNumber.value.trim();
-                            profile.userInfo.parent_email = parentEmail.value.trim();
-                            profile.userInfo.receive_updates = 'Yes';
-                            document.body.removeChild(popup.element);
-                            showPopup(
-                                'To encourage fair play, your progress will be reset.',
-                                'Start Ranked Play',
-                                () => {
-                                    popup.button.disabled = true;
-                                    popup.button.textContent = 'Saving your info...';
-                                    style([popup.button], {opacity: '0.5'});
-                                    fire.doc(`players/${profile.lb_user_id}`).set({progress: '', score: 0, userInfo: profile.userInfo}, { merge: true })
-                                        .then(() => {
-                                            delete localStorage.completedLevels;
-                                            window.location.reload(true);
-                                            console.log('Reset progress & score, added', profile.userInfo);
-                                        })
-                                        .catch(error => console.error('Error adding document: ', error));
-                                }
-                            );
-                        }
-                    );
+function parentInfo() {
+    console.log('userInfo:', userInfo);
 
-                    tnc.onchange = (evt) => {
-                        popup.button.disabled = !evt.target.checked;
-                        style([popup.button], { opacity: `${evt.target.checked ? '1' : '0.5'}` });
-                    };
+    const validateParentInfo = () => {
+        return [
+            userInfo.hasOwnProperty('parent_name') && userInfo.parent_name.trim().length,
+            userInfo.hasOwnProperty('parent_email') && userInfo.parent_name.trim().length,
+            userInfo.hasOwnProperty('parent_number') && userInfo.parent_name.trim().length,
+        ].every(c => c);
+    };
 
-                    receiveUpdates.onchange = (evt) => profile.userInfo.receive_updates = evt.target.checked ? 'No' : 'Yes';
-                }
-            );
-        },
-        true,
-        () => document.body.removeChild(popup.element)
-    );
-}
-
-window.onload = function () {
-    profile = getBSDProfile();
-
-    if (profile) {
-        showPopup('Loading leaderboard...');
-
-        // Initialize Cloud Firestore through Firebase
-        firebase.initializeApp({
-            apiKey: 'AIzaSyCk7YyJ7d9VUjED8vQbeWLnvYZH9BHTwVI',
-            authDomain: 'bsd-pup.firebaseapp.com',
-            projectId: 'bsd-pup'
-        });
-
-        fire = firebase.firestore();
-
-        fire.collection('players').get().then(players => {
-            document.body.removeChild(popup.element);
-
-            if (players.empty) {
-                showPopup('You\'re the first one to challenge this puzzle. Good Luck!', 'Play', () => document.body.removeChild(popup.element));
-            }
-            else {
-                const playerArray = [];
-
-                players.forEach(p => {
-                    if (p.data().score > champion.score) {
-                        champion.name = p.data().name;
-                        champion.score = p.data().score;
-                    }
-                    playerArray.push(p);
-                });
-
-                if (!playerArray.some(p => {
-                    const playerExists = p.id === profile.lb_user_id;
-                    if (playerExists) {
-                        profile.score = p.data().progress.split(',').length;
-                        profile.time = p.data().time || null;
-                        profile.userInfo = p.data().userInfo || {};
-                        localStorage.setItem('completedLevels', p.data().progress);
-                    }
-                    return playerExists;
-                })) {
-                    localStorage.setItem('completedLevels', '');
-                }
-
-                showPopup(
-                    `Top player<br><span class='blue'>${champion.name}</span><br>solved a total of<br><span class='gold'>${champion.score}</span> levels`,
-                    'Play',
-                    () => {
-                        document.body.removeChild(popup.element);
-                        const info = Object.values(profile.userInfo || {});
-                        if (info.length === 6 && info.every(val => val && val.trim()) && !profile.time) {
-                            fire.doc(`players/${profile.lb_user_id}`).set({time: profile.time = Date.now()}, { merge: true })
-                                .then(() => console.log('Added time', profile.time))
-                                .catch(error => console.error('Error adding document: ', error));
-                        }
-                    }
-                );
-            }
-
-            loadGame();
-        });
+    if (validateParentInfo()) {
+        return true;
     }
     else {
-        showPopup('You must log in with a BSD Online account to play', 'Go to BSD Online', () => window.open('https://app.bsdlaunchbox.com'));
-        document.onvisibilitychange = () => {
-            if (document.visibilityState === 'visible') window.location.reload(true);
+        const toggleSubmitButton = () => {
+            popup.button.disabled = ![tnc, parentFirstName, parentLastName, parentNumber, parentEmail].every((field, i) => {
+                return i ? field.value.trim().length : field.checked;
+            });
+            style([popup.button], { opacity: `${popup.button.disabled ? '0.5' : '1'}` });
         };
+
+        showPopup(
+            `Fill out this form to enter ranked play and win our awesome prizes<hr>
+            <div style='width:49%; float:left; text-align:left'>
+                <span style='font-size:0.6em; color:silver; line-height:0'>Parent First Name</span><br>
+                <input id='parentFirstName' type='text' style='width:100%'>
+            </div>
+            <div style='width:49%; float:right; text-align:left'>
+                <span style='font-size:0.6em; color:silver; line-height:0'>Parent Last Name</span><br>
+                <input id='parentLastName' type='text' style='width:100%'>
+            </div>
+            <div style='text-align:left'>
+                <span style='font-size:0.6em; color:silver; line-height:0'>Parent Contact Number</span><br>
+                <input id='parentNumber' type='text' style='width:100%'>
+            </div>
+            <div style='text-align:left'>
+                <span style='font-size:0.6em; color:silver; line-height:0'>Parent Email</span><br>
+                <input id='parentEmail' type='text' style='width:100%'>
+            </div>
+            <br>
+            <div style='text-align: left'>
+                <input id='receiveUpdates' type='checkbox'><label for='receiveUpdates'>I (Parent) do not wish to receive future updates from BSD</label><br>
+                <input id='tnc' type='checkbox' checked><label for='tnc'>I (Parent) agree to BSD's <a href='https://hk.bsdacademy.com/terms-conditions/' target='_blank'>Terms & Conditions</label>
+            </div><hr>`,
+            'Submit',
+            () => {
+                userInfo.parent_name = `${parentFirstName.value.trim()} ${parentLastName.value.trim().toUpperCase()}`;
+                userInfo.parent_number = parentNumber.value.trim();
+                userInfo.parent_email = parentEmail.value.trim();
+                userInfo.receive_updates = receiveUpdates.checked ? 'No' : 'Yes';
+
+                document.body.removeChild(popup.element);
+                leaderboard.add(userInfo);
+            }
+        );
+
+        parentFirstName.oninput = toggleSubmitButton;
+        parentLastName.oninput = toggleSubmitButton;
+        parentNumber.oninput = toggleSubmitButton;
+        parentEmail.oninput = toggleSubmitButton;
+        tnc.onchange = toggleSubmitButton;
+
+        toggleSubmitButton();
     }
-};
+}
+
+function personalInfo() {
+    console.log('userInfo:', userInfo);
+    if (userInfo.hasOwnProperty('uid')) {
+        if (!userInfo.hasOwnProperty('pup')) {
+            userInfo.pup = {
+                score: 0,
+                start_time: Date.now(),
+            };
+        }
+        return true;
+    }
+    else {
+        const toggleSubmitButton = () => {
+            popup.button.disabled = ![playerAge, playerFirstName, playerLastName, schoolName].every((field, i) => {
+                return i ? field.value.trim().length : Number.isInteger(Number(field.value));
+            });
+            style([popup.button], { opacity: `${popup.button.disabled ? '0.5' : '1'}` });
+        };
+
+        showPopup(
+            `Please tell us a little about yourself<hr>
+            <input id='playerFirstName' type='text' placeholder='First name' style='width:45%'> <input id='playerLastName' type='text' placeholder='Last name' style='width:45%'><br>
+            <select id='playerAge' style='margin-top:10px'>
+                <option selected>Age</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+                <option>10</option>
+                <option>11</option>
+                <option>12</option>
+                <option>13</option>
+                <option>14</option>
+                <option>15</option>
+                <option>16</option>
+                <option>17</option>
+                <option>18</option>
+            </select> <input id='schoolName' type='text' placeholder='Your school name' style='width:70%'><hr>`,
+            'Submit',
+            () => {
+                // create new user in database
+                userInfo.uid = guid();
+                localStorage.setItem('BSDUID', userInfo.uid);
+                console.log('saved uid to local storage:', localStorage.BSDUID);
+
+                userInfo.age = playerAge.value;
+                userInfo.name = `${playerFirstName.value.trim()} ${playerLastName.value.trim().toUpperCase()}`;
+                userInfo.school = schoolName.value.trim().toUpperCase();
+                userInfo.pup = {
+                    score: 0,
+                    start_time: Date.now(),
+                };
+
+                document.body.removeChild(popup.element);
+                leaderboard.add(userInfo);
+            }
+        );
+
+        playerAge.onchange = toggleSubmitButton;
+        playerFirstName.oninput = toggleSubmitButton;
+        playerLastName.oninput = toggleSubmitButton;
+        schoolName.oninput = toggleSubmitButton;
+
+        toggleSubmitButton();
+    }
+}
+
+function guid() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    }
+
+    return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+}
+
+// window.onload = function () {
+//     fire = new Firebase('https://bsd-jigsaw.firebaseio.com/');
+
+//     leaderboard.load(() => {
+//         const requestFullScreen =
+//             window.document.documentElement.requestFullscreen ||
+//             window.document.documentElement.mozRequestFullScreen ||
+//             window.document.documentElement.webkitRequestFullScreen ||
+//             window.document.documentElement.msRequestFullscreen;
+
+//         if (requestFullScreen) {
+//             showPopup(
+//                 'You can double tab the screen to go full screen mode',
+//                 'Okay',
+//                 () => {
+//                     document.body.removeChild(popup.element);
+//                     personalInfo();
+//                     loadGame();
+//                 }
+//             );
+//         }
+//         else {
+//             personalInfo();
+//             loadGame();
+//         }
+//     });
+// };
 
 // ===== UTILITY ===== //
 
@@ -2094,108 +2126,4 @@ function style(elem, declarations) {
             e.style[d.replace(/_/, '-')] = declarations[d];
         });
     });
-}
-
-// ===== BSD PROFILE ===== //
-
-function getBSDProfile() {
-    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-
-    function InvalidCharacterError(message) {
-        this.message = message;
-    }
-
-    InvalidCharacterError.prototype = new Error();
-    InvalidCharacterError.prototype.name = 'InvalidCharacterError';
-
-    function polyfill(input) {
-        var str = String(input).replace(/=+$/, '');
-        if (str.length % 4 == 1) {
-            throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
-        }
-        for (
-            // initialize result and counters
-            var bc = 0, bs, buffer, idx = 0, output = '';
-            // get next character
-            buffer = str.charAt(idx++);
-            // character found in table? initialize bit storage and add its ascii value;
-            ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
-                // and if not first of each 4 characters,
-                // convert the first 8 bits to one ascii character
-                bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
-        ) {
-            // try to find character in table (0-63, not found => -1)
-            buffer = chars.indexOf(buffer);
-        }
-        return output;
-    }
-
-    function b64DecodeUnicode(str) {
-        return decodeURIComponent(atob(str).replace(/(.)/g, function (m, p) {
-            var code = p.charCodeAt(0).toString(16).toUpperCase();
-            if (code.length < 2) {
-                code = '0' + code;
-            }
-            return '%' + code;
-        }));
-    }
-
-    function base64_url_decode(str) {
-        var output = str.replace(/-/g, '+').replace(/_/g, '/');
-        switch (output.length % 4) {
-            case 0:
-                break;
-            case 2:
-                output += '==';
-                break;
-            case 3:
-                output += '=';
-                break;
-            default:
-                throw 'Illegal base64url string!';
-        }
-
-        try {
-            return b64DecodeUnicode(output);
-        } catch (err) {
-            return atob(output);
-        }
-    }
-
-    function InvalidTokenError(message) {
-        this.message = message;
-    }
-
-    InvalidTokenError.prototype = new Error();
-    InvalidTokenError.prototype.name = 'InvalidTokenError';
-
-    function decodeJwt(token, options) {
-        if (typeof token !== 'string') {
-            throw new InvalidTokenError('Invalid token specified');
-        }
-
-        options = options || {};
-        var pos = options.header === true ? 0 : 1;
-        try {
-            return JSON.parse(base64_url_decode(token.split('.')[pos]));
-        } catch (e) {
-            throw new InvalidTokenError('Invalid token specified: ' + e.message);
-        }
-    }
-
-    var token = parent.localStorage.getItem('id_token');
-    if (token != null) {
-        var decoded = decodeJwt(token);
-        if (decoded != null) {
-            return {
-                name: decoded.name,
-                email: decoded.email,
-                picture: decoded.picture,
-                lb_user_id: decoded.lb_user_id,
-                auth0_user_id: decoded.user_id,
-                organisations: decoded.organisations
-            };
-        }
-    }
-    return null;
 }

@@ -1,5 +1,5 @@
 let
-    cutoff = 18,
+    cutoff = 24,
     nth = 0,
     sizeRatio = 0.9,
     puzzle = [],
@@ -95,7 +95,9 @@ const
                         Object.assign(userInfo, snapshot.val()[uid]);
                     }
 
-                    if (snapshot.val()[uid].score < leaderboard.best.score || !leaderboard.best.score) {
+                    if (!snapshot.val()[uid].hasOwnProperty('jigsaw')) return;
+
+                    if (snapshot.val()[uid].jigsaw.score > leaderboard.best.score || !leaderboard.best.score) {
                         leaderboard.best = {
                             name: snapshot.val()[uid].name,
                             score: snapshot.val()[uid].jigsaw.hasOwnProperty('score') ? snapshot.val()[uid].jigsaw.score : 0,
@@ -104,10 +106,13 @@ const
                     }
                 });
 
-                showPopup(`<span class='blue'>${leaderboard.best.name}</span><br>solved ${leaderboard.best.score} puzzles in<br><span class='gold'>${Math.ceil(leaderboard.best.time / 1000)}</span> seconds`, 'Play', () => {
-                    document.body.removeChild(popup.element);
-                    then();
-                });
+                if (leaderboard.best.name) {
+                    showPopup(`<span class='blue'>${leaderboard.best.name}</span><br>solved ${leaderboard.best.score} puzzles in<br><span class='gold'>${Math.ceil(leaderboard.best.time / 1000)}</span> seconds`, 'Play', () => {
+                        document.body.removeChild(popup.element);
+                        then();
+                    });
+                }
+                else then();
             });
         },
         add: (data, then = () => { }) => {
@@ -158,6 +163,8 @@ function setBackground() {
 
 function loadImage() {
     if (!image) image = document.createElement('img');
+
+    nth = userInfo.jigsaw.score || nth;
 
     image.src = levels[nth].link;
     info.textContent = `Loading the ${rank(nth + 1)} puzzle...`;
@@ -369,15 +376,14 @@ function checkPuzzle() {
                 // last level
                 else {
                     userInfo.jigsaw.elapsed_time = Date.now() - userInfo.jigsaw.start_time;
-                    leaderboard.add(Object.assign(userInfo, {
-                        jigsaw: {
-                            score: nth,
-                            elapsed_time: userInfo.jigsaw.elapsed_time,
-                        }
-                    }), () => {
+                    Object.assign(userInfo.jigsaw, {
+                        score: nth,
+                        elapsed_time: userInfo.jigsaw.elapsed_time,
+                    });
+                    leaderboard.add(userInfo, () => {
                         showPopup(
                             `Congratulations!<br>You solved all ${levels.length} puzzles in<br><span class='gold'>${Math.ceil(userInfo.jigsaw.elapsed_time / 1000)}</span> seconds<br><br>`,
-                            'Play again',
+                            'Play Again',
                             () => window.location.reload(true)
                         );
                     });
@@ -397,9 +403,12 @@ function checkPuzzle() {
         }
         else {
             showPopup(
-                `Leaderboard is closed after ${cutoff > 12 ? cutoff - 12 : cutoff}${cutoff >= 12 ? 'p' : 'a'}m`,
+                `Leaderboard is closed after ${cutoff > 12 ? cutoff - 12 : cutoff}${cutoff >= 12 ? 'P' : 'A'}M`,
                 'Continue',
-                () => document.body.removeChild(popup.element)
+                () => {
+                    document.body.removeChild(popup.element);
+                    resetPuzzle();
+                }
             );
         }
     }
@@ -415,6 +424,9 @@ function resetPuzzle() {
     mouseDown = false;
 
     loadImage();
+
+    // offer to fill in parent information
+    parentInfo();
 }
 
 function toggleFullScreen() {
@@ -524,95 +536,83 @@ function showPopup(messageContent, buttonText, action, close = false, closeActio
     };
 }
 
-function showForm(onSubmit = () => { }) {
-    showPopup(
-        'Do you want to fill out a form to enter ranked play and win our awesome prizes?',
-        'Sure',
-        () => {
-            document.body.removeChild(popup.element);
-            showPopup(
-                `...<hr>
-                <div style='text-align: left'>
-                    <span class='small'>School Name:</span> <input id='school' type='text' style='width: 50%'><br>
-                    <span class='small'>Birthday:</span> <select id='birthYear'>
-                        <option value='2015'>2015</option>
-                        <option value='2014'>2014</option>
-                        <option value='2013'>2013</option>
-                        <option value='2012'>2012</option>
-                        <option value='2011'>2011</option>
-                        <option value='2010'>2010</option>
-                        <option value='2009'>2009</option>
-                        <option value='2008'>2008</option>
-                        <option value='2007'>2007</option>
-                        <option value='2006'>2006</option>
-                        <option value='2005'>2005</option>
-                        <option value='2004'>2004</option>
-                        <option value='2003'>2003</option>
-                        <option value='2002'>2002</option>
-                        <option value='2001'>2001</option>
-                    </select>
-                    <select id='birthMonth'>
-                        <option value='Jan'>Jan</option>
-                        <option value='Feb'>Feb</option>
-                        <option value='Mar'>Mar</option>
-                        <option value='Apr'>Apr</option>
-                        <option value='May'>May</option>
-                        <option value='Jun'>Jun</option>
-                        <option value='Jul'>Jul</option>
-                        <option value='Aug'>Aug</option>
-                        <option value='Sep'>Sep</option>
-                        <option value='Oct'>Oct</option>
-                        <option value='Nov'>Nov</option>
-                        <option value='Dec'>Dec</option>
-                    </select>
-                </div><hr>`,
-                'Next',
-                () => {
-                    profile.userInfo = {
-                        school_name: school.value.trim(),
-                        birth_date: `${birthYear.options[birthYear.options.selectedIndex].value} ${birthMonth.options[birthMonth.options.selectedIndex].value}`,
-                    };
-                    document.body.removeChild(popup.element);
-                    showPopup(
-                        `...<hr>
-                        <div style='text-align: left'>
-                            <span class='small'>Parent Name:</span> <input id='parentFirstName' type='text' placeholder='First Name' style='width: 25%'> <input id='parentLastName' type='text' placeholder='Last Name' style='width: 25%'><br>
-                            <span class='small'>Contact Number:</span> <input id='parentContactNumber' type='text' style='width: 50%'><br>
-                            <span class='small'>Email:</span> <input id='parentEmail' type='text' style='width: 50%'>
-                        </div><br>
-                        <div style='text-align: left'>
-                            <input id='receiveUpdates' type='checkbox'><label for='receiveUpdates'>I (Parent) do not wish to receive future updates from BSD</label><br>
-                            <input id='tnc' type='checkbox' checked><label for='tnc'>I (Parent) agree to accept BSD's <a href='https://hk.bsdacademy.com/terms-conditions/' target='_blank'>Terms & Conditions</label>
-                        </div><hr>`,
-                        'Submit',
-                        () => {
-                            profile.userInfo.parent_name = `${parentFirstName.value.trim()} ${parentLastName.value.trim()}`;
-                            profile.userInfo.parent_contact = parentContactNumber.value.trim();
-                            profile.userInfo.parent_email = parentEmail.value.trim();
-                            profile.userInfo.receive_updates = 'Yes';
-                            document.body.removeChild(popup.element);
-                            onSubmit();
-                        }
-                    );
+function parentInfo() {
+    console.log('userInfo:', userInfo);
 
-                    tnc.onchange = (evt) => {
-                        popup.button.disabled = !evt.target.checked;
-                        style([popup.button], { opacity: `${evt.target.checked ? '1' : '0.5'}` });
-                    };
+    const validateParentInfo = () => {
+        return [
+            userInfo.hasOwnProperty('parent_name') && userInfo.parent_name.trim().length,
+            userInfo.hasOwnProperty('parent_email') && userInfo.parent_name.trim().length,
+            userInfo.hasOwnProperty('parent_number') && userInfo.parent_name.trim().length,
+        ].every(c => c);
+    };
 
-                    receiveUpdates.onchange = (evt) => profile.userInfo.receive_updates = evt.target.checked ? 'No' : 'Yes';
-                }
-            );
-        },
-        true,
-        () => document.body.removeChild(popup.element)
-    );
+    if (validateParentInfo()) {
+        return true;
+    }
+    else {
+        const toggleSubmitButton = () => {
+            popup.button.disabled = ![tnc, parentFirstName, parentLastName, parentNumber, parentEmail].every((field, i) => {
+                return i ? field.value.trim().length : field.checked;
+            });
+            style([popup.button], { opacity: `${popup.button.disabled ? '0.5' : '1'}` });
+        };
+
+        showPopup(
+            `Fill out this form to enter ranked play and win our awesome prizes<hr>
+            <div style='width:49%; float:left; text-align:left'>
+                <span style='font-size:0.6em; color:silver; line-height:0'>Parent First Name</span><br>
+                <input id='parentFirstName' type='text' style='width:100%'>
+            </div>
+            <div style='width:49%; float:right; text-align:left'>
+                <span style='font-size:0.6em; color:silver; line-height:0'>Parent Last Name</span><br>
+                <input id='parentLastName' type='text' style='width:100%'>
+            </div>
+            <div style='text-align:left'>
+                <span style='font-size:0.6em; color:silver; line-height:0'>Parent Contact Number</span><br>
+                <input id='parentNumber' type='text' style='width:100%'>
+            </div>
+            <div style='text-align:left'>
+                <span style='font-size:0.6em; color:silver; line-height:0'>Parent Email</span><br>
+                <input id='parentEmail' type='text' style='width:100%'>
+            </div>
+            <br>
+            <div style='text-align: left'>
+                <input id='receiveUpdates' type='checkbox'><label for='receiveUpdates'>I (Parent) do not wish to receive future updates from BSD</label><br>
+                <input id='tnc' type='checkbox' checked><label for='tnc'>I (Parent) agree to BSD's <a href='https://hk.bsdacademy.com/terms-conditions/' target='_blank'>Terms & Conditions</label>
+            </div><hr>`,
+            'Submit',
+            () => {
+                userInfo.parent_name = `${parentFirstName.value.trim()} ${parentLastName.value.trim().toUpperCase()}`;
+                userInfo.parent_number = parentNumber.value.trim();
+                userInfo.parent_email = parentEmail.value.trim();
+                userInfo.receive_updates = receiveUpdates.checked ? 'No' : 'Yes';
+
+                document.body.removeChild(popup.element);
+                leaderboard.add(userInfo);
+            }
+        );
+
+        parentFirstName.oninput = toggleSubmitButton;
+        parentLastName.oninput = toggleSubmitButton;
+        parentNumber.oninput = toggleSubmitButton;
+        parentEmail.oninput = toggleSubmitButton;
+        tnc.onchange = toggleSubmitButton;
+
+        toggleSubmitButton();
+    }
 }
 
 function personalInfo() {
     console.log('userInfo:', userInfo);
     if (userInfo.hasOwnProperty('uid')) {
-        //
+        if (!userInfo.hasOwnProperty('jigsaw')) {
+            userInfo.jigsaw = {
+                score: 0,
+                start_time: Date.now(),
+            };
+        }
+        return true;
     }
     else {
         const toggleSubmitButton = () => {
@@ -624,24 +624,24 @@ function personalInfo() {
 
         showPopup(
             `Please tell us a little about yourself<hr>
-                    <input id='playerFirstName' type='text' placeholder='First name' style='width:45%'> <input id='playerLastName' type='text' placeholder='Last name' style='width:45%'><br>
-                    <select id='playerAge' style='margin-top:10px'>
-                        <option selected> Age </option>
-                        <option>5</option>
-                        <option>6</option>
-                        <option>7</option>
-                        <option>8</option>
-                        <option>9</option>
-                        <option>10</option>
-                        <option>11</option>
-                        <option>12</option>
-                        <option>13</option>
-                        <option>14</option>
-                        <option>15</option>
-                        <option>16</option>
-                        <option>17</option>
-                        <option>18</option>
-                    </select> <input id='schoolName' type='text' placeholder='Your school name' style='width:70%'><hr>`,
+            <input id='playerFirstName' type='text' placeholder='First name' style='width:45%'> <input id='playerLastName' type='text' placeholder='Last name' style='width:45%'><br>
+            <select id='playerAge' style='margin-top:10px'>
+                <option selected>Age</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+                <option>10</option>
+                <option>11</option>
+                <option>12</option>
+                <option>13</option>
+                <option>14</option>
+                <option>15</option>
+                <option>16</option>
+                <option>17</option>
+                <option>18</option>
+            </select> <input id='schoolName' type='text' placeholder='Your school name' style='width:70%'><hr>`,
             'Submit',
             () => {
                 // create new user in database
@@ -677,7 +677,6 @@ function guid() {
     }
 
     return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
-    // return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 }
 
 // ===== EVENTS ===== //
@@ -692,29 +691,31 @@ window.onresize = () => {
 };
 
 // window.onload = () => {
-    // fire = new Firebase('https://bsd-jigsaw.firebaseio.com/');
+//     fire = new Firebase('https://bsd-jigsaw.firebaseio.com/');
 
-    // loadImage();
+//     leaderboard.load(() => {
+//         const requestFullScreen =
+//             window.document.documentElement.requestFullscreen ||
+//             window.document.documentElement.mozRequestFullScreen ||
+//             window.document.documentElement.webkitRequestFullScreen ||
+//             window.document.documentElement.msRequestFullscreen;
 
-    // leaderboard.load(() => {
-    //     const requestFullScreen =
-    //         window.document.documentElement.requestFullscreen ||
-    //         window.document.documentElement.mozRequestFullScreen ||
-    //         window.document.documentElement.webkitRequestFullScreen ||
-    //         window.document.documentElement.msRequestFullscreen;
-
-    //     if (requestFullScreen) {
-    //         showPopup(
-    //             'You can double tab the screen to go full screen mode',
-    //             'Okay',
-    //             () => {
-    //                 document.body.removeChild(popup.element);
-    //                 personalInfo();
-    //             }
-    //         );
-    //     }
-    //     else personalInfo();
-    // });
+//         if (requestFullScreen) {
+//             showPopup(
+//                 'You can double tab the screen to go full screen mode',
+//                 'Okay',
+//                 () => {
+//                     document.body.removeChild(popup.element);
+//                     personalInfo();
+//                     loadImage();
+//                 }
+//             );
+//         }
+//         else {
+//             personalInfo();
+//             loadImage();
+//         }
+//     });
 // };
 
 window.ontouchstart = (evt) => {
