@@ -1820,6 +1820,11 @@ function loadGame() {
                             );
                         }
                     });
+
+                    if (completedLevels.length > 10) {
+                        // offer to fill in parent information
+                        parentInfo();
+                    }
                 }
             }
             else {

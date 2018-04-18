@@ -28,40 +28,40 @@ const
         },
         {
             link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
+            grid: 3,
+        },
+        {
+            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
             grid: 2,
         },
-        // {
-        //     link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
-        //     grid: 2,
-        // },
-        // {
-        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-2942.jpg',
-        //     grid: 2,
-        // },
-        // {
-        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-3927.jpg',
-        //     grid: 2,
-        // },
-        // {
-        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-4285.jpg',
-        //     grid: 2,
-        // },
-        // {
-        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-5739.jpeg',
-        //     grid: 2,
-        // },
-        // {
-        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-5749.jpg',
-        //     grid: 2,
-        // },
-        // {
-        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-7383.jpeg',
-        //     grid: 2,
-        // },
-        // {
-        //     link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-8372.jpg',
-        //     grid: 2,
-        // }
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-2942.jpg',
+            grid: 3,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-3927.jpg',
+            grid: 2,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-4285.jpg',
+            grid: 3,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-5739.jpeg',
+            grid: 2,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-5749.jpg',
+            grid: 2,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-7383.jpeg',
+            grid: 3,
+        },
+        {
+            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-8372.jpg',
+            grid: 2,
+        }
     ],
     leaderboard = {
         best: {
@@ -164,7 +164,7 @@ function setBackground() {
 function loadImage() {
     if (!image) image = document.createElement('img');
 
-    nth = userInfo.jigsaw.score || nth;
+    nth = (userInfo.jigsaw && userInfo.jigsaw.score) || nth;
 
     image.src = levels[nth].link;
     info.textContent = `Loading the ${rank(nth + 1)} puzzle...`;
@@ -425,8 +425,10 @@ function resetPuzzle() {
 
     loadImage();
 
-    // offer to fill in parent information
-    parentInfo();
+    if (userInfo.jigsaw && userInfo.jigsaw.score > 3) {
+        // offer to fill in parent information
+        parentInfo();
+    }
 }
 
 function toggleFullScreen() {
