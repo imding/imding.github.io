@@ -63,7 +63,7 @@ const leaderboard = {
     },
 };
 
-let fire, userInfo = {}, cutoff = 24;
+let fire, userInfo = {}, cutoff = 18;
 
 function loadGame() {
     /**
@@ -1816,7 +1816,7 @@ function loadGame() {
                             // offer to fill in parent information
                             parentInfo();
                         }
-                        
+
                         if (completedLevels.length === 61) {
                             showPopup(
                                 `Congratulations!<br>You solved all 61 puzzles in<br><span class='gold'>${Math.ceil(userInfo.pup.elapsed_time / 1000)}</span> seconds<br><br>`,

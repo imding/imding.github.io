@@ -1,6 +1,6 @@
 let
-    levels = new Array(25),
-    cutoff = 24,
+    levels = new Array(32),
+    cutoff = 18,
     nth = 0,
     sizeRatio = 0.9,
     puzzle = [],
