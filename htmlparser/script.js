@@ -93,7 +93,7 @@ function HtmlAst(strHTML, origin) {
                 verdict = `${lastOf(ambiguous.closingTag).raw} is not paired with anything. Please add an opening tag or remove it.`;
             }
             else if (ambiguous.elem.length > ambiguous.closingTag.length) {
-                verdict = `${lastOf(ambiguous.elem).openingTag.tagName} is not a void element. Please add a closing tag for ${lastOf(ambiguous.elem).openingTag.raw} or remove it.`;
+                verdict = `${lastOf(ambiguous.elem).openingTag.tagName} is not an empty element. Please add a closing tag for ${lastOf(ambiguous.elem).openingTag.raw} or remove it.`;
             }
             else {
                 verdict = `${lastOf(ambiguous.closingTag).raw} is not a valid closing tag for ${lastOf(ambiguous.elem).openingTag.raw}.`;
@@ -104,7 +104,7 @@ function HtmlAst(strHTML, origin) {
             const ct = checkClosingTag();
             if (ct && !ambiguous.closingTag.length) {
                 if (tags.all.some(t => t === ct.tagName)) ambiguous.closingTag.push(ct);
-                else verdict = `${ct.raw.trim()} is not a valid closing tag. Pleae read the instructions again.`;
+                else verdict = `${ct.raw.trim()} is not a valid closing tag. Please read the instructions again.`;
             }
 
             if (!verdict) verdict = `${ambiguous.closingTag[0].raw} is not paired with anything. Please add an opening tag or remove it.`;
@@ -136,7 +136,7 @@ function HtmlAst(strHTML, origin) {
             verdict = 'Please write a tag name after the < symbol.';
         }
         else if (!m[3]) {
-            verdict = `Plese close off ${m[0].trim()} using the > symbol.`;
+            verdict = `The ${m[0].trim()} tag needs to be closed using the > symbol.`;
         }
 
         if (verdict) return;
@@ -154,26 +154,63 @@ function HtmlAst(strHTML, origin) {
 
         if (!checkOpeningTag(tagRaw)) return;
 
-        const element = {
-            openingTag: {
-                close: function () {
-                    if (attrsRaw) {
-                        const _m = attrsRaw.match(/\/\s*$/);
-                        if (_m) attrsRaw = attrsRaw.replace(/\/\s*$/, '');
-                        return _m ? _m[0] : null;
-                    }
-                    return null;
-                }(),
-                attrs: attrsRaw ? checkAttribute(attrsRaw, tagRaw.trim()) : [],
-                raw: m[0],
-                tagName: tagRaw.toLowerCase(),
-                type: 'tagstart',
-            },
+        // create empty element object
+        const element = { openingTag: {} };
+
+        if (attrsRaw) {
+            // find a slash symbol at the end of the attrsRaw string
+            const _m = attrsRaw.match(/\/\s*$/);
+            if (_m) {
+                // remove it from the attrsRaw string if found
+                attrsRaw = attrsRaw.replace(/\/\s*$/, '');
+                element.openingTag.close = _m[0];
+            }
+            else {
+                element.openingTag.close = null;
+            }
+        }
+        else {
+            element.openingTag.close = null;
+        }
+
+        // assign other parametres for opening tag
+        Object.assign(element.openingTag, {
+            attrs: attrsRaw ? checkAttribute(attrsRaw, tagRaw.trim()) : [],
+            raw: m[0],
+            tagName: tagRaw.toLowerCase(),
+            type: 'tagstart',
+        });
+
+        // assign other parametres for element
+        Object.assign(element, {
             content: [],
             closingTag: {},
             isVoid: tags.void.some(t => tagRaw.toLowerCase() === t),
             type: 'element',
-        };
+        });
+
+        // const element = {
+        //     openingTag: {
+        //         close: function () {
+        //             if (attrsRaw) {
+        //                 // find a slash symbol at the end of the attrsRaw string
+        //                 const _m = attrsRaw.match(/\/\s*$/);
+        //                 // remove it from the attrsRaw string if found
+        //                 if (_m) attrsRaw = attrsRaw.replace(/\/\s*$/, '');
+        //                 return _m ? _m[0] : null;
+        //             }
+        //             return null;
+        //         }(),
+        //         attrs: attrsRaw ? checkAttribute(attrsRaw, tagRaw.trim()) : [],
+        //         raw: m[0],
+        //         tagName: tagRaw.toLowerCase(),
+        //         type: 'tagstart',
+        //     },
+        //     content: [],
+        //     closingTag: {},
+        //     isVoid: tags.void.some(t => tagRaw.toLowerCase() === t),
+        //     type: 'element',
+        // };
 
         if (!element.openingTag.attrs) return;
 
@@ -183,7 +220,7 @@ function HtmlAst(strHTML, origin) {
             }
         }
         else if (element.openingTag.close) {
-            verdict = `${element.openingTag.tagName} is not a void element. Please remove the / symbol.`;
+            verdict = `${element.openingTag.tagName} is not an empty element. Please remove the / symbol.`;
         }
         // check for content & closing tag for non-void elements
         else {
@@ -264,7 +301,7 @@ function HtmlAst(strHTML, origin) {
             verdict = `${m[0].trim()} is incorrect. Make sure there is no space after <${m[2] ? '/' : ''}.`;
         }
         else if (!m[4]) {
-            verdict = `Please close off ${m[0].trim()} with the > symbol.`;
+            verdict = `Please close the ${m[0].trim()} tag with a > symbol.`;
         }
         else if (!m[3]) {
             verdict = 'Please add a tag name after </.';
@@ -439,12 +476,12 @@ function compare(model, input) {
                 else if (tn.openingTag.attrs.length < ln.openingTag.attrs.length) {
                     ln.openingTag.attrs.some(a => {
                         if (!val(a.name).isFoundIn(tn.openingTag.attrs.map(_a => _a.name))) {
-                            verdict = `In the ${tn.openingTag.tagName} tag, ${a.name} attribute is not required. Please remove it.`;
+                            verdict = `In the ${tn.openingTag.tagName} tag, the ${a.name} attribute is not required. Please remove it.`;
                         }
                     });
                 }
                 else if (matchAttrs(tn.openingTag, ln.openingTag)) {
-                    // check for equal content length if combined length of teacher & leaner nodes is non-zero
+                    // check for equal content length if combined length of teacher & learner nodes is non-zero
                     if (tn.content.length + ln.content.length && tn.content.length !== ln.content.length) {
                         verdict = `There should be${tn.content.length < ln.content.length ? ' only' : ''} ${tn.content.length || 'no'} child element${tn.content.length ? tn.content.length > 1 ? 's' : '' : ''} in ${tn.openingTag.raw}${tn.closingTag.raw}.`;
                     }
@@ -532,7 +569,10 @@ function compare(model, input) {
                 // estimate association between due and weak attributes
                 let s, suggest;
                 due.some(da => {
-                    const _s = similarity(weak[0].value.trim().toLowerCase().split(/\s+/).sort().join(), da.value.trim().toLowerCase().split(/\s+/).sort().join());
+                    const
+                        normaliseWordSequence = (words) => words.trim().toLowerCase().split(/\s+/).sort().join(),
+                        _s = similarity(normaliseWordSequence(weak[0].value), normaliseWordSequence(da.value));
+
                     if (_s > (s || 0)) {
                         s = _s;
                         suggest = da;

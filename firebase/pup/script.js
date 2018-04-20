@@ -1821,7 +1821,7 @@ function loadGame() {
                         }
                     });
 
-                    if (completedLevels.length > 10) {
+                    if (completedLevels.length > 3) {
                         // offer to fill in parent information
                         parentInfo();
                     }
