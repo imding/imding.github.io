@@ -1,5 +1,6 @@
 let
-    cutoff = 24,
+    levels = new Array(25),
+    cutoff = 18,
     nth = 0,
     sizeRatio = 0.9,
     puzzle = [],
@@ -16,54 +17,7 @@ let
     mouseDown = false,
     tap = Date.now();
 
-const
-    levels = [
-        {
-            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-keys.jpeg',
-            grid: 2,
-        },
-        {
-            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-newyork.png',
-            grid: 2,
-        },
-        {
-            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-habour.png',
-            grid: 3,
-        },
-        {
-            link: 'http://bsdacademysandbox.com/curriculum/wp-content/uploads/2018/03/pa-london.png',
-            grid: 2,
-        },
-        {
-            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-2942.jpg',
-            grid: 3,
-        },
-        {
-            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-3927.jpg',
-            grid: 2,
-        },
-        {
-            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-4285.jpg',
-            grid: 3,
-        },
-        {
-            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-5739.jpeg',
-            grid: 2,
-        },
-        {
-            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-5749.jpg',
-            grid: 2,
-        },
-        {
-            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-7383.jpeg',
-            grid: 3,
-        },
-        {
-            link: 'http://imding.github.io/firebase/jigsaw/img/jigsaw-8372.jpg',
-            grid: 2,
-        }
-    ],
-    leaderboard = {
+const leaderboard = {
         best: {
             name: '',
             score: 0,
@@ -693,6 +647,12 @@ window.onresize = () => {
 };
 
 // window.onload = () => {
+//     console.log(levels);
+//     for (let i = 0; i < levels.length; i++) {
+//         levels[i] = {link: '', grid: i % 3 ? 2 : 3};
+//         levels[i].link = `img/${i}.png`;
+//     }
+
 //     fire = new Firebase('https://bsd-jigsaw.firebaseio.com/');
 
 //     leaderboard.load(() => {
