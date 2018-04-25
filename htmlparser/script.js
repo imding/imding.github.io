@@ -1,6 +1,6 @@
 const
-    ti = '<div class="top wrapper" title="wrapper"></div>',
-    li = '<div title="wapper" value="wapper top"></div>';
+    ti = '<h1 class="head"> ',
+    li = '<h1 class="heading"> ';
 
 let ctrl;
 
@@ -13,10 +13,11 @@ const
             // IMPORTANT: ascending tag name lengths
             'p', 'b', 'u', 'i', 'a',
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'em', 'hr', 'tt', 'dl', 'dt', 'dd', 'tr', 'th', 'td',
-            'div', 'img', 'sup', 'sub', 'pre',
-            'code', 'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
-            'input', 'small', 'table', 'frame',
-            'button', 'strong', 'select', 'option', 'script', 'strike',
+            'col', 'div', 'img', 'sup', 'sub', 'pre', 'wbr',
+            'area', 'base', 'code', 'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
+            'embed', 'input', 'param', 'small', 'table', 'frame', 'track',
+            'button', 'keygen', 'strong', 'select', 'option', 'script', 'source', 'strike',
+            'command',
             'textarea', 'frameset', 'noframes',
             'blockquote',
         ],
@@ -62,12 +63,12 @@ const val = (v) => {
     };
 };
 
-let verdict, inputClone, ambiguous = { elem: [], closingTag: [] };
+let verdict;
 
-function HtmlAst(strHTML, origin) {
-    let tree = [];
+function HtmlAst(strHTML, origin, exception = null) {
+    let inputClone = strHTML, ambiguous = { elem: [], closingTag: [] }, tree = [];
 
-    inputClone = strHTML;
+    verdict = '';
 
     // parse html and build tree until no more valid opening tag
     while (inputClone.trim().length) {
@@ -76,7 +77,18 @@ function HtmlAst(strHTML, origin) {
         if (t) {
             inputClone = inputClone.slice(t[0].length);
             // text node containing only white spaces are ignored
-            if (t[0].trim().length) tree.push({ raw: t[0], rawCollapsed: t[0].replace(/\s+/g, ' '), type: 'text' });
+            if (t[0].trim().length) {
+                // detect lone attributes
+                const aa = checkAttribute(` ${t[0].trim()}`);
+
+                if (!verdict && aa) {
+                    tree.push({ attrs: aa, raw: t[0].trim(), type: 'attributes' });
+                }
+                else {
+                    verdict = '';
+                    tree.push({ raw: t[0], rawCollapsed: t[0].replace(/\s+/g, ' '), type: 'text' });
+                }
+            }
         }
 
         // extract element node
@@ -86,32 +98,55 @@ function HtmlAst(strHTML, origin) {
         tree.push(e);
     }
 
+    /* at this point inputClone contains either nothing or closing tags ( i.e. </...> ) */
+
+    const loneAttrs = tree.filter(e => e.type === 'attributes');
+    if (loneAttrs.length && loneAttrs.length < tree.length) verdict = `${loneAttrs[0].raw} is in the wrong place. Attributes must be inside opening tags.`;
+
     if (!verdict) {
-        // deal with ambiguous code
+        // deal with ambiguous code, if any
         if (ambiguous.elem.length + ambiguous.closingTag.length) {
             if (ambiguous.elem.length < ambiguous.closingTag.length) {
                 verdict = `${lastOf(ambiguous.closingTag).raw} is not paired with anything. Please add an opening tag or remove it.`;
             }
             else if (ambiguous.elem.length > ambiguous.closingTag.length) {
-                verdict = `${lastOf(ambiguous.elem).openingTag.tagName} is not an empty element. Please add a closing tag for ${lastOf(ambiguous.elem).openingTag.raw} or remove it.`;
+                const err = {
+                    type: 'opening tag only',
+                    indication: `${lastOf(ambiguous.elem).openingTag.tagName} is not a void element.`,
+                    solution: `Please add a closing tag for ${lastOf(ambiguous.elem).openingTag.raw} or remove it.`,
+                };
+                validatePartial(err);
             }
             else {
                 verdict = `${lastOf(ambiguous.closingTag).raw} is not a valid closing tag for ${lastOf(ambiguous.elem).openingTag.raw}.`;
             }
         }
         // if input string has content
-        else if (inputClone.length) {
+        else if (inputClone.trim().length) {
+            // find valid closing tag
             const ct = checkClosingTag();
+            // only evaluate the closing tag if there is not already ambiguous closing tags
             if (ct && !ambiguous.closingTag.length) {
-                if (tags.all.some(t => t === ct.tagName)) ambiguous.closingTag.push(ct);
+                // check if closing tag is valid
+                if (tags.all.some(t => t === ct.tagName)) {
+                    ambiguous.closingTag.push(ct);
+                    tree.push({ type: 'element', openingTag: { attrs: [], raw: '', tagName: '', type: 'tagstart' }, closingTag: ct, content: [], isVoid: false });
+                }
                 else verdict = `${ct.raw.trim()} is not a valid closing tag. Please read the instructions again.`;
             }
 
-            if (!verdict) verdict = `${ambiguous.closingTag[0].raw} is not paired with anything. Please add an opening tag or remove it.`;
+            if (!verdict) {
+                const err = {
+                    type: 'closing tag only',
+                    indication: `${ambiguous.closingTag[0].raw} is not paired with anything.`,
+                    solution: 'Please add an opening tag or remove it.'
+                };
+                validatePartial(err);
+            }
         }
     }
 
-    // console.log(`${origin}:`, tree);
+    console.log(`${origin}:`, tree);
     verdict = verdict ? `${origin}: ${verdict}` : verdict;
     return tree;
 
@@ -122,6 +157,15 @@ function HtmlAst(strHTML, origin) {
     // }] : [];
 
     // ===== NESTED FUNCTIONS ===== //
+    function validatePartial(err) {
+        // teacher code contains a single opening tag
+        if (exception === null && tree.length === 1) tree.exception = err.type;
+        // clear error message if learner code produces same error as teacher code
+        else if (exception !== null && exception === err.type) verdict = '';
+        // teacher code contains more than one element or learner code produces different error than teacher code
+        else verdict = `${err.indication} ${err.solution}`;
+    }
+
     function checkElement() {
         // basic syntax check for a single tag
         const m = inputClone.match(pOpeningTag);
@@ -189,29 +233,6 @@ function HtmlAst(strHTML, origin) {
             type: 'element',
         });
 
-        // const element = {
-        //     openingTag: {
-        //         close: function () {
-        //             if (attrsRaw) {
-        //                 // find a slash symbol at the end of the attrsRaw string
-        //                 const _m = attrsRaw.match(/\/\s*$/);
-        //                 // remove it from the attrsRaw string if found
-        //                 if (_m) attrsRaw = attrsRaw.replace(/\/\s*$/, '');
-        //                 return _m ? _m[0] : null;
-        //             }
-        //             return null;
-        //         }(),
-        //         attrs: attrsRaw ? checkAttribute(attrsRaw, tagRaw.trim()) : [],
-        //         raw: m[0],
-        //         tagName: tagRaw.toLowerCase(),
-        //         type: 'tagstart',
-        //     },
-        //     content: [],
-        //     closingTag: {},
-        //     isVoid: tags.void.some(t => tagRaw.toLowerCase() === t),
-        //     type: 'element',
-        // };
-
         if (!element.openingTag.attrs) return;
 
         if (element.isVoid) {
@@ -220,7 +241,7 @@ function HtmlAst(strHTML, origin) {
             }
         }
         else if (element.openingTag.close) {
-            verdict = `${element.openingTag.tagName} is not an empty element. Please remove the / symbol.`;
+            verdict = `${element.openingTag.tagName} is not a void element. Please remove the / symbol.`;
         }
         // check for content & closing tag for non-void elements
         else {
@@ -301,13 +322,16 @@ function HtmlAst(strHTML, origin) {
             verdict = `${m[0].trim()} is incorrect. Make sure there is no space after <${m[2] ? '/' : ''}.`;
         }
         else if (!m[4]) {
-            verdict = `Please close the ${m[0].trim()} tag with a > symbol.`;
+            verdict = `The ${m[0].trim()} tag needs to be closed using the > symbol.`;
         }
         else if (!m[3]) {
             verdict = 'Please add a tag name after </.';
         }
         else if (!tags.all.some(t => t === m[3].trim().toLowerCase())) {
             verdict = `${m[3].trim()} is not a valid tag name.`;
+        }
+        else if (tags.void.some(t => t === m[3].trim().toLowerCase())) {
+            verdict = `${m[3].trim()} is a void element and doesn't require a closing tag. Please remove the / symbol or the tag completely.`;
         }
 
         if (verdict) return;
@@ -468,10 +492,22 @@ function levenshtein_distance(a, b) {
 function compare(model, input) {
     // compare elements using teacher node(tn) & learner node(ln)
     const matchElement = (tn, ln) => {
+        const flexExpt = findRegularExpression(tn.raw);
+        if (!(flexExpt.hasOwnProperty('compatible') && flexExpt.compatible.includes('html'))) throw new Error(`Match option "${flexExpt.type}" is incompatible with HTML.`);
+
         if (tn.type === 'element') {
             if (ln.type === 'element') {
-                if (ln.openingTag.tagName !== tn.openingTag.tagName) {
-                    verdict = `${ln.openingTag.raw}${ln.isVoid ? '' : `${ln.content.length ? '...' : ''}${ln.closingTag.raw}`} is not the right element. Please read the instructions again.`;
+                if (ln.openingTag.tagName && !tn.openingTag.tagName) {
+                    verdict = `${ln.openingTag.raw} is not required. Please remove it.`;
+                }
+                else if (ln.openingTag.tagName !== tn.openingTag.tagName) {
+                    verdict = `${ln.openingTag.raw}${ln.isVoid ? '' : `${ln.content.length ? '...' : ''}${ln.closingTag.raw || ''}`} is not the right ${ln.closingTag.raw ? 'element' : 'tag'}. The tag name should be ${tn.openingTag.tagName}.`;
+                }
+                else if (ln.closingTag.tagName && !tn.closingTag.tagName) {
+                    verdict = `${ln.closingTag.raw} is not required. Please remove it.`;
+                }
+                else if (ln.closingTag.tagName !== tn.closingTag.tagName) {
+                    verdict = `${ln.closingTag.raw} is not the right tag. The tag name should be ${tn.closingTag.tagName}.`;
                 }
                 else if (tn.openingTag.attrs.length < ln.openingTag.attrs.length) {
                     ln.openingTag.attrs.some(a => {
@@ -483,7 +519,14 @@ function compare(model, input) {
                 else if (matchAttrs(tn.openingTag, ln.openingTag)) {
                     // check for equal content length if combined length of teacher & learner nodes is non-zero
                     if (tn.content.length + ln.content.length && tn.content.length !== ln.content.length) {
-                        verdict = `There should be${tn.content.length < ln.content.length ? ' only' : ''} ${tn.content.length || 'no'} child element${tn.content.length ? tn.content.length > 1 ? 's' : '' : ''} in ${tn.openingTag.raw}${tn.closingTag.raw}.`;
+                        const
+                            someText = tn.content.length === 1 && tn.content[0].type === 'text' && !ln.content.length ? 'some text' : '',
+                            elements = `element${tn.content.length ? tn.content.length > 1 ? 's' : '' : ''}`,
+                            only = tn.content.length < ln.content.length ? 'only' : '',
+                            n = tn.content.length ? (tn.content.length > 1 ? tn.content.length : (!ln.content.length ? 'an' : 'one')) : 'no',
+                            prepo = tn.closingTag.raw ? 'inside the element' : 'after';
+
+                        verdict = `There should be ${someText || `${only ? `${only} ${n}` : n} ${elements}`} ${prepo} ${tn.openingTag.raw}${tn.closingTag.raw || ''}.`;
                     }
                     // compare content
                     else if (tn.content.length) {
@@ -508,11 +551,33 @@ function compare(model, input) {
             }
         }
         else if (tn.type === 'text') {
-            if (!ln.raw) {
-                verdict = `Text content "${tn.raw.trim()}" is missing from ${tn.parent ? `the ${tn.parent.openingTag.tagName} element` : 'your code'}. Please add it in.`;
+            if (ln.type === 'element') {
+                verdict = `${ln.openingTag.raw}${ln.isVoid ? '' : `${ln.content.length ? '...' : ''}${ln.closingTag.raw}`} is not text content. Please replace it with plain text.`;
             }
-            else if (tn.raw.trim().toLowerCase() !== ln.raw.trim().toLowerCase()) {
-                verdict = `${tn.parent ? `In the ${tn.parent.openingTag.tagName} element, t` : 'T'}ext content "${ln.raw.trim()}" is incorrect. Try "${tn.raw.trim()}".`;
+            else if (!ln.raw) {
+                verdict = `Some text content is missing from ${tn.parent ? `the ${tn.parent.openingTag.tagName} element` : 'your code'}. Please add "${tn.raw.trim()}".`;
+            }
+            else if (!flexExpt.comparer(tn.rawCollapsed.toLowerCase(), ln.rawCollapsed.toLowerCase())) {
+                const err = {
+                    indication: `${tn.parent ? `In the ${tn.parent.openingTag.tagName} element, t` : 'T'}ext content "${ln.raw.trim()}" is incorrect`,
+                    solution: 'Try ',
+                };
+
+                // if match options defined by teacher code
+                if (flexExpt.type !== 'default') {
+                    // determine error based on match type
+                    if (flexExpt.type === 'any') err.indication = `Text content is empty${tn.parent ? ` in the ${tn.parent.openingTag.tagName} element` : ''}`;
+                    // define solution based on match type
+                    if (flexExpt.type === 'not') err.solution += 'something else';
+                    else if (flexExpt.type === 'any') err.solution += 'adding any text';
+                    else if (flexExpt.type === 'anyOf') err.solution += grammafy(parseOptions(tn.raw), 'or', '"');
+                }
+                // explicit expectation by teacher
+                else {
+                    err.solution += `"${tn.raw.trim()}"`;
+                }
+
+                verdict = `${err.indication}. ${err.solution}.`;
             }
         }
         return !verdict;
@@ -520,6 +585,8 @@ function compare(model, input) {
 
     // compare attributes and values between teacher tag(tt) & learner tag(lt)
     const matchAttrs = (tt, lt) => {
+        const prepo = tt.tagName ? `In the ${tt.tagName} tag, ` : '';
+
         if (!(tt.attrs.length + lt.attrs.length)) {
             return true;
         }
@@ -528,7 +595,6 @@ function compare(model, input) {
             const weak = lt.attrs, due = [];
 
             tt.attrs.every(a => {
-                // if teacher attribute name is found in learner code
                 if (val(a.name).isFoundIn(weak.map(_a => _a.name))) {
                     let
                         // it's safe to use the first occurence of an attribute with matching name because duplicate attribute name is an error HtmlAst.js would've caught
@@ -537,18 +603,18 @@ function compare(model, input) {
 
                     if (a.name === 'class') {
                         a.value.split(/\s+/).forEach(v => {
-                            inputVal.includes(v) ? inputVal = inputVal.replace(v, '').trim() : missingVal = true;
+                            val(v).isFoundIn(inputVal.split(/\s+/)) ? inputVal = inputVal.replace(v, '').trim() : missingVal = true;
                         });
 
                         if (inputVal.length) {
-                            verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
+                            verdict = `${prepo}"${inputVal}" is not the right value for the ${a.name} attribute.`;
                         }
                         else if (missingVal) {
-                            verdict = `In the ${tt.tagName} tag, some value is missing from the ${a.name} attribute.`;
+                            verdict = `${prepo}${prepo ? 's' : 'S'}ome value is missing from the ${a.name} attribute.`;
                         }
                     }
                     else if (a.value !== inputVal) {
-                        verdict = `In the ${tt.tagName} tag, "${inputVal}" is not the right value for the ${a.name} attribute.`;
+                        verdict = `${prepo}"${inputVal}" is not the right value for the ${a.name} attribute.`;
                     }
 
                     // remove matched attribute from the list of weak attributes
@@ -564,13 +630,13 @@ function compare(model, input) {
 
             // if any teacher defined attribute is not found in learner code
             if (!verdict && due.length) {
-                if (due.length !== weak.length) throw new Error('The number of unmatched attribute should equal to the number of weak attribute.');
+                if (due.length !== weak.length) throw new Error('The number of unmatched attribute should be equal to the number of weak attribute.');
 
                 // estimate association between due and weak attributes
                 let s, suggest;
                 due.some(da => {
                     const
-                        normaliseWordSequence = (words) => words.trim().toLowerCase().split(/\s+/).sort().join(),
+                        normaliseWordSequence = (words) => words ? words.trim().toLowerCase().split(/\s+/).sort().join() : '',
                         _s = similarity(normaliseWordSequence(weak[0].value), normaliseWordSequence(da.value));
 
                     if (_s > (s || 0)) {
@@ -580,46 +646,325 @@ function compare(model, input) {
                     return s === 1;
                 });
 
-                if (suggest) verdict = `In the ${tt.tagName} tag, ${weak[0].raw.trim()} is incorrect. Try changing the attribute name to ${suggest.name}.`;
-                else verdict = `In the ${tt.tagName} tag, ${weak[0].raw.trim()} is incorrect. Please read the instructions again.`;
+                if (suggest) verdict = `${prepo}${weak[0].raw.trim()} is incorrect. Try changing the attribute name to ${suggest.name}.`;
+                else verdict = `${prepo}${weak[0].raw.trim()} is incorrect. Please read the instructions again.`;
             }
 
             return !verdict;
         }
         else {
-            verdict = `There should be ${tt.attrs.length ? `${tt.attrs.length > lt.attrs.length ? '' : 'only'}` : 'no'} attribute${tt.attrs.length > 1 ? 's' : ''} in ${tt.raw}.`;
+            const
+                only = tt.attrs.length < lt.attrs.length ? 'only' : '',
+                n = tt.attrs.length ? (tt.attrs.length > 1 ? tt.attrs.length : 'one') : 'no';
+
+            verdict = `There should be ${only ?  `${only} ${n}` : n} attribute${n > 1 ? 's' : ''}${prepo ? ` in the ${tt.tagName} tag` : ''}.`;
         }
 
         return;
     };
-
+    
+    // compare tree lengths
     if (model.length !== input.length) {
-        verdict = `There should be${model.length < input.length ? ' only' : ''} ${model.length || 'no'} element${model.length ? model.length > 1 ? 's' : '' : ''} in your code.`;
+        const
+            modelElements = model.filter(e => e.type === 'element'),
+            modelTexts = model.filter(e => e.type === 'text'),
+            inputElements = input.filter(e => e.type === 'element'),
+            inputTexts = input.filter(e => e.type === 'text');
+
+        // different element lengths
+        if (modelElements.length !== inputElements.length) {
+            if (!modelElements.length) {
+                const it = `${inputElements[0].openingTag.raw}${inputElements[0].content.length ? '...' : ''}${inputElements[0].closingTag.raw || ''}`;
+                verdict = `${it} is not required. Please remove it.`;
+            }
+            else {
+                const
+                    only = modelElements.length && modelElements.length < inputElements.length ? 'only' : '',
+                    n = `${modelElements.length ? (modelElements.length > 1 ? modelElements.length : (!inputElements.length ? 'an' : 'one')) : 'no'}`,
+                    elements = `element${modelElements.length ? modelElements.length > 1 ? 's' : '' : ''}`;
+    
+                if (n === 'an') verdict = "Your code shouldn't be empty.";
+                else verdict = `There should be ${only ? `${only} ${n}` : n} ${elements} in your code.`;
+            }
+        }
+        // different text node lengths
+        else if (modelTexts.length !== inputTexts.length) {
+            if (!modelTexts.length) {
+                verdict = `${inputTexts[0].raw.trim()} is not required. Please remove it.`;
+            }
+            else {
+                const
+                    only = modelTexts.length && modelTexts.length < inputTexts.length ? 'only' : '',
+                    n = `${modelTexts.length ? (modelTexts.length > 1 ? modelTexts.length : (!inputTexts.length ? 'an' : 'one')) : 'no'}`,
+                    textNodes = `text node${modelTexts.length ? modelTexts.length > 1 ? 's' : '' : ''}`;
+
+                if (n === 'an') verdict = "Your code shouldn't be empty.";
+                else verdict = `There should be ${only ? `${only} ${n}` : n} ${textNodes} in your code.`;
+            }
+        }
+        else if (!input.length) {
+            verdict = "Your code shouldn't be empty.";
+        }
     }
     else {
-        // loop through every teacher node and find equivalent node in learner code
-        return model.every((e, i) => matchElement(e, input[i]));
+        if (model[0].type === 'attributes') {
+            if (input[0].type !== 'attributes') {
+                const it = input[0].type === 'text' ? `"${input[0].raw.trim()}"` : `${input[0].openingTag.raw}${input[0].content.length ? '...': ''}${input[0].closingTag.raw || ''}`;
+                verdict = `${it} is not an attribute. Please read the instructions again.`;
+            }
+            else matchAttrs(model[0], input[0]);
+        }
+        else {
+            // loop through every teacher node and find equivalent node in learner code
+            model.every((e, i) => matchElement(e, input[i]));
+        }
     }
+
+    // this._messages = verdict ? [{
+    //     type: messageType.fail,
+    //     message: verdict,
+    // }] : [];
+
+    return !verdict;
+}
+
+// ===== AstComparer.js ===== //
+function equalsIgnoreWhitespace(a, b) {
+    a = removeWhitespace(a);
+    b = removeWhitespace(b);
+    return a === b;
+}
+
+function removeWhitespace(string) {
+    if (string !== undefined) {
+        return string.replace(/[\s]/gi, '');
+    }
+    return;
+}
+
+function collapseWhitespace(string) {
+    if (string !== undefined) {
+        return string.replace(/[\s\n]+/g, ' ');
+    }
+    return;
+}
+
+function defaultDeclarationMessage(expect, value) {
+    return `${value} is incorrect. Please read the instructions again.`;
+}
+
+function matchesOption(expect, value) {
+    const options = parseOptions(expect);
+    return options.indexOf(value) >= 0;
+}
+
+function parseOptions(o) {
+    const match = /##[\s\w]+\((.*)\)\s*##/.exec(o);
+    if (match && match.length > 0) {
+        return _.map(
+            match[1].split(';'),
+            o => o.trim()
+        );
+    }
+    throw `Error parsing options '${o}'.`;
+}
+
+function convertToLowerCase(string) {
+    if (string !== undefined) {
+        return string.toLowerCase();
+    }
+    return string;
+}
+
+// To compare 2 string
+function equalsCollapseWhitespace(a, b) {
+    return collapseWhitespace(a) === collapseWhitespace(b);
+}
+
+function findRegularExpression(string) {
+    if (/##\s*[a-zA-Z]+\s*\(\s*\)\s*##/.test(string)) throw new Error(`Please provide at least 1 match option for ${string}.`);
+
+    const comparison = _.find(comparisonMode, (c) => {
+        if (c.match) {
+            return !!(c.match.exec(string));
+        }
+        else if (c.type === 'default') {
+            return true;
+        }
+    });
+    return comparison;
+}
+
+const comparisonMode = {
+    rgb: {
+        name: 'rgb',
+        compatible: ['css', 'js'],
+        match: /rgba?\([\.\d,\s]+\)/,
+        comparer: (expt, val) => equalsIgnoreWhitespace(convertToLowerCase(expt), convertToLowerCase(val)),
+        message: defaultDeclarationMessage,
+    },
+    anyOf: {
+        type: 'anyOf',
+        compatible: ['html', 'css', 'js'],
+        match: /##\s*ANY\s*\(.*\)\s*##/,
+        comparer: (expt, val) => matchesOption(expt, val),
+        message: (expt, val) => `${val} is incorrect. Try using ${grammafy(parseOptions(expt))}.`,
+    },
+    not: {
+        type: 'not',
+        compatible: ['html', 'css', 'js'],
+        match: /##\s*NOT\s*\(.*\)\s*##/,
+        comparer: (expt, val) => !matchesOption(expt, val),
+        message: (expt, val) => `${val} is incorrect. Try using a different value.`,
+    },
+    any: {
+        type: 'any',
+        compatible: ['html', 'css', 'js'],
+        match: /##\s*ANY\s*##/,
+        comparer: (expt, val) => true,
+        message: (expt, val) => '',
+    },
+    color: {
+        type: 'color',
+        compatible: ['css', 'js'],
+        match: /##\s*COLOR\s*##/,
+        comparer: (expt, val) => matchColorOption('##COLOR(HEX;NAMED;RGB;RGBA)##', val),
+        message: (expt, val) => `${val} is incorrect. Try using any color value.`,
+    },
+    colorWithOptions: {
+        type: 'colorWithOptions',
+        compatible: ['css', 'js'],
+        match: /##\s*COLOR\s*\(.*\)\s*##/,
+        comparer: (expt, val) => matchColorOption(expt, val),
+        message: (expt, val) => {
+            const options = parseOptions(expt);
+            if (options.length === 1) {
+                const opt = options[0];
+                return defaultDeclarationMessage(expt, val);
+            } else {
+                return `${val} is incorrect. Try using ${grammafy(options.map((opt) => colorText[opt]))}.`;
+            }
+        },
+    },
+    url: {
+        type: 'url',
+        compatible: ['css', 'js'],
+        match: /##\s*URL\s*##/,
+        comparer: (expt, val) => compareWithRegExp('url', '([\'"])?[^\'"\s]+\.(jpg|gif|jpeg|bmp|png|svg)[^\'"\s]*\\1', val),
+        message: (expt, val) => {
+            let wrap = /url[(].*[)]/, link = /^(['"])?[^'"\s]+\.(jpg|gif|jpeg|bmp|png|svg)[^'"\s]*\1$/;
+            if (!wrap.test(val)) {
+                return `${val} is incorrect. The syntax should be: url("link").`;
+            }
+            else if (!link.test(val.replace(/url[(](.*)[)]\s*;/, '$1').trim())) {
+                return `${val.replace(/url[(](.*)[)]\s*;/, '$1').trim()} doesn't contain a valid image link. Please read the instructions again.`;
+            } else {
+                return defaultDeclarationMessage;
+            }
+        },
+    },
+    default: {
+        type: 'default',
+        compatible: ['html', 'css', 'js'],
+        comparer: (expt, val) => equalsCollapseWhitespace(convertToLowerCase(expt), convertToLowerCase(val)),
+        message: defaultDeclarationMessage,
+    },
+};
+
+function compareWithRegExp(type, valueReg, string) {
+    const match = (new RegExp(`^${type}[(](.+)[)]$`, 'i')).exec(string.trim());
+    if (valueReg === undefined) {
+        return !!match;
+    }
+
+    if (match && match.length > 1) {
+        return !!(new RegExp(`^${valueReg}$`, 'i')).exec(match[1].trim());
+    }
+    return false;
+}
+
+const colorText = {
+    NAMED: 'a color name',
+    HEX: 'a hex color',
+    RGB: 'an rgb color',
+    RGBA: 'an rgba color',
+};
+
+function matchColorOption(expt = '##COLOR(HEX;NAMED;RGB;RGBA)##', val) {
+    const options = parseOptions(expt);
+    let isMatch = false;
+    for (let i = 0; i < options.length; i++) {
+        switch (options[i]) {
+            case 'NAMED':
+                isMatch = cssColors[val] !== undefined;
+                break;
+            case 'HEX':
+                isMatch = verifyHexColor(val);
+                break;
+            case 'RGB':
+                isMatch = verifyRGBColor(val);
+                break;
+            case 'RGBA':
+                isMatch = verifyRGBAColor(val);
+                break;
+        }
+        if (isMatch) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function verifyHexColor(color) {
+    return !!/^#[a-fA-F0-9]{3,6}$/.exec(color) && (color.length === 4 || color.length === 7);
+}
+
+function verifyRGBColor(color) {
+    return compareWithRegExp('rgb', addSpaceRegExp('[\\d]+,[\\d]+,[\\d]+'), color);
+}
+
+function verifyRGBAColor(color) {
+    return compareWithRegExp('rgba', addSpaceRegExp('[\\d]+,[\\d]+,[\\d]+,[.\\d]+'), color);
+}
+
+function addSpaceRegExp(string) {
+    string = string.replace(/,/g, '[\\s\\n]*,[\\s\\n]*');
+    return string;
+}
+
+function grammafy(valArray, connector = 'or', quotes = '') {
+    if (quotes.trim().length) valArray.forEach((v, i) => valArray[i] = `${quotes}${v}${quotes}`);
+
+    valArray.some((v, i) => {
+        if (valArray.length >= 3) {
+            valArray[i] += (i === valArray.length - 2 ? ` ${connector}` : ',');
+        } else {
+            valArray[i] += (i === 0 ? (valArray.length > 1 ? ` ${connector}` : '') : '');
+        }
+        return i === valArray.length - 2;
+    });
+
+    return valArray.join(' ');
 }
 
 // ===== LB IRRELEVANT ===== //
-function reset() {
-    console.clear();
-    result = { teacher: {}, learner: {} };
-    verdict = null;
-    ambiguous = { elem: [], closingTag: [] };
-}
+// function reset() {
+//     console.clear();
+//     result = { teacher: {}, learner: {} };
+//     verdict = null;
+//     ambiguous = { elem: [], closingTag: [] };
+// }
 
 function initialize() {
     teacher.value = ti;
     learner.value = li;
 
     btnCompare.onclick = () => {
-        reset();
+        console.clear();
         const tt = HtmlAst(teacher.value, 'Teacher');
 
         if (!verdict) {
-            const lt = HtmlAst(learner.value, 'Learner');
+            const lt = HtmlAst(learner.value, 'Learner', tt.exception || '');
 
             if (!verdict) {
                 compare(tt, lt);
