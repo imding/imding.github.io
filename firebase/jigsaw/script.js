@@ -1,83 +1,17 @@
-let
-    levels = new Array(32),
-    cutoff = 18,
-    nth = 0,
-    sizeRatio = 0.9,
-    puzzle = [],
-    puzzleGrid = [],
-    fire,
-    userInfo = {},
-    image,
-    popup,
-    resolution,
-    activeIndex,
-    activeGrid,
-    secondaryLocation,
-    bg = { wrapper: null, image: null },
-    mouseDown = false,
-    tap = Date.now();
-
-const leaderboard = {
-        best: {
-            name: '',
-            score: 0,
-            time: 0,
-        },
-        load: (then) => {
-            showPopup('Loading leaderboard...');
-
-            console.log('fetching data...');
-            fire.once('value', (snapshot) => {
-                document.body.removeChild(popup.element);
-                const showInfo = () => {
-                    showPopup(`No one has solved all ${levels.length} puzzles yet. Good Luck!`, 'Play', () => {
-                        document.body.removeChild(popup.element);
-                        then();
-                    });
-                };
-
-                if (!snapshot.hasChildren()) return showInfo();
-
-                const records = Object.keys(snapshot.val());
-
-                if (!records.length) return showInfo();
-
-                records.forEach(uid => {
-                    console.log('fetched:', snapshot.val()[uid]);
-                    if (uid === localStorage.getItem('BSDUID')) {
-                        console.log(`${uid} found in local storage`);
-                        Object.assign(userInfo, snapshot.val()[uid]);
-                    }
-
-                    if (!snapshot.val()[uid].hasOwnProperty('jigsaw')) return;
-
-                    if (snapshot.val()[uid].jigsaw.score > leaderboard.best.score || !leaderboard.best.score) {
-                        leaderboard.best = {
-                            name: snapshot.val()[uid].name,
-                            score: snapshot.val()[uid].jigsaw.hasOwnProperty('score') ? snapshot.val()[uid].jigsaw.score : 0,
-                            time: snapshot.val()[uid].jigsaw.hasOwnProperty('elapsed_time') ? snapshot.val()[uid].jigsaw.elapsed_time : 0,
-                        };
-                    }
-                });
-
-                if (leaderboard.best.name) {
-                    showPopup(`<span class='blue'>${leaderboard.best.name}</span><br>solved ${leaderboard.best.score} puzzles in<br><span class='gold'>${Math.ceil(leaderboard.best.time / 1000)}</span> seconds`, 'Play', () => {
-                        document.body.removeChild(popup.element);
-                        then();
-                    });
-                }
-                else then();
-            });
-        },
-        add: (data, then = () => { }) => {
-            showPopup('Saving info to database...');
-            const ref = fire.child(userInfo.uid);
-            ref.transaction(() => data, () => {
-                document.body.removeChild(popup.element);
-                then();
-            });
-        },
-    };
+var levels = new Array(32);
+var nth = 0;
+var sizeRatio = 0.9;
+var puzzle = [];
+var puzzleGrid = [];
+var image;
+var popup;
+var resolution;
+var activeIndex;
+var activeGrid;
+var secondaryLocation;
+var bg = { wrapper: null, image: null };
+var mouseDown = false;
+var tap = Date.now();
 
 // ===== FUNCTIONS ===== //
 
@@ -117,8 +51,6 @@ function setBackground() {
 
 function loadImage() {
     if (!image) image = document.createElement('img');
-
-    nth = (userInfo.jigsaw && userInfo.jigsaw.score) || nth;
 
     image.src = levels[nth].link;
     info.textContent = `Loading the ${rank(nth + 1)} puzzle...`;
@@ -247,10 +179,8 @@ function movePiece(clientX, clientY) {
         console.log('Picked up from', puzzleGrid[activeIndex]);
         console.log(`puzzle[${activeIndex}].isEmpty: ${puzzleGrid[activeIndex].isEmpty}`);
 
-        if (activeGrid)
-            console.log('Hovering above', activeGrid);
-        else
-            console.log('Hovering outside puzzle.');
+        if (activeGrid) console.log('Hovering above', activeGrid);
+        else console.log('Hovering outside puzzle.');
     }
 }
 
@@ -274,9 +204,6 @@ function dropPiece(clientX, clientY) {
         }
         activeIndex = null;
     }
-
-    // const selection = window.getSelection();
-    // if (selection.type == 'Range') selection.removeAllRanges();
 }
 
 function placePiece(target) {
@@ -311,59 +238,15 @@ function checkPuzzle() {
     if (pass && puzzleGrid.every(grid => !grid.isEmpty)) {
         nth++;
 
-        if (new Date().getHours() < cutoff) {
-            // total puzzles sovled greater than server side score
-            if (nth > userInfo.jigsaw.score) {
-                // not the last level
-                if (nth < levels.length) {
-                    Object.assign(userInfo.jigsaw, {
-                        score: nth,
-                        elapsed_time: Date.now() - userInfo.jigsaw.start_time,
-                    });
-                    leaderboard.add(userInfo, () => {
-                        showPopup(`Well done! You solved the ${rank(nth)} puzzle!`, 'Next puzzle', () => {
-                            document.body.removeChild(popup.element);
-                            resetPuzzle();
-                        });
-                    });
-                }
-                // last level
-                else {
-                    userInfo.jigsaw.elapsed_time = Date.now() - userInfo.jigsaw.start_time;
-                    Object.assign(userInfo.jigsaw, {
-                        score: nth,
-                        elapsed_time: userInfo.jigsaw.elapsed_time,
-                    });
-                    leaderboard.add(userInfo, () => {
-                        showPopup(
-                            `Congratulations!<br>You solved all ${levels.length} puzzles in<br><span class='gold'>${Math.ceil(userInfo.jigsaw.elapsed_time / 1000)}</span> seconds<br><br>`,
-                            'Play Again',
-                            () => window.location.reload(true)
-                        );
-                    });
-                }
-            }
-            // solved already
-            else {
-                showPopup(
-                    'You\'ve already solved this puzzle',
-                    'Next Puzzle',
-                    () => {
-                        document.body.removeChild(popup.element);
-                        resetPuzzle();
-                    }
-                );
-            }
+        if (nth === levels.length) {
+            showPopup(
+                'Congratulations!<br>You solved all ' + levels.length + ' puzzles!<br><br>',
+                'Play Again',
+                () => window.location.reload(true)
+            );
         }
         else {
-            showPopup(
-                `Leaderboard is closed after ${cutoff > 12 ? cutoff - 12 : cutoff}${cutoff >= 12 ? 'P' : 'A'}M`,
-                'Continue',
-                () => {
-                    document.body.removeChild(popup.element);
-                    resetPuzzle();
-                }
-            );
+            resetPuzzle();
         }
     }
 }
@@ -378,11 +261,6 @@ function resetPuzzle() {
     mouseDown = false;
 
     loadImage();
-
-    if (userInfo.jigsaw && userInfo.jigsaw.score > 3) {
-        // offer to fill in parent information
-        parentInfo();
-    }
 }
 
 function toggleFullScreen() {
@@ -492,149 +370,6 @@ function showPopup(messageContent, buttonText, action, close = false, closeActio
     };
 }
 
-function parentInfo() {
-    console.log('userInfo:', userInfo);
-
-    const validateParentInfo = () => {
-        return [
-            userInfo.hasOwnProperty('parent_name') && userInfo.parent_name.trim().length,
-            userInfo.hasOwnProperty('parent_email') && userInfo.parent_email.trim().length,
-            userInfo.hasOwnProperty('parent_number') && userInfo.parent_number.trim().length,
-        ].every(c => c);
-    };
-
-    if (validateParentInfo()) {
-        return true;
-    }
-    else {
-        const toggleSubmitButton = () => {
-            popup.button.disabled = ![tnc, parentFirstName, parentLastName, parentNumber, parentEmail].every((field, i) => {
-                return i ? field.value.trim().length : field.checked;
-            });
-            style([popup.button], { opacity: `${popup.button.disabled ? '0.5' : '1'}` });
-        };
-
-        showPopup(
-            `Fill out this form to enter ranked play and win our awesome prizes<hr>
-            <div style='width:49%; float:left; text-align:left'>
-                <span style='font-size:0.6em; color:silver; line-height:0'>Parent First Name</span><br>
-                <input id='parentFirstName' type='text' style='width:100%'>
-            </div>
-            <div style='width:49%; float:right; text-align:left'>
-                <span style='font-size:0.6em; color:silver; line-height:0'>Parent Last Name</span><br>
-                <input id='parentLastName' type='text' style='width:100%'>
-            </div>
-            <div style='text-align:left'>
-                <span style='font-size:0.6em; color:silver; line-height:0'>Parent Contact Number</span><br>
-                <input id='parentNumber' type='text' style='width:100%'>
-            </div>
-            <div style='text-align:left'>
-                <span style='font-size:0.6em; color:silver; line-height:0'>Parent Email</span><br>
-                <input id='parentEmail' type='text' style='width:100%'>
-            </div>
-            <br>
-            <div style='text-align: left'>
-                <input id='receiveUpdates' type='checkbox'><label for='receiveUpdates'>I (Parent) do not wish to receive future updates from BSD</label><br>
-                <input id='tnc' type='checkbox' checked><label for='tnc'>I (Parent) agree to BSD's <a href='https://hk.bsdacademy.com/terms-conditions/' target='_blank'>Terms & Conditions</label>
-            </div><hr>`,
-            'Submit',
-            () => {
-                userInfo.parent_name = `${parentFirstName.value.trim()} ${parentLastName.value.trim().toUpperCase()}`;
-                userInfo.parent_number = parentNumber.value.trim();
-                userInfo.parent_email = parentEmail.value.trim();
-                userInfo.receive_updates = receiveUpdates.checked ? 'No' : 'Yes';
-
-                document.body.removeChild(popup.element);
-                leaderboard.add(userInfo);
-            }
-        );
-
-        parentFirstName.oninput = toggleSubmitButton;
-        parentLastName.oninput = toggleSubmitButton;
-        parentNumber.oninput = toggleSubmitButton;
-        parentEmail.oninput = toggleSubmitButton;
-        tnc.onchange = toggleSubmitButton;
-
-        toggleSubmitButton();
-    }
-}
-
-function personalInfo() {
-    console.log('userInfo:', userInfo);
-    if (userInfo.hasOwnProperty('uid')) {
-        if (!userInfo.hasOwnProperty('jigsaw')) {
-            userInfo.jigsaw = {
-                score: 0,
-                start_time: Date.now(),
-            };
-        }
-        return true;
-    }
-    else {
-        const toggleSubmitButton = () => {
-            popup.button.disabled = ![playerAge, playerFirstName, playerLastName, schoolName].every((field, i) => {
-                return i ? field.value.trim().length : Number.isInteger(Number(field.value));
-            });
-            style([popup.button], { opacity: `${popup.button.disabled ? '0.5' : '1'}` });
-        };
-
-        showPopup(
-            `Please tell us a little about yourself<hr>
-            <input id='playerFirstName' type='text' placeholder='First name' style='width:45%'> <input id='playerLastName' type='text' placeholder='Last name' style='width:45%'><br>
-            <select id='playerAge' style='margin-top:10px'>
-                <option selected>Age</option>
-                <option>5</option>
-                <option>6</option>
-                <option>7</option>
-                <option>8</option>
-                <option>9</option>
-                <option>10</option>
-                <option>11</option>
-                <option>12</option>
-                <option>13</option>
-                <option>14</option>
-                <option>15</option>
-                <option>16</option>
-                <option>17</option>
-                <option>18</option>
-            </select> <input id='schoolName' type='text' placeholder='Your school name' style='width:70%'><hr>`,
-            'Submit',
-            () => {
-                // create new user in database
-                userInfo.uid = guid();
-                localStorage.setItem('BSDUID', userInfo.uid);
-                console.log('saved uid to local storage:', localStorage.BSDUID);
-
-                userInfo.age = playerAge.value;
-                userInfo.name = `${playerFirstName.value.trim()} ${playerLastName.value.trim().toUpperCase()}`;
-                userInfo.school = schoolName.value.trim().toUpperCase();
-                userInfo.jigsaw = {
-                    score: 0,
-                    start_time: Date.now(),
-                };
-
-                document.body.removeChild(popup.element);
-                leaderboard.add(userInfo);
-            }
-        );
-
-        playerAge.onchange = toggleSubmitButton;
-        playerFirstName.oninput = toggleSubmitButton;
-        playerLastName.oninput = toggleSubmitButton;
-        schoolName.oninput = toggleSubmitButton;
-
-        toggleSubmitButton();
-    }
-}
-
-function guid() {
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    }
-
-    return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
-}
-
 // ===== EVENTS ===== //
 
 window.onresize = () => {
@@ -646,39 +381,14 @@ window.onresize = () => {
     }
 };
 
-// window.onload = () => {
-//     console.log(levels);
-//     for (let i = 0; i < levels.length; i++) {
-//         levels[i] = {link: '', grid: i % 3 ? 2 : 3};
-//         levels[i].link = `img/${i}.png`;
-//     }
-
-//     fire = new Firebase('https://bsd-jigsaw.firebaseio.com/');
-
-//     leaderboard.load(() => {
-//         const requestFullScreen =
-//             window.document.documentElement.requestFullscreen ||
-//             window.document.documentElement.mozRequestFullScreen ||
-//             window.document.documentElement.webkitRequestFullScreen ||
-//             window.document.documentElement.msRequestFullscreen;
-
-//         if (requestFullScreen) {
-//             showPopup(
-//                 'You can double tab the screen to go full screen mode',
-//                 'Okay',
-//                 () => {
-//                     document.body.removeChild(popup.element);
-//                     personalInfo();
-//                     loadImage();
-//                 }
-//             );
-//         }
-//         else {
-//             personalInfo();
-//             loadImage();
-//         }
-//     });
-// };
+window.onload = () => {
+    for (let i = 0; i < levels.length; i++) {
+        levels[i] = {link: '', grid: i % 3 ? 2 : 3};
+        levels[i].link = `img/${i}.png`;
+    }
+    
+    loadImage();
+};
 
 window.ontouchstart = (evt) => {
     if (evt.touches.length === 1) selectPiece(evt.target);
