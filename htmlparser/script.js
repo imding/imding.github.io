@@ -1,5 +1,5 @@
 const
-    ti = '<h1 class="head"> ',
+    ti = 'onclick = "func()"',
     li = '<h1 class="heading"> ';
 
 let ctrl;
@@ -38,6 +38,23 @@ const
             'autocomplete',
             'accept-charset', 'autocapitalize',
             'contenteditable',
+
+            // window events
+            'onafterprint', 'onbeforeprint', 'onbeforeunload', 'onerror', 'onhashchange', 'onload', 'onmessage', 'onoffline', 'ononline', 'onpageshow', 'onpopstate', 'onresize', 'onstorage',
+            // form events
+            'onblur', 'onchange', 'oncontextmenu', 'onfocus', 'oninput', 'oninvalid', 'onreset', 'onsearch', 'onselect', 'onsubmit',
+            // keyboard events
+            'onkeydown', 'onkeypress', 'onkeyup',
+            // mouse events
+            'onclick', 'ondblclick', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onwheel',
+            // drag events
+            'ondrag', 'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'onscroll',
+            // clipboard events
+            'oncopy', 'oncut', 'onpaste',
+            // media events
+            'onabort', 'oncanplaythrough', 'oncuechange', 'ondurationchange', 'onemptied', 'onended', 'onerror', 'onloadeddata', 'onloadedmetadata', 'onloadstart', 'onpaush', 'onplay', 'onplaying', 'onprogress', 'onratechange', 'onseeked', 'onseeking', 'onstalled', 'onsuspend', 'ontimeupdate', 'onvalumechange', 'onwaiting',
+            // misc events
+            'onshow', 'ontoggle',
         ],
         boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
     };
@@ -81,12 +98,21 @@ function HtmlAst(strHTML, origin, exception = null) {
                 // detect lone attributes
                 const aa = checkAttribute(` ${t[0].trim()}`);
 
-                if (!verdict && aa) {
+                // attribute array returned
+                if (aa) {
+                    // set exception for teacher result
+                    if (exception === null) tree.exception = 'attributes only';
                     tree.push({ attrs: aa, raw: t[0].trim(), type: 'attributes' });
                 }
+                // no attribute array returned
                 else {
-                    verdict = '';
-                    tree.push({ raw: t[0], rawCollapsed: t[0].replace(/\s+/g, ' '), type: 'text' });
+                    // break loop if attribute only is expected
+                    if (exception === 'attributes only') break;
+                    else {
+                        // clear error message and store string as plain text
+                        verdict = '';
+                        tree.push({ raw: t[0], rawCollapsed: t[0].replace(/\s+/g, ' '), type: 'text' });
+                    }
                 }
             }
         }

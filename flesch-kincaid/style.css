@@ -1,0 +1,30 @@
+body {
+    text-align: center;
+    background: #252525;
+    font-family: monospace;
+}
+
+textarea {
+    display: block;
+	width: 90vw;
+    max-width: 500px;
+    height: calc(100vh - 200px);
+	padding: 10px;
+	margin: 10px auto;
+	border: none;
+	outline: none;
+	color: ghostwhite;
+	background: #1e1e1e;
+	resize: none;
+}
+
+#submit {
+    font-family: monospace;
+    font-size: 1.5em;
+    padding: 10px 20px;
+}
+
+#info {
+    font-size: 1.2em;
+    color: firebrick;
+}
