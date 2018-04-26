@@ -1,16 +1,26 @@
+// minimum resolution of the puzzle
 var grid = 2;
+// 90% of window width
 var maxWidth = 0.9;
+// 30% of window height
 var maxHeight = 0.3;
+// array holding all the puzzle pieces
 var puzzle = [];
+// array of grids ( where pieces go )
 var puzzleGrid = [];
+// the puzzle image
 var image;
-var popup;
+// actual resolution of the puzzle i.e 2 x 3
 var resolution;
+// index of the puzzle pieces being picked up
 var activeIndex;
+// index of the grid that is being hovered over
 var activeGrid;
+// the location of the active piece before being picked up
 var secondaryLocation;
 var bg = { wrapper: null, image: null };
 var mouseDown = false;
+var popup;
 
 // ===== FUNCTIONS ===== //
 
@@ -49,25 +59,25 @@ function setBackground() {
 }
 
 function loadImage() {
-    // showPopup('Loading Image...');
+    showPopup('Loading Image...');
 
-    // const checkLoadStatus = setTimeout(function () {
-    //     if (document.body.contains(popup.element)) {
-    //         document.body.removeChild(popup.element);
-    //         showPopup(
-    //             "Couldn't load the image after 10 seconds, please make sure the image link is correct.",
-    //             'Okay',
-    //             () => document.body.removeChild(popup.element)
-    //         );
-    //     }
-    // }, 10000);
+    const checkLoadStatus = setTimeout(function () {
+        if (document.body.contains(popup.element)) {
+            document.body.removeChild(popup.element);
+            showPopup(
+                "Couldn't load the image after 10 seconds, please make sure the image link is correct.",
+                'Okay',
+                () => document.body.removeChild(popup.element)
+            );
+        }
+    }, 10000);
 
     image = document.createElement('img');
     image.src = link.value;
 
     image.onload = () => {
-        // clearTimeout(checkLoadStatus);
-        // document.body.removeChild(popup.element);
+        clearTimeout(checkLoadStatus);
+        document.body.removeChild(popup.element);
 
         const ir = image.width / image.height;
 
@@ -92,16 +102,16 @@ function initialze() {
         piece.location = puzzleGrid[i];
 
         // put random pieces into the tray area
-        // if (Math.random() > 0.7) {
+        if (Math.random() > 0.7) {
             puzzleGrid[i].isEmpty = false;
             piece.style.left = puzzleGrid[i].x;
             piece.style.top = puzzleGrid[i].y;
-        // }
-        // else {
-        //     puzzleGrid[i].isEmpty = true;
-        //     piece.style.left = range(10, puzzleContainer.offsetWidth - piece.offsetWidth - 10) + 'px';
-        //     piece.style.top = range(tray.offsetTop, window.innerHeight - puzzleContainer.offsetTop - piece.offsetHeight) - 20 + 'px';
-        // }
+        }
+        else {
+            puzzleGrid[i].isEmpty = true;
+            piece.style.left = range(10, puzzleContainer.offsetWidth - piece.offsetWidth - 10) + 'px';
+            piece.style.top = range(tray.offsetTop, window.innerHeight - puzzleContainer.offsetTop - piece.offsetHeight) - 20 + 'px';
+        }
     });
 }
 
@@ -372,11 +382,11 @@ function showPopup(messageContent, buttonText, action, close = false, closeActio
 
 // ===== EVENTS ===== //
 
-// update.onclick = resetPuzzle;
+update.onclick = resetPuzzle;
 
-// link.onfocus = () => {
-//     link.setSelectionRange(0, link.value.length);
-// };
+link.onfocus = () => {
+    link.setSelectionRange(0, link.value.length);
+};
 
 window.onload = loadImage;
 
