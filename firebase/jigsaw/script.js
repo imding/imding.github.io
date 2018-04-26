@@ -1,6 +1,6 @@
-var levels = new Array(32);
-var nth = 0;
-var sizeRatio = 0.9;
+var grid = 2;
+var maxWidth = 0.9;
+var maxHeight = 0.3;
 var puzzle = [];
 var puzzleGrid = [];
 var image;
@@ -11,7 +11,6 @@ var activeGrid;
 var secondaryLocation;
 var bg = { wrapper: null, image: null };
 var mouseDown = false;
-var tap = Date.now();
 
 // ===== FUNCTIONS ===== //
 
@@ -40,8 +39,8 @@ function setBackground() {
 
     style([bg.image], {
         position: 'relative',
-        width: window.innerWidth > bg.image.width ? '110%' : 'initial',
-        height: window.innerHeight > bg.image.height ? '110%' : 'initial',
+        width: window.innerWidth > bg.image.width ? '110%' : '',
+        height: window.innerHeight > bg.image.height ? '110%' : '',
         left: '50%',
         top: '50%',
         transform: 'translate(-50%, -50%)',
@@ -50,21 +49,35 @@ function setBackground() {
 }
 
 function loadImage() {
-    if (!image) image = document.createElement('img');
+    // showPopup('Loading Image...');
 
-    image.src = levels[nth].link;
-    info.textContent = `Loading the ${rank(nth + 1)} puzzle...`;
+    // const checkLoadStatus = setTimeout(function () {
+    //     if (document.body.contains(popup.element)) {
+    //         document.body.removeChild(popup.element);
+    //         showPopup(
+    //             "Couldn't load the image after 10 seconds, please make sure the image link is correct.",
+    //             'Okay',
+    //             () => document.body.removeChild(popup.element)
+    //         );
+    //     }
+    // }, 10000);
+
+    image = document.createElement('img');
+    image.src = link.value;
 
     image.onload = () => {
+        // clearTimeout(checkLoadStatus);
+        // document.body.removeChild(popup.element);
+
         const ir = image.width / image.height;
 
         resolution = [
-            ir >= 0 ? Math.round(levels[nth].grid * ir) : levels[nth].grid,
-            ir >= 0 ? levels[nth].grid : Math.round(levels[nth].grid * ir),
+            ir >= 0 ? Math.round(grid * ir) : grid,
+            ir >= 0 ? grid : Math.round(grid * ir),
         ];
+
         setBackground();
         initialze();
-        info.textContent = `You're solving the ${rank(nth + 1)} puzzle.`;
     };
 }
 
@@ -72,27 +85,30 @@ function initialze() {
     generatePuzzle();
     shuffle(puzzle);
 
-    spare.style.height = `${window.innerHeight - spare.offsetTop}px`;
+    tray.style.height = `${window.innerHeight - tray.offsetTop}px`;
 
     puzzle.forEach((piece, i) => {
         puzzleContainer.appendChild(piece);
         piece.location = puzzleGrid[i];
-        if (Math.random() > 0.7) {
+
+        // put random pieces into the tray area
+        // if (Math.random() > 0.7) {
             puzzleGrid[i].isEmpty = false;
             piece.style.left = puzzleGrid[i].x;
             piece.style.top = puzzleGrid[i].y;
-        } else {
-            puzzleGrid[i].isEmpty = true;
-            piece.style.left = range(10, puzzleContainer.offsetWidth - piece.offsetWidth - 10) + 'px';
-            piece.style.top = range(spare.offsetTop, window.innerHeight - puzzleContainer.offsetTop - piece.offsetHeight) - 20 + 'px';
-        }
+        // }
+        // else {
+        //     puzzleGrid[i].isEmpty = true;
+        //     piece.style.left = range(10, puzzleContainer.offsetWidth - piece.offsetWidth - 10) + 'px';
+        //     piece.style.top = range(tray.offsetTop, window.innerHeight - puzzleContainer.offsetTop - piece.offsetHeight) - 20 + 'px';
+        // }
     });
 }
 
 function generatePuzzle() {
     const
-        hr = window.innerWidth * sizeRatio / image.width,
-        vr = window.innerHeight * sizeRatio / image.height,
+        hr = window.innerWidth * maxWidth / image.width,
+        vr = window.innerHeight * maxHeight / image.height,
         r = Math.min(hr, vr);
 
     // loop to create all pieces in the puzzle
@@ -188,16 +204,18 @@ function dropPiece(clientX, clientY) {
     if (Number.isInteger(activeIndex)) {
         if (activeGrid && activeGrid.isEmpty) {
             placePiece(activeGrid);
-        } else {
+        }
+        else {
             const
-                h = clientX >= spare.offsetLeft && clientX <= spare.offsetLeft + spare.offsetWidth,
-                v = clientY >= spare.offsetTop + puzzle[activeIndex].offsetHeight / 2 && clientY <= spare.offsetTop + spare.offsetHeight;
+                h = clientX >= tray.offsetLeft && clientX <= tray.offsetLeft + tray.offsetWidth,
+                v = clientY >= tray.offsetTop + puzzle[activeIndex].offsetHeight / 2 && clientY <= tray.offsetTop + tray.offsetHeight;
 
             // if dropped inside the blue area
             if (h && v) {
                 placePiece({ x: `${puzzle[activeIndex].offsetLeft}px`, y: `${puzzle[activeIndex].offsetTop}px` });
-                console.log('Dropped in spare box.');
-            } else {
+                console.log('Dropped in tray.');
+            }
+            else {
                 placePiece(secondaryLocation || puzzle[activeIndex].location);
                 secondaryLocation = null;
             }
@@ -236,22 +254,19 @@ function checkPuzzle() {
 
     // solved current puzzle
     if (pass && puzzleGrid.every(grid => !grid.isEmpty)) {
-        nth++;
-
-        if (nth === levels.length) {
-            showPopup(
-                'Congratulations!<br>You solved all ' + levels.length + ' puzzles!<br><br>',
-                'Play Again',
-                () => window.location.reload(true)
-            );
-        }
-        else {
-            resetPuzzle();
-        }
+        showPopup(
+            'Congratulations!<br>You solved the puzzles!<br>',
+            'Okay',
+            () => {
+                document.body.removeChild(popup.element);
+                resetPuzzle();
+            }
+        );
     }
 }
 
 function resetPuzzle() {
+    image = null;
     puzzle.forEach(piece => puzzleContainer.removeChild(piece));
 
     puzzle = [];
@@ -261,21 +276,6 @@ function resetPuzzle() {
     mouseDown = false;
 
     loadImage();
-}
-
-function toggleFullScreen() {
-    var doc = window.document;
-    var docEl = doc.documentElement;
-
-    var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-    var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-
-    if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
-        requestFullScreen.call(docEl);
-    }
-    else {
-        cancelFullScreen.call(doc);
-    }
 }
 
 function showPopup(messageContent, buttonText, action, close = false, closeAction) {
@@ -372,8 +372,16 @@ function showPopup(messageContent, buttonText, action, close = false, closeActio
 
 // ===== EVENTS ===== //
 
+// update.onclick = resetPuzzle;
+
+// link.onfocus = () => {
+//     link.setSelectionRange(0, link.value.length);
+// };
+
+window.onload = loadImage;
+
 window.onresize = () => {
-    style([spare], { height: `${window.innerHeight - spare.offsetTop}px` });
+    style([spare], { height: `${window.innerHeight - tray.offsetTop}px` });
 
     if (popup) {
         style([popup.element], { height: `${window.innerHeight}px` });
@@ -381,55 +389,35 @@ window.onresize = () => {
     }
 };
 
-window.onload = () => {
-    for (let i = 0; i < levels.length; i++) {
-        levels[i] = {link: '', grid: i % 3 ? 2 : 3};
-        levels[i].link = `img/${i}.png`;
-    }
-    
-    loadImage();
-};
-
-window.ontouchstart = (evt) => {
-    if (evt.touches.length === 1) selectPiece(evt.target);
-};
-
-window.onmousedown = (evt) => {
+window.onmousedown = () => {
     mouseDown = true;
-    selectPiece(evt.target);
+    selectPiece(event.target);
 };
 
-window.ontouchmove = (evt) => {
-    if (evt.touches.length === 1) movePiece(evt.touches[0].clientX, evt.touches[0].clientY);
-    evt.preventDefault();
+window.onmousemove = () => {
+    if (mouseDown) movePiece(event.clientX, event.clientY);
 };
 
-window.onmousemove = (evt) => {
-    if (mouseDown) movePiece(evt.clientX, evt.clientY);
-};
-
-window.ontouchend = (evt) => {
-    if (!activeIndex && !evt.touches.length) {
-        const time = Date.now();
-        if (time - tap < 200) toggleFullScreen();
-        tap = time;
-    }
-
-    dropPiece(evt.changedTouches[0].clientX, evt.changedTouches[0].clientY);
-};
-
-window.onmouseup = (evt) => {
+window.onmouseup = () => {
     mouseDown = false;
-    dropPiece(evt.clientX, evt.clientY);
+    dropPiece(event.clientX, event.clientY);
+};
+
+window.ontouchstart = () => {
+    if (event.touches.length === 1) selectPiece(event.target);
+};
+
+window.ontouchmove = () => {
+    if (event.touches.length === 1) movePiece(event.touches[0].clientX, event.touches[0].clientY);
+    // prevent default touch move functionalities such as overscrolling on iPhones
+    event.preventDefault();
+};
+
+window.ontouchend = () => {
+    dropPiece(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
 };
 
 // ===== UTILITY ===== //
-
-function rank(n) {
-    return n > 0 ?
-        n + (/1$/.test(n) && n != 11 ? 'st' : /2$/.test(n) && n != 12 ? 'nd' : /3$/.test(n) && n != 13 ? 'rd' : 'th') :
-        n;
-}
 
 function range(min, max, int = false) {
     const r = Math.random() * (max - min) + min;
@@ -439,7 +427,7 @@ function range(min, max, int = false) {
 function style(elem, declarations) {
     Object.keys(declarations).forEach(d => {
         elem.forEach(e => {
-            e.style[d.replace(/_/, '-')] = declarations[d];
+            if (declarations[d]) e.style[d.replace(/_/, '-')] = declarations[d];
         });
     });
 }

@@ -10,24 +10,17 @@ h1 {
     margin: 10px 0 5px 0;
 }
 
-input, select {
-    padding: 2px 0;
+#link {
+    padding: 5px;
+    margin: 10px 20px;
+    width: calc(100% - 50px);
     font-family: monospace;
     font-size: 0.8em;
     text-align: center;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.75);
     outline: none;
-}
-
-label {
-    color: grey;
-    font-size: 0.5em;
-}
-
-a {
-    color: ghostwhite;
-    text-decoration: none;
 }
 
 #puzzleContainer {
@@ -38,17 +31,24 @@ a {
     background: rgba(0, 0, 0, 0.75);
 }
 
-#spare {
+#tray {
 	margin: 0;
 	width: 100%;
 	background: rgba(0, 0, 0, 0.75);
 }
 
-#info {
+#update {
+    margin-bottom: 10px;
+    padding: 5px 10px;
     border-radius: 10px;
-    margin: 10px 20px;
-    padding: 5px;
-    background: rgba(255, 255, 255, 0.75);
+    font-family: monospace;
+    font-size: 1.1em;
+    border: none;
+    outline: none;
+}
+
+#update:active {
+    background-color: skyblue;
 }
 
 .piece {
