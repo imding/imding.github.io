@@ -1,14 +1,9 @@
 // JavaScript using Phaser.js library
 // Game Setup
 var maxWidth = 800;
-var gameWidth = (window.innerWidth) - 15;
+var gameWidth = Math.min((window.innerWidth) - 15, maxWidth);
 var heightRatio = 0.55;
 var gameHeight = (gameWidth * heightRatio);
-
-if (gameWidth > maxWidth) {
-    gameWidth = maxWidth;
-    gameHeight = (gameWidth * heightRatio);
-}
 
 var scaleRatio = gameWidth / maxWidth;
 
@@ -22,7 +17,7 @@ var game = new Phaser.Game(gameWidth, gameHeight, Phaser.AUTO, 'screen', {
 // Global Variables
 
 //physics
-var worldGravity = 500;
+var worldGravity = 1600;
 
 //input
 var cursors;
@@ -38,7 +33,7 @@ var coins;
 
 //movement
 var moveSpeed = 300;
-var jumpSpeed = -450;
+var jumpSpeed = -680;
 
 var velocityX;
 var velocityY;
@@ -86,7 +81,7 @@ function preload() {
 // Creates game objects before starting the game
 
 function create() {
-    game.world.setBounds(0, 0, game.width, game.height - (20 * scaleRatio));
+    game.world.setBounds(0, 0, game.width, game.height - 20);
 
     // Create physics and control input
     createInput();
@@ -106,7 +101,6 @@ function create() {
     // Add coin sprite and animation
     coins = game.add.group();
     createCoins(game.world.centerX, game.world.centerY);
-
 
     // Add enemy sprite and set his animation
     enemies = game.add.group();
@@ -208,7 +202,7 @@ function createCoins(x, y) {
 function createEnemies() {
     var enemy;
     for (var i = 0; i < 3; i++) {
-        enemy = enemies.create(Math.random() * game.width, Math.random() * game.height, 'enemy');
+        enemy = enemies.create(Math.random() * game.width, game.height, 'enemy');
 
         enemy.scale.setTo(1.5 * scaleRatio, 1.5 * scaleRatio);
         enemy.anchor.setTo(0.5, 0.5);
@@ -255,7 +249,7 @@ function enemyBattle(player, enemy) {
         player.body.velocity.y = jumpSpeed * 0.75;
 
         createCoins(enemy.x, enemy.y);
-        createEnemies();
+        // createEnemies();
 
         enemy.kill();
     }
@@ -317,7 +311,7 @@ function playerXMovement() {
 }
 
 function playerYMovement() {
-    if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down)) {
+    if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down )) {
         player.body.velocity.y = jumpSpeed;
     }
 }
