@@ -33,10 +33,10 @@ var coins;
 
 //movement
 var walk;
-var walkFrame;
-var moveSpeed = 100;
-var jumpSpeed = -680;
+var moveSpeed = 110;
+var jumpSpeed = -480;
 var inAir;
+var double = true;
 
 var velocityX;
 var velocityY;
@@ -236,6 +236,7 @@ function createBackground() {
 function createPlayer() {
     player = game.add.sprite(game.world.centerX - 100, game.world.centerY - 100, 'mummy'); // Add in sprite
     player.scale.setTo(1 * scaleRatio, 1 * scaleRatio); // Change x and y size of sprite
+    player.anchor.setTo(0.5, 0.5);
     game.physics.enable(player, Phaser.Physics.ARCADE); // Enable player physics
     player.body.collideWorldBounds = true; // Keep player inside the screen
     player.body.gravity.y = worldGravity; // Set the player gravity
@@ -310,19 +311,20 @@ function createPlayer() {
 function playerXMovement() {
     inAir = !player.body.touching.down && !player.body.onFloor();
 
-    if (!inAir) {
+    if (inAir) {
+        player.animations.frame = 8;
+    }
+    else {
         player.body.velocity.x = 0;
 
         if (cursors.right.isDown) {
-            if (!player.scale.x) player.scale.x = 1;
-            
-            player.animations.play('walk', 18, true);
-            
+            if (player.scale.x < 0) player.scale.x = 1;
+            player.animations.frame += 1;
             player.body.velocity.x = moveSpeed;
         }
         else if (cursors.left.isDown) {
-            if (player.scale.x) player.scale.x = -1;
-            walkFrame ? player.animations.setFrame(walkFrame + 1) : player.animations.play('walk', 18, true);
+            if (player.scale.x > 0) player.scale.x = -1;
+            player.animations.frame += 1;
             player.body.velocity.x = -moveSpeed;
         }
         else {
@@ -331,10 +333,22 @@ function playerXMovement() {
     }
 }
 
+var allowJump = true;
+var jump = 0;
+
 function playerYMovement() {
-    if (jumpButton.isDown && (player.body.onFloor() || player.body.touching.down )) {
-        player.body.velocity.y = jumpSpeed;
+    inAir = !player.body.touching.down && !player.body.onFloor();
+    jump = inAir ? jump : 0;
+
+    if (allowJump && jumpButton.isDown) {
+        if (!inAir || jump) {
+            player.body.velocity.y = jumpSpeed;
+            jump = jump < 1 ? jump + 1 : 0;
+            allowJump = false;
+            console.log(jump);
+        }
+    }
+    else {
+        allowJump = jumpButton.isUp;
     }
 }
-
-player.animations.onComplete();
