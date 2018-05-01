@@ -29,7 +29,6 @@ var background;
 // var hearts;
 // var enemies;
 // var platform;
-// var coins;
 
 //movement
 var moveSpeed = 120;
@@ -76,7 +75,7 @@ function preload() {
     // game.load.image('platform', 'http://examples.phaser.io/assets/sprites/block.png');
 
     // Load coin sprite sheet (has animation)
-    // game.load.spritesheet('coin', 'http://examples.phaser.io/assets/sprites/coin.png', 32, 32);
+    game.load.spritesheet('coin', 'http://examples.phaser.io/assets/sprites/coin.png', 32, 32);
 
     // Load enemy sprite sheet
     // game.load.spritesheet('enemy', 'http://examples.phaser.io/assets/sprites/baddie_cat_1.png', 16, 16);
@@ -104,8 +103,8 @@ function create() {
     // createPlatform();
 
     // Add coin sprite and animation
-    // coins = game.add.group();
-    // createCoins(game.world.centerX, game.world.centerY);
+    coins = game.add.group();
+    createCoins(game.world.centerX, game.world.centerY);
 
     // Add enemy sprite and set his animation
     // enemies = game.add.group();
@@ -120,7 +119,7 @@ function create() {
 
 function update() {
     // Set up collisions
-    // updateCollisions();
+    updateCollisions();
 
     // Functions to run
     // enemies.forEach(moveEnemy);
@@ -184,25 +183,25 @@ function createBackground() {
 //     platform.body.checkCollision.down = false;
 // }
 
-// function createCoins(x, y) {
-//     var coin;
-//     for (var i = 0; i < 2; i++) {
-//         coin = coins.create(x + (50 * i * scaleRatio), y, 'coin');
+function createCoins(x, y) {
+    var coin;
+    for (var i = 0; i < 2; i++) {
+        coin = coins.create(x + (50 * i * scaleRatio), y, 'coin');
 
-//         coin.anchor.setTo(0.5, 0.5);
-//         coin.scale.setTo(1 * scaleRatio, 1 * scaleRatio);
+        coin.anchor.setTo(0.5, 0.5);
+        coin.scale.setTo(1 * scaleRatio, 1 * scaleRatio);
 
-//         game.physics.enable(coin, Phaser.Physics.ARCADE);
+        game.physics.enable(coin, Phaser.Physics.ARCADE);
 
-//         coin.body.collideWorldBounds = true;
+        coin.body.collideWorldBounds = true;
 
-//         coin.body.gravity.y = worldGravity;
-//         coin.body.bounce.y = 0.2;
+        coin.body.gravity.y = worldGravity;
+        coin.body.bounce.y = 0.2;
 
-//         coin.animations.add('spin');
-//         coin.animations.play('spin', 6, true);
-//     }
-// }
+        coin.animations.add('spin');
+        coin.animations.play('spin', 6, true);
+    }
+}
 
 // function createEnemies() {
 //     var enemy;
@@ -244,11 +243,11 @@ function createPlayer() {
     // damageFlickerTween.to({ alpha: 0 }, 80, Phaser.Easing.Linear.None, false, 0, 9, true);
 }
 
-// function collectCoin(player, coin) {
-//     score += 100;
-//     scoreText.text = 'Score: ' + score;
-//     coin.kill();
-// }
+function collectCoin(player, coin) {
+    // score += 100;
+    // scoreText.text = 'Score: ' + score;
+    coin.kill();
+}
 
 // function enemyBattle(player, enemy) {
 //     if (player.body.touching.down && enemy.body.touching.up) {
@@ -297,13 +296,13 @@ function createPlayer() {
 //     }
 // }
 
-// function updateCollisions() {
-//     game.physics.arcade.collide(player, platform);
-//     game.physics.arcade.collide(player, enemies, enemyBattle);
+function updateCollisions() {
+    // game.physics.arcade.collide(player, platform);
+    // game.physics.arcade.collide(player, enemies, enemyBattle);
 
-//     game.physics.arcade.collide(coins, platform);
-//     game.physics.arcade.overlap(player, coins, collectCoin);
-// }
+    // game.physics.arcade.collide(coins, platform);
+    game.physics.arcade.overlap(player, coins, collectCoin);
+}
 
 function playerXMovement() {
     inAir = !player.body.touching.down && !player.body.onFloor();
