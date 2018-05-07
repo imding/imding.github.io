@@ -220,7 +220,7 @@ function dropPiece(clientX, clientY) {
                 h = clientX >= tray.offsetLeft && clientX <= tray.offsetLeft + tray.offsetWidth,
                 v = clientY >= tray.offsetTop + puzzle[activeIndex].offsetHeight / 2 && clientY <= tray.offsetTop + tray.offsetHeight;
 
-            // if dropped inside the blue area
+            // if dropped inside the tray area
             if (h && v) {
                 placePiece({ x: `${puzzle[activeIndex].offsetLeft}px`, y: `${puzzle[activeIndex].offsetTop}px` });
                 console.log('Dropped in tray.');

@@ -38,17 +38,16 @@ let master;                         // SINGLE STRING FOR ENTIRE PROJECT
 let instToken, instTokenEnd, instBlock, instExp;
 let codeToken, codeTokenEnd, codeBlock, codeExp;
 let logicToken, logicTokenEnd, logicBlock, logicExp;
-let stepToken, stepTokenEnd, stepBlock;
+let stepToken, stepTokenEnd;
 
 const htmlToken = ['##HTML##', '##HTML_E##', /##HTML##.*##HTML_E##/];
 const cssToken = ['##CSS##', '##CSS_E##', /##CSS##.*##CSS_E##/];
-const jsToken = ['##JS##', '##JS_E##', /##JS##.*##JS_E##/];   
+const jsToken = ['##JS##', '##JS_E##', /##JS##.*##JS_E##/];
 const markup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'];
 
 const vDiv = document.createElement('div');
 const hDiv = document.createElement('div');
 const vDivMin = 450, hDivMin = 250;
-let vDivPos = 0.3, hDivPos = 0.8;     // INITIAL DIVIDER POSIITIONS
 let xOffset, yOffset;
 
 const pagePadding = 20, margin = 10;
@@ -75,7 +74,7 @@ window.onload = () => {
     taInstruction.onblur = () => { info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`; };
     info.onfocus = () => { editProjectInfo(); };
     info.onblur = () => { updateProjectInfo(); };
-    info.onkeydown = (evt) => { if (evt.code == 'Enter') { info.blur(); }};
+    info.onkeydown = (evt) => { if (evt.code == 'Enter') { info.blur(); } };
     btnLoad.ondblclick = () => { loadTextFile(); };
     btnConvert.onclick = () => { convertInstruction(); };
     btnSave.onclick = () => { commitToMaster(); saveTextFile(master); };
@@ -121,13 +120,15 @@ window.onload = () => {
         '</head>',
         '<body>\n\t',
         '</body>',
-        `</html>`,
+        '</html>',
     ].join('\n'));
-    
-    taInstruction.value = `Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the learner will do.\n\n[Result]`;
+
+    taInstruction.value = 'Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the learner will do.\n\n[Result]';
     // taInstruction.value = `Adding the onclick attribute\n\nThe player needs to click on one of the 3 images to play this game, so they each needs to respond to the *mouse click event*.\n\nWe can do this with the #GLS(HTML-onclick)# attribute.\n\nThe \`onclick\` attribute must have a value that is the name of a JavaScript #GLS(JS-function)#.\n\nYou can even change the #GLS(CSS-background-color)# of the element.\n\n(***)\n\n(!) create the \`onclick\` attribute`;
 
     updateStepLogic();
+
+    setInterval(saveToLocal, 100000);
 };
 
 window.onkeydown = (evt) => {//   console.log(evt.keyCode);
@@ -135,7 +136,7 @@ window.onkeydown = (evt) => {//   console.log(evt.keyCode);
     const c2 = evt.location == 1 && evt.ctrlKey;      // EXTRA 'CTRL' KEY PRODUCED BY 'LEFT ALT'
 
     if (c1 || c2) return false;
-    
+
     if (evt.altKey && evt.code != pkey) {           // 'ALT' KEY *AND* NON-REPEATED KEY
         evt.preventDefault();
         switch (evt.code) {
@@ -143,10 +144,10 @@ window.onkeydown = (evt) => {//   console.log(evt.keyCode);
             case 'Digit1': taInstruction.value = template[1]; break;
             case 'Digit2': taInstruction.value = template[2]; break;
             case 'Digit3': taInstruction.value = template[3]; break;
-            case 'Slash': codeEditor.insert(`${markup[0]}${codeEditor.getSelectedText()}${markup[1]}`); break;
+            case 'Slash': convertEditable(); break;
             case 'KeyN': btnAdd.click(); break;
             case 'KeyP': btnRun.click(); break;
-            case 'KeyL': if (cStep > 1) { testLogic(); break; } else { break; };
+            case 'KeyL': if (cStep > 1) { testLogic(); break; } else { break; }
             case 'KeyK': generateTest(); break;
             case 'KeyI': btnConvert.click(); break;
             case 'Backspace': closePreview(); break;
@@ -174,8 +175,6 @@ window.onresize = updateUI;
 
 window.onmouseup = () => {
     window.removeEventListener('mousemove', moveDivider, true);
-    vDivPos = get(vDiv, 'left') / window.innerWidth;
-    hDivPos = get(hDiv, 'top') / window.innerHeight;
 };
 
 // ==================== PROJECT INFO ==================== //
@@ -213,7 +212,7 @@ function updateStyledInstruction() {
     const highlight = /^(\t?)\(!\)\s*(.+[^\s]).*/,
         notes = /^(\t?)\(\*\*?\)\s*(.+[^\s]).*/,
         loc = /(?:(\w+)\.)?(html|css|js)#([^#\n]+)#([-+]\d+)?/,
-        image = /\[IMG::(https?:\/\/[^\'"\s]+\.(jpg|gif|jpeg|bmp|png|svg))\]/gi,
+        image = /\[IMG::(https?:\/\/[^'"\s]+\.(jpg|gif|jpeg|bmp|png|svg))\]/gi,
         link = /\[([^\]:]+)::([^\s]+)\]/g,
         bold = /\*([^\s*]+|[^\s][^*]+[^\s])\*/g,
         code = /`([^\s`]+|[^\s][^`]+[^\s])`/g,
@@ -226,7 +225,7 @@ function updateStyledInstruction() {
         while (loc.test(e)) {
             const query = e.match(loc),
                 name = query[1] || (query[2] == 'html' ? 'index' : query[2] == 'css' ? 'style' : 'script');
-            
+
             e = e.replace(loc, `<b>##LINE('${name}.${query[2]}','${query[3]}')${query[4] || ''}##</b>`);
             if (query.input[query.index - 1] == '+') {
                 e = e.splice(query.index - 1, 1, `<b>${query[2].toUpperCase().replace(/JS/, 'JavaScript')} line</b> `);
@@ -236,7 +235,7 @@ function updateStyledInstruction() {
         isList = /^\[(-|=)/.test(e) ? true : isList;            // BEGINNING OF A LIST
         isPre = /^\((html|css|js)\)/.test(e) ? true : isPre;    // BEGINNING OF SNIPPET
 
-        if (/^\(\-{3}\)/.test(e)) {                 // - EXAMPLE -
+        if (/^\(-{3}\)/.test(e)) {                 // - EXAMPLE -
             source[i] = '<center><p><b>- EXAMPLE -</b></p></center>';
         } else if (/^\(\*{3}\)/.test(e)) {                 // - OBJECTIVES -
             source[i] = '<center><p><b>- OBJECTIVES -</b></p></center>';
@@ -262,7 +261,7 @@ function updateStyledInstruction() {
     source = source.replace(glossary, '<code class="glossary gls$1"><i class="fa fa-rocket glsIcon"></i><span class="glossary-link gls$1">$2</span></code>');
     source += (cStep > 1 && cStep < tSteps ? '\n<hr>\n<p class="highlight">Click on <b>Check all objectives</b> to continue</p>' :
         cStep == 1 ? '\n<hr>\n<p class="highlight">Click on <b>Next step</b> to get started</p>' :
-        cStep > 10 ? '\n<hr>\n<p class="highlight"><b>Export to Sandbox</b> to continue working on it</p>' : '');
+            cStep > 10 ? '\n<hr>\n<p class="highlight"><b>Export to Sandbox</b> to continue working on it</p>' : '');
 
     // taInstruction.value = source;
     styledInstruction.innerHTML = source + '<link rel="stylesheet" href="css/instructions.css">';
@@ -271,15 +270,15 @@ function updateStyledInstruction() {
 
     const btnGlossary = Array.from(document.getElementsByClassName('glossary'));
     btnGlossary.forEach(b => {
-        b.onclick = function() {
+        b.onclick = function () {
             const glsBackdrop = document.createElement('div');
             const glsWrapper = document.createElement('div');
             const glsClose = document.createElement('div');
-            
+
             document.body.appendChild(glsBackdrop);
             document.body.appendChild(glsWrapper);
             glsWrapper.appendChild(glsClose);
-            
+
             glsBackdrop.id = 'glsBackdrop';
 
             glsWrapper.id = 'glsWrapper';
@@ -295,7 +294,7 @@ function updateStyledInstruction() {
                 glsWrapper.style.top = 'calc(50% - 175px)';
             }, 0);
 
-            glsWrapper.addEventListener('transitionend', function(evt) {
+            glsWrapper.addEventListener('transitionend', function (evt) {
                 if (glsClose.id) {
                     if (evt.propertyName == 'width') {
                         document.body.removeChild(this);
@@ -310,7 +309,7 @@ function updateStyledInstruction() {
                 }
             }, false);
 
-            glsClose.onclick = function() {
+            glsClose.onclick = function () {
                 glsBackdrop.style.opacity = '0';
                 glsWrapper.style.opacity = '0';
                 glsWrapper.style.width = '0';
@@ -318,7 +317,7 @@ function updateStyledInstruction() {
                 glsWrapper.style.left = `${styledInstruction.offsetLeft + b.offsetLeft + (b.offsetWidth / 2)}px`;
                 glsWrapper.style.top = `${styledInstruction.offsetTop + b.offsetTop + (b.offsetHeight / 2)}px`;
 
-                glsBackdrop.addEventListener('transitionend', function() {
+                glsBackdrop.addEventListener('transitionend', function () {
                     document.body.removeChild(this);
                 }, false);
             };
@@ -331,7 +330,7 @@ function convertLineNumber() {
     const markupReg = /##LINE\('([^']+)','([^']+)'\)([+-]\d)*##/;
 
     storeActiveCode();
-    
+
     while (markupReg.test(siClone)) {
         const markup = siClone.match(markupReg);
         let n, target = noMarkup(eval(markup[1].split(/\./)[1])).split(/\r?\n/);
@@ -390,15 +389,15 @@ function copyCode(n) {
     if (n > 0 && n <= tSteps) {
         setValue(codeEditor,
             activeCodeBtn == btnHTML ? decodeURI(encodeURI(code[n]).match(htmlToken[2])[0].replace(htmlToken[0], '').replace(htmlToken[1], '')) :
-            activeCodeBtn == btnCSS ? decodeURI(encodeURI(code[n]).match(cssToken[2])[0].replace(cssToken[0], '').replace(cssToken[1], '')) :
-            decodeURI(encodeURI(code[n]).match(jsToken[2])[0].replace(jsToken[0], '').replace(jsToken[1], ''))
+                activeCodeBtn == btnCSS ? decodeURI(encodeURI(code[n]).match(cssToken[2])[0].replace(cssToken[0], '').replace(cssToken[1], '')) :
+                    decodeURI(encodeURI(code[n]).match(jsToken[2])[0].replace(jsToken[0], '').replace(jsToken[1], ''))
         );
     }
 }
 
 function updatePreview() {
     storeActiveCode();
-    
+
     const pCode = [
         '<!DOCTYPE html>',
         '<html>',
@@ -419,12 +418,12 @@ function updatePreview() {
         '</html>',
     ].join('\n');
 
-	if (!document.getElementById('preview')) {
-	    storeActiveCode();
-	    preview = document.createElement('iframe');
-	    preview.id = 'preview';
-	    alignElement(preview);
-	    document.body.appendChild(preview);
+    if (!document.getElementById('preview')) {
+        storeActiveCode();
+        preview = document.createElement('iframe');
+        preview.id = 'preview';
+        alignElement(preview);
+        document.body.appendChild(preview);
     }
     preview.srcdoc = pCode;
 }
@@ -433,10 +432,31 @@ function noMarkup(str) {
     return str.replace(new RegExp(`(${markup[0]}\\s*)|(\\s*${markup[1]})`, 'g'), '');
 }
 
+function convertEditable() {
+    let sel = codeEditor.getSelectedText();
+
+    if (sel.includes(markup[0]) || sel.includes(markup[1])) {
+        while (sel.includes(markup[0]) || sel.includes(markup[1])) {
+            sel = sel.replace(markup[0], '').replace(markup[1], '');
+        }
+        codeEditor.insert(sel);
+    }
+    else {
+        codeEditor.insert(`${markup[0]}${sel}${markup[1]}`);
+    }
+}
+
 function closePreview() {
     if (preview) {
         document.body.removeChild(preview);
         preview = null;
+    }
+}
+
+function saveToLocal() {
+    if (document.visibilityState === 'visible' && tSteps > 1) {
+        commitToMaster();
+        localStorage.lbcontent = master;
     }
 }
 
@@ -532,9 +552,9 @@ function updateContent(i) {                                                  // 
 
 function storeActiveCode(step = cStep) {
     btnHTML.disabled ? html = codeEditor.getValue() : (btnCSS.disabled ? css = codeEditor.getValue() : js = codeEditor.getValue());                     // STORE CONTENT OF ACTIVE CODE PANEL
-    code[cStep] = htmlToken[0] + html + htmlToken[1] + cssToken[0] + css + cssToken[1] + jsToken[0] + js + jsToken[1];                                  // STORE CODE FOR CURRENT STEP
+    code[step] = htmlToken[0] + html + htmlToken[1] + cssToken[0] + css + cssToken[1] + jsToken[0] + js + jsToken[1];                                  // STORE CODE FOR CURRENT STEP
     btnHTML.disabled ? htmlLogic = logicEditor.getValue() : (btnCSS.disabled ? cssLogic = logicEditor.getValue() : jsLogic = logicEditor.getValue());   // STORE CONTENT OF ACTIVE LOGIC PANEL
-    logic[cStep] = htmlToken[0] + htmlLogic + htmlToken[1] + cssToken[0] + cssLogic + cssToken[1] + jsToken[0] + jsLogic + jsToken[1];                  // STORE CODE FOR CURRENT STEP
+    logic[step] = htmlToken[0] + htmlLogic + htmlToken[1] + cssToken[0] + cssLogic + cssToken[1] + jsToken[0] + jsLogic + jsToken[1];                  // STORE CODE FOR CURRENT STEP
 }
 
 function getActiveCode(type, step = cStep) {     // RETURN LOGIC OR SOURCE CODE CURRENTLY VISIBLE
@@ -545,7 +565,7 @@ function getActiveCode(type, step = cStep) {     // RETURN LOGIC OR SOURCE CODE 
             return btnHTML.disabled ? html = activeCode : (btnCSS.disabled ? css = activeCode : js = activeCode);
         } else {
             return btnHTML.disabled ? htmlLogic = activeCode : (btnCSS.disabled ? cssLogic = activeCode : jsLogic = activeCode);
-        }        
+        }
     } else {
         return '';
     }
@@ -616,14 +636,16 @@ function loadTextFile() {
     fileToLoad.click();
     fileToLoad.onchange = () => {
         const fileReader = new FileReader();
-        fileReader.onload = (fileLoadedEvent) => {
-            loadToMemory(fileLoadedEvent.target.result);
-            cProj = fileToLoad.value.split('\\').pop().replace(/\.txt/, '');
-            getStepName(cStep);
-            info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`;
-        };
+        fileReader.onload = (fileLoadedEvent) => readValue(fileLoadedEvent.target.result, fileToLoad.value.split('\\').pop().replace(/\.txt/, ''));
         fileReader.readAsText(fileToLoad.files[0], 'UTF-8');
     };
+}
+
+function readValue(value, title) {
+    loadToMemory(value);
+    cProj = title;
+    getStepName(cStep);
+    info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`;
 }
 
 // ==================== HANDLER ==================== //
@@ -646,7 +668,7 @@ function updateUI() {
     [btnLoad, btnConvert, btnSave, btnDupPrev, btnHTML, btnCSS, btnJS, btnRun, btnDupNext].forEach((e) => { e.style.top = `${pagePadding}px`; });
     [btnPrev, btnAdd, btnDel, btnNext, info].forEach((e) => { e.style.bottom = `${pagePadding}px`; });
     flexDivider();
-    scaleContent();    
+    scaleContent();
 }
 
 function scaleContent() {
@@ -655,7 +677,7 @@ function scaleContent() {
     btnSave.style.left = get(vDiv, 'left') - get(btnSave, 'width') - pagePadding * 2 + 'px';
     [btnPrev, btnAdd, btnDel, btnNext].forEach((e, i, arr) => {
         e.style.left = i * (get(e, 'width') + margin) +                                                                                     // POSITION EACH BUTTON
-                (get(vDiv, 'left') - pagePadding - arr.length * get(e, 'width') - margin * (arr.length - 1)) / 2 + pagePadding + 'px';      // OFFSET TO CENTRE
+            (get(vDiv, 'left') - pagePadding - arr.length * get(e, 'width') - margin * (arr.length - 1)) / 2 + pagePadding + 'px';      // OFFSET TO CENTRE
     });
     taInstruction.style.left = pagePadding + 'px';
     taInstruction.style.top = get(btnLoad, 'top') + get(btnLoad, 'height') + margin + 'px';
@@ -680,7 +702,7 @@ function scaleContent() {
     [srcCode, stepLogic, info].forEach((e) => {
         e.style.left = get(vDiv, 'left') + get(vDiv, 'width') + 'px';
         e.style.width = get(hDiv, 'width') - get(vDiv, 'width') - pagePadding + 'px';
-    });    
+    });
     codeEditor ? codeEditor.resize(codeEditor) : null;
     logicEditor ? logicEditor.resize(logicEditor) : null;
 }
@@ -705,7 +727,7 @@ function alignElement(e, target = taInstruction) {
     e.style.width = get(target, 'width') + 'px';
     e.style.height = get(target, 'height') + 'px';
 
-    if (e == styledInstruction) {        
+    if (e == styledInstruction) {
         e.style.padding = `0 ${(target.offsetWidth - 380) / 2}px`;
     }
 }
@@ -748,12 +770,30 @@ function highlightButton() {
 
 // ==================== STEP LOGIC ==================== //
 function testLogic() {
+    // ===== HELPER FUNCTIONS ===== //
+    const insertLine = (c, k, options) => {        // c = CODE; k = KEY; options = { str, int }
+        c = c.split(/\r?\n/);
+
+        c.some((e, i) => {
+            const query = new RegExp(k).test(e);
+
+            if (query) {
+                const defaultOptions = { line: '', offset: 0 };
+                const opt = Object.assign({}, defaultOptions, options);
+
+                c.splice(i + 1 + opt.offset, 0, opt.line);      // log(`Adding [${opt.line}] after line ${i + 1}`);
+                return query;
+            }
+        });
+        return c.join('\n');
+    };
+
     if (cStep > 1 && get(gutter, 'background') == '246, 246, 246') {
         let logic = logicEditor.getValue().replace(/[\s\n\r]*\/\/ Expectation:[\s\S]*/, '').trim();
-        
+
         if (!logic.length) {
             logic = 'let output = codeWithoutMarkup.replace(/';
-            logic += (activeCodeBtn == btnHTML ? '\\s\*<!--.*-->/g,\'' : activeCodeBtn == btnCSS ? '\\s\*\\/\\*.*\\*\\//g,\'' : ';\\s\*\\/\\/.*/g,\';');
+            logic += (activeCodeBtn == btnHTML ? '\\s*<!--.*-->/g,\'' : activeCodeBtn == btnCSS ? '\\s*\\/\\*.*\\*\\//g,\'' : ';\\s*\\/\\/.*/g,\';');
             logic += '\');\n// output = insertLine(output, \'key\', {line: \'\', offset: 0});\nreturn output;';
             setValue(logicEditor, `${logic}${logicEditor.getValue()}`);
         }
@@ -766,12 +806,12 @@ function testLogic() {
             /codeWithoutMarkup/.test(logic) ? input = noMarkup(input) : null;
             // APPLY CODE IN LOGIC EDITOR TO INPUT
             output = eval(`(function(){ ${decodeURI(logic).replace(/codeWithoutMarkup/g, 'input').replace(/let\s+output/, 'output').replace(/(;[^;]+)$/, '')} }())`);
-                
-            if (typeof(output) == 'string') {
+
+            if (typeof (output) == 'string') {
                 setValue(codeEditor, output);
                 gutter.style.background = 'lightgreen';
             } else {
-                log(`Output type is "${typeof(output)}", should be a string.`, 'warn');
+                log(`Output type is "${typeof (output)}", should be a string.`, 'warn');
                 gutter.style.background = 'lightcoral';
             }
         } else {
@@ -786,26 +826,8 @@ function testLogic() {
             gutter.style.background = '#f6f6f6';
             setTimeout(() => { gutter.style.transition = 'none'; }, 300);
         }, 600);
-        
+
         highlightButton();
-
-        // ===== HELPER FUNCTIONS ===== //
-        function insertLine(c, k, options) {        // c = CODE; k = KEY; options = { str, int }
-            c = c.split(/\r?\n/);
-
-            c.some((e, i) => {
-                const query = new RegExp(k).test(e);                
-
-                if (query) {
-                    const defaultOptions = { line: '', offset: 0 };
-                    const opt = Object.assign({}, defaultOptions, options);
-
-                    c.splice(i + 1 + opt.offset, 0, opt.line);      // log(`Adding [${opt.line}] after line ${i + 1}`);
-                    return query;
-                }
-            });
-            return c.join('\n');
-        }
     }
     generateTest();
 }
@@ -815,18 +837,18 @@ function generateTest() {
     const src = codeEditor.getValue(), cursor = codeEditor.selection.getCursor();
     let n = 0 /* editable(n) */;
 
-    logicEditor.setValue(`${logicEditor.getValue().replace(/[\s\n\r]*\/\/ Expectation:[\s\S]*/, '')}\n\n\/\/ Expectation:`);
+    logicEditor.setValue(`${logicEditor.getValue().replace(/[\s\n\r]*\/\/ Expectation:[\s\S]*/, '')}\n\n// Expectation:`);
     codeEditor.gotoLine(0, 0, false);
 
     while (/#(BEGIN|END)_EDITABLE#/.test(codeEditor.getValue())) {
-        const r1 = codeEditor.find(markup[0], {caseSensitive: true});
+        const r1 = codeEditor.find(markup[0], { caseSensitive: true });
         if (r1) {
             codeEditor.insert('');
-            const r2 = codeEditor.find(markup[1], {caseSensitive: true});
+            const r2 = codeEditor.find(markup[1], { caseSensitive: true });
             if (r2) {
                 codeEditor.insert('');
-                codeEditor.selection.setRange({"start": {"row": r1.start.row, "column": r1.start.column}, "end": {"row": r2.start.row, "column": r2.start.column}});
-                
+                codeEditor.selection.setRange({ 'start': { 'row': r1.start.row, 'column': r1.start.column }, 'end': { 'row': r2.start.row, 'column': r2.start.column } });
+
                 if (codeEditor.getSelectedText().trim().length) {
                     logicEditor.setValue(`${logicEditor.getValue()}\npass.if.${activeCodeBtn.innerHTML.toLowerCase()}.editable(${n}).equivalent(\`${codeEditor.getSelectedText().trim().replace(/[\s\n\r]+/g, ' ')}\`);`);
                 }
@@ -841,7 +863,7 @@ function generateTest() {
         n++;
     }
     setValue(codeEditor, src, cursor);
-    setValue(logicEditor, logicEditor.getValue().trim());   
+    setValue(logicEditor, logicEditor.getValue().trim());
 }
 
 // ==================== MISC ==================== //
@@ -900,6 +922,6 @@ function round(v, decimal = 0, op = Math.round) {
     }
 }
 
-String.prototype.splice = function(idx, rem, str) {
+String.prototype.splice = function (idx, rem, str) {
     return this.slice(0, idx) + str + this.slice(idx + Math.abs(rem));
 };
