@@ -1,0 +1,1660 @@
+[
+  {
+    "title": "test1",
+    "result": "passed"
+  },
+  {
+    "title": "Thae New Challenge",
+    "result": "passed"
+  },
+  {
+    "title": "Amazing Facts Webpage",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "</h1> is not a valid closing tag for <h2>."
+    }
+  },
+  {
+    "title": "Animated Aquarium",
+    "result": "passed"
+  },
+  {
+    "title": "Battle Game v2",
+    "result": "passed"
+  },
+  {
+    "title": "Boat racing simulator",
+    "result": "passed"
+  },
+  {
+    "title": "BSD-gram",
+    "result": "passed"
+  },
+  {
+    "title": "Build your own jQuery Mobile app",
+    "result": "failed",
+    "stepNo": 5,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Build your own to do list",
+    "result": "failed",
+    "stepNo": 6,
+    "objectives": {
+      "Objective undefined": "Remember to always use quotes after the = sign."
+    }
+  },
+  {
+    "title": "Burger Stacking Game",
+    "result": "passed"
+  },
+  {
+    "title": "Button Mashing Game",
+    "result": "passed"
+  },
+  {
+    "title": "Canvas Drawing",
+    "result": "passed"
+  },
+  {
+    "title": "Chat Simulator",
+    "result": "passed"
+  },
+  {
+    "title": "Choose Your Own Adventure",
+    "result": "passed"
+  },
+  {
+    "title": "Coin Flip",
+    "result": "passed"
+  },
+  {
+    "title": "Color of Code - Satellite",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Fill the gap with hex color code at LINE 2."
+    }
+  },
+  {
+    "title": "CSS Coloring Challenge (CSS 填色挑戰)",
+    "result": "passed"
+  },
+  {
+    "title": "Data Visualisation",
+    "result": "passed"
+  },
+  {
+    "title": "Data Visualisation - Bar Chart",
+    "result": "passed"
+  },
+  {
+    "title": "Data Visualisation - Pictograph",
+    "result": "failed",
+    "stepNo": 5,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Data Visualisation - Pie Chart",
+    "result": "passed"
+  },
+  {
+    "title": "Debugging Project HTML and CSS ",
+    "result": "passed"
+  },
+  {
+    "title": "Debugging Project JavaScript",
+    "result": "passed"
+  },
+  {
+    "title": "Design a web poster",
+    "result": "failed",
+    "stepNo": 4,
+    "objectives": {
+      "Objective undefined": "Use of 'code.output' is no longer supported."
+    }
+  },
+  {
+    "title": "Dice Roller",
+    "result": "passed"
+  },
+  {
+    "title": "Digital Pet",
+    "result": "passed"
+  },
+  {
+    "title": "Digital Pet (Copy)",
+    "result": "failed",
+    "stepNo": 5,
+    "objectives": {
+      "Objective undefined": "Please provide a value for the alt attribute."
+    }
+  },
+  {
+    "title": "Drawing App",
+    "result": "passed"
+  },
+  {
+    "title": "Element Mixer",
+    "result": "passed"
+  },
+  {
+    "title": "Element Mixer Lite",
+    "result": "passed"
+  },
+  {
+    "title": "Eye Chart",
+    "result": "failed",
+    "stepNo": 5,
+    "objectives": {
+      "Objective undefined": "<h4>...</h4> is not the right element. The tag name should be h6."
+    }
+  },
+  {
+    "title": "Flags of the World",
+    "result": "passed"
+  },
+  {
+    "title": "Food Supply Calculator",
+    "result": "passed"
+  },
+  {
+    "title": "Fractals",
+    "result": "passed"
+  },
+  {
+    "title": "Fundraising website",
+    "result": "failed",
+    "stepNo": 19,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "hello testing TS",
+    "result": "passed"
+  },
+  {
+    "title": "Intro to Mobile App Design",
+    "result": "passed"
+  },
+  {
+    "title": "JavaScript Conversation - Digital Assistant",
+    "result": "passed"
+  },
+  {
+    "title": "jQuery Mobile - Recipe App",
+    "result": "failed",
+    "stepNo": 4,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "JavaScript Conversation",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Kenzie Demo Project",
+    "result": "passed"
+  },
+  {
+    "title": "Launchbox Content Trial - Mandarin",
+    "result": "passed"
+  },
+  {
+    "title": "LED Fashion Design",
+    "result": "failed",
+    "stepNo": 6,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Malvern Coding Challenge - Group 1",
+    "result": "passed"
+  },
+  {
+    "title": "Malvern Coding Challenge - Group 2",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Compass",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Interactive Card",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Kitronik Servo:Lite Board",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Magic 8 Ball",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Multicolor NeoPixel",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Multicolor NeoPixel (Cantonese-English)",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Rock Paper Scissors",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Space Invaders",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Stop Watch",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Walkerbot",
+    "result": "passed"
+  },
+  {
+    "title": "Pocket Money Saving Calculator",
+    "result": "passed"
+  },
+  {
+    "title": "Monster Battle - New",
+    "result": "passed"
+  },
+  {
+    "title": "Monster Battle",
+    "result": "passed"
+  },
+  {
+    "title": "My First Gaming Website",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "Text content \"SOME TITLE\" is incorrect. Try \"My Favourite Games\"."
+    }
+  },
+  {
+    "title": "My first IMDB Scanner",
+    "result": "passed"
+  },
+  {
+    "title": "My First Website",
+    "result": "passed"
+  },
+  {
+    "title": "My First Website - Sandbox Challenge Demo",
+    "result": "passed"
+  },
+  {
+    "title": "Neil test",
+    "result": "passed"
+  },
+  {
+    "title": "Online Playlist",
+    "result": "passed"
+  },
+  {
+    "title": "Online Poster",
+    "result": "passed"
+  },
+  {
+    "title": "Online Resume",
+    "result": "passed"
+  },
+  {
+    "title": "Order form using Google Sheets",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Origins Hour of Code",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "Use of 'code.output' is no longer supported."
+    }
+  },
+  {
+    "title": "Patterns with Nested Div Elements",
+    "result": "passed"
+  },
+  {
+    "title": "Pet Food Calculator",
+    "result": "failed",
+    "stepNo": 4,
+    "objectives": {
+      "Objective undefined": "Please provide a value for the value attribute."
+    }
+  },
+  {
+    "title": "Pet Food Calculator (Copy)",
+    "result": "failed",
+    "stepNo": 4,
+    "objectives": {
+      "Objective undefined": "Please provide a value for the value attribute."
+    }
+  },
+  {
+    "title": "Pet Food Calculator (Neil)",
+    "result": "failed",
+    "stepNo": 4,
+    "objectives": {
+      "Objective undefined": "Please provide a value for the value attribute."
+    }
+  },
+  {
+    "title": "Phaser - Coin Collection",
+    "result": "passed"
+  },
+  {
+    "title": "Phaser JS Project",
+    "result": "passed"
+  },
+  {
+    "title": "Picture Perfect",
+    "result": "passed"
+  },
+  {
+    "title": "Poetry Styles",
+    "result": "passed"
+  },
+  {
+    "title": "Pong",
+    "result": "passed"
+  },
+  {
+    "title": "Puzzle Game",
+    "result": "passed"
+  },
+  {
+    "title": "Random Number Game",
+    "result": "passed"
+  },
+  {
+    "title": "Rebuild Instagram's user flow",
+    "result": "passed"
+  },
+  {
+    "title": "Recipe",
+    "result": "passed"
+  },
+  {
+    "title": "Rock Paper Scissors",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Running Simulator",
+    "result": "passed"
+  },
+  {
+    "title": "Scoreboard",
+    "result": "error",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Could not run test, please check for errors."
+    }
+  },
+  {
+    "title": "Scoreboard",
+    "result": "passed"
+  },
+  {
+    "title": "Shatin Junior Coding Challenge",
+    "result": "passed"
+  },
+  {
+    "title": "Silly Story Project",
+    "result": "passed"
+  },
+  {
+    "title": "Virtual Pet - Mini Version ",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure the element tags and its content are correct"
+    }
+  },
+  {
+    "title": "Test CSV",
+    "result": "passed"
+  },
+  {
+    "title": "Thae ProjectTest ",
+    "result": "failed",
+    "stepNo": 1,
+    "objectives": {
+      "Objective undefined": "This objective contains an expectation that does not relate to editable block.\n              Expectations in version 2 objectives must relate to an editable block e.g. pass.if.js.editable(1).contains('hello');\n              or to the runtime behaviour of the output panel e.g. pass.on('myFunc').var('score >= 10');"
+    }
+  },
+  {
+    "title": "Tile Matching Game",
+    "result": "passed"
+  },
+  {
+    "title": "Timeline - Intermediate",
+    "result": "passed"
+  },
+  {
+    "title": "Trivia Game",
+    "result": "passed"
+  },
+  {
+    "title": "TWF GGT PosterGram Template",
+    "result": "passed"
+  },
+  {
+    "title": "Unplugged Activity: Design Pet's Face",
+    "result": "passed"
+  },
+  {
+    "title": "Unplugged Activity: Different foods & nutrients your pet needs.",
+    "result": "passed"
+  },
+  {
+    "title": "Unplugged Activity: How much food your pet needs?",
+    "result": "passed"
+  },
+  {
+    "title": "Unplugged Activity: What keeps your pet healthy?",
+    "result": "passed"
+  },
+  {
+    "title": "Virtual Pet",
+    "result": "passed"
+  },
+  {
+    "title": "Virtual Pet - Customisation",
+    "result": "failed",
+    "stepNo": 22,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Whack-a-Mole",
+    "result": "passed"
+  },
+  {
+    "title": "Wiki App using jQuery Mobile",
+    "result": "failed",
+    "stepNo": 21,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "YCIS Y2 - My Project Website",
+    "result": "passed"
+  },
+  {
+    "title": "YCIS Y2 My First Website",
+    "result": "failed",
+    "stepNo": 14,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Debugging Challenge: Online Poster",
+    "result": "passed"
+  },
+  {
+    "title": "My First Website Template",
+    "result": "passed"
+  },
+  {
+    "title": "Online Poster Template",
+    "result": "passed"
+  },
+  {
+    "title": "Phaser.js",
+    "result": "passed"
+  },
+  {
+    "title": "Pong Demo",
+    "result": "passed"
+  },
+  {
+    "title": "Real time database with Firebase",
+    "result": "passed"
+  },
+  {
+    "title": "Default sandbox template",
+    "result": "passed"
+  },
+  {
+    "title": "Timeline Template",
+    "result": "passed"
+  },
+  {
+    "title": "Trivia Game Template",
+    "result": "passed"
+  },
+  {
+    "title": "TWF GGT PosterGram Template",
+    "result": "passed"
+  },
+  {
+    "title": "Box Model",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure you haven't left the editor block empty."
+    }
+  },
+  {
+    "title": "Challenge: Apple Picker 1",
+    "result": "passed"
+  },
+  {
+    "title": "Challenge: Apple Picker 2",
+    "result": "passed"
+  },
+  {
+    "title": "Challenge: Choose Your Own Adventure",
+    "result": "passed"
+  },
+  {
+    "title": "Comments in HTML and CSS",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Confirm Dialogue Box",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "CSS - Media Queries",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure you haven't left the editor block empty."
+    }
+  },
+  {
+    "title": "CSS Property - Border",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Concept - selector priority",
+    "result": "passed"
+  },
+  {
+    "title": "CSS picture frame, aquarium, basketball",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure you haven't left the editor block empty."
+    }
+  },
+  {
+    "title": "CSS Property - animation",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - background-attachment",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - background-clip & -origin",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure you haven't left the editor block empty."
+    }
+  },
+  {
+    "title": "CSS Property - background-color",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - Background Color & Background Image",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - background-position",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - background-size",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure you haven't left the editor block empty."
+    }
+  },
+  {
+    "title": "CSS Property - Border Radius",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - box-sizing",
+    "result": "passed"
+  },
+  {
+    "title": "CSS property - color",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - display: block",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - display: inline-block",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - filter",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - Float and Clear",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure you haven't left the editor block empty."
+    }
+  },
+  {
+    "title": "CSS Property - font-family",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - font-family and font-size",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - font-weight",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - left, right, top & bottom",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - margin & padding",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - position",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - text-align",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - transform: rotate",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - transform: scale",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - transform: translate",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure you haven't left the editor block empty."
+    }
+  },
+  {
+    "title": "CSS Property - transition",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - Width & Height",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - z-index",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property - background-image",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Property: overflow",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Pseudo-class - :hover & :active",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Pseudo-class - :nth-child()",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Add a selector to target the second child"
+    }
+  },
+  {
+    "title": "CSS Pseudo-element - ::before & ::after",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "{} is incorrect. Please read the instructions again."
+    }
+  },
+  {
+    "title": "CSS Rule - @keyframes",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Selectors",
+    "result": "passed"
+  },
+  {
+    "title": "CSS Transitions",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure you haven't left the editor block empty."
+    }
+  },
+  {
+    "title": "Fully centered Div using CSS",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Your code shouldn't be empty."
+    }
+  },
+  {
+    "title": "Fun with Functions",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Add the onclick attribute"
+    }
+  },
+  {
+    "title": "JS Syntax - .getElementsByTagName ",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Handling JSON data",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "HTML & JS - setting up canvas",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "HTML and CSS - Google Fonts",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Attribute - onclick",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Attribute - onmouseover",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "create a function called changeColor()"
+    }
+  },
+  {
+    "title": "HTML & CSS - class",
+    "result": "passed"
+  },
+  {
+    "title": "HTML & CSS - id",
+    "result": "passed"
+  },
+  {
+    "title": "HTML element - <blockquote>",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Your code shouldn't be empty."
+    }
+  },
+  {
+    "title": "HTML Element - br",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - button",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - div",
+    "result": "passed"
+  },
+  {
+    "title": "HTML element - <em>",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Your code shouldn't be empty."
+    }
+  },
+  {
+    "title": "HTML Element - head & body",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - Headings",
+    "result": "passed"
+  },
+  {
+    "title": "HTML element - <hr>",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - html",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - Hyperlink",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - img",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - input",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - Ordered List",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - Paragraph",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - span",
+    "result": "passed"
+  },
+  {
+    "title": "HTML element - <strong>",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - Tables",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - Unordered List",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Element - audio",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Your code shouldn't be empty."
+    }
+  },
+  {
+    "title": "HTML element - progress",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Technique - Anchor Links",
+    "result": "passed"
+  },
+  {
+    "title": "HTML Text Styles",
+    "result": "failed",
+    "stepNo": 1,
+    "objectives": {
+      "Objective undefined": "Make sure you haven't left the editor block empty."
+    }
+  },
+  {
+    "title": "instruction-templates",
+    "result": "passed"
+  },
+  {
+    "title": "JavaScript - AlertTest",
+    "result": "passed"
+  },
+  {
+    "title": "JavaScript - Confirm",
+    "result": "passed"
+  },
+  {
+    "title": "JavaScript - Math Operators",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure you use / on Line 5."
+    }
+  },
+  {
+    "title": "JavaScript - Prompt",
+    "result": "passed"
+  },
+  {
+    "title": "JavaScript - Alert",
+    "result": "passed"
+  },
+  {
+    "title": "JavaScript Booleans",
+    "result": "error",
+    "stepNo": 7,
+    "objectives": {
+      "Objective undefined": "Could not run test, please check for errors."
+    }
+  },
+  {
+    "title": "jQuery login and sign up",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "jQuery Mobile - Listview widget with thumbnails",
+    "result": "passed"
+  },
+  {
+    "title": "jQuery Mobile - Adding Custom JavaScript",
+    "result": "passed"
+  },
+  {
+    "title": "jQuery Mobile - Buttons",
+    "result": "failed",
+    "stepNo": 5,
+    "objectives": {
+      "Objective undefined": "In the a tag, \"#\" is not the right value for the href attribute."
+    }
+  },
+  {
+    "title": "jQuery Mobile - Pages",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Your code shouldn't be empty."
+    }
+  },
+  {
+    "title": "jQuery Mobile - Debugging",
+    "result": "passed"
+  },
+  {
+    "title": "jQuery Mobile - New Pages",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "jQuery Mobile - Themes",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Your code shouldn't be empty."
+    }
+  },
+  {
+    "title": "jQuery Mobile - Transitions",
+    "result": "passed"
+  },
+  {
+    "title": "JS - Array push() Method",
+    "result": "passed"
+  },
+  {
+    "title": "JS - return",
+    "result": "passed"
+  },
+  {
+    "title": "JS Concept - passing arguments",
+    "result": "passed"
+  },
+  {
+    "title": "JS Concept - primitive data types",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "JS Concept - variable scope",
+    "result": "passed"
+  },
+  {
+    "title": "JS Debugging - console.log",
+    "result": "passed"
+  },
+  {
+    "title": "JS Events - Listeners",
+    "result": "failed",
+    "stepNo": 5,
+    "objectives": {
+      "Objective undefined": "});"
+    }
+  },
+  {
+    "title": "JS Method - Array.forEach()",
+    "result": "passed"
+  },
+  {
+    "title": "JS Method - array.length",
+    "result": "passed"
+  },
+  {
+    "title": "JS Method - className",
+    "result": "passed"
+  },
+  {
+    "title": "JS Method - object.value",
+    "result": "passed"
+  },
+  {
+    "title": "JS Method - .querySelector() and querySelectorAll()",
+    "result": "passed"
+  },
+  {
+    "title": "JS Method - setInterval()",
+    "result": "passed"
+  },
+  {
+    "title": "JS Method - setTimeout",
+    "result": "passed"
+  },
+  {
+    "title": "JS Method - string.length",
+    "result": "passed"
+  },
+  {
+    "title": "JS Object - array",
+    "result": "passed"
+  },
+  {
+    "title": "JS Object - Math",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "Round varTwo up and print the result to console"
+    }
+  },
+  {
+    "title": "JS Operator - Arithmetic",
+    "result": "passed"
+  },
+  {
+    "title": "JS Operator - logic",
+    "result": "passed"
+  },
+  {
+    "title": "JS Operator - modulus",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - appendChild()",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Expected: document.body.appendChild(t);"
+    }
+  },
+  {
+    "title": "JS Syntax - .classList",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Find out which <div> has the class names \"small green center\""
+    }
+  },
+  {
+    "title": "JS Syntax - createElement()",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - createTextNode()",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - for loop",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - Function",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - Functions and Arguments",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - .getElementByClassName()",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Create a variable called circle"
+    }
+  },
+  {
+    "title": "JS Syntax - .getElementById()",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - If... Else...",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - let",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - let (Cantonese-English)",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - Math.ceil()",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - removeChild()",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Create a variable called circle"
+    }
+  },
+  {
+    "title": "JS Syntax - Strings",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - .style",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - switch case",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - while loop",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - Comments (WIP)",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - .innerHTML",
+    "result": "passed"
+  },
+  {
+    "title": "JS Technique - adding runtime element",
+    "result": "passed"
+  },
+  {
+    "title": "JS Technique - canvas coloring",
+    "result": "passed"
+  },
+  {
+    "title": "JS Technique - drawing in canvas",
+    "result": "passed"
+  },
+  {
+    "title": "LaunchBox Testing Tool",
+    "result": "failed",
+    "stepNo": 1,
+    "objectives": {}
+  },
+  {
+    "title": "Linking HTML to CSS ",
+    "result": "failed",
+    "stepNo": 1,
+    "objectives": {
+      "Objective undefined": "Expect color to be red"
+    }
+  },
+  {
+    "title": "Linking HTML to JS",
+    "result": "failed",
+    "stepNo": 4,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "Math.random()",
+    "result": "passed"
+  },
+  {
+    "title": "Math.random() Expanded",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Make sure you use console.log."
+    }
+  },
+  {
+    "title": "Micro Servo with Microbit",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Basic.forever",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Calibrate Compass",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Change Sprite",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - compassHeading",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Create Sprite",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Get Sprite",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - if...else",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Something is missing from your code. Please read the instructions again."
+    }
+  },
+  {
+    "title": "Microbit - isTouching",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - JS to HEX conversion",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Math Random",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - NeoPixel with RGB colors",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - NeoPixel with RGB colors (Cantonese-English)",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - NeoPixel with RGB colors (English)",
+    "result": "passed"
+  },
+  {
+    "title": "micro:bit - neopixel.create()",
+    "result": "passed"
+  },
+  {
+    "title": "micro:bit - neopixel.create() (Cantonese-English)",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - On Button Press",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - On Button Press with NeoPixel",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - On Button Press with NeoPixel (Cantonese-English)",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - On Gesture",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - On Gesture (Cantonese-English)",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "Something is missing from your code. Please read the instructions again."
+    }
+  },
+  {
+    "title": "Microbit - On Gesture with NeoPixel",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - On Gesture with NeoPixel (Cantonese-English)",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Pause",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Running Time",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Set sprite",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Show Icon",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Show Number",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Show Strings",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - showLeds",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - Thermometer",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit - LED Toggle",
+    "result": "passed"
+  },
+  {
+    "title": "neil sprint 2",
+    "result": "passed"
+  },
+  {
+    "title": "Nested Div elements and its corresponding CSS Selectors",
+    "result": "passed"
+  },
+  {
+    "title": "parseFloat() & parseInt()",
+    "result": "passed"
+  },
+  {
+    "title": "Parsing a String to an Int",
+    "result": "passed"
+  },
+  {
+    "title": "Phaser - create(),preload(), and update() methods",
+    "result": "passed"
+  },
+  {
+    "title": "Phaser - Keyboard navigation",
+    "result": "failed",
+    "stepNo": 3,
+    "objectives": {
+      "Objective undefined": "Something is missing from your code. Please read the instructions again."
+    }
+  },
+  {
+    "title": "Phaser - Loading an image and adding it as a sprite",
+    "result": "passed"
+  },
+  {
+    "title": "Phaser - loading external assets",
+    "result": "passed"
+  },
+  {
+    "title": "Phaser - Setting up Phaser",
+    "result": "passed"
+  },
+  {
+    "title": "Phaser - Sprite Body",
+    "result": "passed"
+  },
+  {
+    "title": "Pong Trial",
+    "result": "passed"
+  },
+  {
+    "title": "Score System - Global Variables",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+    }
+  },
+  {
+    "title": "jQuery Mobile - Setting up jQuery Mobile",
+    "result": "passed"
+  },
+  {
+    "title": "Setting Up Phaser",
+    "result": "passed"
+  },
+  {
+    "title": "String Concatenation",
+    "result": "passed"
+  },
+  {
+    "title": "thae test sprint",
+    "result": "passed"
+  },
+  {
+    "title": "JS Syntax - Variables",
+    "result": "passed"
+  },
+  {
+    "title": "Web Fundamentals - hex color code",
+    "result": "passed"
+  },
+  {
+    "title": "Web Fundamentals - RGB colors",
+    "result": "failed",
+    "stepNo": 2,
+    "objectives": {
+      "Objective undefined": "Use 255 for red value and 0 for green & blue values"
+    }
+  },
+  {
+    "title": "WISE Edu Workshop - Drawing App",
+    "result": "passed"
+  },
+  {
+    "title": "Working with Font Awesome",
+    "result": "passed"
+  },
+  {
+    "title": "Build your Walkerbot",
+    "result": "passed"
+  },
+  {
+    "title": "Converting your web app to a native app",
+    "result": "passed"
+  },
+  {
+    "title": "Demo Project",
+    "result": "passed"
+  },
+  {
+    "title": "Design Your Own Interactive Card",
+    "result": "passed"
+  },
+  {
+    "title": "Extension Activities - My First Website",
+    "result": "passed"
+  },
+  {
+    "title": "Extension Activities - Trivia Game",
+    "result": "passed"
+  },
+  {
+    "title": "HTML and CSS Fundamentals",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms Egg Decorator",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms Multi-colored Windmill",
+    "result": "passed"
+  },
+  {
+    "title": "R&D FLow",
+    "result": "passed"
+  },
+  {
+    "title": "R&D Flow Chart",
+    "result": "passed"
+  },
+  {
+    "title": "test media",
+    "result": "passed"
+  },
+  {
+    "title": "TS Media project",
+    "result": "passed"
+  },
+  {
+    "title": "Walker Bot (Opt)",
+    "result": "passed"
+  },
+  {
+    "title": "Wearable Technology with Microbit",
+    "result": "passed"
+  },
+  {
+    "title": "Creating RGB Colors on Microbit",
+    "result": "passed"
+  },
+  {
+    "title": "How to Connect NeoPixel with Microbit",
+    "result": "passed"
+  },
+  {
+    "title": "How to Convert JavaScript to HEX file",
+    "result": "passed"
+  },
+  {
+    "title": "Lego Mindstorm Gear Construction -  1 of 4",
+    "result": "passed"
+  },
+  {
+    "title": "Lego Mindstorm Gear Construction -  2 of 4",
+    "result": "passed"
+  },
+  {
+    "title": "Lego Mindstorm Gear Construction -  3 of 4",
+    "result": "passed"
+  },
+  {
+    "title": "Lego Mindstorm Gear Construction -  4 of 4",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms - Color Sensor Down",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms - Color Sensor Forward",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms - Gyro Sensor",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms - Medium Motor Sensor",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms - Touch Sensor",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms - Ultrasonic Sensor",
+    "result": "passed"
+  },
+  {
+    "title": "Microbit Editor",
+    "result": "passed"
+  },
+  {
+    "title": "MM TEST for Media ",
+    "result": "passed"
+  },
+  {
+    "title": "The Su TEST for MEDIA PDF",
+    "result": "passed"
+  },
+  {
+    "title": "TTT Media test",
+    "result": "passed"
+  },
+  {
+    "title": "Using the Soldering Iron & Hot Glue Gun",
+    "result": "passed"
+  },
+  {
+    "title": "Matching Correct Categories",
+    "result": "passed"
+  },
+  {
+    "title": "Neil Game",
+    "result": "passed"
+  },
+  {
+    "title": "Test Game",
+    "result": "passed"
+  },
+  {
+    "title": "[CONCEPT]Challenge - MCQ",
+    "result": "passed"
+  }
+]

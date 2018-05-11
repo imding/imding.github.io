@@ -12,13 +12,13 @@ const
         all: [
             // IMPORTANT: ascending tag name lengths
             'p', 'b', 'u', 'i', 'a',
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'em', 'hr', 'tt', 'dl', 'dt', 'dd', 'tr', 'th', 'td',
+            'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'em', 'hr', 'tt', 'dl', 'dt', 'dd', 'tr', 'th', 'td',
             'col', 'div', 'img', 'sup', 'sub', 'pre', 'wbr',
             'area', 'base', 'code', 'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
             'embed', 'input', 'param', 'small', 'table', 'frame', 'track',
-            'button', 'keygen', 'strong', 'select', 'option', 'script', 'source', 'strike',
+            'button', 'canvas', 'keygen', 'strong', 'select', 'option', 'script', 'source', 'strike',
             'command',
-            'textarea', 'frameset', 'noframes',
+            'textarea', 'frameset', 'noframes', 'progress',
             'blockquote',
         ],
         void: ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'],
@@ -27,7 +27,7 @@ const
         all: [
             'id',
             'alt', 'dir', 'for', 'low', 'max', 'min', 'rel', 'src',
-            'cite', 'code', 'cols', 'data', 'form', 'high', 'href', 'icon', 'kind', 'lang', 'list', 'loop', 'name', 'open', 'ping', 'rows', 'size', 'slot', 'span', 'step', 'type', 'wrap',
+            'cite', 'code', 'cols', 'data', 'form', 'high', 'href', 'icon', 'kind', 'lang', 'list', 'loop', 'name', 'open', 'ping', 'role' /* jQuery mobile specific */, 'rows', 'size', 'slot', 'span', 'step', 'type', 'wrap',
             'align', 'async', 'class', 'defer', 'ismap', 'label', 'media', 'muted', 'scope', 'shape', 'sizes', 'start', 'style', 'title', 'value', 'width',
             'accept', 'action', 'coords', 'height', 'hidden', 'method', 'nowrap', 'poster', 'scoped', 'srcdoc', 'srcset', 'target', 'usemap',
             'charset', 'checked', 'colspan', 'compact', 'content', 'declare', 'default', 'dirname', 'enctype', 'headers', 'keytype', 'noshade', 'optimum', 'pattern', 'preload', 'rowspan', 'sandbox', 'srclang', 'summary',
@@ -111,7 +111,7 @@ function HtmlAst(strHTML, origin, exception = null) {
                     else {
                         // clear error message and store string as plain text
                         verdict = '';
-                        tree.push({ raw: t[0], rawCollapsed: t[0].replace(/\s+/g, ' '), type: 'text' });
+                        tree.push({ raw: t[0], rawCollapsed: t[0].trim().replace(/\s+/g, ' '), type: 'text' });
                     }
                 }
             }
@@ -280,7 +280,7 @@ function HtmlAst(strHTML, origin, exception = null) {
                 if (textContent) {
                     inputClone = inputClone.slice(textContent[0].length);
                     // text node containing only white spaces are ignored
-                    if (textContent[0].trim().length) element.content.push({ raw: textContent[0], rawCollapsed: textContent[0].replace(/\s+/g, ' '), type: 'text', parent: element });
+                    if (textContent[0].trim().length) element.content.push({ raw: textContent[0], rawCollapsed: textContent[0].trim().replace(/\s+/g, ' '), type: 'text', parent: element });
                 }
                 else {
                     nestedElement = checkElement();
