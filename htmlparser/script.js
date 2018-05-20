@@ -13,12 +13,12 @@ const
             // IMPORTANT: ascending tag name lengths
             'p', 'b', 'u', 'i', 'a',
             'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'em', 'hr', 'tt', 'dl', 'dt', 'dd', 'tr', 'th', 'td',
-            'col', 'div', 'img', 'sup', 'sub', 'pre', 'wbr',
+            'col', 'div', 'img', 'nav', 'sup', 'sub', 'pre', 'wbr',
             'area', 'base', 'code', 'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
-            'embed', 'input', 'param', 'small', 'table', 'frame', 'track',
-            'button', 'canvas', 'keygen', 'strong', 'select', 'option', 'script', 'source', 'strike',
-            'command',
-            'textarea', 'frameset', 'noframes', 'progress',
+            'embed', 'label', 'input', 'param', 'small', 'style', 'table', 'title', 'frame', 'track',
+            'button', 'canvas', 'footer', 'header', 'keygen', 'strong', 'select', 'option', 'script', 'source', 'strike',
+            'command', 'article', 'section',
+            'noscript', 'textarea', 'frameset', 'noframes', 'progress',
             'blockquote',
         ],
         void: ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'],
@@ -27,7 +27,7 @@ const
         all: [
             'id',
             'alt', 'dir', 'for', 'low', 'max', 'min', 'rel', 'src',
-            'cite', 'code', 'cols', 'data', 'form', 'high', 'href', 'icon', 'kind', 'lang', 'list', 'loop', 'name', 'open', 'ping', 'role' /* jQuery mobile specific */, 'rows', 'size', 'slot', 'span', 'step', 'type', 'wrap',
+            'cite', 'code', 'cols', 'data', 'form', 'high', 'href', 'icon', 'kind', 'lang', 'list', 'loop', 'name', 'open', 'ping', 'rows', 'size', 'slot', 'span', 'step', 'type', 'wrap',
             'align', 'async', 'class', 'defer', 'ismap', 'label', 'media', 'muted', 'scope', 'shape', 'sizes', 'start', 'style', 'title', 'value', 'width',
             'accept', 'action', 'coords', 'height', 'hidden', 'method', 'nowrap', 'poster', 'scoped', 'srcdoc', 'srcset', 'target', 'usemap',
             'charset', 'checked', 'colspan', 'compact', 'content', 'declare', 'default', 'dirname', 'enctype', 'headers', 'keytype', 'noshade', 'optimum', 'pattern', 'preload', 'rowspan', 'sandbox', 'srclang', 'summary',
@@ -55,6 +55,8 @@ const
             'onabort', 'oncanplaythrough', 'oncuechange', 'ondurationchange', 'onemptied', 'onended', 'onerror', 'onloadeddata', 'onloadedmetadata', 'onloadstart', 'onpaush', 'onplay', 'onplaying', 'onprogress', 'onratechange', 'onseeked', 'onseeking', 'onstalled', 'onsuspend', 'ontimeupdate', 'onvalumechange', 'onwaiting',
             // misc events
             'onshow', 'ontoggle',
+
+            'role' /* jQuery mobile specific */,
         ],
         boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
     };
@@ -83,7 +85,9 @@ const val = (v) => {
 let verdict;
 
 function HtmlAst(strHTML, origin, exception = null) {
-    let inputClone = strHTML, ambiguous = { elem: [], closingTag: [] }, tree = [];
+    let inputClone = strHTML.replace(/<!--.*?(?=-->)-->/g, ''),
+        ambiguous = { elem: [], closingTag: [] },
+        tree = [];
 
     verdict = '';
 
@@ -95,7 +99,7 @@ function HtmlAst(strHTML, origin, exception = null) {
             inputClone = inputClone.slice(t[0].length);
             // text node containing only white spaces are ignored
             if (t[0].trim().length) {
-                // detect lone attributes
+                // detect lone attribute arrays(aa)
                 const aa = checkAttribute(` ${t[0].trim()}`);
 
                 // attribute array returned
@@ -109,6 +113,7 @@ function HtmlAst(strHTML, origin, exception = null) {
                     // break loop if attribute only is expected
                     if (exception === 'attributes only') break;
                     else {
+                        // no attributes found && no attribute expected
                         // clear error message and store string as plain text
                         verdict = '';
                         tree.push({ raw: t[0], rawCollapsed: t[0].trim().replace(/\s+/g, ' '), type: 'text' });
@@ -130,7 +135,12 @@ function HtmlAst(strHTML, origin, exception = null) {
     if (loneAttrs.length && loneAttrs.length < tree.length) verdict = `${loneAttrs[0].raw} is in the wrong place. Attributes must be inside opening tags.`;
 
     if (!verdict) {
-        // deal with ambiguous code, if any
+        //=====================================================================================//
+        // deal with ambiguous code, if any                                                    //
+        // any opening tag that is followed by another opening tag is stored in ambiguous.elem //
+        // it is redeemed when the correct closing tag is found                                //
+        // all unexpected closing tags are stored in ambiguous.closingTag                      //
+        //=====================================================================================//
         if (ambiguous.elem.length + ambiguous.closingTag.length) {
             if (ambiguous.elem.length < ambiguous.closingTag.length) {
                 verdict = `${lastOf(ambiguous.closingTag).raw} is not paired with anything. Please add an opening tag or remove it.`;
@@ -152,7 +162,7 @@ function HtmlAst(strHTML, origin, exception = null) {
             // find valid closing tag
             const ct = checkClosingTag();
             // only evaluate the closing tag if there is not already ambiguous closing tags
-            if (ct && !ambiguous.closingTag.length) {
+            if (ct) {
                 // check if closing tag is valid
                 if (tags.all.some(t => t === ct.tagName)) {
                     ambiguous.closingTag.push(ct);
@@ -396,7 +406,7 @@ function HtmlAst(strHTML, origin, exception = null) {
                             boolAttr = attributes.boolean.some(a => a === m[2].toLowerCase()),
                             pushAttr = () => {
                                 attrsArray.push({
-                                    index: null,
+                                    // index: null,
                                     name: attrObj.name,
                                     quote: attrObj.quote || null,
                                     raw: attrObj.raw,
@@ -516,7 +526,13 @@ function levenshtein_distance(a, b) {
 }
 
 function compare(model, input) {
-    // compare elements using teacher node(tn) & learner node(ln)
+    //============================================================//
+    // compare elements using teacher node(tn) & learner node(ln) //
+    // a node can be                                              //
+    //    1) any HTML element with or without content             //
+    //    2) any text that is not part of an opening tag          //
+    //    3) [BSD ONLY] any opening or closing tag                //
+    //============================================================//
     const matchElement = (tn, ln) => {
         const flexExpt = findRegularExpression(tn.raw);
         if (!(flexExpt.hasOwnProperty('compatible') && flexExpt.compatible.includes('html'))) throw new Error(`Match option "${flexExpt.type}" is incompatible with HTML.`);
@@ -609,7 +625,23 @@ function compare(model, input) {
         return !verdict;
     };
 
-    // compare attributes and values between teacher tag(tt) & learner tag(lt)
+    //========================================================================//
+    // compare attributes and values inside teacher tag(tt) & learner tag(lt) //
+    // the tag passed in here is always an opening tag                        //
+    // an opening tag object looks like this:                                 //
+    //    {                                                                   //
+    //      close: string,                                                    //
+    //      attrs: [{                                                         //
+    //        name: string,                                                   //
+    //        quote: string,                                                  //
+    //        raw: string,                                                    //
+    //        value: string,                                                  //
+    //      }, {...}],                                                        //
+    //      raw: string,                                                      //
+    //      tagName: string,                                                  //
+    //      type: string,                                                     //
+    //    }                                                                   //
+    //========================================================================//
     const matchAttrs = (tt, lt) => {
         const prepo = tt.tagName ? `In the ${tt.tagName} tag, ` : '';
 
@@ -689,7 +721,18 @@ function compare(model, input) {
         return;
     };
     
-    // compare tree lengths
+    //========================================================================//
+    // top level logic to compare teacher tree(model) and learner tree(input) //
+    // the tree is an array of objects (element or text)                      //
+    //    element = {                      text = {                           //
+    //      openingTag: {...},               raw: string,                     //
+    //      content: [...],                  rawCollapsed: string,            //
+    //      closingTag: {...},               type: "text",                    //
+    //      isVoid: Boolean,               }                                  //
+    //      type: "element",                                                  //
+    //    }                                                                   //
+    // element.content follows the same structure                             //
+    //========================================================================//
     if (model.length !== input.length) {
         const
             modelElements = model.filter(e => e.type === 'element'),

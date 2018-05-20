@@ -1,0 +1,32 @@
+* {
+    font-family: monospace;
+}
+
+body {
+    text-align: center; 
+}
+
+button {
+    margin-top: 10px;
+}
+
+em {
+    font-size: xx-small;
+}
+
+p {
+    width: 500px;
+    margin: 15px auto;
+}
+
+#container {
+    margin: auto;
+    width: 250px;
+    height: 150px;
+}
+
+#text {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}

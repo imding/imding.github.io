@@ -9,11 +9,7 @@
   },
   {
     "title": "Amazing Facts Webpage",
-    "result": "failed",
-    "stepNo": 3,
-    "objectives": {
-      "Objective undefined": "</h1> is not a valid closing tag for <h2>."
-    }
+    "result": "passed"
   },
   {
     "title": "Animated Aquarium",
@@ -36,7 +32,7 @@
     "result": "failed",
     "stepNo": 5,
     "objectives": {
-      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
+      "Objective undefined": "The </ tag needs to be closed using the > symbol."
     }
   },
   {
@@ -88,10 +84,6 @@
     "result": "passed"
   },
   {
-    "title": "Data Visualisation - Bar Chart",
-    "result": "passed"
-  },
-  {
     "title": "Data Visualisation - Pictograph",
     "result": "failed",
     "stepNo": 5,
@@ -100,7 +92,11 @@
     }
   },
   {
-    "title": "Data Visualisation - Pie Chart",
+    "title": "Data Visualization - Bar Chart",
+    "result": "passed"
+  },
+  {
+    "title": "Data Visualization - Pie Chart",
     "result": "passed"
   },
   {
@@ -189,19 +185,11 @@
   },
   {
     "title": "jQuery Mobile - Recipe App",
-    "result": "failed",
-    "stepNo": 4,
-    "objectives": {
-      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
-    }
+    "result": "passed"
   },
   {
     "title": "JavaScript Conversation",
-    "result": "failed",
-    "stepNo": 3,
-    "objectives": {
-      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
-    }
+    "result": "passed"
   },
   {
     "title": "Kenzie Demo Project",
@@ -384,6 +372,10 @@
     "result": "passed"
   },
   {
+    "title": "Puzzle game v2",
+    "result": "passed"
+  },
+  {
     "title": "Random Number Game",
     "result": "passed"
   },
@@ -497,11 +489,7 @@
   },
   {
     "title": "Wiki App using jQuery Mobile",
-    "result": "failed",
-    "stepNo": 21,
-    "objectives": {
-      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
-    }
+    "result": "passed"
   },
   {
     "title": "YCIS Y2 - My Project Website",
@@ -801,11 +789,7 @@
   },
   {
     "title": "JS Syntax - .getElementsByTagName ",
-    "result": "failed",
-    "stepNo": 2,
-    "objectives": {
-      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
-    }
+    "result": "passed"
   },
   {
     "title": "Handling JSON data",
@@ -1025,11 +1009,7 @@
   },
   {
     "title": "jQuery Mobile - New Pages",
-    "result": "failed",
-    "stepNo": 2,
-    "objectives": {
-      "Objective undefined": "You haven't met this objective yet. Please check the instructions."
-    }
+    "result": "passed"
   },
   {
     "title": "jQuery Mobile - Themes",
@@ -1538,6 +1518,10 @@
     "result": "passed"
   },
   {
+    "title": "HTML and CSS Fundamentals 101 (Teaching Resource)",
+    "result": "passed"
+  },
+  {
     "title": "LEGO Mindstorms Egg Decorator",
     "result": "passed"
   },
@@ -1582,22 +1566,6 @@
     "result": "passed"
   },
   {
-    "title": "Lego Mindstorm Gear Construction -  1 of 4",
-    "result": "passed"
-  },
-  {
-    "title": "Lego Mindstorm Gear Construction -  2 of 4",
-    "result": "passed"
-  },
-  {
-    "title": "Lego Mindstorm Gear Construction -  3 of 4",
-    "result": "passed"
-  },
-  {
-    "title": "Lego Mindstorm Gear Construction -  4 of 4",
-    "result": "passed"
-  },
-  {
     "title": "LEGO Mindstorms - Color Sensor Down",
     "result": "passed"
   },
@@ -1614,11 +1582,47 @@
     "result": "passed"
   },
   {
+    "title": "LEGO Mindstorms - Robot Educator",
+    "result": "passed"
+  },
+  {
     "title": "LEGO Mindstorms - Touch Sensor",
     "result": "passed"
   },
   {
     "title": "LEGO Mindstorms - Ultrasonic Sensor",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms Gear Construction -  1 of 8",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms Gear Construction -  2 of 8",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms Gear Construction -  3 of 8",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms Gear Construction -  4 of 8",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms Gear Construction -  5 of 8",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms Gear Construction -  6 of 8",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms Gear Construction -  7 of 8",
+    "result": "passed"
+  },
+  {
+    "title": "LEGO Mindstorms Gear Construction -  8 of 8",
     "result": "passed"
   },
   {
