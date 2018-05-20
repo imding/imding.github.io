@@ -23,6 +23,7 @@ p {
     margin: auto;
     width: 250px;
     height: 150px;
+    border-radius: 15px;
 }
 
 #text {
