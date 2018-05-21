@@ -1,5 +1,6 @@
 * {
     font-family: monospace;
+    user-select: none;
 }
 
 body {
@@ -24,6 +25,7 @@ p {
     width: 250px;
     height: 150px;
     border-radius: 15px;
+    cursor: pointer;
 }
 
 #text {
