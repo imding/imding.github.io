@@ -60,8 +60,15 @@ function updateToggle() {
 
 function updateMode() {
   style([head], {
-    width: landscape ? '200px' : '100%',
+    width: landscape ? `${headNode.offsetWidth * 2}px` : '100%',
+    height: landscape ? `${window.innerHeight - head.offsetTop}px` : 'initial',
+  });
+
+  sections.forEach((section, i) => {
     
+    style([section], {
+      width: section.children
+    });
   });
 }
 
