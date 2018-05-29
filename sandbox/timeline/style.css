@@ -4,14 +4,17 @@
 
 body {
     margin: 0;
+    background-image: url('https://4.bp.blogspot.com/-cVh3MsTYh38/V0ymcA33VjI/AAAAAAABeds/yr7HNXdx0KoSMLWbf-4bXzoC3UOqxjB9gCLcB/s1600/history%2Bbooks.jpg');
 }
 
-h1, p {
-    
+p {
+    margin-bottom: 30px;
 }
 
 #banner {
-    position: relative;
+    position: fixed;
+    top: 0;
+    width: 100%;
     padding: 10px 0;
     box-shadow: 0 0 25px black;
     background-color: slategrey;
@@ -32,22 +35,31 @@ h1, p {
 
 #head {
     color: azure;
-    background: #aaa;
-    background-image: url('https://4.bp.blogspot.com/-cVh3MsTYh38/V0ymcA33VjI/AAAAAAABeds/yr7HNXdx0KoSMLWbf-4bXzoC3UOqxjB9gCLcB/s1600/history%2Bbooks.jpg');
-    background-blend-mode: color-burn;
+    background: rgba(0, 0, 0, 0.6);
 }
 
 #headNode {
-    width: 180px;
-    height: 180px;
-    border: 20px solid rgba(240, 255, 255, 0.5);
-    border-radius: 50%;
-    background-color: white;
-    background-clip: content-box;
+    width: 130px;
+    height: 130px;
+    border: 20px double rgba(240, 255, 255, 0.5);
 }
 
 .sections {
+    text-align: center;
     font-family: monospace;
+}
+
+.nodes {
+    width: 85px;
+    height: 85px;
+    border: 15px double rgba(240, 255, 255, 0.5);
+}
+
+.nodes, #headNode {
+    margin: auto;
+    border-radius: 50%;
+    background-color: white;
+    background-clip: content-box;
 }
 
 .icons {
