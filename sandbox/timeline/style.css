@@ -1,0 +1,32 @@
+body {
+    margin: 0;
+}
+
+#banner {
+    padding: 10px 0;
+    box-shadow: 0 0 25px black;
+    background-color: slategrey;
+    background-image: url(http://pre03.deviantart.net/e971/th/pre/i/2013/164/6/8/hexagonal_cube_pattern_thingie_by_black_light_studio-d68vloo.png);
+    background-size: auto 150%;
+    background-position: center;
+    background-blend-mode: soft-light;
+    color: whitesmoke;
+}
+
+#bannerText {
+    margin: 0;
+    text-align: center;
+    letter-spacing: 8px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+.sections {
+    font-family: monospace;
+}
+
+#line {
+    background-color: #FFDBDA;
+}
+
+
+

@@ -45,6 +45,7 @@ button {
     border-width: 0 4px 0 4px;
     cursor: pointer;
     transition: opacity 0.2s;
+    background-color: gainsboro;
 }
 
 .circle {

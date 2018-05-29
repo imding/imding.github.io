@@ -20,7 +20,6 @@ function parseWords() {
     
         card.count = 1;
         card.className = 'card';
-        card.style.backgroundColor = `rgb(${Math.round(Math.random() * 255)}, ${Math.round(Math.random() * 255)}, ${Math.round(Math.random() * 255)})`;
         
         // if the words array includes more of the same word
         if (words.includes(word)) {
