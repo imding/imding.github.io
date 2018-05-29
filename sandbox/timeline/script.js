@@ -16,7 +16,6 @@ function initStyle() {
     background_color: 'wheat',
     box_shadow: 'inset 0 0 4px rgba(0, 0, 0, 0.4)',
     cursor: 'pointer',
-    box_sizing: 'border-box',
   });
 
   style([toggleSwitch], {
@@ -33,16 +32,11 @@ function initStyle() {
     font_family: 'monospace',
     font_weight: 'bold',
     text_align: 'center',
-    box_sizing: 'border-box',
   });
 
   style(sections, {
-    padding: '20px',
+    padding: '50px',
     text_align: 'center',
-  });
-
-  sections.forEach(sec => {
-    sec.children
   });
 }
 

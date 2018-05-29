@@ -1,16 +1,22 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
 }
 
 #banner {
+    position: relative;
     padding: 10px 0;
     box-shadow: 0 0 25px black;
     background-color: slategrey;
-    background-image: url(http://pre03.deviantart.net/e971/th/pre/i/2013/164/6/8/hexagonal_cube_pattern_thingie_by_black_light_studio-d68vloo.png);
+    background-image: url('http://pre03.deviantart.net/e971/th/pre/i/2013/164/6/8/hexagonal_cube_pattern_thingie_by_black_light_studio-d68vloo.png');
     background-size: auto 150%;
     background-position: center;
     background-blend-mode: soft-light;
     color: whitesmoke;
+    z-index: 1;
 }
 
 #bannerText {
@@ -20,13 +26,27 @@ body {
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
 
+#head {
+    background-image: url('https://4.bp.blogspot.com/-cVh3MsTYh38/V0ymcA33VjI/AAAAAAABeds/yr7HNXdx0KoSMLWbf-4bXzoC3UOqxjB9gCLcB/s1600/history%2Bbooks.jpg');
+}
+
+#headNode {
+    width: 180px;
+    height: 180px;
+    border: 20px solid rgba(240, 255, 255, 0.5);
+    border-radius: 50%;
+    background-color: white;
+    background-clip: content-box;
+}
+
+#headNode::content {
+
+}
+
 .sections {
     font-family: monospace;
 }
 
-#line {
-    background-color: #FFDBDA;
+.icons {
+    width: 150px;
 }
-
-
-
