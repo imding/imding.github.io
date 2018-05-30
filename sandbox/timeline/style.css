@@ -7,6 +7,10 @@ body {
     background-image: url('https://4.bp.blogspot.com/-cVh3MsTYh38/V0ymcA33VjI/AAAAAAABeds/yr7HNXdx0KoSMLWbf-4bXzoC3UOqxjB9gCLcB/s1600/history%2Bbooks.jpg');
 }
 
+h2 {
+    margin: 0;
+}
+
 p {
     margin-bottom: 30px;
 }
@@ -63,5 +67,10 @@ p {
 }
 
 .icons {
+    position: absolute;
     width: 150px;
+}
+
+.lines {
+    position: absolute;
 }

@@ -33,6 +33,13 @@ function initStyle() {
     font_weight: 'bold',
     text_align: 'center',
   });
+
+  style(sections, { padding: '50px' });
+  style(nodeTitles.slice(1), { position: 'absolute' });
+  style(nodeDetails.slice(1), { position: 'absolute' });
+  
+  nodeTitles.forEach(nt => nt.className = 'nodeTitles');
+  nodeDetails.forEach(nd => nd.className = 'nodeDetails');
 }
 
 function updateToggle() {
@@ -54,6 +61,9 @@ function updateToggle() {
 }
 
 function updateMode() {
+  // remove existing lines
+  document.querySelectorAll('.lines').forEach(line => document.body.removeChild(line));
+
   style([document.body], {
     background_size: landscape ? 'auto 100%' : '100%',
     background_position: landscape ? 'center' : 'initial',
@@ -72,9 +82,10 @@ function updateMode() {
   });
 
   style([nodeTitles[0]], {
+    padding_top: '20px',
     position: landscape ? 'absolute' : 'initial',
     width: landscape ? `${head.offsetWidth - 100}px` : 'auto',
-    bottom: landscape ? `${window.innerHeight - headNode.offsetTop + 10}px` : 'auto',
+    bottom: landscape ? `${window.innerHeight - headNode.offsetTop + 20}px` : 'auto',
   });
 
   style([nodeDetails[0]], {
@@ -83,11 +94,12 @@ function updateMode() {
     top: landscape ? `${headNode.offsetTop + headNode.offsetHeight + 10}px` : 'auto',
   });
 
+  // style content of each section
   for (let i = 1; i < sections.length; i++) {
     const j = i - 1;
     
     style([sections[i]], {
-      padding: landscape ? '50px' : '50px 25%',
+      padding: '80px 50px',
       position: landscape ? 'absolute' : 'initial',
       width: landscape ? `${icons[j].offsetWidth * 2}px` : '100%',
       height: landscape ? '100%' : 'auto',
@@ -103,23 +115,47 @@ function updateMode() {
     });
 
     style([nodeTitles[i]], {
-      position: 'absolute',
-      width: landscape ? `${sections[i].offsetWidth - 100}px` : `${sections[i].offsetWidth * 0.5}px`,
-      bottom: landscape ? `${window.innerHeight - headNode.offsetTop + 10}px` : 'auto',
+      width: landscape ? `${sections[i].offsetWidth - 100}px` : `${nodes[i].offsetLeft - nodeTitles[i].offsetLeft - 50}px`,
+      left: landscape ? 'auto' : i % 2 ? 'auto' : `${nodes[i].offsetLeft + nodes[i].offsetWidth + 50}px`,
+      top: landscape ? `${nodes[i].offsetTop + nodes[i].offsetHeight + 30}px` : 'auto',
+    });
+
+    style([nodeDetails[i]], {
+      width: `${nodeTitles[i].offsetWidth}px`,
+      top: `${nodeTitles[i].offsetTop + nodeTitles[i].offsetHeight}px`,
+      left: `${nodeTitles[i].offsetLeft}px`,
+    });
+
+    style([icons[j]], {
+      top: landscape ? `${nodes[i].offsetTop - icons[j].offsetHeight - 30}px` : `${nodes[i].offsetTop - (icons[j].offsetHeight - nodes[i].offsetHeight) / 2}px`,
+      left: landscape ? `${sections[i].offsetWidth / 4}px` : `${nodes[i].offsetLeft + (i % 2 ? 1 : -1) * ((i % 2 ? nodes[i].offsetWidth : icons[j].offsetWidth) + 50)}px`,
+    });
+
+    // add line
+    const line = document.createElement('div');
+    line.className = 'lines';
+    document.body.appendChild(line);
+
+    style([line], {
+      // width: landscape ? 
+      left: landscape ? `${nodes[j].offsetLeft + nodes[j].offsetWidth + 20}px` : `${window.innerWidth / 2 - line.offsetWidth / 2}px`,
+      // top: landscape ? `${(window.innerHeight - banner.offsetHeight) / 2 - line.offsetHeight / 2}px` :
     });
   }
 }
 
-window.onload = function () {
+window.onload = () => {
   toggle.onclick = updateToggle;
-  sections = document.querySelectorAll('.sections');
-  icons = document.querySelectorAll('.icons');
-  nodes = document.querySelectorAll('.nodes');
-  nodeTitles = document.querySelectorAll('.sections > h2');
-  nodeDetails = document.querySelectorAll('.sections > p');
+  sections = Array.from(document.querySelectorAll('.sections'));
+  icons = Array.from(document.querySelectorAll('.icons'));
+  nodes = Array.from(document.querySelectorAll('.nodes'));
+  nodeTitles = Array.from(document.querySelectorAll('.sections > h2'));
+  nodeDetails = Array.from(document.querySelectorAll('.sections > p'));
   initStyle();
   updateMode();
 };
+
+window.onresize = updateMode;
 
 function style(elem, declarations) {
   Object.keys(declarations).forEach(d => {
