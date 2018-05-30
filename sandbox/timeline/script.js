@@ -116,7 +116,7 @@ function updateMode() {
 
     style([nodeTitles[i]], {
       text_align: landscape ? 'center' : i % 2 ? 'right' : 'left',
-      width: landscape ? `${sections[i].offsetWidth - 100}px` : `${nodes[i].offsetLeft - nodeTitles[i].offsetLeft - 50}px`,
+      width: landscape ? `${sections[i].offsetWidth - 100}px` : `${window.innerWidth / 2 - nodes[i].offsetWidth / 2 - 100}px`,
       left: landscape ? 'auto' : i % 2 ? 'auto' : `${nodes[i].offsetLeft + nodes[i].offsetWidth + 50}px`,
       top: landscape ? `${nodes[i].offsetTop + nodes[i].offsetHeight + 30}px` : 'auto',
     });
@@ -157,7 +157,7 @@ function updateMode() {
     position: landscape ? 'absolute' : 'initial',
     left: landscape ? `${sections[sections.length - 1].getBoundingClientRect().right}px` : 'auto',
     top: landscape ? '0' : 'auto',
-    width: landscape ? `${window.innerWidth - sections[sections.length - 1].getBoundingClientRect().right}px` : '100%',
+    width: landscape ? `${Math.max(0, window.innerWidth - sections[sections.length - 1].getBoundingClientRect().right)}px` : '100%',
     height: landscape ? '100%' : `${window.innerHeight - sections[sections.length - 1].getBoundingClientRect().bottom}px`,
   });
 }
