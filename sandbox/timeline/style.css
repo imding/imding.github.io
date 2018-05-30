@@ -48,6 +48,10 @@ p {
     border: 20px double rgba(240, 255, 255, 0.5);
 }
 
+#tail {
+    background-color: rgba(0, 0, 0, 0.9);
+}
+
 .sections {
     text-align: center;
     font-family: monospace;
@@ -73,4 +77,6 @@ p {
 
 .lines {
     position: absolute;
+    border-radius: 3px;
+    background-color: rgba(240, 255, 255, 0.6);
 }

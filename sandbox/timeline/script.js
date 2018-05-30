@@ -1,5 +1,5 @@
 let
-  togglePadding = 3, toggleDuration = 120,
+  togglePadding = 3, toggleDuration = 120, lineWidth = 6,
   landscape, toggleTransit,
   sections = [], icons = [], nodes = [], nodeTitles = [], nodeDetails = [];
 
@@ -61,8 +61,8 @@ function updateToggle() {
 }
 
 function updateMode() {
-  // remove existing lines
-  document.querySelectorAll('.lines').forEach(line => document.body.removeChild(line));
+  document.body.style.overflowX = landscape ? 'auto' : 'hidden';
+  document.body.style.overflowY = landscape ? 'hidden' : 'auto';
 
   style([document.body], {
     background_size: landscape ? 'auto 100%' : '100%',
@@ -99,7 +99,7 @@ function updateMode() {
     const j = i - 1;
     
     style([sections[i]], {
-      padding: '80px 50px',
+      padding: landscape ? '50px' : '80px 50px',
       position: landscape ? 'absolute' : 'initial',
       width: landscape ? `${icons[j].offsetWidth * 2}px` : '100%',
       height: landscape ? '100%' : 'auto',
@@ -115,12 +115,14 @@ function updateMode() {
     });
 
     style([nodeTitles[i]], {
+      text_align: landscape ? 'center' : i % 2 ? 'right' : 'left',
       width: landscape ? `${sections[i].offsetWidth - 100}px` : `${nodes[i].offsetLeft - nodeTitles[i].offsetLeft - 50}px`,
       left: landscape ? 'auto' : i % 2 ? 'auto' : `${nodes[i].offsetLeft + nodes[i].offsetWidth + 50}px`,
       top: landscape ? `${nodes[i].offsetTop + nodes[i].offsetHeight + 30}px` : 'auto',
     });
 
     style([nodeDetails[i]], {
+      text_align: landscape ? 'center' : i % 2 ? 'right' : 'left',
       width: `${nodeTitles[i].offsetWidth}px`,
       top: `${nodeTitles[i].offsetTop + nodeTitles[i].offsetHeight}px`,
       left: `${nodeTitles[i].offsetLeft}px`,
@@ -132,16 +134,32 @@ function updateMode() {
     });
 
     // add line
-    const line = document.createElement('div');
-    line.className = 'lines';
-    document.body.appendChild(line);
-
+    let line = sections[i].querySelectorAll('.lines');
+    
+    if (!line.length) {
+      line = document.createElement('div');
+      line.className = 'lines';
+      sections[i].appendChild(line);
+    }
+    else {
+      line = line[0];
+    }
+    
     style([line], {
-      // width: landscape ? 
-      left: landscape ? `${nodes[j].offsetLeft + nodes[j].offsetWidth + 20}px` : `${window.innerWidth / 2 - line.offsetWidth / 2}px`,
-      // top: landscape ? `${(window.innerHeight - banner.offsetHeight) / 2 - line.offsetHeight / 2}px` :
+      width: landscape ? `${(sections[j].offsetWidth - nodes[j].offsetWidth) / 2 + (sections[i].offsetWidth - nodes[i].offsetWidth) / 2  - 40}px` : `${lineWidth}px`,
+      height: landscape ? `${lineWidth}px` : `${nodes[i].offsetTop - nodes[j].offsetTop - nodes[j].offsetHeight - 40}px`,
+      left: landscape ? `${20 - nodes[j].offsetLeft}px` : `${window.innerWidth / 2 - lineWidth / 2}px`,
+      top: landscape ? `${nodes[i].offsetTop + (nodes[i].offsetHeight / 2) - lineWidth / 2}px` : `${nodes[j].offsetTop + nodes[j].offsetHeight + 20}px`,
     });
   }
+  
+  style([tail], {
+    position: landscape ? 'absolute' : 'initial',
+    left: landscape ? `${sections[sections.length - 1].getBoundingClientRect().right}px` : 'auto',
+    top: landscape ? '0' : 'auto',
+    width: landscape ? `${window.innerWidth - sections[sections.length - 1].getBoundingClientRect().right}px` : '100%',
+    height: landscape ? '100%' : `${window.innerHeight - sections[sections.length - 1].getBoundingClientRect().bottom}px`,
+  });
 }
 
 window.onload = () => {
@@ -163,4 +181,12 @@ function style(elem, declarations) {
       if (declarations[d]) e.style[d.replace(/_/g, '-')] = declarations[d];
     });
   });
+}
+
+function spaceBetween(e1, e2, axis = 0) {       // axis: 0 is horizontal, 1 is vertical
+  const pos1 = [e1.offsetLeft, e1.offsetTop],
+      pos2 = [e2.offsetLeft, e2.offsetTop],
+      size1 = [e1.offsetWidth, e1.offsetHeight],
+      size2 = [e2.offsetWidth, e2.offsetHeight];
+  return Math.max(Math.max(pos1[axis], pos2[axis]) - Math.min(pos1[axis], pos2[axis]) - (pos1[axis] <= pos2[axis] ? size1[axis] : size2[axis]), 0);
 }
