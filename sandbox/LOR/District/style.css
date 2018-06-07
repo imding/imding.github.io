@@ -43,6 +43,7 @@ p {
 }
 
 .labelArrow {
+    position: relative;
     width: 0;
     height: 0;
     border: solid transparent;

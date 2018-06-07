@@ -1,7 +1,7 @@
 const
     aspectRatio = 16 / 9, labels = [],
     labelCSS = {
-        fontSize: 5,
+        fontSize: 3,
         padding: [2, 3],
         borderRadius: 2,
         borderWidth: 1,
@@ -27,6 +27,8 @@ function perc(n, dir = 'width') {
     return (dir === 'width' ? box(frame).width : box(frame).height) * n / 100;
 }
 
+// centre(frame).inParent.fully
+// centre(button).in(frame).vertically
 function centre(node) {
     if (!(node.nodeType === 1)) throw new Error(node, 'is not an HTML node.');
     const
@@ -51,6 +53,44 @@ function centre(node) {
         inParent: function () {
             if (!node.parentNode) throw new Error(node, 'has no parent.');
             return centreMethods(node.parentNode, true);
+        }(),
+    };
+}
+
+// place(label, 10).above(button)
+// place(label, 25, '%').in(frame).horizontally
+// place(frame, 50, '%').inParent.fully
+function place(node, scale, unit = 'px') {
+    if (!(node.nodeType === 1)) throw new Error(node, 'is not an HTML node.');
+    const
+        tbox = node.getBoundingClientRect(),
+        dimension = (ref, relative = false) => {
+            const rbox = box(ref);
+            return {
+                get horizontally() {
+                    const placement = unit === 'px' ? scale : rbox.width * scale / 100;
+                    node.style.left = `${(relative ? 0 : rbox.left) + placement - (unit === '%' ? box(node).width / 2 : 0)}px`;
+                },
+                get vertically() {
+                    const placement = unit === 'px' ? scale : rbox.height * scale / 100;
+                    node.style.top = `${(relative ? 0 : rbox.top) + placement - (unit === '%' ? box(node).height / 2 : 0)}px`;
+                },
+            };
+        };
+
+    return {
+        above: function(ref) {
+            if (!ref) throw new Error('please provide an HTML Node as reference');
+            const placement = unit === 'px' ? scale : tbox.height * scale / 100;
+            node.style.top = `${box(ref).top - tbox.height - placement}px`;
+        },
+        in: function(ref) {
+            if (!ref) throw new Error('please provide an HTML Node as reference');
+            return dimension(ref);
+        },
+        inParent: function() {
+            if (!node.parentNode) throw new Error(node, 'has no parent.');
+            return dimension(node.parentNode, true);
         }(),
     };
 }
@@ -104,6 +144,7 @@ function Label(opts) {
 
     if (arrow) {
         arrow.className = 'labelArrow';
+        Object.defineProperty(arrow, 'dir', { value: opts.arrow.dir });
         styleLable({ body, arrow });
 
         switch (opts.arrow.dir) {
@@ -146,7 +187,7 @@ function nextFrame() {
     // modify DOM according to current frame
     if (cf == 1) {
         start.style.height = `${box(start).width}px`;
-        start.style.borderWidth = `${box(frame).width * 0.008}px`;
+        start.style.borderWidth = `${box(frame).width * 0.01}px`;
         start.style.top = `${box(frame).height * 0.65 - box(start).height / 2}px`;
         centre(start).inParent.horizontally;
 
@@ -161,12 +202,13 @@ function nextFrame() {
         }));
 
         labels[0].wrapper.style.top = `${box(start).top - box(frame).top - box(labels[0].wrapper).height - (box(frame).height * 0.05)}px`;
-        labels[0].arrow.style.marginLeft = `${(box(labels[0].body).width - box(labels[0].arrow).width) / 2}px`;
+        centre(labels[0].arrow).inParent.horizontally;
+        // labels[0].arrow.style.marginLeft = `${(box(labels[0].body).width - box(labels[0].arrow).width) / 2}px`;
         centre(labels[0].wrapper).inParent.horizontally;
 
         start.onclick = () => {
             const anim = { rotation: 0, alpha: 100 };
-            let flip = false;
+            let flipped = false, repositioned = false;
 
             anime({
                 targets: anim,
@@ -179,11 +221,28 @@ function nextFrame() {
                     const r = anim.rotation > 90 ? -(180 - anim.rotation) : anim.rotation;
                     const a = (anim.alpha > 50 ? (anim.alpha - 50) * 2 : 100 - (anim.alpha * 2)) / 100;
 
-                    if (!flip && r)
+                    if (!flipped && r < 0) {
+                        flipped = true;
+                        labels[0].body.innerHTML = `
+                            <p>What's your name?</p>
+                            <input id='userName'>
+                            <button>Submit</button>
+                        `;
+                    }
+
+                    if (flipped && !repositioned) {
+                        repositioned = true;
+                        console.log(labels[0].body.offsetWidth);
+                        labels[0].wrapper.style.left = `${(box(frame).width - labels[0].wrapper.offsetWidth) / 2}px`;
+                        place(labels[0].wrapper, box(frame).height * 0.05).above(start);
+                        centre(labels[0].arrow).inParent.horizontally;
+                        // labels[0].wrapper.style.top = `${(box(frame).height - labels[0].wrapper.offsetWidth) / 2}px`;
+                    }
 
                     labels[0].wrapper.style.transform = `rotate3d(0, 1, 0, ${r}deg)`;
                     Array.from(labels[0].body.children).forEach(child => child.style.opacity = a);
                 },
+                complete: () => labels[0].wrapper.style.transform = 'inherit',
             });
 
             start.onclick = () => { };
@@ -200,7 +259,7 @@ window.onresize = function () {
     switch (cf) {
         case 1:
             start.style.height = `${box(start).width}px`;
-            start.style.borderWidth = `${box(frame).width * 0.008}px`;
+            start.style.borderWidth = `${box(frame).width * 0.01}px`;
             start.style.top = `${box(frame).height * 0.65 - box(start).height / 2}px`;
             centre(start).inParent.horizontally;
 
