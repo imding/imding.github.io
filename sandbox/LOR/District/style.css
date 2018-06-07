@@ -1,0 +1,65 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    height: 100%;
+    background-color: black;
+    perspective: 1200px;
+    overflow: hidden;
+}
+
+p {
+    margin: 0;
+    padding: 0;
+}
+
+#frame {
+    position: relative;
+    width: 100%;
+    /* frame background colour */
+    background-color: white;
+    overflow: hidden;
+}
+
+#frame>* {
+    position: absolute;
+}
+
+#start {
+    width: 20%;
+    /* button background colour */
+    background-color: mediumspringgreen;
+    background-image: url('https://app.bsdlaunchbox.com/resources/bsdlogo.png');
+    background-size: 60%;
+    background-position: center;
+    background-repeat: no-repeat;
+    /* button border colour */
+    border: solid rgba(0, 0, 0, 0.25);
+    border-radius: 50%;
+    cursor: pointer;
+    outline: none;
+}
+
+.labelArrow {
+    width: 0;
+    height: 0;
+    border: solid transparent;
+}
+
+.arrow-up {
+    border-top-width: 0;
+}
+
+.arrow-down {
+    border-bottom-width: 0;
+}
+
+.arrow-right {
+    border-right-width: 0;
+}
+
+.arrow-left {
+    border-left-width: 0;
+}
