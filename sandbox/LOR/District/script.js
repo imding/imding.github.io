@@ -10,89 +10,12 @@ const
     };
 let cf = 0;
 
-function box(node) {
-    return node.getBoundingClientRect();
+function checkNodeType(node, message) {
+    if (!(node.nodeType === 1)) throw new Error(node || 'input', message);
 }
 
-function elm(key) {
-    if (key.startsWith('.')) {
-        return Array.from(document.getElementsByClassName(key.slice(1)));
-    }
-    else {
-        return Array.from(document.getElementsByTagName(key));
-    }
-}
+function verify(opts) {
 
-function perc(n, dir = 'width') {
-    return (dir === 'width' ? box(frame).width : box(frame).height) * n / 100;
-}
-
-// centre(frame).inParent.fully
-// centre(button).in(frame).vertically
-function centre(node) {
-    if (!(node.nodeType === 1)) throw new Error(node, 'is not an HTML node.');
-    const
-        tbox = node.getBoundingClientRect(),
-        centreMethods = (ref, relative = false) => {
-            const rbox = ref.getBoundingClientRect();
-            return {
-                get horizontally() { node.style.left = `${(relative ? 0 : rbox.left) + rbox.width / 2 - tbox.width / 2}px`; },
-                get vertically() { node.style.top = `${(relative ? 0 : rbox.top) + rbox.height / 2 - tbox.height / 2}px`; },
-                get fully() {
-                    node.style.left = `${(relative ? 0 : rbox.left) + rbox.width / 2 - tbox.width / 2}px`;
-                    node.style.top = `${(relative ? 0 : rbox.top) + rbox.height / 2 - tbox.height / 2}px`;
-                },
-            };
-        };
-
-    return {
-        in: function (ref) {
-            if (!ref) throw new Error('please provide an HTML Node as reference.');
-            return centreMethods(ref);
-        },
-        inParent: function () {
-            if (!node.parentNode) throw new Error(node, 'has no parent.');
-            return centreMethods(node.parentNode, true);
-        }(),
-    };
-}
-
-// place(label, 10).above(button)
-// place(label, 25, '%').in(frame).horizontally
-// place(frame, 50, '%').inParent.fully
-function place(node, scale, unit = 'px') {
-    if (!(node.nodeType === 1)) throw new Error(node, 'is not an HTML node.');
-    const
-        tbox = node.getBoundingClientRect(),
-        dimension = (ref, relative = false) => {
-            const rbox = box(ref);
-            return {
-                get horizontally() {
-                    const placement = unit === 'px' ? scale : rbox.width * scale / 100;
-                    node.style.left = `${(relative ? 0 : rbox.left) + placement - (unit === '%' ? box(node).width / 2 : 0)}px`;
-                },
-                get vertically() {
-                    const placement = unit === 'px' ? scale : rbox.height * scale / 100;
-                    node.style.top = `${(relative ? 0 : rbox.top) + placement - (unit === '%' ? box(node).height / 2 : 0)}px`;
-                },
-            };
-        };
-
-    return {
-        above: function(ref) {
-            if (!ref) throw new Error('please provide an HTML Node as reference');
-            const placement = unit === 'px' ? scale : tbox.height * scale / 100;
-            node.style.top = `${box(ref).top - tbox.height - placement}px`;
-        },
-        in: function(ref) {
-            if (!ref) throw new Error('please provide an HTML Node as reference');
-            return dimension(ref);
-        },
-        inParent: function() {
-            if (!node.parentNode) throw new Error(node, 'has no parent.');
-            return dimension(node.parentNode, true);
-        }(),
-    };
 }
 
 function styleLable(label) {
@@ -124,7 +47,7 @@ function styleLable(label) {
 function generalStyles() {
     frame.style.width = window.innerWidth / window.innerHeight > aspectRatio ? `${aspectRatio * box(document.body).height}px` : '100%';
     frame.style.height = `${box(frame).width / aspectRatio}px`;
-    centre(frame).inParent.fully;
+    place(frame, 50, '%').inParent.onXY;
 
     labels.forEach(e => styleLable(e));
 }
@@ -172,6 +95,17 @@ function Label(opts) {
         wrapper: wrapper,
         body: body,
         arrow: arrow,
+        changeContent: opts => {
+            if (opts) {
+                body.innerHTML = opts.html;
+                opts.buttons.forEach(b => {
+                    const button = document.createElement('button');
+                    Object.assign(button, b);
+                    body.appendChild(button);
+                });
+            }
+            else throw new Error('changeContent function expects a meaningful argument.');
+        },
     };
 }
 
@@ -188,8 +122,8 @@ function nextFrame() {
     if (cf == 1) {
         start.style.height = `${box(start).width}px`;
         start.style.borderWidth = `${box(frame).width * 0.01}px`;
-        start.style.top = `${box(frame).height * 0.65 - box(start).height / 2}px`;
-        centre(start).inParent.horizontally;
+        place(start, 65, '%').in(frame).onY;
+        place(start, 50, '%').inParent.onX;
 
         labels.push(new Label({
             arrow: { dir: 'arrow-down' },
@@ -201,10 +135,9 @@ function nextFrame() {
             parent: frame,
         }));
 
-        labels[0].wrapper.style.top = `${box(start).top - box(frame).top - box(labels[0].wrapper).height - (box(frame).height * 0.05)}px`;
-        centre(labels[0].arrow).inParent.horizontally;
-        // labels[0].arrow.style.marginLeft = `${(box(labels[0].body).width - box(labels[0].arrow).width) / 2}px`;
-        centre(labels[0].wrapper).inParent.horizontally;
+        place(labels[0].wrapper, box(frame).height * 0.05).above(start);
+        place(labels[0].wrapper, 50, '%').inParent.onX;
+        place(labels[0].arrow, 50, '%').inParent.onX;
 
         start.onclick = () => {
             const anim = { rotation: 0, alpha: 100 };
@@ -218,35 +151,48 @@ function nextFrame() {
                 easing: 'easeInOutQuart',
                 duration: 800,
                 update: () => {
+                    // remap rotation from 0 > 180 to 0 > 90/-90 > 0
                     const r = anim.rotation > 90 ? -(180 - anim.rotation) : anim.rotation;
+                    // remap alhpa from 1 > 0 to 1 > 0 > 1
                     const a = (anim.alpha > 50 ? (anim.alpha - 50) * 2 : 100 - (anim.alpha * 2)) / 100;
 
                     if (!flipped && r < 0) {
                         flipped = true;
-                        labels[0].body.innerHTML = `
-                            <p>What's your name?</p>
-                            <input id='userName'>
-                            <button>Submit</button>
-                        `;
+                        labels[0].changeContent({
+                            html: [{
+                                tagName: 'P',
+                                textContent: 'What\'s your name?',
+                            }, {
+                                tagName: 'INPUT',
+                                
+                            }],
+                            buttons: [{
+                                textContent: 'Submit',
+                                onclick: nextFrame,
+                            }],
+                        });
                     }
 
                     if (flipped && !repositioned) {
                         repositioned = true;
-                        console.log(labels[0].body.offsetWidth);
-                        labels[0].wrapper.style.left = `${(box(frame).width - labels[0].wrapper.offsetWidth) / 2}px`;
+                        place(labels[0].wrapper, 50, '%').inParent.onX;
                         place(labels[0].wrapper, box(frame).height * 0.05).above(start);
-                        centre(labels[0].arrow).inParent.horizontally;
-                        // labels[0].wrapper.style.top = `${(box(frame).height - labels[0].wrapper.offsetWidth) / 2}px`;
+                        place(labels[0].arrow, 50, '%').inParent.onX;
                     }
 
                     labels[0].wrapper.style.transform = `rotate3d(0, 1, 0, ${r}deg)`;
                     Array.from(labels[0].body.children).forEach(child => child.style.opacity = a);
                 },
-                complete: () => labels[0].wrapper.style.transform = 'inherit',
+                complete: () => {
+                    // labels[0].wrapper.style.transform = 'inherit';
+                },
             });
 
             start.onclick = () => { };
         };
+    }
+    else if (cf == 2) {
+        console.log('frame', cf);
     }
 }
 
@@ -260,14 +206,109 @@ window.onresize = function () {
         case 1:
             start.style.height = `${box(start).width}px`;
             start.style.borderWidth = `${box(frame).width * 0.01}px`;
-            start.style.top = `${box(frame).height * 0.65 - box(start).height / 2}px`;
-            centre(start).inParent.horizontally;
-
-            labels[0].wrapper.style.top = `${box(start).top - box(frame).top - box(labels[0].wrapper).height - (box(frame).height * 0.05)}px`;
-            labels[0].arrow.style.marginLeft = `${(box(labels[0].body).width - box(labels[0].arrow).width) / 2}px`;
-            centre(labels[0].wrapper).inParent.horizontally;
+            place(start, 65, '%').in(frame).onY;
+            place(start, 50, '%').inParent.onX;
+            place(labels[0].wrapper, box(frame).height * 0.05).above(start);
+            place(labels[0].wrapper, 50, '%').inParent.onX;
+            place(labels[0].arrow, 50, '%').inParent.onX;
             break;
 
         // case 2:
     }
 };
+
+// =================== //
+// ===== Utility ===== //
+// =================== //
+
+// place(label, 10).above(button)
+// place(label, 25, '%').in(frame).onX
+// place(frame, 50, '%').inParent.onXY
+function place(node, scale, unit = 'px') {
+    checkNodeType(node, 'is not an HTML node.');
+    const
+        tbox = box(node),
+        cssPosition = getCSS(node, 'position'),
+        relative = cssPosition === 'relative' || getCSS(node.parentNode, 'position') === 'relative',
+        sibling = (ref) => { return node.parentNode === ref.parentNode; },
+        position = (ref, flag, rbox = box(ref)) => {
+            const placement = unit === 'px' ? scale : (flag === 'above' || flag === 'below' ? rbox.height : rbox.width) * scale / 100;
+
+            if (sibling(ref)) {
+                switch (flag) {
+                    case 'above':
+                        node.style.top = `${rbox.relTop - tbox.height - placement}px`; break;
+                }
+            }
+        },
+        direction = (ref, rbox = box(ref)) => {
+            const placement = {
+                x: unit === 'px' ? scale : rbox.width * scale / 100,
+                y: unit === 'px' ? scale : rbox.height * scale / 100,
+            };
+
+            return {
+                get onX() {
+                    node.style.left = `${(relative ? 0 : rbox.left) + placement.x - (unit === '%' ? tbox.width / 2 : 0)}px`;
+                },
+                get onY() {
+                    node.style.top = `${(relative ? 0 : rbox.top) + placement.y - (unit === '%' ? tbox.height / 2 : 0)}px`;
+                },
+                get onXY() {
+                    node.style.left = `${(relative ? 0 : rbox.left) + placement.x - (unit === '%' ? tbox.width / 2 : 0)}px`;
+                    node.style.top = `${(relative ? 0 : rbox.top) + placement.y - (unit === '%' ? tbox.height / 2 : 0)}px`;
+                },
+            };
+        };
+
+    if (cssPosition !== 'absolute' && cssPosition !== 'relative') throw new Error('invalid position property for target node');
+
+    return {
+        above: ref => position(ref, 'above'),
+        in: function (ref) {
+            checkNodeType(node, 'is not an HTML node.');
+            return direction(ref);
+        },
+        inParent: function () {
+            checkNodeType(node.parentNode, 'has no parent');
+            return direction(node.parentNode);
+        }(),
+    };
+}
+
+function getCSS(node, propertyName) {
+    checkNodeType(node, 'is not an HTML node.');
+    return window.getComputedStyle(node).getPropertyValue(propertyName);
+}
+
+function box(node) {
+    const
+        box = node.getBoundingClientRect(),
+        parentBox = node.parentNode.getBoundingClientRect();
+
+    return {
+        top: box.top,
+        bottom: box.bottom,
+        left: box.left,
+        right: box.right,
+        width: parseInt(getCSS(node, 'width')),
+        height: parseInt(getCSS(node, 'height')),
+        relTop: box.top - parentBox.top,
+        relBottom: box.bottom - parentBox.bottom,
+        relLeft: box.left - parentBox.left,
+        relRight: box.right - parentBox.right,
+    };
+}
+
+function elm(key) {
+    if (key.startsWith('.')) {
+        return Array.from(document.getElementsByClassName(key.slice(1)));
+    }
+    else {
+        return Array.from(document.getElementsByTagName(key));
+    }
+}
+
+function perc(n, dir = 'width') {
+    return (dir === 'width' ? box(frame).width : box(frame).height) * n / 100;
+}

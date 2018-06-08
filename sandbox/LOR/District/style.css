@@ -15,9 +15,12 @@ p {
     padding: 0;
 }
 
+p, input {
+    text-align: center;
+}
+
 #frame {
     position: relative;
-    width: 100%;
     /* frame background colour */
     background-color: white;
     overflow: hidden;
