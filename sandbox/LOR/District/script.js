@@ -7,15 +7,19 @@ const
         borderWidth: 1,
         borderColor: 'royalblue',
         arrowSize: 4,
+    },
+    inputCSS = {
+        fontSize: 2,
+        padding: [0.25, 0.5],
+        borderRadius: 0.5,
+        textAlign: 'center',
+        border: 'none',
+        outline: 'none',
     };
 let cf = 0;
 
 function checkNodeType(node, message) {
     if (!(node.nodeType === 1)) throw new Error(node || 'input', message);
-}
-
-function verify(opts) {
-
 }
 
 function styleLable(label) {
@@ -97,17 +101,41 @@ function Label(opts) {
         arrow: arrow,
         changeContent: opts => {
             if (opts) {
-                body.innerHTML = opts.html;
-                opts.buttons.forEach(b => {
-                    const button = document.createElement('button');
-                    Object.assign(button, b);
-                    body.appendChild(button);
+                body.innerHTML = '';
+
+                opts.html.forEach(n => {
+                    const node = document.createElement(n.tagName);
+                    Object.assign(node, n.attrs);
+                    node.applyStyle = function() {
+                        Object.keys(n.style).forEach(k => {
+                            if (Number.isFinite(n.style[k])) {
+                                node.style[k] = `${perc(n.style[k])}px`;
+                                return;
+                            }
+                            
+                            if (Array.isArray(n.style[k])) {
+                                node.style[k] = n.style[k].map(v => {
+                                    if (Number.isFinite(v)) return `${perc(v)}px`;
+                                    return v;
+                                }).join(' ');
+                                return;
+                            }
+                            
+                            node.style[k] = n.style[k];
+                        });
+                    };
+                    node.applyStyle();
+                    body.appendChild(node);
                 });
             }
             else throw new Error('changeContent function expects a meaningful argument.');
         },
     };
 }
+
+// ================ //
+// ===== Flow ===== //
+// ================ //
 
 function init() {
     generalStyles();
@@ -161,14 +189,28 @@ function nextFrame() {
                         labels[0].changeContent({
                             html: [{
                                 tagName: 'P',
-                                textContent: 'What\'s your name?',
+                                attrs: {
+                                    textContent: 'What\'s your name?',
+                                },
+                                style: {},
                             }, {
                                 tagName: 'INPUT',
-                                
-                            }],
-                            buttons: [{
-                                textContent: 'Submit',
-                                onclick: nextFrame,
+                                attrs: {
+                                    placeholder: 'type your name here',
+                                    oninput: evt => labels[0].pass = evt.target.value.trim().length > 0,
+                                },
+                                style: inputCSS,
+                            }, {
+                                tagName: 'BR',
+                                attrs: {},
+                                style: {},
+                            }, {
+                                tagName: 'BUTTON',
+                                attrs: {
+                                    textContent: 'Submit',
+                                    onclick: nextFrame,
+                                },
+                                style: {},
                             }],
                         });
                     }
@@ -206,6 +248,7 @@ window.onresize = function () {
         case 1:
             start.style.height = `${box(start).width}px`;
             start.style.borderWidth = `${box(frame).width * 0.01}px`;
+            labels.forEach(l => Array.from(l.body.children).forEach(n => n.applyStyle()));
             place(start, 65, '%').in(frame).onY;
             place(start, 50, '%').inParent.onX;
             place(labels[0].wrapper, box(frame).height * 0.05).above(start);
@@ -232,12 +275,19 @@ function place(node, scale, unit = 'px') {
         relative = cssPosition === 'relative' || getCSS(node.parentNode, 'position') === 'relative',
         sibling = (ref) => { return node.parentNode === ref.parentNode; },
         position = (ref, flag, rbox = box(ref)) => {
+            checkNodeType(ref, 'is not an HTML node.');
             const placement = unit === 'px' ? scale : (flag === 'above' || flag === 'below' ? rbox.height : rbox.width) * scale / 100;
 
             if (sibling(ref)) {
                 switch (flag) {
                     case 'above':
                         node.style.top = `${rbox.relTop - tbox.height - placement}px`; break;
+                    case 'below':
+                        node.style.top = `${rbox.relTop + rbox.height + placement}px`; break;
+                    case 'leftOf':
+                        node.style.left = `${rbox.relLeft - tbox.width - placement}px`; break;
+                    case 'rightOf':
+                        node.style.left = `${rbox.relLeft + rbox.width + placement}px`; break;
                 }
             }
         },
@@ -265,8 +315,11 @@ function place(node, scale, unit = 'px') {
 
     return {
         above: ref => position(ref, 'above'),
+        below: ref => position(ref, 'below'),
+        leftOf: ref => position(ref, 'leftOf'),
+        rightOf: ref => position(ref, 'rightOf'),
         in: function (ref) {
-            checkNodeType(node, 'is not an HTML node.');
+            checkNodeType(ref, 'is not an HTML node.');
             return direction(ref);
         },
         inParent: function () {
