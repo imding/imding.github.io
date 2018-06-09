@@ -109,9 +109,9 @@ function Label(opts) {
 
                 opts.html.forEach(n => {
                     const node = document.createElement(n.tagName);
-                    Object.assign(node, n.attrs);
+                    Object.assign(node, n.attrs || {});
                     node.applyStyle = function() {
-                        Object.keys(n.style).forEach(k => {
+                        Object.keys(n.style || {}).forEach(k => {
                             if (Number.isFinite(n.style[k])) {
                                 node.style[k] = `${perc(n.style[k])}px`;
                                 return;
@@ -159,9 +159,6 @@ function nextFrame() {
 
         labels.push(new Label({
             arrow: { dir: 'arrow-down' },
-            // bodyContent: `
-            //     <p>Your learning journey starts here</p>
-            // `,
             borderColor: 'royalblue',
             backgroundColor: 'skyblue',
             parent: frame,
@@ -172,7 +169,6 @@ function nextFrame() {
             attrs: {
                 textContent: 'Begin your learning journey here.'
             },
-            style: {},
         }]});
 
         place(labels[0].wrapper, box(frame).height * 0.05).above(start);
@@ -204,7 +200,6 @@ function nextFrame() {
                                 attrs: {
                                     textContent: 'What\'s your name?',
                                 },
-                                style: {},
                             }, {
                                 tagName: 'INPUT',
                                 attrs: {
@@ -214,8 +209,6 @@ function nextFrame() {
                                 style: inputCSS,
                             }, {
                                 tagName: 'BR',
-                                attrs: {},
-                                style: {},
                             }, {
                                 tagName: 'BUTTON',
                                 attrs: {
