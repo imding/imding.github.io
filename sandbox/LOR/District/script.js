@@ -110,13 +110,13 @@ function Label(opts) {
                 opts.html.forEach(n => {
                     const node = document.createElement(n.tagName);
                     Object.assign(node, n.attrs || {});
-                    node.applyStyle = function() {
+                    node.applyStyle = function () {
                         Object.keys(n.style || {}).forEach(k => {
                             if (Number.isFinite(n.style[k])) {
                                 node.style[k] = `${perc(n.style[k])}px`;
                                 return;
                             }
-                            
+
                             if (Array.isArray(n.style[k])) {
                                 node.style[k] = n.style[k].map(v => {
                                     if (Number.isFinite(v)) return `${perc(v)}px`;
@@ -124,7 +124,7 @@ function Label(opts) {
                                 }).join(' ');
                                 return;
                             }
-                            
+
                             node.style[k] = n.style[k];
                         });
                     };
@@ -164,12 +164,14 @@ function nextFrame() {
             parent: frame,
         }));
 
-        labels[0].defineContent({html: [{
-            tagName: 'P',
-            attrs: {
-                textContent: 'Begin your learning journey here.'
-            },
-        }]});
+        labels[0].defineContent({
+            html: [{
+                tagName: 'P',
+                attrs: {
+                    textContent: 'Begin your learning journey here.'
+                },
+            }]
+        });
 
         place(labels[0].wrapper, box(frame).height * 0.05).above(start);
         place(labels[0].wrapper, 50, '%').inParent.onX;
@@ -203,20 +205,30 @@ function nextFrame() {
                             }, {
                                 tagName: 'INPUT',
                                 attrs: {
+                                    id: 'iptName',
                                     placeholder: 'type your name here',
-                                    oninput: evt => labels[0].pass = evt.target.value.trim().length > 0,
+                                    // oninput: evt => labels[0].pass = evt.target.value.trim().length > 0,
                                 },
-                                style: inputCSS,
+                                style: Object.assign(inputCSS, { width: '100%' }),
                             }, {
                                 tagName: 'BR',
                             }, {
                                 tagName: 'BUTTON',
                                 attrs: {
                                     textContent: 'Submit',
-                                    onclick: () => {
-                                        if (labels[0].pass) {
-                                            labels[0].pass = false;
+                                    onclick: (evt) => {
+                                        if (iptName.value.trim().length) {
+                                            evt.target.onclick = () => { };
                                             nextFrame();
+                                        }
+                                        else {
+                                            anime({
+                                                targets: '#iptName',
+                                                backgroundColor: '#ffb6c1',
+                                                direction: 'alternate',
+                                                duration: 500,
+                                                elasticity: 0,
+                                            });
                                         }
                                     },
                                 },
@@ -258,12 +270,7 @@ window.onresize = function () {
         case 1:
             start.style.height = `${box(start).width}px`;
             start.style.borderWidth = `${box(frame).width * 0.01}px`;
-            labels.forEach(l => Array.from(l.body.children).forEach(n => {
-                console.log(n.parentNode.width);
-                n.applyStyle();
-                
-            }));
-            
+            labels.forEach(l => Array.from(l.body.children).forEach(n => n.applyStyle()));
             place(start, 65, '%').in(frame).onY;
             place(start, 50, '%').inParent.onX;
             place(labels[0].wrapper, box(frame).height * 0.05).above(start);
@@ -369,7 +376,10 @@ function box(node) {
 }
 
 function elm(key) {
-    if (key.startsWith('.')) {
+    if (key.startsWith('#')) {
+        return document.getElementById(key.slice(1));
+    }
+    else if (key.startsWith('.')) {
         return Array.from(document.getElementsByClassName(key.slice(1)));
     }
     else {
