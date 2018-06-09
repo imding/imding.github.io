@@ -12,9 +12,11 @@ const
         fontSize: 2,
         padding: [0.25, 0.5],
         borderRadius: 0.5,
-        textAlign: 'center',
-        border: 'none',
-        outline: 'none',
+    },
+    buttonCSS = {
+        fontSize: 2,
+        padding: [0.5, 1],
+        borderRadius: 0.5,
     };
 let cf = 0;
 
@@ -64,6 +66,7 @@ function Label(opts) {
 
     body.className = 'labelBody';
     body.innerHTML = opts.bodyContent;
+    body.style.textAlign = 'center';
     body.style.borderColor = opts.borderColor;
     body.style.backgroundColor = opts.backgroundColor;
 
@@ -210,7 +213,7 @@ function nextFrame() {
                                     textContent: 'Submit',
                                     onclick: nextFrame,
                                 },
-                                style: {},
+                                style: buttonCSS,
                             }],
                         });
                     }
