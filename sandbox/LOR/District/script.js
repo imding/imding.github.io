@@ -14,8 +14,9 @@ const
         borderRadius: 0.5,
     },
     buttonCSS = {
+        marginTop: 1,
         fontSize: 2,
-        padding: [0.5, 1],
+        padding: [0.25, 1],
         borderRadius: 0.5,
     };
 let cf = 0;
@@ -65,7 +66,7 @@ function Label(opts) {
         arrow = opts.arrow ? document.createElement('div') : null;
 
     body.className = 'labelBody';
-    body.innerHTML = opts.bodyContent;
+    // body.innerHTML = opts.bodyContent;
     body.style.textAlign = 'center';
     body.style.borderColor = opts.borderColor;
     body.style.backgroundColor = opts.backgroundColor;
@@ -102,7 +103,7 @@ function Label(opts) {
         wrapper: wrapper,
         body: body,
         arrow: arrow,
-        changeContent: opts => {
+        defineContent: opts => {
             if (opts) {
                 body.innerHTML = '';
 
@@ -131,7 +132,7 @@ function Label(opts) {
                     body.appendChild(node);
                 });
             }
-            else throw new Error('changeContent function expects a meaningful argument.');
+            else throw new Error('defineContent() function expects a meaningful argument.');
         },
     };
 }
@@ -158,13 +159,21 @@ function nextFrame() {
 
         labels.push(new Label({
             arrow: { dir: 'arrow-down' },
-            bodyContent: `
-                <p>Your learning journey starts here</p>
-            `,
+            // bodyContent: `
+            //     <p>Your learning journey starts here</p>
+            // `,
             borderColor: 'royalblue',
             backgroundColor: 'skyblue',
             parent: frame,
         }));
+
+        labels[0].defineContent({html: [{
+            tagName: 'P',
+            attrs: {
+                textContent: 'Begin your learning journey here.'
+            },
+            style: {},
+        }]});
 
         place(labels[0].wrapper, box(frame).height * 0.05).above(start);
         place(labels[0].wrapper, 50, '%').inParent.onX;
@@ -182,14 +191,14 @@ function nextFrame() {
                 easing: 'easeInOutQuart',
                 duration: 800,
                 update: () => {
-                    // remap rotation from 0 > 180 to 0 > 90/-90 > 0
+                    // remap rotation from 0 -> 180 to 0 -> 90/-90 -> 0
                     const r = anim.rotation > 90 ? -(180 - anim.rotation) : anim.rotation;
-                    // remap alhpa from 1 > 0 to 1 > 0 > 1
+                    // remap alhpa from 100 -> 0 to 100 -> 0 -> 100
                     const a = (anim.alpha > 50 ? (anim.alpha - 50) * 2 : 100 - (anim.alpha * 2)) / 100;
 
                     if (!flipped && r < 0) {
                         flipped = true;
-                        labels[0].changeContent({
+                        labels[0].defineContent({
                             html: [{
                                 tagName: 'P',
                                 attrs: {
@@ -211,7 +220,12 @@ function nextFrame() {
                                 tagName: 'BUTTON',
                                 attrs: {
                                     textContent: 'Submit',
-                                    onclick: nextFrame,
+                                    onclick: () => {
+                                        if (labels[0].pass) {
+                                            labels[0].pass = false;
+                                            nextFrame();
+                                        }
+                                    },
                                 },
                                 style: buttonCSS,
                             }],
@@ -251,7 +265,12 @@ window.onresize = function () {
         case 1:
             start.style.height = `${box(start).width}px`;
             start.style.borderWidth = `${box(frame).width * 0.01}px`;
-            labels.forEach(l => Array.from(l.body.children).forEach(n => n.applyStyle()));
+            labels.forEach(l => Array.from(l.body.children).forEach(n => {
+                console.log(n.parentNode.width);
+                n.applyStyle();
+                
+            }));
+            
             place(start, 65, '%').in(frame).onY;
             place(start, 50, '%').inParent.onX;
             place(labels[0].wrapper, box(frame).height * 0.05).above(start);

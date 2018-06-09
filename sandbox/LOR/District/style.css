@@ -1,4 +1,5 @@
 * {
+    font-family: monospace;
     box-sizing: border-box;
 }
 
@@ -13,6 +14,10 @@ html, body {
 p {
     margin: 0;
     padding: 0;
+}
+
+input {
+    border: solid 1px royalblue;
 }
 
 button {
@@ -50,6 +55,16 @@ input, button {
     /* button border colour */
     border: solid rgba(0, 0, 0, 0.25);
     border-radius: 50%;
+}
+
+.labelBody {
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.labelBody>button {
+    color: white;
+    background-color: royalblue;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
 .labelArrow {
