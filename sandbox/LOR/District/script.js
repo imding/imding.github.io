@@ -1,5 +1,7 @@
 const
     aspectRatio = 16 / 9, labels = [],
+    // CSS styles for various elements
+    // numbers used here represent a percentage of the frame width or height
     labelCSS = {
         fontSize: 3,
         padding: [2, 3],
@@ -7,17 +9,20 @@ const
         borderWidth: 1,
         borderColor: 'royalblue',
         arrowSize: 4,
+        boxShadow: ['rgba(0, 0, 0, 0.5)', 'inset', 0, 0, 0.2, 0.1],
     },
     inputCSS = {
         fontSize: 2,
         padding: [0.25, 0.5],
         borderRadius: 0.5,
+        boxShadow: ['rgba(0, 0, 0, 0.35)', 'inset', 0, 0.2, 0.6, 0.05],
     },
     buttonCSS = {
         marginTop: 1,
         fontSize: 2,
         padding: [0.25, 1],
         borderRadius: 0.5,
+        boxShadow: ['rgba(0, 0, 0, 0.35)', 0, 0.2, 0.5],
     };
 let cf = 0;
 
@@ -51,7 +56,7 @@ function styleLable(label) {
     }
 }
 
-function generalStyles() {
+function drawFrame() {
     frame.style.width = window.innerWidth / window.innerHeight > aspectRatio ? `${aspectRatio * box(document.body).height}px` : '100%';
     frame.style.height = `${box(frame).width / aspectRatio}px`;
     place(frame, 50, '%').inParent.onXY;
@@ -142,7 +147,7 @@ function Label(opts) {
 // ================ //
 
 function init() {
-    generalStyles();
+    drawFrame();
     nextFrame();
 }
 
@@ -207,7 +212,6 @@ function nextFrame() {
                                 attrs: {
                                     id: 'iptName',
                                     placeholder: 'type your name here',
-                                    // oninput: evt => labels[0].pass = evt.target.value.trim().length > 0,
                                 },
                                 style: Object.assign(inputCSS, { width: '100%' }),
                             }, {
@@ -217,10 +221,8 @@ function nextFrame() {
                                 attrs: {
                                     textContent: 'Submit',
                                     onclick: (evt) => {
-                                        if (iptName.value.trim().length) {
-                                            evt.target.onclick = () => { };
-                                            nextFrame();
-                                        }
+                                        evt.target.disabled = true;
+                                        if (iptName.value.trim().length) nextFrame();
                                         else {
                                             anime({
                                                 targets: '#iptName',
@@ -228,6 +230,7 @@ function nextFrame() {
                                                 direction: 'alternate',
                                                 duration: 500,
                                                 elasticity: 0,
+                                                complete: () => evt.target.disabled = false,
                                             });
                                         }
                                     },
@@ -263,7 +266,7 @@ function nextFrame() {
 window.onload = init;
 window.onresize = function () {
     // elements that need to be resized/repositioned for all keyframes
-    generalStyles();
+    drawFrame();
 
     // resize/reposition keyframe specific elements
     switch (cf) {
