@@ -27,7 +27,7 @@ const
 let cf = 0;
 
 function checkNodeType(node, message) {
-    if (!(node.nodeType === 1)) throw new Error(node || 'input', message);
+    if (node.nodeType !== 1) throw new Error(node || 'input', message);
 }
 
 function styleLable(label) {
@@ -71,7 +71,6 @@ function Label(opts) {
         arrow = opts.arrow ? document.createElement('div') : null;
 
     body.className = 'labelBody';
-    // body.innerHTML = opts.bodyContent;
     body.style.textAlign = 'center';
     body.style.borderColor = opts.borderColor;
     body.style.backgroundColor = opts.backgroundColor;
@@ -175,7 +174,12 @@ function nextFrame() {
                 attrs: {
                     textContent: 'Begin your learning journey here.'
                 },
-            }]
+            }],
+            arrow: {
+                dir: 'arrow-down',
+                borderColor: 'royalblue',
+                backgroundColor: 'skyblue',
+            }
         });
 
         place(labels[0].wrapper, box(frame).height * 0.05).above(start);
@@ -336,7 +340,7 @@ function place(node, scale, unit = 'px') {
             };
         };
 
-    if (cssPosition !== 'absolute' && cssPosition !== 'relative') throw new Error('invalid position property for target node');
+    if (!(cssPosition === 'absolute' || cssPosition === 'relative')) throw new Error('To use the place(node) function, node position must be set to absolute or relative.');
 
     return {
         above: ref => position(ref, 'above'),
@@ -361,20 +365,52 @@ function getCSS(node, propertyName) {
 
 function box(node) {
     const
-        box = node.getBoundingClientRect(),
+        nodeBox = node.getBoundingClientRect(),
         parentBox = node.parentNode.getBoundingClientRect();
 
     return {
-        top: box.top,
-        bottom: box.bottom,
-        left: box.left,
-        right: box.right,
-        width: parseInt(getCSS(node, 'width')),
-        height: parseInt(getCSS(node, 'height')),
-        relTop: box.top - parentBox.top,
-        relBottom: box.bottom - parentBox.bottom,
-        relLeft: box.left - parentBox.left,
-        relRight: box.right - parentBox.right,
+        get width() {
+            return parseFloat(getCSS(node, 'width'));
+        },
+        get height() {
+            return parseFloat(getCSS(node, 'height'));
+        },
+        get top() {
+            return nodeBox.top;
+        },
+        get bottom() {
+            return box(document.body).height - nodeBox.bottom;
+        },
+        get left() {
+            return nodeBox.left;
+        },
+        get right() {
+            return box(document.body).width - nodeBox.right;
+        },
+        get relTop() {
+            return nodeBox.top - parentBox.top;
+        },
+        get relBottom() {
+            return parentBox.bottom - nodeBox.bottom;
+        },
+        get relLeft() {
+            return nodeBox.left - parentBox.left;
+        },
+        get relRight() {
+            return parentBox.right - nodeBox.right;
+        },
+        get absTop() {
+            return nodeBox.top + window.scrollY;
+        },
+        get absBottom() {
+            return box(document.body).height - window.scrollY - nodeBox.top - parseFloat(getCSS(node, 'height'));
+        },
+        get absLeft() {
+            return nodeBox.left + window.scrollX;
+        },
+        get absRight() {
+            return box(document.body).width - window.scrollX - nodeBox.left - parseFloat(getCSS(node, 'width'));
+        },
     };
 }
 
