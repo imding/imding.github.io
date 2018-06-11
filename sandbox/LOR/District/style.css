@@ -39,7 +39,7 @@ input, button {
     position: absolute;
 }
 
-#start {
+#logo {
     /* button background colour */
     background-color: #2c3e50;
     background-image: url('https://app.bsdlaunchbox.com/resources/bsdlogo.png');

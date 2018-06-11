@@ -2,26 +2,26 @@ const
     aspectRatio = 16 / 9,
     doc = {
         responsiveNodes: [],
-        add: function (node, parent = document.body) {
+        add: function (node, parent = document.body, ref) {
             checkNodeType(node);
             checkNodeType(parent);
             doc.responsiveNodes.push(node);
-            parent.appendChild(node);
+            if (ref && checkNodeType(ref)) {
+                parent.insertBefore(node, ref);
+            }
+            else parent.appendChild(node);
+            return node;
         },
     };
 
-function stepOne() {
-    console.log('show path');
-}
-
-window.addEventListener('load', function () {
+function init() {
     doc.add(newNode('div', { id: 'frame' }));
     doc.add(newNode('button', {
-        id: 'start',
+        id: 'logo',
         onmouseenter: () => label.style.opacity = 1,
         onmouseout: () => label.style.opacity = 0,
         onclick: (evt) => {
-            evt.target.onclick = () => {};
+            evt.target.onclick = null;
             stepOne();
         },
     }), frame);
@@ -29,9 +29,7 @@ window.addEventListener('load', function () {
         id: 'label',
         html: [{
             tagName: 'P',
-            attr: {
-                textContent: 'Your path of learning starts here.',
-            },
+            attr: { textContent: 'Your path of learning starts here.' },
         }],
         // CSS for body and arrow
         css: {
@@ -43,32 +41,131 @@ window.addEventListener('load', function () {
         arrow: { dir: 'down' },
     }), frame);
 
-    frame.adapt = function (ref) {
-        frame.style.width = ref.v.width / ref.v.height > aspectRatio ? `${aspectRatio * ref.v.height}px` : '100%';
-        frame.style.height = `${ref.f.width / aspectRatio}px`;
+    frame.adapt = function (r) {
+        frame.style.width = r.view.width / r.view.height > aspectRatio ? `${aspectRatio * r.view.height}px` : '100%';
+        frame.style.height = `${r.frame.width / aspectRatio}px`;
         place(frame, 50).inParent.onXY;
     };
 
-    start.adapt = function (ref) {
-        start.style.width = `${ref.f.width * 0.2}px`;
-        start.style.height = `${ref.f.width * 0.2}px`;
-        start.style.borderWidth = `${ref.f.width * 0.01}px`;
-        place(start, 50).inParent.onX;
-        place(start, 65).inParent.onY;
+    logo.adapt = function (r) {
+        logo.style.width = `${r.frame.width * 0.2}px`;
+        logo.style.height = `${r.frame.width * 0.2}px`;
+        logo.style.borderWidth = `${r.frame.width * 0.01}px`;
+        place(logo, 50).inParent.onX;
+        place(logo, 65).inParent.onY;
     };
 
-    label.adapt = function (ref) {
-        label.body.style.fontSize = `${ref.f.width * 0.03}px`;
-        label.body.style.borderWidth = `${ref.f.width * 0.01}px`;
-        label.body.style.borderRadius = `${ref.f.width * 0.02}px`;
-        label.body.style.padding = `${ref.f.width * 0.01}px ${ref.f.width * 0.02}px`;
+    label.adapt = function (r) {
+        label.body.style.fontSize = `${r.frame.width * 0.03}px`;
+        label.body.style.borderWidth = `${r.frame.width * 0.01}px`;
+        label.body.style.borderRadius = `${r.frame.width * 0.02}px`;
+        label.body.style.padding = `${r.frame.width * 0.01}px ${r.frame.width * 0.02}px`;
         label.arrow.adapt();
         place(label, 50).inParent.onX;
-        place(label, 10).above(start);
+        place(label, 10).above(logo);
     };
 
     setTimeout(adaptToViewport, 100);
-});
+}
+
+function stepOne() {
+    const
+        r = bb(frame), pt = r.height * 0.1, pbr = pt / 2, pw = (r.width + pt) / 2,
+        path = doc.add(newNode('div', { id: 'path' }, {
+            height: `${pt}px`,
+            borderRadius: `${pbr}px`,
+            backgroundColor: 'red',
+        }), frame, logo);
+
+    logo.onmouseout = null;
+    logo.onmouseenter = null;
+
+    place(path, -50).rightOf(logo);
+    place(path, 65).inParent.onY;
+
+    anime({
+        targets: path,
+        width: pw,
+        duration: 800,
+        elasticity: 0,
+        easing: 'easeInOutQuart',
+        complete: function () {
+            path.adapt = function (r) {
+                const pt = r.frame.height * 0.1;
+                path.style.width = `${(r.frame.width + pt) / 2}px`;
+                path.style.height = `${pt}px`;
+                path.style.borderRadius = `${pt / 2}px`;
+                place(path, -50).rightOf(logo);
+                place(path, 65).inParent.onY;
+            };
+            adaptToViewport();
+            stepTwo();
+        },
+    });
+}
+
+function stepTwo() {
+    label.newContent([{
+        tagName: 'P',
+        attr: { textContent: 'Begin your journey with thousands of learners worldwide.' },
+    }]);
+
+    setTimeout(function () {
+        // bounding box object
+        const ref = {
+            frame: bb(frame),
+            label: bb(label),
+            logo: bb(logo),
+        };
+        
+        let radius = 1, users = [];
+
+        while (radius > 0.1) {
+            radius *= 0.8;
+
+            // create new button element
+            const b = newNode('button', { r: radius }, {
+                backgroundColor: 'silver',
+                backgroundImage: `url(https://app-staging.bsdlaunchbox.com/resources/avatar${Math.ceil(Math.random() * 11) - 1}.png)`,
+                backgroundPosition: 'center',
+                backgroundSize: '60%',
+                backgroundRepeat: 'no-repeat',
+                borderStyle: 'solid',
+                borderColor: 'rgba(0, 0, 0, 0.25)',
+                borderRadius: '50%',
+            });
+
+            // define how each button should adapt to viewport
+            b.adapt = function (r) {
+                const size = r.logo.width * b.r;
+                b.style.width = `${size}px`;
+                b.style.height = `${size}px`;
+                b.style.borderWidth = `${size * 0.05}px`;
+            };
+            
+            // build array in reverse
+            users.unshift(b);
+        }
+
+        // attach each user avatar to DOM
+        users.forEach(user => {
+            doc.add(user, frame, path);
+            user.adapt(ref);
+            // put each avatar directly behind the logo
+            place(user, 50).inParent.onX;
+            place(user, 65).inParent.onY;
+        });
+
+        // define animation initial state
+        // const anim = {
+        //     label: { top: ref.label.relTop },
+        //     logo: { top: ref.logo.relTop },
+
+        // };
+    }, 1000);
+}
+
+window.addEventListener('load', init);
 
 // window.addEventListener('resize', adaptToViewport);
 window.addEventListener('resize', delay(adaptToViewport, 100));
@@ -78,10 +175,10 @@ window.addEventListener('resize', delay(adaptToViewport, 100));
 // =================== //
 
 function adaptToViewport() {
-    const ref = { v: bb(document.body), f: bb(frame) };
+    const r = { view: bb(document.body), frame: bb(frame), logo: bb(logo) };
     console.clear();
     doc.responsiveNodes.forEach(node => {
-        if (node.adapt) node.adapt(ref);
+        if (node.adapt) node.adapt(r);
         else console.warn(node, 'has no adapt() method.');
     });
     console.log(doc);
@@ -197,7 +294,7 @@ function place(node, scale, unit = '%') {
         below: ref => position(ref, 'below'),
         leftOf: ref => position(ref, 'leftOf'),
         rightOf: ref => position(ref, 'rightOf'),
-        in: function (ref) {
+        in: function (r) {
             checkNodeType(ref);
             return direction(ref);
         },
@@ -213,8 +310,11 @@ function checkNodeType(node) {
         node.forEach(n => {
             if (n.nodeType !== 1) throw new Error('Input is not an HTML node.');
         });
+        return true;
     }
-    else checkNodeType([node]);
+    else {
+        return checkNodeType([node]);
+    }
 }
 
 function newNode(tagName, attr, css = {}) {
@@ -280,11 +380,29 @@ function newLabel(opts) {
                     break;
             }
         };
-
         root.appendChild(arrow);
     }
 
+    root.newContent = function (html) {
+        if (!Array.isArray(html)) throw new Error('First argument must be an array');
+        body.innerHTML = null;
+        html.forEach(n => body.appendChild(newNode(n.tagName, n.attr, n.css)));
+        adaptToViewport();
+    };
+
     return Object.assign(root, { body: body, arrow: arrow });
+}
+
+function elm(key) {
+    if (key.startsWith('#')) {
+        return document.getElementById(key.slice(1));
+    }
+    else if (key.startsWith('.')) {
+        return Array.from(document.getElementsByClassName(key.slice(1)));
+    }
+    else {
+        return Array.from(document.getElementsByTagName(key));
+    }
 }
 
 function delay(f, _t) {
