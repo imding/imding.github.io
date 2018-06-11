@@ -1,7 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Poor+Story');
-
 * {
-    font-family: 'Poor Story';
     box-sizing: border-box;
 }
 
@@ -56,6 +53,10 @@ input, button {
 
 .labelBody {
     /* box-shadow: inset 0 0 5px 2px rgba(0, 0, 0, 0.5); */
+}
+
+.labelBody>p{
+    font-family: 'Poor Story';
 }
 
 .labelBody>button {

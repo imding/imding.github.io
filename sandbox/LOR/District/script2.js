@@ -5,14 +5,26 @@ const
         add: function (node, parent = document.body) {
             checkNodeType(node);
             checkNodeType(parent);
-            parent.appendChild(node);
             doc.responsiveNodes.push(node);
+            parent.appendChild(node);
         },
     };
 
+function stepOne() {
+    console.log('show path');
+}
+
 window.addEventListener('load', function () {
     doc.add(newNode('div', { id: 'frame' }));
-    doc.add(newNode('button', { id: 'start' }), frame);
+    doc.add(newNode('button', {
+        id: 'start',
+        onmouseenter: () => label.style.opacity = 1,
+        onmouseout: () => label.style.opacity = 0,
+        onclick: (evt) => {
+            evt.target.onclick = () => {};
+            stepOne();
+        },
+    }), frame);
     doc.add(newLabel({
         id: 'label',
         html: [{
@@ -21,9 +33,11 @@ window.addEventListener('load', function () {
                 textContent: 'Your path of learning starts here.',
             },
         }],
+        // CSS for body and arrow
         css: {
             backgroundColor: 'skyblue',
             borderColor: 'royalblue',
+            opacity: 0,
         },
         parent: frame,
         arrow: { dir: 'down' },
@@ -54,11 +68,10 @@ window.addEventListener('load', function () {
     };
 
     setTimeout(adaptToViewport, 100);
-    console.log(doc);
 });
 
-window.addEventListener('resize', adaptToViewport);
-// window.addEventListener('resize', delay(adaptToViewport, 30));
+// window.addEventListener('resize', adaptToViewport);
+window.addEventListener('resize', delay(adaptToViewport, 100));
 
 // =================== //
 // ===== Utility ===== //
@@ -71,6 +84,7 @@ function adaptToViewport() {
         if (node.adapt) node.adapt(ref);
         else console.warn(node, 'has no adapt() method.');
     });
+    console.log(doc);
 }
 
 function getCSS(node, propertyName) {
@@ -203,21 +217,25 @@ function checkNodeType(node) {
     else checkNodeType([node]);
 }
 
-function newNode(tagName, attr) {
-    return Object.assign(document.createElement(tagName), attr);
+function newNode(tagName, attr, css = {}) {
+    const n = document.createElement(tagName);
+    Object.assign(Object.assign(n, attr).style, css);
+    return n;
 }
 
 function newLabel(opts) {
     const root = newNode('div'), body = newNode('div'), arrow = opts.arrow ? newNode('div') : null;
 
     root.id = 'label';
+    root.style.opacity = opts.css.opacity;
+
     body.className = 'labelBody';
     body.style.textAlign = 'center';
     body.style.borderStyle = 'solid';
     body.style.borderColor = opts.css.borderColor;
     body.style.backgroundColor = opts.css.backgroundColor;
 
-    opts.html.forEach(n => body.appendChild(newNode(n.tagName, n.attr)));
+    opts.html.forEach(n => body.appendChild(newNode(n.tagName, n.attr, n.css)));
 
     root.appendChild(body);
 
