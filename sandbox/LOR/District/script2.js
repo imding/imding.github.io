@@ -14,13 +14,16 @@ const
         },
     };
 
+
 function init() {
     doc.add(newNode('div', { id: 'frame' }));
     doc.add(newNode('button', {
         id: 'logo',
         K: {
             get f() { return this._f || 0; },
+            get X() { return [50, 120][this.f]; },
             get Y() { return [65, 90][this.f]; },
+            get nextX() { this.f++; return this.X; },
             get nextY() { this.f++; return this.Y; },
             get prevY() { this.f--; return this.Y; },
 
@@ -30,6 +33,7 @@ function init() {
         onmouseout: () => label.style.opacity = 0,
         onclick: (evt) => {
             evt.target.onclick = null;
+            label.style.opacity = 0;
             stepOne();
         },
     }), frame);
@@ -83,7 +87,14 @@ function init() {
         place(label, label.K.Y).above(logo);
     };
 
-    setTimeout(adaptToViewport, 0);
+    setTimeout(adaptToViewport, 100);
+
+    label.anim = anime({
+        targets: label,
+        opacity: 1,
+        duration: 500,
+        autoplay: false,
+    });
 }
 
 function stepOne() {
@@ -106,7 +117,7 @@ function stepOne() {
         width: pw,
         duration: 800,
         elasticity: 0,
-        easing: 'easeInOutQuart',
+        easing: 'easeInQuart',
         complete: function () {
             path.adapt = function (r) {
                 const pt = r.frame.height * 0.1;
@@ -117,117 +128,149 @@ function stepOne() {
                 place(path, logo.K.Y).inParent.onY;
             };
             adaptToViewport();
-            stepTwo();
+            setTimeout(stepTwo, 600);
         },
     });
 }
 
 function stepTwo() {
-    label.newContent([{
-        tagName: 'P',
-        attr: { textContent: 'Begin your journey with thousands of learners worldwide.' },
-    }]);
+    // bounding box object
+    const ref = {
+        frame: bb(frame),
+        label: bb(label),
+        logo: bb(logo),
+    };
 
-    setTimeout(function () {
-        // bounding box object
-        const ref = {
-            frame: bb(frame),
-            label: bb(label),
-            logo: bb(logo),
+    let scale = 1, z = 0, avatars = [];
+
+    while (scale > 0.1) {
+        scale *= 0.8;
+
+        // create new user avatar
+        const avatar = doc.add(newNode('div', { r: scale }, {
+            backgroundColor: 'silver',
+            backgroundImage: `url(https://app-staging.bsdlaunchbox.com/resources/avatar${Math.ceil(Math.random() * 11) - 1}.png)`,
+            backgroundPosition: 'center',
+            backgroundSize: '100%',
+            backgroundRepeat: 'no-repeat',
+            borderStyle: 'solid',
+            borderColor: 'rgba(0, 0, 0, 0.25)',
+            borderRadius: '50%',
+            filter: `blur(${2 * (1 - scale)}px)`,
+            zIndex: --z,
+        }), frame);
+
+        avatar.K = {
+            get f() { return this._f || 0; },
+            get Y() { return [65, 90 - (1 - avatar.r) * 98][this.f]; },
+            get nextY() { this.f++; return this.Y; },
+            get prevY() { this.f--; return this.Y; },
+
+            set f(n) { this._f = n; },
         };
 
-        let scale = 1, z = 0, avatars = [];
+        // define how each button should adapt to viewport
+        avatar.adapt = function (r) {
+            const size = r.logo.width * avatar.r;
+            avatar.style.width = `${size}px`;
+            avatar.style.height = `${size}px`;
+            avatar.style.borderWidth = `${size * 0.05}px`;
+            place(avatar, 50).inParent.onX;
+            place(avatar, avatar.K.Y).inParent.onY;
+        };
+        avatar.adapt(ref);
+        avatars.push(avatar);
+    }
 
-        while (scale > 0.2) {
-            scale *= 0.8;
+    // define animation initial state
+    const
+        animValue = {
+            labelLift: label.K.Y,
+            logoTop: logo.K.Y,
+        },
+        endValue = {
+            labelLift: label.K.nextY,
+            logoTop: logo.K.nextY,
+        };
 
-            // create new user avatar
-            const avatar = doc.add(newNode('button', { r: scale }, {
-                backgroundColor: 'silver',
-                backgroundImage: `url(https://app-staging.bsdlaunchbox.com/resources/avatar${Math.ceil(Math.random() * 11) - 1}.png)`,
-                backgroundPosition: 'center',
-                backgroundSize: '100%',
-                backgroundRepeat: 'no-repeat',
-                borderStyle: 'solid',
-                borderColor: 'rgba(0, 0, 0, 0.25)',
-                borderRadius: '50%',
-                zIndex: --z,
-            }), frame);
+    const anim = anime({
+        targets: animValue,
+        labelLift: endValue.labelLift,
+        logoTop: endValue.logoTop,
+        easing: 'easeInOutSine',
+        duration: 500,
+        begin: () => {
+            label.arrow.hide();
+            label.newContent([{
+                tagName: 'P',
+                attr: { textContent: 'Begin your journey with thousands of learners worldwide.' },
+            }]);
+        },
+        update: function (status) {
+            place(logo, animValue.logoTop).inParent.onY;
+            place(path, animValue.logoTop).inParent.onY;
+            place(label, animValue.labelLift).above(logo);
+            avatars.forEach(a => place(a, remap(status.progress, 0, 100, 65, 90 - (1 - a.r) * 98)).inParent.onY);
+        },
+        complete: () => {
+            setTimeout(() => label.style.opacity = 1, 500);
+            avatars.forEach(a => a.K.nextY);
+            logo.onclick = function () {
+                logo.onclick = null;
+                label.style.opacity = 0;
+                anim.play();
+                anim.reverse();
+                setTimeout(function () {
+                    logo.K.prevY;
+                    label.K.prevY;
+                    avatars.forEach(a => frame.removeChild(a));
+                    doc.responsiveNodes.splice(-avatars.length, avatars.length);
 
-            avatar.K = {
-                get f() { return this._f || 0; },
-                get Y() { return [65, 90 - (1 - avatar.r) * 75][this.f]; },
-                get nextY() { this.f++; return this.Y; },
-                get prevY() { this.f--; return this.Y; },
-
-                set f(n) { this._f = n; },
+                    setTimeout(function () {
+                        label.arrow.show();
+                        label.style.opacity = 1;
+                        label.newContent([{
+                            tagName: 'P',
+                            attr: { textContent: 'Click the logo again to begin exploring.' },
+                        }]);
+                        adaptToViewport();
+                        logo.onclick = function () {
+                            logo.onclick = null;
+                            stepThree();
+                        };
+                    }, 250);
+                }, 500);
             };
-
-            // define how each button should adapt to viewport
-            avatar.adapt = function (r) {
-                const size = r.logo.width * avatar.r;
-                avatar.style.width = `${size}px`;
-                avatar.style.height = `${size}px`;
-                avatar.style.borderWidth = `${size * 0.05}px`;
-                place(avatar, 50).inParent.onX;
-                place(avatar, avatar.K.Y).inParent.onY;
-            };
-            avatar.adapt(ref);
-            avatars.push(avatar);
-
-            // create new path
-            // const _path = newNode('div', { h: scale }, {
-            //     backgroundColor: 'lightcoral',
-            // });
-
-            // define how each path should adapt to viewport
-            // _path.adapt = function (r) {
-            //     const pt = r.frame.height * 0.1 * _path.h;
-            //     _path.style.width = `${(r.frame.width + pt) / 2}px`;
-            //     _path.style.height = `${pt}px`;
-            //     _path.style.borderRadius = `${pt / 2}px`;
-            //     _path.style.left = `${r.frame.width / 2}px`;
-            // };
-
-            // build path array in reverse
-            // paths.unshift(_path);
         }
-
-        // define animation initial state
-        const
-            animValue = {
-                labelLift: label.K.Y,
-                logoTop: logo.K.Y,
-            },
-            endValue = {
-                labelLift: label.K.nextY,
-                logoTop: logo.K.nextY,
-            };
-
-        anime({
-            targets: animValue,
-            labelLift: endValue.labelLift,
-            logoTop: endValue.logoTop,
-            easing: 'easeInOutQuart',
-            elasticity: 0,
-            duration: 800,
-            begin: () => avatars.forEach(a => a.K.nextY),
-            update: function () {
-                place(logo, animValue.logoTop).inParent.onY;
-                place(path, animValue.logoTop).inParent.onY;
-                place(label, animValue.labelLift).above(logo);
-                avatars.forEach(a => place(a, a.K.Y).inParent.onY);
-            },
-            complete: function () {
-            },
-        });
-    }, 1000);
+    });
 }
+
+function stepThree() {
+    label.style.opacity = 0;
+
+    const animValue = {
+        logoLeft: logo.K.X,
+    }, 
+    endValue = {
+        logoLeft: logo.K.nextX,
+    };
+
+    anime({
+        targets: animValue,
+
+        duration: 350,
+    });
+    // label.addEventListener('transitionend', () => label.arrow.hide());
+}
+
+// ================== //
+// ===== Events ===== //
+// ================== //
 
 window.addEventListener('load', init);
 
-// window.addEventListener('resize', adaptToViewport);
-window.addEventListener('resize', delay(adaptToViewport, 100));
+window.addEventListener('resize', adaptToViewport);
+// window.addEventListener('resize', delay(adaptToViewport, 100));
 
 function adaptToViewport() {
     const r = { view: bb(document.body), frame: bb(frame), logo: bb(logo) };
@@ -238,11 +281,6 @@ function adaptToViewport() {
     });
     console.log(doc);
 }
-
-// function modifyFunction(node, fn, arg, methods, fs = node[`_${fn}`]) {
-//     methods.forEach(m => fs = fs.replace(m.key, m.edit));
-//     node[fn] = new Function(arg, fs);
-// }
 
 // =================== //
 // ===== Utility ===== //
@@ -481,6 +519,10 @@ function newLabel(opts) {
                     break;
             }
         };
+
+        arrow.hide = () => arrow.style.display = 'none';
+        arrow.show = () => arrow.style.display = 'inherit';
+
         root.appendChild(arrow);
     }
 
@@ -494,15 +536,15 @@ function newLabel(opts) {
     return Object.assign(root, { body: body, arrow: arrow });
 }
 
-function elm(key) {
+function elm(key, ref = document) {
     if (key.startsWith('#')) {
-        return document.getElementById(key.slice(1));
+        return ref.getElementById(key.slice(1));
     }
     else if (key.startsWith('.')) {
-        return Array.from(document.getElementsByClassName(key.slice(1)));
+        return Array.from(ref.getElementsByClassName(key.slice(1)));
     }
     else {
-        return Array.from(document.getElementsByTagName(key));
+        return Array.from(ref.getElementsByTagName(key));
     }
 }
 

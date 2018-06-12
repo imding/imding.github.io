@@ -28,6 +28,10 @@ input, button {
     outline: none;
 }
 
+#label {
+    transition: opacity 0.2s ease-in-out;
+}
+
 #frame {
     position: relative;
     /* frame background colour */
