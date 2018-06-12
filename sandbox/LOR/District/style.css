@@ -33,6 +33,7 @@ input, button {
     /* frame background colour */
     background-color: white;
     overflow: hidden;
+    z-index: -100;
 }
 
 #frame>* {
@@ -52,7 +53,7 @@ input, button {
 }
 
 .labelBody {
-    /* box-shadow: inset 0 0 5px 2px rgba(0, 0, 0, 0.5); */
+    /* color:  */
 }
 
 .labelBody>p{

@@ -18,6 +18,14 @@ function init() {
     doc.add(newNode('div', { id: 'frame' }));
     doc.add(newNode('button', {
         id: 'logo',
+        K: {
+            get f() { return this._f || 0; },
+            get Y() { return [65, 90][this.f]; },
+            get nextY() { this.f++; return this.Y; },
+            get prevY() { this.f--; return this.Y; },
+
+            set f(n) { this._f = n; },
+        },
         onmouseenter: () => label.style.opacity = 1,
         onmouseout: () => label.style.opacity = 0,
         onclick: (evt) => {
@@ -26,7 +34,17 @@ function init() {
         },
     }), frame);
     doc.add(newLabel({
-        id: 'label',
+        attr: {
+            id: 'label',
+            K: {
+                get f() { return this._f || 0; },
+                get Y() { return [10, 135][this.f]; },
+                get nextY() { this.f++; return this.Y; },
+                get prevY() { this.f--; return this.Y; },
+
+                set f(n) { this._f = n; },
+            },
+        },
         html: [{
             tagName: 'P',
             attr: { textContent: 'Your path of learning starts here.' },
@@ -52,7 +70,7 @@ function init() {
         logo.style.height = `${r.frame.width * 0.2}px`;
         logo.style.borderWidth = `${r.frame.width * 0.01}px`;
         place(logo, 50).inParent.onX;
-        place(logo, 65).inParent.onY;
+        place(logo, logo.K.Y).inParent.onY;
     };
 
     label.adapt = function (r) {
@@ -62,10 +80,10 @@ function init() {
         label.body.style.padding = `${r.frame.width * 0.01}px ${r.frame.width * 0.02}px`;
         label.arrow.adapt();
         place(label, 50).inParent.onX;
-        place(label, 10).above(logo);
+        place(label, label.K.Y).above(logo);
     };
 
-    setTimeout(adaptToViewport, 100);
+    setTimeout(adaptToViewport, 0);
 }
 
 function stepOne() {
@@ -74,14 +92,14 @@ function stepOne() {
         path = doc.add(newNode('div', { id: 'path' }, {
             height: `${pt}px`,
             borderRadius: `${pbr}px`,
-            backgroundColor: 'red',
+            backgroundColor: 'indianred',
         }), frame, logo);
 
     logo.onmouseout = null;
     logo.onmouseenter = null;
 
     place(path, -50).rightOf(logo);
-    place(path, 65).inParent.onY;
+    place(path, logo.K.Y).inParent.onY;
 
     anime({
         targets: path,
@@ -96,7 +114,7 @@ function stepOne() {
                 path.style.height = `${pt}px`;
                 path.style.borderRadius = `${pt / 2}px`;
                 place(path, -50).rightOf(logo);
-                place(path, 65).inParent.onY;
+                place(path, logo.K.Y).inParent.onY;
             };
             adaptToViewport();
             stepTwo();
@@ -117,51 +135,92 @@ function stepTwo() {
             label: bb(label),
             logo: bb(logo),
         };
-        
-        let radius = 1, users = [];
 
-        while (radius > 0.1) {
-            radius *= 0.8;
+        let scale = 1, z = 0, avatars = [];
 
-            // create new button element
-            const b = newNode('button', { r: radius }, {
+        while (scale > 0.2) {
+            scale *= 0.8;
+
+            // create new user avatar
+            const avatar = doc.add(newNode('button', { r: scale }, {
                 backgroundColor: 'silver',
                 backgroundImage: `url(https://app-staging.bsdlaunchbox.com/resources/avatar${Math.ceil(Math.random() * 11) - 1}.png)`,
                 backgroundPosition: 'center',
-                backgroundSize: '60%',
+                backgroundSize: '100%',
                 backgroundRepeat: 'no-repeat',
                 borderStyle: 'solid',
                 borderColor: 'rgba(0, 0, 0, 0.25)',
                 borderRadius: '50%',
-            });
+                zIndex: --z,
+            }), frame);
+
+            avatar.K = {
+                get f() { return this._f || 0; },
+                get Y() { return [65, 90 - (1 - avatar.r) * 75][this.f]; },
+                get nextY() { this.f++; return this.Y; },
+                get prevY() { this.f--; return this.Y; },
+
+                set f(n) { this._f = n; },
+            };
 
             // define how each button should adapt to viewport
-            b.adapt = function (r) {
-                const size = r.logo.width * b.r;
-                b.style.width = `${size}px`;
-                b.style.height = `${size}px`;
-                b.style.borderWidth = `${size * 0.05}px`;
+            avatar.adapt = function (r) {
+                const size = r.logo.width * avatar.r;
+                avatar.style.width = `${size}px`;
+                avatar.style.height = `${size}px`;
+                avatar.style.borderWidth = `${size * 0.05}px`;
+                place(avatar, 50).inParent.onX;
+                place(avatar, avatar.K.Y).inParent.onY;
             };
-            
-            // build array in reverse
-            users.unshift(b);
+            avatar.adapt(ref);
+            avatars.push(avatar);
+
+            // create new path
+            // const _path = newNode('div', { h: scale }, {
+            //     backgroundColor: 'lightcoral',
+            // });
+
+            // define how each path should adapt to viewport
+            // _path.adapt = function (r) {
+            //     const pt = r.frame.height * 0.1 * _path.h;
+            //     _path.style.width = `${(r.frame.width + pt) / 2}px`;
+            //     _path.style.height = `${pt}px`;
+            //     _path.style.borderRadius = `${pt / 2}px`;
+            //     _path.style.left = `${r.frame.width / 2}px`;
+            // };
+
+            // build path array in reverse
+            // paths.unshift(_path);
         }
 
-        // attach each user avatar to DOM
-        users.forEach(user => {
-            doc.add(user, frame, path);
-            user.adapt(ref);
-            // put each avatar directly behind the logo
-            place(user, 50).inParent.onX;
-            place(user, 65).inParent.onY;
-        });
-
         // define animation initial state
-        // const anim = {
-        //     label: { top: ref.label.relTop },
-        //     logo: { top: ref.logo.relTop },
+        const
+            animValue = {
+                labelLift: label.K.Y,
+                logoTop: logo.K.Y,
+            },
+            endValue = {
+                labelLift: label.K.nextY,
+                logoTop: logo.K.nextY,
+            };
 
-        // };
+        anime({
+            targets: animValue,
+            labelLift: endValue.labelLift,
+            logoTop: endValue.logoTop,
+            easing: 'easeInOutQuart',
+            elasticity: 0,
+            duration: 800,
+            begin: () => avatars.forEach(a => a.K.nextY),
+            update: function () {
+                place(logo, animValue.logoTop).inParent.onY;
+                place(path, animValue.logoTop).inParent.onY;
+                place(label, animValue.labelLift).above(logo);
+                avatars.forEach(a => place(a, a.K.Y).inParent.onY);
+            },
+            complete: function () {
+            },
+        });
     }, 1000);
 }
 
@@ -169,10 +228,6 @@ window.addEventListener('load', init);
 
 // window.addEventListener('resize', adaptToViewport);
 window.addEventListener('resize', delay(adaptToViewport, 100));
-
-// =================== //
-// ===== Utility ===== //
-// =================== //
 
 function adaptToViewport() {
     const r = { view: bb(document.body), frame: bb(frame), logo: bb(logo) };
@@ -184,15 +239,61 @@ function adaptToViewport() {
     console.log(doc);
 }
 
+// function modifyFunction(node, fn, arg, methods, fs = node[`_${fn}`]) {
+//     methods.forEach(m => fs = fs.replace(m.key, m.edit));
+//     node[fn] = new Function(arg, fs);
+// }
+
+// =================== //
+// ===== Utility ===== //
+// =================== //
+
 function getCSS(node, propertyName) {
     checkNodeType(node);
     return window.getComputedStyle(node).getPropertyValue(propertyName);
 }
 
+function getPropPos(node) {
+    checkNodeType(node);
+    const nodeBB = bb(node),
+        direction = (refBB) => {
+            return {
+                get onX() {
+                    return (nodeBB.absLeft - refBB.absLeft + nodeBB.width / 2) / refBB.width;
+                },
+                get onY() {
+                    return (nodeBB.absTop - refBB.absTop + nodeBB.height / 2) / refBB.height;
+                },
+                get onXY() {
+                    return [
+                        (nodeBB.absLeft - refBB.absLeft + nodeBB.width / 2) / refBB.width,
+                        (nodeBB.absTop - refBB.absTop + nodeBB.height / 2) / refBB.height,
+                    ];
+                },
+            };
+        };
+
+    return {
+        inParent: function () {
+            if (!node.parentNode) throw new Error('getPropPos().inParent has no effect because', node, 'has no parent.');
+            return direction(bb(node.parentNode));
+        }(),
+    };
+}
+
 function bb(node) {
     const
-        nodeBox = node.getBoundingClientRect(),
-        parentBox = node.parentNode.getBoundingClientRect();
+        docBB = document.body.getBoundingClientRect(),
+        nodeBB = node.getBoundingClientRect(),
+        parentBB = function () {
+            if (node.parentNode) {
+                return node.parentNode.getBoundingClientRect();
+            }
+            else {
+                console.warn('Defaulting parent node to self because', node, 'has no parent.');
+                return nodeBB;
+            }
+        }();
 
     return {
         get width() {
@@ -202,40 +303,40 @@ function bb(node) {
             return parseFloat(getCSS(node, 'height'));
         },
         get top() {
-            return nodeBox.top;
+            return nodeBB.top;
         },
         get bottom() {
-            return bb(document.body).height - nodeBox.bottom;
+            return docBB.height - nodeBB.bottom;
         },
         get left() {
-            return nodeBox.left;
+            return nodeBB.left;
         },
         get right() {
-            return bb(document.body).width - nodeBox.right;
+            return docBB.width - nodeBB.right;
         },
         get relTop() {
-            return nodeBox.top - parentBox.top;
+            return nodeBB.top - parentBB.top;
         },
         get relBottom() {
-            return parentBox.bottom - nodeBox.bottom;
+            return parentBB.bottom - nodeBB.bottom;
         },
         get relLeft() {
-            return nodeBox.left - parentBox.left;
+            return nodeBB.left - parentBB.left;
         },
         get relRight() {
-            return parentBox.right - nodeBox.right;
+            return parentBB.right - nodeBB.right;
         },
         get absTop() {
-            return nodeBox.top + window.scrollY;
+            return nodeBB.top + window.scrollY;
         },
         get absBottom() {
-            return bb(document.body).height - window.scrollY - nodeBox.top - parseFloat(getCSS(node, 'height'));
+            return docBB.height - window.scrollY - nodeBB.top - parseFloat(getCSS(node, 'height'));
         },
         get absLeft() {
-            return nodeBox.left + window.scrollX;
+            return nodeBB.left + window.scrollX;
         },
         get absRight() {
-            return bb(document.body).width - window.scrollX - nodeBox.left - parseFloat(getCSS(node, 'width'));
+            return docBB.width - window.scrollX - nodeBB.left - parseFloat(getCSS(node, 'width'));
         },
     };
 }
@@ -246,43 +347,43 @@ function bb(node) {
 function place(node, scale, unit = '%') {
     checkNodeType(node);
     const
-        tbox = bb(node),
+        nodeBB = bb(node),
         cssPosition = getCSS(node, 'position'),
         relative = cssPosition === 'relative' || getCSS(node.parentNode, 'position') === 'relative',
         sibling = (ref) => { return node.parentNode === ref.parentNode; },
-        position = (ref, flag, rbox = bb(ref)) => {
+        position = (ref, flag, refBB = bb(ref)) => {
             checkNodeType(ref);
-            const placement = unit === 'px' ? scale : (flag === 'above' || flag === 'below' ? rbox.height : rbox.width) * scale / 100;
+            const placement = unit === 'px' ? scale : (flag === 'above' || flag === 'below' ? refBB.height : refBB.width) * scale / 100;
 
             if (sibling(ref)) {
                 switch (flag) {
                     case 'above':
-                        node.style.top = `${rbox.relTop - tbox.height - placement}px`; break;
+                        node.style.top = `${refBB.relTop - nodeBB.height - placement}px`; break;
                     case 'below':
-                        node.style.top = `${rbox.relTop + rbox.height + placement}px`; break;
+                        node.style.top = `${refBB.relTop + refBB.height + placement}px`; break;
                     case 'leftOf':
-                        node.style.left = `${rbox.relLeft - tbox.width - placement}px`; break;
+                        node.style.left = `${refBB.relLeft - nodeBB.width - placement}px`; break;
                     case 'rightOf':
-                        node.style.left = `${rbox.relLeft + rbox.width + placement}px`; break;
+                        node.style.left = `${refBB.relLeft + refBB.width + placement}px`; break;
                 }
             }
         },
-        direction = (ref, rbox = bb(ref)) => {
+        direction = (ref, refBB = bb(ref)) => {
             const placement = {
-                x: unit === 'px' ? scale[0] : rbox.width * scale / 100,
-                y: unit === 'px' ? scale[1] : rbox.height * scale / 100,
+                x: unit === 'px' ? scale[0] : refBB.width * scale / 100,
+                y: unit === 'px' ? scale[1] : refBB.height * scale / 100,
             };
 
             return {
                 get onX() {
-                    node.style.left = `${(relative ? 0 : rbox.left) + placement.x - (unit === '%' ? tbox.width / 2 : 0)}px`;
+                    node.style.left = `${(relative ? 0 : refBB.left) + placement.x - (unit === '%' ? nodeBB.width / 2 : 0)}px`;
                 },
                 get onY() {
-                    node.style.top = `${(relative ? 0 : rbox.top) + placement.y - (unit === '%' ? tbox.height / 2 : 0)}px`;
+                    node.style.top = `${(relative ? 0 : refBB.top) + placement.y - (unit === '%' ? nodeBB.height / 2 : 0)}px`;
                 },
                 get onXY() {
-                    node.style.left = `${(relative ? 0 : rbox.left) + placement.x - (unit === '%' ? tbox.width / 2 : 0)}px`;
-                    node.style.top = `${(relative ? 0 : rbox.top) + placement.y - (unit === '%' ? tbox.height / 2 : 0)}px`;
+                    node.style.left = `${(relative ? 0 : refBB.left) + placement.x - (unit === '%' ? nodeBB.width / 2 : 0)}px`;
+                    node.style.top = `${(relative ? 0 : refBB.top) + placement.y - (unit === '%' ? nodeBB.height / 2 : 0)}px`;
                 },
             };
         };
@@ -294,7 +395,7 @@ function place(node, scale, unit = '%') {
         below: ref => position(ref, 'below'),
         leftOf: ref => position(ref, 'leftOf'),
         rightOf: ref => position(ref, 'rightOf'),
-        in: function (r) {
+        in: function (ref) {
             checkNodeType(ref);
             return direction(ref);
         },
@@ -326,7 +427,7 @@ function newNode(tagName, attr, css = {}) {
 function newLabel(opts) {
     const root = newNode('div'), body = newNode('div'), arrow = opts.arrow ? newNode('div') : null;
 
-    root.id = 'label';
+    Object.assign(root, opts.attr);
     root.style.opacity = opts.css.opacity;
 
     body.className = 'labelBody';
@@ -411,4 +512,8 @@ function delay(f, _t) {
         if (t) clearTimeout(t);
         t = setTimeout(f, _t, event);
     };
+}
+
+function remap(v, iMin, iMax, oMin, oMax) {
+    return oMin + (v - iMin) * (oMax - oMin) / (iMax - iMin);
 }
