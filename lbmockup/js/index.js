@@ -457,6 +457,7 @@ function saveToLocal() {
     if (document.visibilityState === 'visible' && tSteps > 1) {
         commitToMaster();
         localStorage.lbcontent = master;
+        console.info('file saved to local ');
     }
 }
 

@@ -1,34 +1,45 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <link rel="stylesheet" type="text/css" href="style.css"/>
-      	<link href="https://fonts.googleapis.com/css?family=Nunito:200,400,700" rel="stylesheet">
-    </head>
-    <body>
 
-    	<h1>Snake Game</h1>
-		
-      	<div id="points-wrapper">
-    		<p id="points">Points: 0</p>
-		</div>
-      	
-      	<canvas id="gc" width="400" height="400"></canvas>
-      	
-      	<div id="button-wrapper">
-          	
-          	<p id="select-difficulty">Select Difficulty:</p>
-          	<span>
-              	<button id="easy">Easy</button>
-          	</span>
-          	<span>
-              	<button id="medium">Medium</button>
-          	</span>
-          	<span>
-              	<button id="hard">Hard</button>
-          	</span>
-          
-      	</div>
-		
-      <script type="text/javascript" src="script.js"></script>
-    </body>
+<head>
+	<link rel="stylesheet" type="text/css" href="style.css" />
+	<link href="https://fonts.googleapis.com/css?family=Nunito:200,400,700" rel="stylesheet">
+</head>
+
+<body>
+
+	<h1>Snake Game</h1>
+
+	<div id="points-wrapper">
+		<p id="pointsLabel">Points: 0</p>
+	</div>
+
+	<canvas id="gc" width="400" height="400"></canvas>
+
+	<p id="difficultyLabel">Select Difficulty:</p>
+
+	<div id="button-wrapper">
+
+		<span>
+			<button id="easyButton">Easy</button>
+		</span>
+		<span>
+			<button id="mediumButton">Medium</button>
+		</span>
+		<span>
+			<button id="hardButton">Hard</button>
+		</span>
+
+		<p id="playerLabel">Two player:</p>
+
+		<label id="playerSwitch" class="switch">
+			<input id="playerCheckbox" type="checkbox">
+			<span id="slider" class="slider round"></span>
+		</label>
+
+	</div>
+
+	<script type="text/javascript" src="script.js"></script>
+</body>
+
 </html>
