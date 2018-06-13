@@ -16,6 +16,7 @@ const
 
 
 function init() {
+    console.log('init()');
     doc.add(newNode('div', { id: 'frame' }));
     doc.add(newNode('button', {
         id: 'logo',
@@ -89,15 +90,21 @@ function init() {
 
     setTimeout(adaptToViewport, 100);
 
-    label.anim = anime({
+    label.fadeIn = anime({
         targets: label,
         opacity: 1,
         duration: 500,
         autoplay: false,
-    });
+    }).play;
+
+    label.fadeOut = () => {
+        label.fadeIn();
+        label.fadeIn.reverse();
+    };
 }
 
 function stepOne() {
+    console.log('stepOne()');
     const
         r = bb(frame), pt = r.height * 0.1, pbr = pt / 2, pw = (r.width + pt) / 2,
         path = doc.add(newNode('div', { id: 'path' }, {
@@ -134,6 +141,7 @@ function stepOne() {
 }
 
 function stepTwo() {
+    console.log('stepTwo()');
     // bounding box object
     const ref = {
         frame: bb(frame),
@@ -223,8 +231,8 @@ function stepTwo() {
                 setTimeout(function () {
                     logo.K.prevY;
                     label.K.prevY;
-                    avatars.forEach(a => frame.removeChild(a));
                     doc.responsiveNodes.splice(-avatars.length, avatars.length);
+                    while (avatars.length) frame.removeChild(avatars.pop());
 
                     setTimeout(function () {
                         label.arrow.show();
@@ -246,20 +254,22 @@ function stepTwo() {
 }
 
 function stepThree() {
+    console.log('stepThree()');
     label.style.opacity = 0;
 
-    const animValue = {
-        logoLeft: logo.K.X,
-    }, 
-    endValue = {
-        logoLeft: logo.K.nextX,
-    };
 
-    anime({
-        targets: animValue,
+    // const animValue = {
+    //     logoLeft: logo.K.X,
+    // }, 
+    // endValue = {
+    //     logoLeft: logo.K.nextX,
+    // };
 
-        duration: 350,
-    });
+    // anime({
+    //     targets: animValue,
+
+    //     duration: 350,
+    // });
     // label.addEventListener('transitionend', () => label.arrow.hide());
 }
 
