@@ -19,7 +19,7 @@ let gridSize = 20;
 // How many grids are in the canvas
 let tileCount = 20;
 // How many times the scene is redrawn, per second
-let refreshRate = 5;
+let refreshRate = 12;
 
 // Boolean indicating whether two-player mode is on or off
 let isTwoPlayer = false;
@@ -370,15 +370,17 @@ function keyPush(evt) {
 
     if (evt.keyCode === 83) snakes[0].setDirection(Direction.down);
 
-    if (snakes.length !== 2) return;
+    if (isTwoPlayer) {
 
-    if (evt.keyCode === 37) snakes[1].setDirection(Direction.left);
+        if (evt.keyCode === 37) snakes[1].setDirection(Direction.left);
+    
+        if (evt.keyCode === 39) snakes[1].setDirection(Direction.right);
+    
+        if (evt.keyCode === 40) snakes[1].setDirection(Direction.down);
+    
+        if (evt.keyCode === 38) snakes[1].setDirection(Direction.up);
 
-    if (evt.keyCode === 39) snakes[1].setDirection(Direction.right);
-
-    if (evt.keyCode === 40) snakes[1].setDirection(Direction.down);
-
-    if (evt.keyCode === 38) snakes[1].setDirection(Direction.up);
+    }
 
 }
 
