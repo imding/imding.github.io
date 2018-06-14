@@ -1,4 +1,5 @@
 const
+    avatarLinks = [],
     aspectRatio = 16 / 9,
     doc = {
         responsiveNodes: [],
@@ -12,23 +13,53 @@ const
             else parent.appendChild(node);
             return node;
         },
+        remove: function (nodes) {
+            if (!Array.isArray(nodes)) nodes = [nodes];
+            nodes.forEach(n => {
+                n.parentNode.removeChild(n);
+                const index = doc.responsiveNodes.indexOf(n);
+                if (index > -1) doc.responsiveNodes.splice(index, 1);
+                else console.warn(`${n} is not a responsive node.`);
+            });
+        },
     };
 
+// ================ //
+// ===== Flow ===== //
+// ================ //
+
+loadAvatars();
+
+window.addEventListener('load', init);
+
+window.addEventListener('resize', adaptToViewport);
+// window.addEventListener('resize', delay(adaptToViewport, 100));
+
+// ========================= //
+// ===== Key Functions ===== //
+// ========================= //
+
+function loadAvatars(n = 0) {
+    console.info(`loading: avatar${n}.png`);
+    avatarLinks.push(`https://app.bsdlaunchbox.com/resources/avatar${n}.png`);
+    const e = document.createElement('img');
+    e.src = avatarLinks[n];
+    if (n < 10) loadAvatars(++n);
+}
 
 function init() {
     console.log('init()');
     doc.add(newNode('div', { id: 'frame' }));
     doc.add(newNode('button', {
         id: 'logo',
+        // define keyframe info
         K: {
-            get f() { return this._f || 0; },
-            get X() { return [50, 120][this.f]; },
-            get Y() { return [65, 90][this.f]; },
-            get nextX() { this.f++; return this.X; },
-            get nextY() { this.f++; return this.Y; },
-            get prevY() { this.f--; return this.Y; },
-
-            set f(n) { this._f = n; },
+            _x: 0, _y: 0,
+            get X() { return [50, 110][this._x]; },
+            get Y() { return [65, 90][this._y]; },
+            get nextX() { this._x++; return this.X; },
+            get nextY() { this._y++; return this.Y; },
+            get prevY() { this._y--; return this.Y; },
         },
         onmouseenter: () => label.style.opacity = 1,
         onmouseout: () => label.style.opacity = 0,
@@ -41,13 +72,14 @@ function init() {
     doc.add(newLabel({
         attr: {
             id: 'label',
+            // define keyframe info
             K: {
-                get f() { return this._f || 0; },
-                get Y() { return [10, 135][this.f]; },
-                get nextY() { this.f++; return this.Y; },
-                get prevY() { this.f--; return this.Y; },
-
-                set f(n) { this._f = n; },
+                _x: 0, _y: 0,
+                get X() { return [50, -10][this._x]; },
+                get Y() { return [10, 135][this._y]; },
+                get nextX() { this._x++; return this.X; },
+                get nextY() { this._y++; return this.Y; },
+                get prevY() { this._y--; return this.Y; },
             },
         },
         html: [{
@@ -74,7 +106,7 @@ function init() {
         logo.style.width = `${r.frame.width * 0.2}px`;
         logo.style.height = `${r.frame.width * 0.2}px`;
         logo.style.borderWidth = `${r.frame.width * 0.01}px`;
-        place(logo, 50).inParent.onX;
+        place(logo, logo.K.X).inParent.onX;
         place(logo, logo.K.Y).inParent.onY;
     };
 
@@ -84,7 +116,7 @@ function init() {
         label.body.style.borderRadius = `${r.frame.width * 0.02}px`;
         label.body.style.padding = `${r.frame.width * 0.01}px ${r.frame.width * 0.02}px`;
         label.arrow.adapt();
-        place(label, 50).inParent.onX;
+        place(label, label.K.X).inParent.onX;
         place(label, label.K.Y).above(logo);
     };
 
@@ -95,23 +127,41 @@ function init() {
         opacity: 1,
         duration: 500,
         autoplay: false,
-    }).play;
-
-    label.fadeOut = () => {
-        label.fadeIn();
-        label.fadeIn.reverse();
-    };
+        complete: function (status) {
+            console.log('end');
+            status.completed = false;
+        }
+    });
 }
 
 function stepOne() {
     console.log('stepOne()');
     const
         r = bb(frame), pt = r.height * 0.1, pbr = pt / 2, pw = (r.width + pt) / 2,
-        path = doc.add(newNode('div', { id: 'path' }, {
-            height: `${pt}px`,
-            borderRadius: `${pbr}px`,
-            backgroundColor: 'indianred',
-        }), frame, logo);
+        path = doc.add(newNode('div',
+            {
+                id: 'path',
+                // define keyframe info
+                K: {
+                    _x: 0, _y: 0, _w: 0,
+                    getY: function (n) {
+                        this._y = n;
+                        return this.Y;
+                    },
+                    get X() { return [75, 50][this._x]; },
+                    get Y() { return [65, 90, 50][this._y]; },
+                    get W() { return [55, 110][this._w]; },
+                    get nextX() { this._x++; return this.X; },
+                    get nextY() { this._y++; return this.Y; },
+                    get nextW() { this._w++; return this.W; },
+                    get prevY() { this._y--; return this.Y; },
+                },
+            },
+            {
+                height: `${pt}px`,
+                borderRadius: `${pbr}px`,
+                backgroundColor: 'indianred',
+            }), frame, logo);
 
     logo.onmouseout = null;
     logo.onmouseenter = null;
@@ -123,16 +173,15 @@ function stepOne() {
         targets: path,
         width: pw,
         duration: 800,
-        elasticity: 0,
         easing: 'easeInQuart',
         complete: function () {
             path.adapt = function (r) {
                 const pt = r.frame.height * 0.1;
-                path.style.width = `${(r.frame.width + pt) / 2}px`;
                 path.style.height = `${pt}px`;
                 path.style.borderRadius = `${pt / 2}px`;
-                place(path, -50).rightOf(logo);
-                place(path, logo.K.Y).inParent.onY;
+                resize(path, path.K.W).ofParent.onX;
+                place(path, path.K.X).inParent.onX;
+                place(path, path.K.Y).inParent.onY;
             };
             adaptToViewport();
             setTimeout(stepTwo, 600);
@@ -149,7 +198,7 @@ function stepTwo() {
         logo: bb(logo),
     };
 
-    let scale = 1, z = 0, avatars = [];
+    let scale = 1, n = 0, avatars = [];
 
     while (scale > 0.1) {
         scale *= 0.8;
@@ -157,7 +206,7 @@ function stepTwo() {
         // create new user avatar
         const avatar = doc.add(newNode('div', { r: scale }, {
             backgroundColor: 'silver',
-            backgroundImage: `url(https://app-staging.bsdlaunchbox.com/resources/avatar${Math.ceil(Math.random() * 11) - 1}.png)`,
+            backgroundImage: `url(${avatarLinks[Math.ceil(Math.random() * 11) - 1]})`,
             backgroundPosition: 'center',
             backgroundSize: '100%',
             backgroundRepeat: 'no-repeat',
@@ -165,16 +214,14 @@ function stepTwo() {
             borderColor: 'rgba(0, 0, 0, 0.25)',
             borderRadius: '50%',
             filter: `blur(${2 * (1 - scale)}px)`,
-            zIndex: --z,
+            zIndex: --n,
         }), frame);
 
         avatar.K = {
-            get f() { return this._f || 0; },
-            get Y() { return [65, 90 - (1 - avatar.r) * 98][this.f]; },
-            get nextY() { this.f++; return this.Y; },
-            get prevY() { this.f--; return this.Y; },
-
-            set f(n) { this._f = n; },
+            _y: 0,
+            get Y() { return [65, 90 - (1 - avatar.r) * 98][this._y]; },
+            get nextY() { this._y++; return this.Y; },
+            get prevY() { this._y--; return this.Y; },
         };
 
         // define how each button should adapt to viewport
@@ -195,16 +242,19 @@ function stepTwo() {
         animValue = {
             labelLift: label.K.Y,
             logoTop: logo.K.Y,
+            pathTop: path.K.Y,
         },
         endValue = {
             labelLift: label.K.nextY,
             logoTop: logo.K.nextY,
+            pathTop: path.K.nextY,
         };
 
     const anim = anime({
         targets: animValue,
         labelLift: endValue.labelLift,
         logoTop: endValue.logoTop,
+        pathTop: endValue.pathTop,
         easing: 'easeInOutSine',
         duration: 500,
         begin: () => {
@@ -216,71 +266,99 @@ function stepTwo() {
         },
         update: function (status) {
             place(logo, animValue.logoTop).inParent.onY;
-            place(path, animValue.logoTop).inParent.onY;
+            place(path, animValue.pathTop).inParent.onY;
             place(label, animValue.labelLift).above(logo);
             avatars.forEach(a => place(a, remap(status.progress, 0, 100, 65, 90 - (1 - a.r) * 98)).inParent.onY);
         },
-        complete: () => {
-            setTimeout(() => label.style.opacity = 1, 500);
-            avatars.forEach(a => a.K.nextY);
-            logo.onclick = function () {
-                logo.onclick = null;
-                label.style.opacity = 0;
-                anim.play();
-                anim.reverse();
-                setTimeout(function () {
-                    logo.K.prevY;
-                    label.K.prevY;
-                    doc.responsiveNodes.splice(-avatars.length, avatars.length);
-                    while (avatars.length) frame.removeChild(avatars.pop());
-
-                    setTimeout(function () {
-                        label.arrow.show();
-                        label.style.opacity = 1;
-                        label.newContent([{
-                            tagName: 'P',
-                            attr: { textContent: 'Click the logo again to begin exploring.' },
-                        }]);
-                        adaptToViewport();
-                        logo.onclick = function () {
-                            logo.onclick = null;
-                            stepThree();
-                        };
-                    }, 250);
-                }, 500);
-            };
-        }
     });
+
+    anim.complete = function () {
+        setTimeout(() => label.style.opacity = 1, 500);
+        avatars.forEach(a => a.K.nextY);
+        logo.onclick = function () {
+            logo.onclick = null;
+            label.style.opacity = 0;
+            anim.play();
+            anim.reverse();
+        };
+
+        anim.completed = false;
+        anim.complete = function () {
+            label.K.prevY;
+            logo.K.prevY;
+            path.K.prevY;
+            doc.remove(avatars);
+
+            setTimeout(function () {
+                label.arrow.show();
+                label.style.opacity = 1;
+                label.newContent([{
+                    tagName: 'P',
+                    attr: { textContent: 'Click the logo again to begin exploring.' },
+                }]);
+                adaptToViewport();
+                logo.onclick = function () {
+                    logo.onclick = null;
+                    stepThree();
+                };
+            }, 250);
+        };
+    };
 }
 
 function stepThree() {
     console.log('stepThree()');
     label.style.opacity = 0;
 
+    const
+        animValue = {
+            logoLeft: logo.K.X,
+            pathLeft: path.K.X,
+            pathTop: path.K.Y,
+            pathWidth: path.K.W,
+        },
+        endValue = {
+            logoLeft: logo.K.nextX,
+            pathLeft: path.K.nextX,
+            pathTop: path.K.getY(2),
+            pathWidth: path.K.nextW,
+        };
 
-    // const animValue = {
-    //     logoLeft: logo.K.X,
-    // }, 
-    // endValue = {
-    //     logoLeft: logo.K.nextX,
-    // };
-
-    // anime({
-    //     targets: animValue,
-
-    //     duration: 350,
-    // });
-    // label.addEventListener('transitionend', () => label.arrow.hide());
+    anime({
+        targets: animValue,
+        logoLeft: endValue.logoLeft,
+        duration: 800,
+        easing: 'easeInQuart',
+        update: function () {
+            place(logo, animValue.logoLeft).inParent.onX;
+        },
+        complete: function () {
+            anime({
+                targets: animValue,
+                pathLeft: endValue.pathLeft,
+                pathTop: endValue.pathTop,
+                pathWidth: endValue.pathWidth,
+                duration: 600,
+                easing: 'easeInOutQuart',
+                update: function () {
+                    resize(path, animValue.pathWidth).ofParent.onX;
+                    place(path, animValue.pathLeft).inParent.onX;
+                    place(path, animValue.pathTop).inParent.onY;
+                },
+                complete: function () {
+                    path.style.borderRadius = '0';
+                    doc.add(newNode('div', { id: 'iconDecomposition' }, { opacity: 0 }), frame);
+                    doc.add(newNode('div', { id: 'iconPattern' }, { opacity: 0 }), frame);
+                    doc.add(newNode('div', { id: 'iconAlgorithm' }, { opacity: 0 }), frame);
+                },
+            });
+        },
+    });
 }
 
-// ================== //
-// ===== Events ===== //
-// ================== //
-
-window.addEventListener('load', init);
-
-window.addEventListener('resize', adaptToViewport);
-// window.addEventListener('resize', delay(adaptToViewport, 100));
+// =================== //
+// ===== Utility ===== //
+// =================== //
 
 function adaptToViewport() {
     const r = { view: bb(document.body), frame: bb(frame), logo: bb(logo) };
@@ -291,10 +369,6 @@ function adaptToViewport() {
     });
     console.log(doc);
 }
-
-// =================== //
-// ===== Utility ===== //
-// =================== //
 
 function getCSS(node, propertyName) {
     checkNodeType(node);
@@ -386,6 +460,42 @@ function bb(node) {
         get absRight() {
             return docBB.width - window.scrollX - nodeBB.left - parseFloat(getCSS(node, 'width'));
         },
+    };
+}
+
+// resize(path, [110, 10]).ofParent.onXY;
+function resize(node, scale, unit = '%') {
+    checkNodeType(node);
+    const
+        direction = (ref, refBB = bb(ref)) => {
+            const size = {
+                x: unit === 'px' ? scale[0] : refBB.width * scale / 100,
+                y: unit === 'px' ? scale[1] : refBB.height * scale / 100,
+            };
+
+            return {
+                get onX() {
+                    node.style.width = `${size.x}px`;
+                },
+                get onY() {
+                    node.style.height = `${size.y}px`;
+                },
+                get onXY() {
+                    node.style.width = `${size.x}px`;
+                    node.style.height = `${size.y}px`;
+                },
+            };
+        };
+
+    return {
+        of: function (ref) {
+            checkNodeType(ref);
+            return direction(ref);
+        },
+        ofParent: function () {
+            checkNodeType(node.parentNode);
+            return direction(node.parentNode);
+        }(),
     };
 }
 
