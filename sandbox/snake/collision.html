@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        #frame {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id='frame'></canvas>
+
+    <script>
+        var ctx;
+        var speed = { x: 0, y: 0 }, position = { x: 0, y: 0 }, box = { width: 50, height: 50 };
+
+        function render() {
+            // clear the canvas
+            ctx.fillStyle = 'whitesmoke';
+            ctx.fillRect(0, 0, frame.width, frame.height);
+
+            // calculate new position
+            position.x = Math.min(Math.max(position.x + speed.x, 0), frame.width - box.width);
+            position.y = Math.min(Math.max(position.y + speed.y, 0), frame.height - box.height);
+
+            // detect collision
+            var xCollision = position.x === 0 || position.x == frame.width - box.width;
+            var yCollision = position.y === 0 || position.y == frame.height - box.height;
+
+            if (xCollision || yCollision) {
+                ctx.fillStyle = 'firebrick';
+            }
+            else {
+                ctx.fillStyle = 'mediumspringgreen';
+            }
+
+            ctx.fillRect(position.x, position.y, box.width, box.height);
+
+            window.requestAnimationFrame(render);
+        }
+
+        window.onload = function () {
+            frame.width = 400;
+            frame.height = 300;
+
+            position = {
+                x: frame.width / 2 - box.width / 2,
+                y: frame.height / 2 - box.height / 2,
+            };
+
+            ctx = frame.getContext('2d');
+
+            render();
+        };
+
+        window.onkeydown = function (evt) {
+            speed = { x: 0, y: 0 };
+
+            if (evt.key === 'ArrowLeft') {
+                speed.x = -2;
+            }
+            else if (evt.key === 'ArrowRight') {
+                speed.x = 2;
+            }
+            else if (evt.key === 'ArrowUp') {
+                speed.y = -2;
+            }
+            else if (evt.key === 'ArrowDown') {
+                speed.y = 2;
+            }
+        };
+    </script>
+</body>
+
+</html>

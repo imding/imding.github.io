@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        #frame {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: whitesmoke;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id='frame'></canvas>
+
+    <script>
+        var ctx,
+            position = { x: 0, y: 0 },
+            box = {
+                width: 100,
+                height: 100,
+                x: 0,
+                y: 0,
+            };
+
+        window.onload = function () {
+            frame.width = 400;
+            frame.height = 300;
+
+            box.x = frame.width / 2 - box.width / 2;
+            box.y = frame.height / 2 - box.height / 2;
+
+            ctx = frame.getContext('2d');
+
+            ctx.fillStyle = 'mediumspringgreen';
+            ctx.fillRect(box.x, box.y, box.width, box.height);
+
+            ctx.fillStyle = 'lightpink';
+            ctx.arc(75, 75, 50, 0, 2 * Math.PI);
+            ctx.fill();
+        };
+    </script>
+</body>
+
+</html>

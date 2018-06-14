@@ -19,7 +19,7 @@ let gridSize = 20;
 // How many grids are in the canvas
 let tileCount = 20;
 // How many times the scene is redrawn, per second
-let refreshRate = 12;
+let refreshRate = 8;
 
 // Boolean indicating whether two-player mode is on or off
 let isTwoPlayer = false;
@@ -45,12 +45,12 @@ window.onload = function () {
         window.gameDifficulty = Difficulty.easy;
         playMode();
     };
-    
+
     mediumButton.onclick = function () {
         window.gameDifficulty = Difficulty.medium;
         playMode();
     };
-    
+
     hardButton.onclick = function () {
         window.gameDifficulty = Difficulty.hard;
         playMode();
@@ -168,7 +168,7 @@ function showNamePopup(text, handler) {
         } else {
             player2Name = input.value;
         }
-        
+
         document.body.removeChild(popupBackground);
         document.body.removeChild(banner);
 
@@ -180,6 +180,7 @@ function showNamePopup(text, handler) {
 
 // Function: hide/show difficulty buttons and label 
 function setButtonsVisibility(visibility) {
+
     difficultyLabel.style.visibility = visibility;
     easyButton.style.visibility = visibility;
     mediumButton.style.visibility = visibility;
@@ -189,6 +190,7 @@ function setButtonsVisibility(visibility) {
     playerSwitch.style.visibility = visibility;
     playerCheckbox.style.visibility = visibility;
     slider.style.visibility = visibility;
+
 }
 
 // Function: starting the game (canvas starts to refresh)
@@ -288,7 +290,12 @@ function checkForSnakeCollision() {
     let losingSnakes = [];
     snakes.forEach(snake => {
         if (snake.checkForSnakeCollision()) {
-            losingSnakes.push(snake);
+            if (snake.immortal) {
+                losingSnakes.push(snake.hitTarget);
+            }
+            else {
+                losingSnakes.push(snake);
+            }
         }
     });
 
@@ -355,7 +362,7 @@ function updatePointsLabel() {
 }
 
 function keyPush(evt) {
-
+    
     if (!gameHasStarted) {
         return;
     }
@@ -373,11 +380,11 @@ function keyPush(evt) {
     if (isTwoPlayer) {
 
         if (evt.keyCode === 37) snakes[1].setDirection(Direction.left);
-    
+
         if (evt.keyCode === 39) snakes[1].setDirection(Direction.right);
-    
+
         if (evt.keyCode === 40) snakes[1].setDirection(Direction.down);
-    
+
         if (evt.keyCode === 38) snakes[1].setDirection(Direction.up);
 
     }
@@ -490,10 +497,12 @@ class Snake {
         this.segments = [];
 
         this.color = color;
+        this.altColor = color;
 
         this.name = name;
 
         this.direction = Direction.up;
+        this.pendingTurn = false;
 
         // Coordinates of the head of the snake
         this.x = x;
@@ -505,6 +514,8 @@ class Snake {
         };
 
         this.points = 0;
+
+        this.immortal = false;
 
         this.generateSnake();
     }
@@ -532,13 +543,13 @@ class Snake {
     drawSnakeTail() {
 
         const tail = this.tail;
-    
+
         const preTail = this.getSegment(this.segments.length - 2);
-    
+
         // Get the direction that the tail is moving in
         let tailXVelocity = preTail.position.x - tail.position.x;
         let tailYVelocity = preTail.position.y - tail.position.y;
-    
+
         switch (tailXVelocity) {
             case 1:
                 ctx.beginPath();
@@ -572,13 +583,13 @@ class Snake {
                         break;
                 }
         }
-    
+
     }
 
     drawSnakeEyes() {
 
         const head = this.head;
-    
+
         // Giving the snake eyes based off of its direction
         switch (this.direction.x) {
             case 1:
@@ -606,7 +617,7 @@ class Snake {
                 }
         }
         ctx.fillStyle = this.color;
-    
+
     }
 
     // Called to draw the entire snake
@@ -643,6 +654,8 @@ class Snake {
     }
 
     updatePositions() {
+
+        this.pendingTurn = false;
 
         // Expressions account for vertical and horizontal wrapping
         const newX = this.x + this.direction.x > tileCount - 1 ? 0 : (this.x + this.direction.x < 0 ? tileCount - 1 : this.x + this.direction.x);
@@ -696,9 +709,23 @@ class Snake {
     checkForApple() {
 
         if (this.x === apple.position.x && this.y === apple.position.y) {
-            this.points++;
+            if (apple.gold) {
+
+                this.immortal = true;
+                this.color = 'gold';
+
+                setTimeout(() => {
+                    this.immortal = false;
+                    this.color = this.altColor;
+                }, 6000);
+
+            }
+            else {
+                this.points++;
+                this.addSegment();
+            }
+
             spawnNewApple();
-            this.addSegment();
         }
 
     }
@@ -709,11 +736,17 @@ class Snake {
         return snakes.some(snake => {
             if (snake !== this) {
 
-                return snake.segments.some(segment => {
+                const collide = snake.segments.some(segment => {
                     if (segment.position.x === this.x && segment.position.y === this.y) {
                         return true;
                     } else return false;
                 });
+
+                if (collide) {
+                    this.hitTarget = snake;
+                }
+
+                return collide;
 
             }
         });
@@ -734,6 +767,13 @@ class Snake {
 
     setDirection(direction) {
 
+        if (this.pendingTurn) {
+            return;
+        }
+        else {
+            this.pendingTurn = true;
+        }
+
         // To prevent 180 degree turns
         switch (direction) {
             case Direction.up:
@@ -751,6 +791,7 @@ class Snake {
         }
 
         this.direction = direction;
+
     }
 
     get head() {
@@ -826,7 +867,8 @@ class Obstacle {
 
         if (x >= this.x && x < this.x + this.width && y >= this.y && y < this.y + this.height) {
             return true;
-        } else {
+        }
+        else {
             return false;
         }
 
@@ -840,6 +882,7 @@ class Apple {
 
         this.x = 0;
         this.y = 0;
+        this.gold = Math.random() > 0.9;
 
         this.initPosition();
     }
@@ -863,7 +906,12 @@ class Apple {
     draw(ctx) {
 
         // Draw apple
-        ctx.fillStyle = 'red';
+        if (this.gold) {
+            ctx.fillStyle = 'gold';
+        }
+        else {
+            ctx.fillStyle = 'red';
+        }
         ctx.beginPath();
         ctx.arc(this.x * gridSize + 0.5 * (gridSize - 2), this.y * gridSize + 0.5 * (gridSize - 2), 0.4 * (gridSize - 2), 0, 2 * Math.PI);
         ctx.fill();
