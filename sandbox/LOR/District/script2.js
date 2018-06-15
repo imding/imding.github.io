@@ -4,8 +4,7 @@ const
     doc = {
         responsiveNodes: [],
         add: function (node, parent = document.body, ref) {
-            checkNodeType(node);
-            checkNodeType(parent);
+            checkNodeType([node, parent]);
             doc.responsiveNodes.push(node);
             if (ref && checkNodeType(ref)) {
                 parent.insertBefore(node, ref);
@@ -56,17 +55,10 @@ function init() {
         K: {
             _x: 0, _y: 0,
             get X() { return [50, 110][this._x]; },
-            get Y() { return [65, 90][this._y]; },
+            get Y() { return [120, 65, 90][this._y]; },
             get nextX() { this._x++; return this.X; },
             get nextY() { this._y++; return this.Y; },
             get prevY() { this._y--; return this.Y; },
-        },
-        onmouseenter: () => label.style.opacity = 1,
-        onmouseout: () => label.style.opacity = 0,
-        onclick: (evt) => {
-            evt.target.onclick = null;
-            label.style.opacity = 0;
-            stepOne();
         },
     }), frame);
     doc.add(newLabel({
@@ -122,16 +114,33 @@ function init() {
 
     setTimeout(adaptToViewport, 100);
 
-    label.fadeIn = anime({
-        targets: label,
-        opacity: 1,
-        duration: 500,
-        autoplay: false,
-        complete: function (status) {
-            console.log('end');
-            status.completed = false;
-        }
-    });
+    window.onmousemove = function() {
+        window.onmousemove = null;
+        const
+            animValue = {
+                logoTop: logo.K.Y,
+            },
+            endValue = {
+                logoTop: logo.K.nextY,
+            };
+
+        anime({
+            targets: animValue,
+            logoTop: endValue.logoTop,
+            duration: 1200,
+            update: () => place(logo, animValue.logoTop).inParent.onY,
+            complete: function () {
+                adaptToViewport();
+                logo.onmousemove = () => label.style.opacity = 1;
+                logo.onmouseout = () => label.style.opacity = 0;
+                logo.onclick = (evt) => {
+                    evt.target.onclick = null;
+                    label.style.opacity = 0;
+                    stepOne();
+                };
+            },
+        });
+    };
 }
 
 function stepOne() {
