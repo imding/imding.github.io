@@ -1,21 +1,5 @@
-const Orientation = Object.freeze({
-    horizontal: 1,
-    vertical: 2,
-    diagonalLeft: 3,
-    diagonalRight: 4,
-    diagonalLeftDown: 5,
-    top: 6,
-    left: 7,
-    right: 8,
-    rightFlatDown: 9,
-    bottomLeft: 10,
-    topLeft: 11,
-    topRight: 12
-});
-const StackType = Object.freeze({
-    horizontal: 1,
-    custom: 2
-});
+const Orientation = Object.freeze({ horizontal: 1, vertical: 2, diagonalLeft: 3, diagonalRight: 4, diagonalLeftDown: 5, top: 6, left: 7, right: 8, rightFlatDown: 9, bottomLeft: 10, topLeft: 11, topRight: 12 });
+const StackType = Object.freeze({ horizontal: 1, custom: 2 });
 
 let hexagon;
 let rhombus;
@@ -146,10 +130,7 @@ class PieceSet {
 
                 const pieceDimensions = piece.dimensions;
 
-                piece.setOrigin({
-                    x: originX,
-                    y: 0
-                });
+                piece.setOrigin({ x: originX, y: 0 });
 
                 originX += pieceDimensions.width;
 
@@ -167,7 +148,8 @@ class PieceSet {
             this.set.style.left = origin.x + 'px';
             this.set.style.top = origin.y + 'px';
 
-        } else if (stackType === StackType.custom) { // If each piece needs to be at a specific point
+        }
+        else if (stackType === StackType.custom) { // If each piece needs to be at a specific point
 
             let lowestPoint = 0; // The maximum y-value of any piece
             let furthestPoint = 0; // The maximum x-value of any piece
@@ -322,23 +304,19 @@ class Configuration {
 class Square extends PieceSet {
 
     constructor(origin, dimensions, orientation, color) {
-
         const height = dimensions.height;
         const width = dimensions.width;
 
         if (orientation === Orientation.vertical) {
 
-            const piece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: width,
-                height: height
-            });
+            const piece = new Piece({ x: 0, y: 0 }, { width: width, height: height });
             piece.updateColor(color);
 
             super([piece], origin, StackType.custom);
 
+        }
+        else {
+            super();
         }
 
         this.orientation = orientation;
@@ -346,82 +324,22 @@ class Square extends PieceSet {
         // Insert configurations
 
         // Configurations for trapezoid 2
-        this.configurations.push(new Configuration('Trapezoid', Orientation.rightFlatDown, {
-            x: this.set.offsetLeft,
-            y: this.set.offsetTop
-        }, {
-            width: this.set.offsetWidth,
-            height: this.set.offsetHeight / 2
-        }));
-        this.configurations.push(new Configuration('Trapezoid', Orientation.rightFlatDown, {
-            x: this.set.offsetLeft,
-            y: this.set.offsetTop + this.set.offsetHeight / 2
-        }, {
-            width: this.set.offsetWidth,
-            height: this.set.offsetHeight / 2
-        }));
+        this.configurations.push(new Configuration('Trapezoid', Orientation.rightFlatDown, { x: this.set.offsetLeft, y: this.set.offsetTop }, { width: this.set.offsetWidth, height: this.set.offsetHeight / 2 }));
+        this.configurations.push(new Configuration('Trapezoid', Orientation.rightFlatDown, { x: this.set.offsetLeft, y: this.set.offsetTop + this.set.offsetHeight / 2 }, { width: this.set.offsetWidth, height: this.set.offsetHeight / 2 }));
 
         // Configurations for triangle 2
-        this.configurations.push(new Configuration('Triangle', Orientation.right, {
-            x: this.set.offsetLeft,
-            y: this.set.offsetTop
-        }, {
-            width: this.set.offsetWidth / 2,
-            height: this.set.offsetHeight
-        }));
-        this.configurations.push(new Configuration('Triangle', Orientation.right, {
-            x: this.set.offsetLeft + this.set.offsetWidth / 2,
-            y: this.set.offsetTop
-        }, {
-            width: this.set.offsetWidth / 2,
-            height: this.set.offsetHeight
-        }));
+        this.configurations.push(new Configuration('Triangle', Orientation.right, { x: this.set.offsetLeft, y: this.set.offsetTop }, { width: this.set.offsetWidth / 2, height: this.set.offsetHeight }));
+        this.configurations.push(new Configuration('Triangle', Orientation.right, { x: this.set.offsetLeft + this.set.offsetWidth / 2, y: this.set.offsetTop }, { width: this.set.offsetWidth / 2, height: this.set.offsetHeight }));
 
         // Configurations for triangle 3
-        this.configurations.push(new Configuration('Triangle', Orientation.top, {
-            x: this.set.offsetLeft,
-            y: this.set.offsetTop
-        }, {
-            width: this.set.offsetWidth,
-            height: this.set.offsetHeight / 2
-        }));
-        this.configurations.push(new Configuration('Triangle', Orientation.top, {
-            x: this.set.offsetLeft,
-            y: this.set.offsetTop + this.set.offsetHeight / 2
-        }, {
-            width: this.set.offsetWidth,
-            height: this.set.offsetHeight / 2
-        }));
+        this.configurations.push(new Configuration('Triangle', Orientation.top, { x: this.set.offsetLeft, y: this.set.offsetTop }, { width: this.set.offsetWidth, height: this.set.offsetHeight / 2 }));
+        this.configurations.push(new Configuration('Triangle', Orientation.top, { x: this.set.offsetLeft, y: this.set.offsetTop + this.set.offsetHeight / 2 }, { width: this.set.offsetWidth, height: this.set.offsetHeight / 2 }));
 
         // Configurations for triangle 4
-        this.configurations.push(new Configuration('Triangle', Orientation.topRight, {
-            x: this.set.offsetLeft,
-            y: this.set.offsetTop
-        }, {
-            width: this.set.offsetWidth / 2,
-            height: this.set.offsetHeight / 2
-        }));
-        this.configurations.push(new Configuration('Triangle', Orientation.topRight, {
-            x: this.set.offsetLeft + this.set.offsetWidth / 2,
-            y: this.set.offsetTop
-        }, {
-            width: this.set.offsetWidth / 2,
-            height: this.set.offsetHeight / 2
-        }));
-        this.configurations.push(new Configuration('Triangle', Orientation.topRight, {
-            x: this.set.offsetLeft,
-            y: this.set.offsetTop + this.set.offsetHeight / 2
-        }, {
-            width: this.set.offsetWidth / 2,
-            height: this.set.offsetHeight / 2
-        }));
-        this.configurations.push(new Configuration('Triangle', Orientation.topRight, {
-            x: this.set.offsetLeft + this.set.offsetWidth / 2,
-            y: this.set.offsetTop + this.set.offsetHeight / 2
-        }, {
-            width: this.set.offsetWidth / 2,
-            height: this.set.offsetHeight / 2
-        }));
+        this.configurations.push(new Configuration('Triangle', Orientation.topRight, { x: this.set.offsetLeft, y: this.set.offsetTop }, { width: this.set.offsetWidth / 2, height: this.set.offsetHeight / 2 }));
+        this.configurations.push(new Configuration('Triangle', Orientation.topRight, { x: this.set.offsetLeft + this.set.offsetWidth / 2, y: this.set.offsetTop }, { width: this.set.offsetWidth / 2, height: this.set.offsetHeight / 2 }));
+        this.configurations.push(new Configuration('Triangle', Orientation.topRight, { x: this.set.offsetLeft, y: this.set.offsetTop + this.set.offsetHeight / 2 }, { width: this.set.offsetWidth / 2, height: this.set.offsetHeight / 2 }));
+        this.configurations.push(new Configuration('Triangle', Orientation.topRight, { x: this.set.offsetLeft + this.set.offsetWidth / 2, y: this.set.offsetTop + this.set.offsetHeight / 2 }, { width: this.set.offsetWidth / 2, height: this.set.offsetHeight / 2 }));
 
 
     }
@@ -438,13 +356,7 @@ class Triangle extends PieceSet {
 
         if (orientation === Orientation.left) {
 
-            const piece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const piece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             piece.updateBorders({
                 top: height / 2 + 'px solid transparent',
@@ -454,15 +366,10 @@ class Triangle extends PieceSet {
 
             super([piece], origin, StackType.custom);
 
-        } else if (orientation === Orientation.right) {
+        }
+        else if (orientation === Orientation.right) {
 
-            const piece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const piece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             piece.updateBorders({
                 top: height / 2 + 'px solid transparent',
@@ -472,15 +379,10 @@ class Triangle extends PieceSet {
 
             super([piece], origin, StackType.custom);
 
-        } else if (orientation === Orientation.top) {
+        }
+        else if (orientation === Orientation.top) {
 
-            const piece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const piece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             piece.updateBorders({
                 left: width / 2 + 'px solid transparent',
@@ -491,15 +393,10 @@ class Triangle extends PieceSet {
             super([piece], origin, StackType.custom);
 
 
-        } else if (orientation === Orientation.bottomLeft) {
+        }
+        else if (orientation === Orientation.bottomLeft) {
 
-            const piece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const piece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             piece.updateBorders({
                 bottom: height + 'px solid ' + color,
@@ -508,15 +405,10 @@ class Triangle extends PieceSet {
 
             super([piece], origin, StackType.custom);
 
-        } else if (orientation === Orientation.topLeft) {
+        }
+        else if (orientation === Orientation.topLeft) {
 
-            const piece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const piece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             piece.updateBorders({
                 top: height + 'px solid ' + color,
@@ -525,15 +417,10 @@ class Triangle extends PieceSet {
 
             super([piece], origin, StackType.custom);
 
-        } else if (orientation === Orientation.topRight) {
+        }
+        else if (orientation === Orientation.topRight) {
 
-            const piece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const piece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             piece.updateBorders({
                 top: height + 'px solid ' + color,
@@ -542,6 +429,9 @@ class Triangle extends PieceSet {
 
             super([piece], origin, StackType.custom);
 
+        }
+        else {
+            super();
         }
 
         this.orientation = orientation;
@@ -559,13 +449,7 @@ class Trapezoid extends PieceSet {
 
         if (orientation === Orientation.diagonalLeftDown) {
 
-            const topPiece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const topPiece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             topPiece.updateBorders({
                 top: height / 3 + 'px solid transparent',
@@ -573,13 +457,7 @@ class Trapezoid extends PieceSet {
                 bottom: height / 3 + 'px solid transparent'
             });
 
-            const bottomLeftPiece = new Piece({
-                x: 0,
-                y: height / 3
-            }, {
-                width: 0,
-                height: 0
-            });
+            const bottomLeftPiece = new Piece({ x: 0, y: height / 3 }, { width: 0, height: 0 });
 
             bottomLeftPiece.updateBorders({
                 top: height / 3 + 'px solid transparent',
@@ -587,13 +465,7 @@ class Trapezoid extends PieceSet {
                 bottom: height / 3 + 'px solid transparent'
             });
 
-            const bottomRightPiece = new Piece({
-                x: width / 2,
-                y: height / 3
-            }, {
-                width: 0,
-                height: 0
-            });
+            const bottomRightPiece = new Piece({ x: width / 2, y: height / 3 }, { width: 0, height: 0 });
 
             bottomRightPiece.updateBorders({
                 top: height / 3 + 'px solid transparent',
@@ -603,32 +475,24 @@ class Trapezoid extends PieceSet {
 
             super([topPiece, bottomLeftPiece, bottomRightPiece], origin, StackType.custom);
 
-        } else if (orientation === Orientation.rightFlatDown) {
+        }
+        else if (orientation === Orientation.rightFlatDown) {
 
-            const leftPiece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const leftPiece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             leftPiece.updateBorders({
                 top: height + 'px solid ' + color,
                 left: width / 2 + 'px solid transparent'
             });
 
-            const rightPiece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: width / 2,
-                height: height
-            });
+            const rightPiece = new Piece({ x: 0, y: 0 }, { width: width / 2, height: height });
             rightPiece.updateColor(color);
 
             super([leftPiece, rightPiece], origin, StackType.horizontal);
 
+        }
+        else {
+            super();
         }
 
         this.orientation = orientation;
@@ -649,13 +513,7 @@ class Rhombus extends PieceSet {
             // The height of the rhombus will equal the top + bottom border width
             // The width of the rhombus will equal 1/2 of each half's left/right width
 
-            const leftPiece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const leftPiece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             leftPiece.updateBorders({
                 top: height / 2 + 'px solid transparent',
@@ -663,13 +521,7 @@ class Rhombus extends PieceSet {
                 bottom: height / 2 + 'px solid transparent'
             });
 
-            const rightPiece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const rightPiece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             rightPiece.updateBorders({
                 top: height / 2 + 'px solid transparent',
@@ -679,18 +531,13 @@ class Rhombus extends PieceSet {
 
             super([leftPiece, rightPiece], origin, StackType.horizontal);
 
-        } else if (orientation === Orientation.diagonalLeft) {
+        }
+        else if (orientation === Orientation.diagonalLeft) {
 
             // The height of the rhombus will equal twice of each pieces' top + bottom border width
             // The width of the rhombus will equal left/right width
 
-            const topPiece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const topPiece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             topPiece.updateBorders({
                 top: height / 3 + 'px solid transparent',
@@ -699,13 +546,7 @@ class Rhombus extends PieceSet {
             });
 
             // The y-value of the bottom piece is 1/4 down the height of the rhombus
-            const bottomPiece = new Piece({
-                x: 0,
-                y: height / 3
-            }, {
-                width: 0,
-                height: 0
-            });
+            const bottomPiece = new Piece({ x: 0, y: height / 3 }, { width: 0, height: 0 });
 
             bottomPiece.updateBorders({
                 top: height / 3 + 'px solid transparent',
@@ -715,18 +556,13 @@ class Rhombus extends PieceSet {
 
             super([topPiece, bottomPiece], origin, StackType.custom);
 
-        } else if (orientation === Orientation.diagonalRight) {
+        }
+        else if (orientation === Orientation.diagonalRight) {
 
             // The height of the rhombus will equal twice of each pieces' top + bottom border width
             // The width of the rhombus will equal left/right width
 
-            const topPiece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const topPiece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             topPiece.updateBorders({
                 top: height / 3 + 'px solid transparent',
@@ -735,13 +571,7 @@ class Rhombus extends PieceSet {
             });
 
             // The y-value of the bottom piece is 1/4 down the height of the rhombus
-            const bottomPiece = new Piece({
-                x: 0,
-                y: height / 3
-            }, {
-                width: 0,
-                height: 0
-            });
+            const bottomPiece = new Piece({ x: 0, y: height / 3 }, { width: 0, height: 0 });
 
             bottomPiece.updateBorders({
                 top: height / 3 + 'px solid transparent',
@@ -751,6 +581,9 @@ class Rhombus extends PieceSet {
 
             super([topPiece, bottomPiece], origin, StackType.custom);
 
+        }
+        else {
+            super();
         }
 
         this.orientation = orientation;
@@ -768,13 +601,7 @@ class Hexagon extends PieceSet {
 
         if (orientation === Orientation.vertical) {
 
-            const topPiece = new Piece({
-                x: 0,
-                y: 0
-            }, {
-                width: 0,
-                height: 0
-            });
+            const topPiece = new Piece({ x: 0, y: 0 }, { width: 0, height: 0 });
 
             topPiece.updateBorders({
                 left: width / 2 + 'px solid transparent',
@@ -782,22 +609,10 @@ class Hexagon extends PieceSet {
                 bottom: height / 4 + 'px solid ' + color
             });
 
-            const middlePiece = new Piece({
-                x: 0,
-                y: height / 4
-            }, {
-                width: width,
-                height: height / 2
-            });
+            const middlePiece = new Piece({ x: 0, y: height / 4 }, { width: width, height: height / 2 });
             middlePiece.updateColor(color);
 
-            const bottomPiece = new Piece({
-                x: 0,
-                y: 3 * height / 4
-            }, {
-                width: 0,
-                height: 0
-            });
+            const bottomPiece = new Piece({ x: 0, y: 3 * height / 4 }, { width: 0, height: 0 });
 
             bottomPiece.updateBorders({
                 left: width / 2 + 'px solid transparent',
@@ -816,70 +631,25 @@ class Hexagon extends PieceSet {
             ***/
 
             // Arrangement #1
-            this.configurations.push(new Configuration('Rhombus', Orientation.diagonalLeft, {
-                x: this.set.offsetLeft,
-                y: this.set.offsetTop + this.set.offsetHeight / 4
-            }, {
-                width: this.set.offsetWidth / 2,
-                height: 3 * this.set.offsetHeight / 4
-            }));
-            this.configurations.push(new Configuration('Rhombus', Orientation.diagonalRight, {
-                x: this.set.offsetLeft + this.set.offsetWidth / 2,
-                y: this.set.offsetTop + this.set.offsetHeight / 4
-            }, {
-                width: this.set.offsetWidth / 2,
-                height: 3 * this.set.offsetHeight / 4
-            }));
-            this.configurations.push(new Configuration('Rhombus', Orientation.horizontal, {
-                x: this.set.offsetLeft,
-                y: this.set.offsetTop
-            }, {
-                width: this.set.offsetWidth,
-                height: this.set.offsetHeight / 2
-            }));
+            this.configurations.push(new Configuration('Rhombus', Orientation.diagonalLeft, { x: this.set.offsetLeft, y: this.set.offsetTop + this.set.offsetHeight / 4 }, { width: this.set.offsetWidth / 2, height: 3 * this.set.offsetHeight / 4 }));
+            this.configurations.push(new Configuration('Rhombus', Orientation.diagonalRight, { x: this.set.offsetLeft + this.set.offsetWidth / 2, y: this.set.offsetTop + this.set.offsetHeight / 4 }, { width: this.set.offsetWidth / 2, height: 3 * this.set.offsetHeight / 4 }));
+            this.configurations.push(new Configuration('Rhombus', Orientation.horizontal, { x: this.set.offsetLeft, y: this.set.offsetTop }, { width: this.set.offsetWidth, height: this.set.offsetHeight / 2 }));
 
             //Arrangement #2
-            this.configurations.push(new Configuration('Rhombus', Orientation.diagonalLeft, {
-                x: this.set.offsetLeft + this.set.offsetWidth / 2,
-                y: this.set.offsetTop
-            }, {
-                width: this.set.offsetWidth / 2,
-                height: 3 * this.set.offsetHeight / 4
-            }));
-            this.configurations.push(new Configuration('Rhombus', Orientation.diagonalRight, {
-                x: this.set.offsetLeft,
-                y: this.set.offsetTop
-            }, {
-                width: this.set.offsetWidth / 2,
-                height: 3 * this.set.offsetHeight / 4
-            }));
-            this.configurations.push(new Configuration('Rhombus', Orientation.horizontal, {
-                x: this.set.offsetLeft,
-                y: this.set.offsetTop + this.set.offsetHeight / 2
-            }, {
-                width: this.set.offsetWidth,
-                height: this.set.offsetHeight / 2
-            }));
+            this.configurations.push(new Configuration('Rhombus', Orientation.diagonalLeft, { x: this.set.offsetLeft + this.set.offsetWidth / 2, y: this.set.offsetTop }, { width: this.set.offsetWidth / 2, height: 3 * this.set.offsetHeight / 4 }));
+            this.configurations.push(new Configuration('Rhombus', Orientation.diagonalRight, { x: this.set.offsetLeft, y: this.set.offsetTop }, { width: this.set.offsetWidth / 2, height: 3 * this.set.offsetHeight / 4 }));
+            this.configurations.push(new Configuration('Rhombus', Orientation.horizontal, { x: this.set.offsetLeft, y: this.set.offsetTop + this.set.offsetHeight / 2 }, { width: this.set.offsetWidth, height: this.set.offsetHeight / 2 }));
 
             /***
             For the trapezoid, small triangle, and rhombus in hexagon
             ***/
 
-            this.configurations.push(new Configuration('Trapezoid', Orientation.diagonalLeftDown, {
-                x: this.set.offsetLeft,
-                y: this.set.offsetTop + this.set.offsetHeight / 4
-            }, {
-                width: this.set.offsetWidth,
-                height: 3 * this.set.offsetHeight / 4
-            }));
-            this.configurations.push(new Configuration('Triangle', Orientation.left, {
-                x: this.set.offsetLeft,
-                y: this.set.offsetTop
-            }, {
-                width: this.set.offsetWidth / 2,
-                height: this.set.offsetHeight / 2
-            }));
+            this.configurations.push(new Configuration('Trapezoid', Orientation.diagonalLeftDown, { x: this.set.offsetLeft, y: this.set.offsetTop + this.set.offsetHeight / 4 }, { width: this.set.offsetWidth, height: 3 * this.set.offsetHeight / 4 }));
+            this.configurations.push(new Configuration('Triangle', Orientation.left, { x: this.set.offsetLeft, y: this.set.offsetTop }, { width: this.set.offsetWidth / 2, height: this.set.offsetHeight / 2 }));
 
+        }
+        else {
+            super();
         }
 
     }
@@ -892,13 +662,7 @@ window.onload = () => {
     /*** Puzzle #1 ***/
 
     // Create hexagon (the puzzle)
-    hexagon = new Hexagon({
-        x: puzzleContainer.offsetLeft + puzzleContainer.offsetWidth / 3 - 52,
-        y: puzzleContainer.offsetTop + puzzleContainer.offsetHeight / 2 - 60
-    }, {
-        width: 104,
-        height: 120
-    }, Orientation.vertical, 'black');
+    hexagon = new Hexagon({ x: puzzleContainer.offsetLeft + puzzleContainer.offsetWidth / 3 - 52, y: puzzleContainer.offsetTop + puzzleContainer.offsetHeight / 2 - 60 }, { width: 104, height: 120 }, Orientation.vertical, 'black');
     hexagon.addToParent(puzzleContainer);
 
     // Create the rhombi puzzle pieces
@@ -906,82 +670,34 @@ window.onload = () => {
     rhombus1.addToParent(document.body);
     */
 
-    rhombus = new Rhombus({
-        x: pieceContainer.offsetLeft + 3 * pieceContainer.offsetWidth / 5 - 26,
-        y: pieceContainer.offsetTop + 2 * pieceContainer.offsetHeight / 3 - 45
-    }, {
-        width: 52,
-        height: 90
-    }, Orientation.diagonalLeft, '#E88D67');
+    rhombus = new Rhombus({ x: pieceContainer.offsetLeft + 3 * pieceContainer.offsetWidth / 5 - 26, y: pieceContainer.offsetTop + 2 * pieceContainer.offsetHeight / 3 - 45 }, { width: 52, height: 90 }, Orientation.diagonalLeft, '#E88D67');
     rhombus.addToParent(document.body);
 
     /*rhombus3 = new Rhombus({x: pieceContainer.offsetLeft + pieceContainer.offsetWidth/4 - 26, y: pieceContainer.offsetTop + pieceContainer.offsetHeight/2 - 45}, {width: 52, height: 90}, Orientation.diagonalRight, "red");
     rhombus3.addToParent(document.body);*/
 
 
-    trapezoid = new Trapezoid({
-        x: pieceContainer.offsetLeft + pieceContainer.offsetWidth / 5 - 52,
-        y: pieceContainer.offsetTop + pieceContainer.offsetHeight / 3 - 45
-    }, {
-        width: 104,
-        height: 90
-    }, Orientation.diagonalLeftDown, '#E88D67');
+    trapezoid = new Trapezoid({ x: pieceContainer.offsetLeft + pieceContainer.offsetWidth / 5 - 52, y: pieceContainer.offsetTop + pieceContainer.offsetHeight / 3 - 45 }, { width: 104, height: 90 }, Orientation.diagonalLeftDown, '#E88D67');
     trapezoid.addToParent(document.body);
 
-    triangle = new Triangle({
-        x: pieceContainer.offsetLeft + 4 * pieceContainer.offsetWidth / 5 - 26,
-        y: pieceContainer.offsetTop + pieceContainer.offsetHeight / 3 - 30
-    }, {
-        width: 52,
-        height: 60
-    }, Orientation.left, '#E88D67');
+    triangle = new Triangle({ x: pieceContainer.offsetLeft + 4 * pieceContainer.offsetWidth / 5 - 26, y: pieceContainer.offsetTop + pieceContainer.offsetHeight / 3 - 30 }, { width: 52, height: 60 }, Orientation.left, '#E88D67');
     triangle.addToParent(document.body);
 
     /*** Puzzle #2 ***/
 
-    square = new Square({
-        x: puzzleContainer.offsetLeft + 2 * puzzleContainer.offsetWidth / 3 - 50,
-        y: puzzleContainer.offsetTop + puzzleContainer.offsetHeight / 2 - 50
-    }, {
-        width: 100,
-        height: 100
-    }, Orientation.vertical, 'black');
+    square = new Square({ x: puzzleContainer.offsetLeft + 2 * puzzleContainer.offsetWidth / 3 - 50, y: puzzleContainer.offsetTop + puzzleContainer.offsetHeight / 2 - 50 }, { width: 100, height: 100 }, Orientation.vertical, 'black');
     square.addToParent(document.body);
 
-    trapezoid2 = new Trapezoid({
-        x: pieceContainer.offsetLeft + 2 * pieceContainer.offsetWidth / 5 - 50,
-        y: pieceContainer.offsetTop + pieceContainer.offsetHeight / 3 - 25
-    }, {
-        width: 100,
-        height: 50
-    }, Orientation.rightFlatDown, '#E88D67');
+    trapezoid2 = new Trapezoid({ x: pieceContainer.offsetLeft + 2 * pieceContainer.offsetWidth / 5 - 50, y: pieceContainer.offsetTop + pieceContainer.offsetHeight / 3 - 25 }, { width: 100, height: 50 }, Orientation.rightFlatDown, '#E88D67');
     trapezoid2.addToParent(document.body);
 
-    triangle2 = new Triangle({
-        x: pieceContainer.offsetLeft + 2 * pieceContainer.offsetWidth / 5 - 25,
-        y: pieceContainer.offsetTop + 2 * pieceContainer.offsetHeight / 3 - 50
-    }, {
-        width: 50,
-        height: 100
-    }, Orientation.right, '#E88D67');
+    triangle2 = new Triangle({ x: pieceContainer.offsetLeft + 2 * pieceContainer.offsetWidth / 5 - 25, y: pieceContainer.offsetTop + 2 * pieceContainer.offsetHeight / 3 - 50 }, { width: 50, height: 100 }, Orientation.right, '#E88D67');
     triangle2.addToParent(document.body);
 
-    triangle3 = new Triangle({
-        x: pieceContainer.offsetLeft + pieceContainer.offsetWidth / 5 - 50,
-        y: pieceContainer.offsetTop + 2 * pieceContainer.offsetHeight / 3 - 25
-    }, {
-        width: 100,
-        height: 50
-    }, Orientation.top, '#E88D67');
+    triangle3 = new Triangle({ x: pieceContainer.offsetLeft + pieceContainer.offsetWidth / 5 - 50, y: pieceContainer.offsetTop + 2 * pieceContainer.offsetHeight / 3 - 25 }, { width: 100, height: 50 }, Orientation.top, '#E88D67');
     triangle3.addToParent(document.body);
 
-    triangle4 = new Triangle({
-        x: pieceContainer.offsetLeft + 3 * pieceContainer.offsetWidth / 5 - 25,
-        y: pieceContainer.offsetTop + pieceContainer.offsetHeight / 3 - 25
-    }, {
-        width: 50,
-        height: 50
-    }, Orientation.topRight, '#E88D67');
+    triangle4 = new Triangle({ x: pieceContainer.offsetLeft + 3 * pieceContainer.offsetWidth / 5 - 25, y: pieceContainer.offsetTop + pieceContainer.offsetHeight / 3 - 25 }, { width: 50, height: 50 }, Orientation.topRight, '#E88D67');
     triangle4.addToParent(document.body);
 
 

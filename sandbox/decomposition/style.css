@@ -1,0 +1,28 @@
+#puzzleContainer {
+    width: 100%;
+    height: 200px;
+    background-color: #BB999C;
+    margin-bottom: 10px;
+    border: 1px solid black;
+}
+
+#pieceContainer {
+    width: 100%;
+    height: 250px;
+    background-color: #7B8CDE;
+    border: 1px solid black;
+}
+
+h1 {
+    font-family: "verdana";
+}
+
+p {
+    font-family: "verdana";
+}
+
+body {
+    text-align: center;
+    align-content: center;
+    background-color: white;
+}
