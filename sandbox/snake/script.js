@@ -161,7 +161,7 @@ function showNamePopup(text, handler) {
 
     okayButton.onclick = () => {
         // validate user input
-        // if (!input.value.trim().length) return;
+        if (!input.value.trim().length) return;
 
         if (player1Name == null) {
             player1Name = input.value;
@@ -217,11 +217,13 @@ function createSnakes() {
     snakes = [];
 
     const snake1 = new Snake(1, 9, 'green', player1Name);
+    snake1.control = { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD' };
     snakes.push(snake1);
 
     if (isTwoPlayer) {
 
         const snake2 = new Snake(18, 9, 'blue', player2Name);
+        snake2.control = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' };
         snakes.push(snake2);
 
     }
@@ -362,32 +364,47 @@ function updatePointsLabel() {
 }
 
 function keyPush(evt) {
-    
+
     if (!gameHasStarted) {
         return;
     }
 
     evt.preventDefault();
 
-    if (evt.keyCode === 65) snakes[0].setDirection(Direction.left);
+    snakes.forEach(snake => {
+        if (evt.code === snake.control.up) {
+            snake.setDirection(Direction.up);
+        }
+        else if (evt.code === snake.control.down) {
+            snake.setDirection(Direction.down);
+        }
+        else if (evt.code === snake.control.left) {
+            snake.setDirection(Direction.left);
+        }
+        else if (evt.code === snake.control.right) {
+            snake.setDirection(Direction.right);
+        }
+    });
 
-    if (evt.keyCode === 87) snakes[0].setDirection(Direction.up);
+    // if (evt.keyCode === 65) snakes[0].setDirection(Direction.left);
 
-    if (evt.keyCode === 68) snakes[0].setDirection(Direction.right);
+    // if (evt.keyCode === 87) snakes[0].setDirection(Direction.up);
 
-    if (evt.keyCode === 83) snakes[0].setDirection(Direction.down);
+    // if (evt.keyCode === 68) snakes[0].setDirection(Direction.right);
 
-    if (isTwoPlayer) {
+    // if (evt.keyCode === 83) snakes[0].setDirection(Direction.down);
 
-        if (evt.keyCode === 37) snakes[1].setDirection(Direction.left);
+    // if (isTwoPlayer) {
 
-        if (evt.keyCode === 39) snakes[1].setDirection(Direction.right);
+    //     if (evt.keyCode === 37) snakes[1].setDirection(Direction.left);
 
-        if (evt.keyCode === 40) snakes[1].setDirection(Direction.down);
+    //     if (evt.keyCode === 39) snakes[1].setDirection(Direction.right);
 
-        if (evt.keyCode === 38) snakes[1].setDirection(Direction.up);
+    //     if (evt.keyCode === 40) snakes[1].setDirection(Direction.down);
 
-    }
+    //     if (evt.keyCode === 38) snakes[1].setDirection(Direction.up);
+
+    // }
 
 }
 
@@ -507,6 +524,9 @@ class Snake {
         // Coordinates of the head of the snake
         this.x = x;
         this.y = y;
+
+        // Keys that control the snake
+        this.control = { up: '', down: '', left: '', right: '' };
 
         this.prevTailPos = {
             x: 0,

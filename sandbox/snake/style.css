@@ -1,22 +1,31 @@
-h1 {
+* {
   font-family: "Nunito";
-  font-size: 35px;
-  font-weight: 200;
   text-align: center;
 }
 
+h1 {
+  font-size: 35px;
+  font-weight: 200;
+}
+
 p {
-  font-family: "Nunito";
   font-size: 15;
   font-weight: 700;
 }
 
 body {
-  text-align: center;
+}
+
+canvas {
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  width: 400px;
 }
 
 button {
-  font-family: "Nunito";
   font-size: 14px;
   margin-left: 5px;
   margin-right: 5px;
@@ -35,20 +44,10 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
 }
 
 #select-difficulty {
   margin-bottom: 0;
-}
-
-canvas {
-  padding-left: 0;
-  padding-right: 0;
-  margin-left: auto;
-  margin-right: auto;
-  display: block;
-  width: 400px;
 }
 
 #playerLabel {
@@ -56,6 +55,7 @@ canvas {
   margin-right: 5px;
   font-weight: 100;
 }
+
 
 /* The switch - the box around the slider */
 
@@ -67,11 +67,13 @@ canvas {
   margin-left: 5px;
 }
 
+
 /* Hide default HTML checkbox */
 
 .switch input {
   display: none;
 }
+
 
 /* The slider */
 
@@ -112,6 +114,7 @@ input:checked+.slider:before {
   -ms-transform: translateX(20px);
   transform: translateX(20px);
 }
+
 
 /* Rounded sliders */
 
