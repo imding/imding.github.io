@@ -115,8 +115,8 @@ window.onload = () => {
         '<!DOCTYPE html>',
         '<html>',
         '<head>',
-        '\t<link rel="stylesheet" type="text/css" href="style.css"/>',
-        '\t<script type="text/javascript" src="script.js"></script>',
+        '\t<link rel="stylesheet" href="style.css"/>',
+        '\t<script src="script.js"></script>',
         '</head>',
         '<body>\n\t',
         '</body>',
@@ -398,16 +398,46 @@ function copyCode(n) {
 function updatePreview() {
     storeActiveCode();
 
+    const
+        // regExp is not sufficient, to be improved later ( using html parser )
+        redundant = [
+            /<link\s*rel\s*=\s*(['"])stylesheet\1\s*href\s*=\s*(['"])style.css\2\s*\/>/,
+            /<script\s*src\s*=\s*(['"])script.js\1\s*>\s*<\/script\s*>/,
+        ],
+        m = noMarkup(html).match(/<head\s*>([\s\S]*)<\/head\s*>/);
+
+    let headContent = m ? (m[1].trim().length ? m[1] : '') : '';
+
+    headContent = headContent
+                    .split('\n')
+                    .map(l => {
+                        redundant.forEach(r => {
+                            if (r.test(l)) {
+                                l = l.replace(r, '');
+                            }
+                        });
+
+                        return l.trim().length ? `\t${l.trim()}` : '';
+                    })
+                    .filter(l => l.length);
+
+    headContent.unshift(
+        '\t<meta charset="UTF-8">',
+        '\t<title>' + cProj + '</title>',
+        '\t<link rel="stylesheet" href="font-awesome-4.7.0/css/font-awesome.min.css">'
+    );
+
+    headContent.push(
+        '\t<style>\n',
+        noMarkup(css).trim().length > 0 ? `\t\t${noMarkup(css).split(/\r?\n/).join('\n\t\t')}` : '\t\t/* NO STYLE */',
+        '\n\t</style>'
+    );
+
     const pCode = [
         '<!DOCTYPE html>',
         '<html>',
         '<head>',
-        '\t<meta charset="UTF-8">',
-        '\t<title>' + cProj + '</title>',
-        '\t<link rel="stylesheet" href="font-awesome-4.7.0/css/font-awesome.min.css">',
-        '\t<style>\n',
-        '\t' + (noMarkup(css).trim().length > 0 ? noMarkup(css).split(/\r?\n/).join('\n\t') : '/* NO STYLE */'),
-        '\n\t</style>',
+        headContent.join('\n'),
         '</head>\n',
         '<body>',
         noMarkup(html).trim().length > 0 ? noMarkup(html).replace(/[\s\S]+<body>/, '').replace(/<\/body>[\s\S]+/, '') : '<!-- NO HTML -->',
