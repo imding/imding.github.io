@@ -133,8 +133,10 @@ function init() {
                 adaptToViewport();
                 logo.onmousemove = () => label.style.opacity = 1;
                 logo.onmouseout = () => label.style.opacity = 0;
-                logo.onclick = (evt) => {
-                    evt.target.onclick = null;
+                logo.onclick = () => {
+                    logo.onmousemove = null;
+                    logo.onmouseout = null;
+                    logo.onclick = null;
                     label.style.opacity = 0;
                     stepOne();
                 };
