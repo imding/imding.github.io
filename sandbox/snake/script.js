@@ -67,8 +67,10 @@ window.onload = function () {
 function playMode() {
 
     if (isTwoPlayer) {
+        pointsLabel.style.visibility = 'hidden';
         askForPlayerNames();
     } else {
+        pointsLabel.style.visibility = 'visible';
         startGame();
     }
     setButtonsVisibility('hidden');
@@ -77,9 +79,9 @@ function playMode() {
 
 function askForPlayerNames() {
 
-    showNamePopup('Player 1 (green snake), what is your name?', function () {
+    showNamePopup('Player 1 (left snake), what is your name?', function () {
 
-        showNamePopup('Player 2 (blue snake), what is your name?', function () {
+        showNamePopup('Player 2 (right snake), what is your name?', function () {
 
             startGame();
 
@@ -385,26 +387,6 @@ function keyPush(evt) {
             snake.setDirection(Direction.right);
         }
     });
-
-    // if (evt.keyCode === 65) snakes[0].setDirection(Direction.left);
-
-    // if (evt.keyCode === 87) snakes[0].setDirection(Direction.up);
-
-    // if (evt.keyCode === 68) snakes[0].setDirection(Direction.right);
-
-    // if (evt.keyCode === 83) snakes[0].setDirection(Direction.down);
-
-    // if (isTwoPlayer) {
-
-    //     if (evt.keyCode === 37) snakes[1].setDirection(Direction.left);
-
-    //     if (evt.keyCode === 39) snakes[1].setDirection(Direction.right);
-
-    //     if (evt.keyCode === 40) snakes[1].setDirection(Direction.down);
-
-    //     if (evt.keyCode === 38) snakes[1].setDirection(Direction.up);
-
-    // }
 
 }
 
@@ -902,7 +884,7 @@ class Apple {
 
         this.x = 0;
         this.y = 0;
-        this.gold = Math.random() > 0.9;
+        this.gold = Math.random() > 0.1;
 
         this.initPosition();
     }
