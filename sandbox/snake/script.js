@@ -517,6 +517,7 @@ class Snake {
 
         this.points = 0;
 
+        this.hitTarget;
         this.immortal = false;
 
         this.generateSnake();
@@ -908,11 +909,9 @@ class Apple {
     draw(ctx) {
 
         // Draw apple
+        ctx.fillStyle = 'red';
         if (this.gold) {
             ctx.fillStyle = 'gold';
-        }
-        else {
-            ctx.fillStyle = 'red';
         }
         ctx.beginPath();
         ctx.arc(this.x * gridSize + 0.5 * (gridSize - 2), this.y * gridSize + 0.5 * (gridSize - 2), 0.4 * (gridSize - 2), 0, 2 * Math.PI);
