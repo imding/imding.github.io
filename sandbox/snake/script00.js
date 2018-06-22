@@ -1,57 +1,70 @@
+// Difficulty of the maps
+let Difficulty = Object.freeze({ 'easy': 1, 'medium': 2, 'hard': 3 });
 // Segment types of the snake
-var SegmentType = Object.freeze({ 'head': 1, 'body': 2, 'tail': 3 });
+let SegmentType = Object.freeze({ 'head': 1, 'body': 2, 'tail': 3 });
 // Directions the snake can travel
-var Direction = Object.freeze({ 'up': { 'x': 0, 'y': -1 }, 'down': { 'x': 0, 'y': 1 }, 'right': { 'x': 1, 'y': 0 }, 'left': { 'x': -1, 'y': 0 } });
+let Direction = Object.freeze({ 'up': { 'x': 0, 'y': -1 }, 'down': { 'x': 0, 'y': 1 }, 'right': { 'x': 1, 'y': 0 }, 'left': { 'x': -1, 'y': 0 } });
 
 // Array of the snakes playing the game
-var snakes = [];
+let snakes = [];
 
 // Array of obstacles for the current game mode
 let obstacles = [];
 
 // The current apple on the screen
-var apple;
+let apple;
 
 // How big each grid is (px)
-var gridSize = 20;
+let gridSize = 20;
 // How many grids are in the canvas
-var tileCount = 20;
+let tileCount = 20;
 // How many times the scene is redrawn, per second
-var refreshRate = 8;
+let refreshRate = 8;
 
 // Boolean indicating whether two-player mode is on or off
-var isTwoPlayer = false;
+let isTwoPlayer = false;
 // Boolean indicating whether the game is currently in progress
-var gameHasStarted = false;
+let gameHasStarted = false;
 
 // Variables to temporarily store players' names
 var player1Name;
 var player2Name;
 
-
 // Define the function to be called when the window loads
 window.onload = function () {
 
     // Set up the graphics
-    gc.width = tileCount * gridSize;
-    gc.height = tileCount * gridSize;
     ctx = gc.getContext('2d');
-	
-	playerCheckbox.onchange = function () {
+
+    playerCheckbox.onchange = function () {
         isTwoPlayer = playerCheckbox.checked;
     };
-    
-    // Draw the opening screen
-    drawStartingScreen();
+
+    // Add event listeners for the difficulty buttons
+    easyButton.onclick = function () {
+        window.gameDifficulty = Difficulty.easy;
+        playMode();
+    };
+
+    mediumButton.onclick = function () {
+        window.gameDifficulty = Difficulty.medium;
+        playMode();
+    };
+
+    hardButton.onclick = function () {
+        window.gameDifficulty = Difficulty.hard;
+        playMode();
+    };
 
     // Add listener for key presses
     document.addEventListener('keydown', keyPush);
-    playButton.addEventListener('click', selectMode);
+
+    // Draw the opening screen
+    drawStartingScreen();
 
 };
 
-
-function selectMode() {
+function playMode() {
 
     if (isTwoPlayer) {
         pointsLabel.style.visibility = 'hidden';
@@ -63,7 +76,6 @@ function selectMode() {
     setButtonsVisibility('hidden');
 
 }
-
 
 function askForPlayerNames() {
 
@@ -171,7 +183,11 @@ function showNamePopup(text, handler) {
 // Function: hide/show difficulty buttons and label 
 function setButtonsVisibility(visibility) {
 
-    playButton.style.visibility = visibility;
+    difficultyLabel.style.visibility = visibility;
+    easyButton.style.visibility = visibility;
+    mediumButton.style.visibility = visibility;
+    hardButton.style.visibility = visibility;
+
     playerLabel.style.visibility = visibility;
     playerSwitch.style.visibility = visibility;
     playerCheckbox.style.visibility = visibility;
@@ -188,9 +204,8 @@ function startGame() {
     createSnakes();
 
     // Create the obstacles on the map
-    // #BEGIN_EDITABLE#createObstacles();#END_EDITABLE#
     createObstacles();
-    
+
     // Randomize the location of the starting apple
     spawnNewApple();
 
@@ -206,8 +221,7 @@ function createSnakes() {
     const snake1 = new Snake(1, 9, 'green', player1Name);
     snake1.control = { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD' };
     snakes.push(snake1);
-    
-    
+
     if (isTwoPlayer) {
 
         const snake2 = new Snake(18, 9, 'blue', player2Name);
@@ -215,24 +229,31 @@ function createSnakes() {
         snakes.push(snake2);
 
     }
-    
 
 }
 
-// #BEGIN_EDITABLE#
 function createObstacles() {
 
     obstacles = [];
 
-    const obstacle1 = new Obstacle(0, 0, 10, 2);
-    const obstacle2 = new Obstacle(12, 9, 5, 2);
-    
-    obstacles.push(obstacle1);
-    obstacles.push(obstacle2);
+    if (window.gameDifficulty === Difficulty.medium) {
+
+        const obstacle1 = new Obstacle(3, 9, 5, 2);
+        const obstacle2 = new Obstacle(12, 9, 5, 2);
+        obstacles.push(obstacle1);
+        obstacles.push(obstacle2);
+
+    }
+    else if (window.gameDifficulty === Difficulty.hard) {
+
+        const obstacle1 = new Obstacle(6, 4, 1, 12);
+        const obstacle2 = new Obstacle(13, 4, 1, 12);
+        obstacles.push(obstacle1);
+        obstacles.push(obstacle2);
+
+    }
 
 }
-// county bright
-// #END_EDITABLE#
 
 // Function: called multiple times a second to refresh the canvas
 function refreshGame() {
@@ -242,6 +263,7 @@ function refreshGame() {
     // Draw the apple
     apple.draw(ctx);
 
+    // Draw obstacle
     obstacles.forEach(obs => obs.draw(ctx));
 
     refreshSnakes();
@@ -269,10 +291,15 @@ function refreshSnakes() {
 
 function checkForSnakeCollision() {
 
-    var losingSnakes = [];
+    let losingSnakes = [];
     snakes.forEach(snake => {
         if (snake.checkForSnakeCollision()) {
-            losingSnakes.push(snake);
+            if (snake.immortal) {
+                losingSnakes.push(snake.hitTarget);
+            }
+            else {
+                losingSnakes.push(snake);
+            }
         }
     });
 
@@ -293,7 +320,7 @@ function resetGame() {
 
     // Make the buttons visible again
     setButtonsVisibility('visible');
-    
+
     updatePointsLabel();
 }
 
@@ -306,7 +333,17 @@ function playerLoses(losingSnakes) {
     clearInterval(window.refresher);
 
     // Draw the screen showing the "L" snake
-    drawLosingScreen(losingSnakes[0].color);
+    drawLosingScreen();
+
+    // if (isTwoPlayer) {
+
+    //     if (losingSnakes.length === 2) {
+    //         alert('It is a tie! Both players lost.');
+    //     } else {
+    //         alert(losingSnakes[0].name + ' lost');
+    //     }
+
+    // }
 
     // Wait 3 seconds, and then reset the game
     setTimeout(resetGame, 3000);
@@ -329,7 +366,7 @@ function updatePointsLabel() {
 }
 
 function keyPush(evt) {
-    
+
     if (!gameHasStarted) {
         return;
     }
@@ -353,14 +390,14 @@ function keyPush(evt) {
 
 }
 
-function drawLosingScreen(color) {
+function drawLosingScreen() {
 
     clearCanvas();
 
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, gc.width, gc.height);
 
-    ctx.fillStyle = color;
+    ctx.fillStyle = 'green';
     ctx.fillRect(6 * gridSize, 3 * gridSize, 8 * gridSize, 14 * gridSize);
 
     ctx.fillStyle = 'black';
@@ -470,12 +507,18 @@ class Snake {
         this.x = x;
         this.y = y;
 
+        // Keys that control the snake
+        this.control = { up: '', down: '', left: '', right: '' };
+
         this.prevTailPos = {
             x: 0,
             y: 0
         };
 
         this.points = 0;
+
+        this.hitTarget;
+        this.immortal = false;
 
         this.generateSnake();
     }
@@ -484,9 +527,9 @@ class Snake {
 
         // Create the initial snake
         const startSize = 5;
-        for (var i = 0; i < startSize; i++) {
+        for (let i = 0; i < startSize; i++) {
 
-            var segment;
+            let segment;
             if (!i) {
                 segment = new SnakeSegment(this.x, this.y, this.color, SegmentType.head);
             } else if (i === startSize - 1) {
@@ -507,8 +550,8 @@ class Snake {
         const preTail = this.getSegment(this.segments.length - 2);
 
         // Get the direction that the tail is moving in
-        var tailXVelocity = preTail.position.x - tail.position.x;
-        var tailYVelocity = preTail.position.y - tail.position.y;
+        let tailXVelocity = preTail.position.x - tail.position.x;
+        let tailYVelocity = preTail.position.y - tail.position.y;
 
         switch (tailXVelocity) {
             case 1:
@@ -591,7 +634,7 @@ class Snake {
             return false;
         }
 
-        for (var i = 0; i < this.segments.length; i++) {
+        for (let i = 0; i < this.segments.length; i++) {
 
             // If drawing the tail
             if (i == this.segments.length - 1) {
@@ -635,7 +678,7 @@ class Snake {
         }
 
         // Go through the segments from the tail to the head, assigning each segment's x and y equal to the next segment's position
-        for (var i = this.segments.length - 1; i >= 0; i--) {
+        for (let i = this.segments.length - 1; i >= 0; i--) {
 
             if (!i) { // For the head
 
@@ -654,7 +697,7 @@ class Snake {
                 const nextY = this.segments[i - 1].y;
 
                 if (nextX === this.x && nextY === this.y) {
-                    playerLoses([this]);
+                    playerLoses(this);
                     return false;
                 }
 
@@ -669,8 +712,22 @@ class Snake {
     checkForApple() {
 
         if (this.x === apple.position.x && this.y === apple.position.y) {
-            this.points++;
-            this.addSegment();
+            if (apple.gold) {
+
+                this.immortal = true;
+                this.color = 'gold';
+
+                setTimeout(() => {
+                    this.immortal = false;
+                    this.color = this.altColor;
+                }, 6000);
+
+            }
+            else {
+                this.points++;
+                this.addSegment();
+            }
+
             spawnNewApple();
         }
 
@@ -682,11 +739,17 @@ class Snake {
         return snakes.some(snake => {
             if (snake !== this) {
 
-                return snake.segments.some(segment => {
+                const collide = snake.segments.some(segment => {
                     if (segment.position.x === this.x && segment.position.y === this.y) {
                         return true;
                     } else return false;
                 });
+
+                if (collide) {
+                    this.hitTarget = snake;
+                }
+
+                return collide;
 
             }
         });
@@ -822,13 +885,14 @@ class Apple {
 
         this.x = 0;
         this.y = 0;
+        this.gold = Math.random() > 0.1;
 
         this.initPosition();
     }
 
     initPosition() {
 
-        var collision = false;
+        let collision = false;
         do {
 
             this.x = Math.floor(Math.random() * tileCount);
@@ -846,6 +910,9 @@ class Apple {
 
         // Draw apple
         ctx.fillStyle = 'red';
+        if (this.gold) {
+            ctx.fillStyle = 'gold';
+        }
         ctx.beginPath();
         ctx.arc(this.x * gridSize + 0.5 * (gridSize - 2), this.y * gridSize + 0.5 * (gridSize - 2), 0.4 * (gridSize - 2), 0, 2 * Math.PI);
         ctx.fill();

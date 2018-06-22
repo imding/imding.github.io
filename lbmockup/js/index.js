@@ -131,7 +131,8 @@ window.onload = () => {
     setInterval(saveToLocal, 100000);
 };
 
-window.onkeydown = (evt) => {//   console.log(evt.keyCode);
+window.onkeydown = (evt) => {
+    //   console.log(evt.code);
     const c1 = evt.keyCode == 116;                    // DISABLE F5
     const c2 = evt.location == 1 && evt.ctrlKey;      // EXTRA 'CTRL' KEY PRODUCED BY 'LEFT ALT'
 
@@ -232,16 +233,16 @@ function updateStyledInstruction() {
             }
         }
 
-        isList = /^\[(-|=)/.test(e) ? true : isList;            // BEGINNING OF A LIST
-        isPre = /^\((html|css|js)\)/.test(e) ? true : isPre;    // BEGINNING OF SNIPPET
+        isList = /^\[(-|=)/.test(e) ? true : isList;                    // BEGINNING OF A LIST
+        isPre = /^\((html|css|js)\)/.test(e) ? true : isPre;            // BEGINNING OF SNIPPET
 
-        if (/^\(-{3}\)/.test(e)) {                 // - EXAMPLE -
+        if (/^\(-{3}\)/.test(e)) {                                      // - EXAMPLE -
             source[i] = '<center><p><b>- EXAMPLE -</b></p></center>';
-        } else if (/^\(\*{3}\)/.test(e)) {                 // - OBJECTIVES -
+        } else if (/^\(\*{3}\)/.test(e)) {                              // - OBJECTIVES -
             source[i] = '<center><p><b>- OBJECTIVES -</b></p></center>';
-        } else if (highlight.test(e)) {             // OBJECTIVE HIGHLIGHT
+        } else if (highlight.test(e)) {                                 // OBJECTIVE HIGHLIGHT
             source[i] = e.replace(highlight, '$1<p class="highlight">$2</p>');
-        } else if (notes.test(e)) {                 // NOTES HIGHLIGHT
+        } else if (notes.test(e)) {                                     // NOTES HIGHLIGHT
             const center = /^\t?\(\*\*\)/.test(e);
             source[i] = `${center ? '<center>' : ''}${e.replace(notes, '$1<p class="notes">$2</p>')}${center ? '</center>' : ''}`;
         } else if (image.test(e)) {
@@ -409,17 +410,17 @@ function updatePreview() {
     let headContent = m ? (m[1].trim().length ? m[1] : '') : '';
 
     headContent = headContent
-                    .split('\n')
-                    .map(l => {
-                        redundant.forEach(r => {
-                            if (r.test(l)) {
-                                l = l.replace(r, '');
-                            }
-                        });
+        .split('\n')
+        .map(l => {
+            redundant.forEach(r => {
+                if (r.test(l)) {
+                    l = l.replace(r, '');
+                }
+            });
 
-                        return l.trim().length ? `\t${l.trim()}` : '';
-                    })
-                    .filter(l => l.length);
+            return l.trim().length ? `\t${l.trim()}` : '';
+        })
+        .filter(l => l.length);
 
     headContent.unshift(
         '\t<meta charset="UTF-8">',
@@ -485,8 +486,13 @@ function closePreview() {
 
 function saveToLocal() {
     if (document.visibilityState === 'visible' && tSteps > 1) {
+        const codeScrollTop = codeEditor.session.getScrollTop();
+        const logicScroolTop = logicEditor.session.getScrollTop();
+
         commitToMaster();
         localStorage.lbcontent = master;
+        codeEditor.session.setScrollTop(codeScrollTop);
+        logicEditor.session.setScrollTop(logicScroolTop);
         console.info('file saved to local ');
     }
 }
