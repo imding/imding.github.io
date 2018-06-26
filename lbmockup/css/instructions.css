@@ -91,19 +91,21 @@ pre {
 
 pre > code {
     color: rgb(100, 100, 100);
-    padding: 0;
     background: initial;
 }
 
-.snippet, .syntax {
+.syntax {
     color: rgb(199, 37, 78);
+    background-color: rgb(249, 242, 244);
+}
+
+.snippet, .syntax {
     font-size: 90%;
     word-break: break-word;
     display: initial;
     border: none;
     padding: 2px 4px;
     border-radius: 4px;
-    background-color: rgb(249, 242, 244);
     overflow: initial;
 }
 
