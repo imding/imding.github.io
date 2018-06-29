@@ -1,9 +1,15 @@
-const util = {
+const 
+    app = {
+        set add(el) {
+            
+        }
+    },
+    util = {
     css: (el) => {
-        const 
+        const
             cs = window.getComputedStyle(el),
             val = (p) => cs.getPropertyValue(p);
-        
+
         return {
             get width() {
                 return parseFloat(val('width'));
@@ -38,14 +44,16 @@ let
     Timeline = document.createElement('div');
 
 function init() {
+
     util.initDoc();
 
-    document.body.appendChild(Explorer);
+    
     Explorer.style.width = '250px';
     Explorer.style.height = `${util.vh}px`;
-    Explorer.oncontextmenu = () => {
+    Explorer.addEventListener('contextmenu', () => {
         event.preventDefault();
-    };
+        console.log(event.which);
+    });
 }
 
 window.onload = init;
