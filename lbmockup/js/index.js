@@ -198,7 +198,6 @@ function convertInstruction() {
         btnConvert.className = 'fa fa-clipboard';
         styledInstruction = document.createElement('div');
         styledInstruction.id = 'styledInstruction';
-        alignElement(styledInstruction);
         document.body.appendChild(styledInstruction);
         updateStyledInstruction();
     } else {
@@ -267,6 +266,7 @@ function updateStyledInstruction() {
     // taInstruction.value = source;
     styledInstruction.innerHTML = source + '<link rel="stylesheet" href="css/instructions.css">';
     selectAndCopy(styledInstruction);
+    alignElement(styledInstruction);
     convertLineNumber();
 
     const btnGlossary = Array.from(document.getElementsByClassName('glossary'));
