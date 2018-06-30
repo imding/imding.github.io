@@ -16,7 +16,8 @@
         #avoid {
             text-align: center;
             font-size: 30px;
-            /* background-color: rgba(0, 0, 0, 0.2); */
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.03);
             position: absolute;
         }
 
@@ -128,6 +129,34 @@
         var theta = 0;
 
         function render() {
+            // details of HTML element to avoid
+            const b = { w: avoid.offsetWidth, h: avoid.offsetHeight, x: avoid.offsetLeft, y: avoid.offsetTop };
+
+            // fade in & out based on collision with HTML element
+            scene.children.forEach(particle => {
+                const
+                    pos = w2s(particle.position),
+                    r = 650 / particle.position.distanceTo(camera.position) * particle.scale.x,
+                    a = { w: r, h: r, x: pos.x - r / 2, y: pos.y - r / 2 },
+                    pa = Math.min(1, particle.material.opacity),
+                    obs = OBSCURED.includes(particle);
+
+                if (isCollide(a, b)) {
+                    if (!obs) {
+                        OBSCURED.push(particle);
+                        particle.targetOpacity = 0.15;
+                    }
+                }
+                else if (obs) {
+                    OBSCURED.splice(OBSCURED.indexOf(particle), 1);
+                    particle.targetOpacity = 1;
+                }
+
+                if (pa !== particle.targetOpacity) {
+                    particle.material.opacity += (0.1 * (pa > particle.targetOpacity ? -1 : 1));
+                }
+            });
+
             // rotate camera
             theta += 0.1;
             camera.position.x = radius * Math.sin(THREE.Math.degToRad(theta));
@@ -135,6 +164,7 @@
             camera.position.z = radius * Math.cos(THREE.Math.degToRad(theta));
             camera.lookAt(scene.position);
             camera.updateMatrixWorld();
+
             // find intersections
             raycaster.setFromCamera(mouse, camera);
             var intersects = raycaster.intersectObjects(scene.children);
@@ -148,24 +178,6 @@
                 if (INTERSECTED) INTERSECTED.material.program = programStroke;
                 INTERSECTED = null;
             }
-
-            // HTML elements to avoid
-            const b = { w: avoid.offsetWidth, h: avoid.offsetHeight, x: avoid.offsetLeft, y: avoid.offsetTop };
-
-            // fade in & out based on collision with HTML element
-            scene.children.forEach(particle => {
-                const
-                    pos = w2s(particle.position),
-                    r = 650 / particle.position.distanceTo(camera.position) * particle.scale.x,
-                    a = { w: r, h: r, x: pos.x - r / 2, y: pos.y - r / 2 },
-                    pa = Math.min(1, particle.material.opacity);
-
-                particle.targetOpacity = isCollide(a, b) ? 0.2 : 1;
-
-                if (pa !== particle.targetOpacity) {
-                    particle.material.opacity += (0.1 * (pa > particle.targetOpacity ? -1 : 1));
-                }
-            });
 
             renderer.render(scene, camera);
         }
