@@ -30,6 +30,8 @@ class CloudMatchChallenge {
         this.events = ['win'];
         this.handlers = {};
 
+        this.errors = 0;
+
         /**                                                                                 **/
         /* The following switch outlines the required information for each type of Challenge */
         /**                                                                                 **/
@@ -54,6 +56,7 @@ class CloudMatchChallenge {
                 break;
         }
         this.requirements.winMessage = 'String'; // Message displayed when the challenge-completer finishes all of the tasks
+        this.requirements.showScore = Boolean(); // Show score after finishing all of the tasks
 
         console.log('Parameters to fill in:');
         Object.entries(this.requirements).forEach(pair => {
@@ -76,9 +79,7 @@ class CloudMatchChallenge {
 
     static dispatch(eventName, handlers) {
         if (handlers.hasOwnProperty(eventName)) {
-            handlers[eventName].forEach(handler => {
-                setTimeout(handler, 0);
-            });
+            handlers[eventName].forEach(handler => setTimeout(handler, 0));
         }
     }
 
@@ -417,7 +418,7 @@ class CloudMatchChallenge {
                     }
                     instance.progressionData.currentTarget = instance.cards[instance.cards.indexOf(card) + 1];
                 } else {
-                    card.shake();
+                    instance.wrongCard(card);
                 }
                 break;
             case ChallengeType.GroupSelect:
@@ -437,7 +438,7 @@ class CloudMatchChallenge {
                             instance.updateMessageLabel(instance.progressionData.currentPrompt);
                         }
                     } else {
-                        card.shake();
+                        instance.wrongCard(card);
                     }
                 } else {
                     if (card.group === instance.progressionData.currentGroup) {
@@ -455,7 +456,7 @@ class CloudMatchChallenge {
                             instance.updateMessageLabel(instance.progressionData.currentPrompt);
                         }
                     } else {
-                        card.shake();
+                        instance.wrongCard(card);
                     }
                 }
 
@@ -488,7 +489,7 @@ class CloudMatchChallenge {
 
                         setTimeout(function () {
                             instance.progressionData.currentTarget.shake();
-                            card.shake();
+                            instance.wrongCard(card);
                             instance.progressionData.currentTarget.deselect();
                             card.deselect();
                             instance.progressionData.currentTarget = null;
@@ -511,12 +512,17 @@ class CloudMatchChallenge {
                         return;
                     }
                 } else {
-                    card.shake();
+                    instance.wrongCard(card);
                 }
 
                 break;
         }
 
+    }
+
+    wrongCard(card) {
+        card.shake();
+        this.errors++;
     }
 
     addCardsToContainer() {
@@ -556,6 +562,20 @@ class CloudMatchChallenge {
 
         if (message === this.info.winMessage) {
             CloudMatchChallenge.dispatch('win', this.handlers);
+            if (this.info.showScore) {
+                const content = (this.info.content || this.info.pairs || this.info.selectableGroup);
+                if (content) {
+                    this.messageLabel.innerHTML += ` <br>Your score: ${Math.round(Math.max(0, (1 - this.errors / content.length)) * 100)}%`;
+                }
+                else {
+                    let counter = 0;
+                    this.info.categoryContent.forEach(a => counter += a.length);
+                    if (counter) {
+                        this.messageLabel.innerHTML += ` <br>Your score: ${Math.round(Math.max(0, (1 - this.errors / counter)) * 100)}%`;
+
+                    }
+                }
+            }
         }
     }
 
@@ -890,8 +910,6 @@ class Alert {
 
         img.style.left = `${alert.offsetWidth / 2 - img.offsetWidth / 2}px`;
         img.style.top = '10px';
-
-
 
         text.style.left = '0px';
         text.style.top = '65px';
