@@ -3,24 +3,33 @@ class TargetTypeChallenge {
         this.config = {
             parent: document.body,
             targets: [],
+            prompt: '',
             speed: 1,
+            interval: 0,
+            inputFont: 'Monospace',
+            blockFont: 'Monospace',
+            bannerFont: 'Arial',
             objective: '',
         };
 
         this.handlers = {};
 
-        this.errors = 0;
+        this.score = 0;
 
         this.blockFontSize = 0.03;
-        this.inputFontSize = 0.05;
+        this.inputFontSize = 0.04;
+        this.bannerFontSize = 0.025,
 
         // these should possibly belong to a parent class
-        this.events = Object.freeze(['win']);
+        this.events = Object.freeze(['complete', 'score', 'miss']);
         this.util = Object.freeze({
             aspectRatio: 4 / 3,
             range: (min, max, int = false) => {
                 const r = Math.random() * (max - min) + min;
                 return int ? Math.round(r) : r;
+            },
+            fluc: (val, scale) => {
+                return this.util.range(val * (1 - scale), val * (1 + scale));
             },
             css: el => {
                 const gcs = (e, p) => parseFloat(window.getComputedStyle(e).getPropertyValue(p));
@@ -75,6 +84,7 @@ class TargetTypeChallenge {
             this.UI.frame.adapt(ref);
             this.UI.blocks.forEach(block => block.adapt(ref));
             this.UI.input.adapt(ref);
+            this.UI.topBanner.adapt(ref);
         };
 
         // define adapt methods for the frame
@@ -88,10 +98,12 @@ class TargetTypeChallenge {
         this.UI.frame.adapt(ref);
 
         // define properties for each block
-        this.UI.blocks.forEach(block => {
+        this.UI.blocks.forEach((block, i) => {
             // randomly offset user defined speed by 10% for each block
             block.speed = this.util.range(this.config.speed * 0.9, this.config.speed * 1.1) / 1000;
-            
+            // assign time (in milliseconds) at which the block will start falling
+            block.time = Math.round(i * this.util.fluc(this.config.interval, 0.1) * 1000);
+            // resize block font before positioning it
             block.style.fontSize = `${this.blockFontSize * ref.f.width}px`;
 
             // calculate stuff for later use
@@ -125,6 +137,14 @@ class TargetTypeChallenge {
         };
         this.UI.input.adapt(ref);
 
+        // define properties for the top banner
+        this.UI.topBanner.adapt = r => {
+            this.UI.topBanner.style.height = `${0.08 * r.f.height}px`;
+            this.UI.topBanner.style.padding = `${0.02 * r.f.height}px`;
+            this.UI.topBanner.style.fontSize = `${this.bannerFontSize * r.f.width}px`;
+        };
+        this.UI.topBanner.adapt(ref);
+
         // start falling animation
         requestAnimationFrame(() => this.animate(ref));
 
@@ -132,9 +152,8 @@ class TargetTypeChallenge {
         this.config.parent.onresize = adaptToParent;
 
         // event handler for the input field
-        this.UI.input.oninput = () => this.checkInput();
-
         this.UI.input.onblur = this.UI.input.focus;
+        this.UI.input.onkeypress = () => this.checkInput();
         this.UI.input.focus();
     }
 
@@ -151,30 +170,55 @@ class TargetTypeChallenge {
     }
 
     checkInput() {
-        const s = this.UI.input.value.trim();
+        if (event.code == 'Enter' || event.code == 'NumpadEnter') {
+            const s = this.UI.input.value.trim();
 
-        if (this.config.targets.includes(s)) {
-            const block = this.UI.blocks.filter(b => b.textContent === s)[0];
-            this.UI.frame.removeChild(block);
-            this.UI.blocks.splice(this.UI.blocks.indexOf(block), 1);
-            this.UI.input.value = '';
+            // if user input matches text in an on-screen block
+            if (this.UI.blocks.map(b => b.textContent).includes(s)) {
+                const block = this.UI.blocks.filter(b => b.textContent === s)[0];
+                this.UI.frame.removeChild(block);
+                this.UI.blocks.splice(this.UI.blocks.indexOf(block), 1);
+                this.UI.input.value = '';
+
+                this.score++;
+                TargetTypeChallenge.dispatch('score', this.handlers);
+                if (!this.UI.blocks.length) {
+                    this.UI.topBanner.textContent = `Well done! You have completed this challenge. You scored ${this.score} out of ${this.config.targets.length}.`;
+                    TargetTypeChallenge.dispatch('complete', this.handlers);
+                }
+            }
+            // no match found
+            else {
+                this.UI.input.style.color = 'firebrick';
+                setTimeout(() => {
+                    this.UI.input.style.color = 'black';
+                }, 500);
+            }
         }
     }
 
-    animate(r) {
+    animate(r, ts = 0) {
         this.UI.blocks.forEach((block, i) => {
-            block.pr.y += block.speed;
+            if (ts > block.time) {
+                block.pr.y += block.speed;
 
-            const y = block.pr.y * r.f.height;
-            block.style.top = `${y}px`;
+                const y = block.pr.y * r.f.height;
+                block.style.top = `${y}px`;
 
-            // remove blocks that are too close to the bottom
-            if (y > r.f.height * 0.8) {
-                this.UI.frame.removeChild(block);
-                this.UI.blocks.splice(i, 1);
+                // remove blocks that are too close to the bottom
+                if (y > r.f.height * 0.8) {
+                    this.UI.frame.removeChild(block);
+                    this.UI.blocks.splice(i, 1);
+
+                    TargetTypeChallenge.dispatch('miss', this.handlers);
+                    if (!this.UI.blocks.length) {
+                        this.UI.topBanner.textContent = `Well done! You have completed this challenge. You scored ${this.score} out of ${this.config.targets.length}.`;
+                        TargetTypeChallenge.dispatch('complete', this.handlers);
+                    }
+                }
             }
         });
-        requestAnimationFrame(() => this.animate(r));
+        requestAnimationFrame((ts) => this.animate(r, ts));
     }
 
     static createUI(config) {
@@ -182,6 +226,7 @@ class TargetTypeChallenge {
             frame: document.createElement('div'),
             blocks: [],
             input: document.createElement('input'),
+            topBanner: document.createElement('div'),
             defaultStyle: {
                 position: 'absolute',
                 boxSizing: 'border-box',
@@ -194,23 +239,35 @@ class TargetTypeChallenge {
             backgroundColor: 'silver',
         });
 
-        // append blocks
+        // create & append blocks
         config.targets.forEach(text => {
             UI.blocks.unshift(document.createElement('div'));
             UI.blocks[0].textContent = text;
             UI.frame.appendChild(UI.blocks[0]);
-            Object.assign(UI.blocks[0].style, UI.defaultStyle);
+            Object.assign(UI.blocks[0].style, UI.defaultStyle, {
+                fontFamily: config.blockFont,
+            });
         });
 
         // append input
         UI.frame.appendChild(UI.input);
         Object.assign(UI.input.style, UI.defaultStyle, {
-            fontFamily: 'Monospace',
+            fontFamily: config.inputFont,
             textAlign: 'center',
             outline: 'none',
             borderStyle: 'solid',
             borderWidth: '0 0 1px 0',
             backgroundColor: 'rgba(0, 0, 0, 0)',
+            transition: 'color 0.1s',
+        });
+
+        UI.frame.appendChild(UI.topBanner);
+        UI.topBanner.textContent = config.prompt;
+        Object.assign(UI.topBanner.style, UI.defaultStyle, {
+            fontFamily: config.bannerFont,
+            textAlign: 'center',
+            width: '100%',
+            backgroundColor: 'ghostwhite',
         });
 
         return Object.freeze(UI);
