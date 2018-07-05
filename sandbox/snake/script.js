@@ -36,11 +36,11 @@ window.onload = function () {
     gc.width = tileCount * gridSize;
     gc.height = tileCount * gridSize;
     ctx = gc.getContext('2d');
-	
-	playerCheckbox.onchange = function () {
+
+    playerCheckbox.onchange = function () {
         isTwoPlayer = playerCheckbox.checked;
     };
-    
+
     // Draw the opening screen
     drawStartingScreen();
 
@@ -190,7 +190,7 @@ function startGame() {
     // Create the obstacles on the map
     // #BEGIN_EDITABLE#createObstacles();#END_EDITABLE#
     createObstacles();
-    
+
     // Randomize the location of the starting apple
     spawnNewApple();
 
@@ -206,16 +206,16 @@ function createSnakes() {
     const snake1 = new Snake(1, 9, 'green', player1Name);
     snake1.control = { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD' };
     snakes.push(snake1);
-    
-    
+
+
     if (isTwoPlayer) {
 
-        const snake2 = new Snake(18, 9, 'blue', player2Name);
-        snake2.control = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' };
-        snakes.push(snake2);
+    const snake2 = new Snake(18, 9, 'blue', player2Name);
+    snake2.control = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' };
+    snakes.push(snake2);
 
     }
-    
+
 
 }
 
@@ -226,7 +226,7 @@ function createObstacles() {
 
     const obstacle1 = new Obstacle(0, 0, 10, 2);
     const obstacle2 = new Obstacle(12, 9, 5, 2);
-    
+
     obstacles.push(obstacle1);
     obstacles.push(obstacle2);
 
@@ -293,7 +293,7 @@ function resetGame() {
 
     // Make the buttons visible again
     setButtonsVisibility('visible');
-    
+
     updatePointsLabel();
 }
 
@@ -305,11 +305,17 @@ function playerLoses(losingSnakes) {
     // Stop the canvas from refreshing
     clearInterval(window.refresher);
 
-    // Draw the screen showing the "L" snake
-    drawLosingScreen(losingSnakes[0].color);
-
-    // Wait 3 seconds, and then reset the game
-    setTimeout(resetGame, 3000);
+    if (losingSnakes.length == 2) {
+        alert('It is a tie! Rematch!');
+        resetGame();
+    }
+    else {
+        // Draw the screen showing the "L" snake
+        drawLosingScreen(losingSnakes[0].color);
+    
+        // Wait 3 seconds, and then reset the game
+        setTimeout(resetGame, 3000);
+    }
 
 }
 
@@ -329,7 +335,7 @@ function updatePointsLabel() {
 }
 
 function keyPush(evt) {
-    
+
     if (!gameHasStarted) {
         return;
     }
