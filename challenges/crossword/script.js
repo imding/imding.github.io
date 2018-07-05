@@ -8,31 +8,33 @@ window.onload = () => {
     c.easyMode = true;
     
     // reveal random number of letter in the puzzle
-    c.randomLetterFill = true;
+    c.randomLetterFill = false;
     
     // show list of all words in the puzzle
     c.wordBankEnabled = false;
     
     c.content = {
       words: [
-        'apple',
-        'microsoft',
-        'tesla',
-        'amazon',
-        'oracle',
-        'google',
-        'netflix',
-        'facebook',
+        'variable',
+        'string',
+        'number',
+        'boolean',
+        'array',
+        'object',
+        'function',
+        'conditional',
+        'framerate',
       ],
       hints: [
-        'an _ a day',
-        'small and squishy',
-        'electric inventor',
-        'large rain forest',
-        'visionary sphere',
-        '_ it!',
-        '_ and chill',
-        'add me as a friend',
+        'memory of the computer',
+        'things inside speech marks',
+        'you can count on it',
+        'yes and no',
+        'list of many things',
+        'person.name',
+        'write it once, do it many times',
+        'ask the computer a question',
+        'fps',
       ],
     };
     
