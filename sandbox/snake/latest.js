@@ -15,7 +15,7 @@ var apple;
 // How big each grid is (px)
 var gridSize = 20;
 // How many grids are in the canvas
-var tileCount = 40;
+var tileCount = 30;
 // How many times the scene is redrawn, per second
 var refreshRate = 8;
 
@@ -200,14 +200,14 @@ function createSnakes() {
 
     snakes = [];
 
-    const snake1 = new Snake(1, 9, 'indianred', player1Name);
+    const snake1 = new Snake(2, 23, 'indianred', player1Name);
     snake1.control = { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD' };
     snakes.push(snake1);
 
 
 
     if (isTwoPlayer) {
-        const snake2 = new Snake(18, 9, 'skyblue', player2Name);
+        const snake2 = new Snake(27, 23, 'skyblue', player2Name);
         snake2.control = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' };
         snakes.push(snake2);
     }
@@ -219,11 +219,21 @@ function createObstacles() {
 
     obstacles = [];
 
-    const obstacle1 = new Obstacle(5, 9, 5, 2);
-    const obstacle2 = new Obstacle(12, 9, 5, 2);
+    const obs1 = new Obstacle(5, 0, 20, 1);
+    const obs2 = new Obstacle(5, 29, 20, 1);
+    const obs3 = new Obstacle(7, 6, 3, 3);
+    const obs4 = new Obstacle(20, 6, 3, 3);
+    const obs5 = new Obstacle(8, 14, 14, 2);
+    const obs6 = new Obstacle(7, 6, 3, 3);
+    const obs7 = new Obstacle(20, 6, 3, 3);
 
-    obstacles.push(obstacle1);
-    obstacles.push(obstacle2);
+    obstacles.push(obs1);
+    obstacles.push(obs2);
+    obstacles.push(obs3);
+    obstacles.push(obs4);
+    obstacles.push(obs5);
+    obstacles.push(obs6);
+    obstacles.push(obs7);
 
 }
 
@@ -608,7 +618,7 @@ class Snake {
         }
 
         if (!gameHasStarted) return true;
-        
+
         for (var i = 0; i < this.segments.length; i++) {
 
             // If drawing the tail
