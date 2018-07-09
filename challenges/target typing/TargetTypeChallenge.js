@@ -11,6 +11,7 @@ class TargetTypeChallenge {
             blockFont: 'Monospace',
             bannerFont: 'Arial',
             objective: '',
+            winMessage: '',
         };
 
         this.startTime = null;
@@ -250,6 +251,7 @@ class TargetTypeChallenge {
         else {
             this.UI.topBanner.textContent = `Well done! You have completed this challenge. You scored ${this.score} out of ${this.config.targets.length}.`;
             TargetTypeChallenge.dispatch('complete', this.handlers);
+            return true;
         }
     }
 
@@ -265,7 +267,9 @@ class TargetTypeChallenge {
 
         // animate each block
         this.UI.blocks.forEach((block, i) => {
-            if (ts > block.time) {
+            if (!i && block.time < ts) block.time = ts;
+
+            if (ts >= block.time) {
                 block.pr.y += block.speed;
 
                 const y = block.pr.y * r.f.height;
