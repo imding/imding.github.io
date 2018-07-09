@@ -5,6 +5,7 @@ class TargetTypeChallenge {
             targets: [],
             shuffle: false,
             speed: 1,
+            levels: 1,
             interval: 0,
             inputFont: 'Monospace',
             blockFont: 'Monospace',
@@ -73,6 +74,20 @@ class TargetTypeChallenge {
 
     start() {
         // check config
+        if (this.levels < 1) {
+            alert('The value of config.levels must be 1 or greater.');
+            throw new Error('The value of config.levels must be 1 or greater.');
+        }
+        else if (this.levels > 1) {
+            if (!Array.isArray(this.speed)) {
+                alert('Speed must be an array when config.levels is greater than 1.');
+                throw new Error('Speed must be an array when config.levels is greater than 1.');
+            }
+            else if (this.speed.length != this.levels) {
+                alert('The length of config.speed must equal to the value of config.levels.');
+                throw new Error('The length of config.speed must equal to the value of config.levels.');
+            }
+        }
 
         // create UI
         document.children[0].style.height = '100%';
@@ -95,7 +110,9 @@ class TargetTypeChallenge {
         // callback function to adapt elements
         const adaptToParent = () => {
             this.UI.frame.adapt(ref);
-            this.UI.blocks.forEach(block => block.adapt(ref));
+            this.UI.blocks.forEach(block => {
+                if (block.adapt) block.adapt(ref);
+            });
             this.UI.input.adapt(ref);
             this.UI.topBanner.adapt(ref);
             this.UI.start.adapt(ref);
@@ -193,6 +210,10 @@ class TargetTypeChallenge {
         this.config.parent.onresize = adaptToParent;
     }
 
+    spawnBlocks() {
+
+    }
+
     checkInput() {
         if (event.code == 'Enter' || event.code == 'NumpadEnter') {
             const s = this.UI.input.value.trim();
@@ -222,12 +243,18 @@ class TargetTypeChallenge {
     checkComplete() {
         if (this.UI.blocks.length) return;
         this.startTime = null;
-        this.UI.topBanner.textContent = `Well done! You have completed this challenge. You scored ${this.score} out of ${this.config.targets.length}.`;
-        this.UI.start.textContent = 'Reload Challenge';
-        this.UI.start.style.opacity = 1;
-        this.UI.start.onclick = () => window.location.reload(true);
-        this.UI.frame.appendChild(this.UI.start);
-        TargetTypeChallenge.dispatch('complete', this.handlers);
+
+        if (this.levels > 1) {
+            this.nextLevel();
+        }
+        else {
+            this.UI.topBanner.textContent = `Well done! You have completed this challenge. You scored ${this.score} out of ${this.config.targets.length}.`;
+            TargetTypeChallenge.dispatch('complete', this.handlers);
+        }
+    }
+
+    nextLevel() {
+
     }
 
     animate(r, ts) {
@@ -292,12 +319,13 @@ class TargetTypeChallenge {
 
         // create, style & append blocks
         config.targets.forEach(text => {
-            UI.blocks.unshift(document.createElement('div'));
-            UI.blocks[0].textContent = text;
-            Object.assign(UI.blocks[0].style, UI.defaultStyle, {
+            const block = document.createElement('div');
+            block.textContent = text;
+            Object.assign(block.style, UI.defaultStyle, {
                 fontFamily: config.blockFont,
                 transition: 'opacity 0.1s',
             });
+            UI.blocks.push(block);
         });
 
         // style & append input

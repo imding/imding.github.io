@@ -3,7 +3,7 @@ let c;
 window.onload = () => {
     c = new TargetTypeChallenge();
     Object.assign(c.config, {
-        // speed value is the percentage of the frame height travelled per second
+        // speed value is the percentage of the frame height travelled per second by each block
         speed: 0.8,
         // interval value is the amount of seconds per keystroke
         // given a value of 0.2, the game expects a player to finish typing 'hello' in one second 
@@ -21,7 +21,7 @@ window.onload = () => {
             'console.log("Hello " + person.name);',
         ],
         // shuffle the target list
-        shuffle: true,
+        shuffle: false,
         // message displayed in the top banner
         objective: 'Type the falling words EXACTLY as it\'s shown.',
     });
