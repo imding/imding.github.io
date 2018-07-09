@@ -77,7 +77,7 @@ function askForPlayerNames() {
 
 function showNamePopup(text, handler) {
 
-    const popupBackground = document.createElement('div');
+    var popupBackground = document.createElement('div');
 
     popupBackground.style.position = 'absolute';
     popupBackground.style.width = `${window.innerWidth}px`;
@@ -90,7 +90,7 @@ function showNamePopup(text, handler) {
 
     document.body.appendChild(popupBackground);
 
-    const banner = document.createElement('div');
+    var banner = document.createElement('div');
 
     banner.style.position = 'absolute';
     banner.style.width = `${window.innerWidth}px`;
@@ -104,7 +104,7 @@ function showNamePopup(text, handler) {
     banner.style.backgroundColor = 'black';
     banner.style.opacity = '1.0';
 
-    const prompt = document.createElement('h3');
+    var prompt = document.createElement('h3');
 
     prompt.style.position = 'absolute';
     prompt.style.width = `${banner.offsetWidth}px`;
@@ -135,7 +135,7 @@ function showNamePopup(text, handler) {
     input.focus();
     input.value = 'Snake';
 
-    const okayButton = document.createElement('button');
+    var okayButton = document.createElement('button');
 
     okayButton.textContent = 'Okay';
     okayButton.style.position = 'absolute';
@@ -200,14 +200,14 @@ function createSnakes() {
 
     snakes = [];
 
-    const snake1 = new Snake(2, 23, 'indianred', player1Name);
+    var snake1 = new Snake(2, 23, 'plum', player1Name);
     snake1.control = { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD' };
     snakes.push(snake1);
 
 
 
     if (isTwoPlayer) {
-        const snake2 = new Snake(27, 23, 'skyblue', player2Name);
+        var snake2 = new Snake(27, 23, 'skyblue', player2Name);
         snake2.control = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' };
         snakes.push(snake2);
     }
@@ -219,13 +219,13 @@ function createObstacles() {
 
     obstacles = [];
 
-    const obs1 = new Obstacle(5, 0, 20, 1);
-    const obs2 = new Obstacle(5, 29, 20, 1);
-    const obs3 = new Obstacle(7, 6, 3, 3);
-    const obs4 = new Obstacle(20, 6, 3, 3);
-    const obs5 = new Obstacle(8, 14, 14, 2);
-    const obs6 = new Obstacle(7, 6, 3, 3);
-    const obs7 = new Obstacle(20, 6, 3, 3);
+    var obs1 = new Obstacle(5, 0, 20, 1);
+    var obs2 = new Obstacle(5, 29, 20, 1);
+    var obs3 = new Obstacle(8, 8, 2, 3);
+    var obs4 = new Obstacle(20, 8, 2, 3);
+    var obs5 = new Obstacle(10, 18, 10, 2);
+    var obs6 = new Obstacle(0, 0, 1, 30);
+    var obs7 = new Obstacle(29, 0, 1, 30);
 
     obstacles.push(obs1);
     obstacles.push(obs2);
@@ -509,7 +509,7 @@ class Snake {
     generateSnake() {
 
         // Create the initial snake
-        const startSize = 5;
+        var startSize = 5;
         for (var i = 0; i < startSize; i++) {
 
             var segment;
@@ -528,9 +528,9 @@ class Snake {
 
     drawSnakeTail() {
 
-        const tail = this.tail;
+        var tail = this.tail;
 
-        const preTail = this.getSegment(this.segments.length - 2);
+        var preTail = this.getSegment(this.segments.length - 2);
 
         // Get the direction that the tail is moving in
         var tailXVelocity = preTail.position.x - tail.position.x;
@@ -574,7 +574,7 @@ class Snake {
 
     drawSnakeEyes() {
 
-        const head = this.head;
+        var head = this.head;
 
         // Giving the snake eyes based off of its direction
         switch (this.direction.x) {
@@ -611,7 +611,7 @@ class Snake {
 
         ctx.fillStyle = this.color;
 
-        const success = this.updatePositions();
+        var success = this.updatePositions();
 
         if (!success) {
             return false;
@@ -646,14 +646,14 @@ class Snake {
         this.pendingTurn = false;
 
         // Expressions account for vertical and horizontal wrapping
-        const newX = this.x + this.direction.x > tileCount - 1 ? 0 : (this.x + this.direction.x < 0 ? tileCount - 1 : this.x + this.direction.x);
-        const newY = this.y + this.direction.y > tileCount - 1 ? 0 : (this.y + this.direction.y < 0 ? tileCount - 1 : this.y + this.direction.y);
+        var newX = this.x + this.direction.x > tileCount - 1 ? 0 : (this.x + this.direction.x < 0 ? tileCount - 1 : this.x + this.direction.x);
+        var newY = this.y + this.direction.y > tileCount - 1 ? 0 : (this.y + this.direction.y < 0 ? tileCount - 1 : this.y + this.direction.y);
 
         this.x = newX;
         this.y = newY;
 
         // Check if the snake ran into an obstacle
-        const collision = obstacles.some(obstacle => {
+        var collision = obstacles.some(obstacle => {
             return obstacle.isCollision(this.x, this.y);
         });
 
@@ -678,8 +678,8 @@ class Snake {
                     };
                 }
 
-                const nextX = this.segments[i - 1].x;
-                const nextY = this.segments[i - 1].y;
+                var nextX = this.segments[i - 1].x;
+                var nextY = this.segments[i - 1].y;
 
                 if (nextX === this.x && nextY === this.y) {
                     playerLoses([this]);
@@ -701,16 +701,16 @@ class Snake {
             if (apple.gold) {
                 this.invincible = true;
                 this.color = 'gold';
+                this.addSegment(5);
                 setTimeout(() => {
                     this.color = this.trueColor;
                     this.invincible = false;
-                }, 6000);
+                }, 8000);
             }
             else {
                 this.points++;
                 this.addSegment();
             }
-
 
             spawnNewApple();
         }
@@ -735,15 +735,17 @@ class Snake {
 
     }
 
-    addSegment() {
+    addSegment(n = 1) {
 
-        const tailSegment = this.segments[this.segments.length - 1];
-
-        const newSegment = new SnakeSegment(tailSegment.position.x, tailSegment.position.y, this.color, SegmentType.body);
-
-        this.segments.splice(this.segments.length - 1, 0, newSegment);
-
-        tailSegment.setPosition(this.prevTailPos.x, this.prevTailPos.y);
+        for (var i = 0; i < n; i++) {
+            var tailSegment = this.segments[this.segments.length - 1];
+    
+            var newSegment = new SnakeSegment(tailSegment.position.x, tailSegment.position.y, this.color, SegmentType.body);
+    
+            this.segments.splice(this.segments.length - 1, 0, newSegment);
+    
+            tailSegment.setPosition(this.prevTailPos.x, this.prevTailPos.y);
+        }
 
     }
 
@@ -832,7 +834,7 @@ class Obstacle {
 
     draw(ctx) {
 
-        ctx.fillStyle = 'silver';
+        ctx.fillStyle = 'sienna';
         for (var i = 0; i < this.width; i++) {
 
             for (var j = 0; j < this.height; j++) {
@@ -864,7 +866,7 @@ class Apple {
 
         this.x = 0;
         this.y = 0;
-        this.gold = Math.random() > 0.3;
+        this.gold = Math.random() > 0.85;
 
         this.initPosition();
     }
