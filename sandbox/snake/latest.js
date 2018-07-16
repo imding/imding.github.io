@@ -17,7 +17,7 @@ var gridSize = 20;
 // How many grids are in the canvas
 var tileCount = 30;
 // How many times the scene is redrawn, per second
-var refreshRate = 8;
+var refreshRate = 7;
 
 // Boolean indicating whether two-player mode is on or off
 var isTwoPlayer = false;
@@ -133,7 +133,7 @@ function showNamePopup(text, handler) {
     input.style.left = `${banner.offsetWidth / 2 - input.offsetWidth / 2}px`;
     input.style.top = `${prompt.offsetTop + prompt.offsetHeight + 25}px`;
     input.focus();
-    input.value = 'Snake';
+    input.value = text.startsWith('Player 1') ? (player1Name || 'Snake 1') : (player2Name || 'Snake 2');
 
     var okayButton = document.createElement('button');
 
@@ -151,7 +151,7 @@ function showNamePopup(text, handler) {
         // validate user input
         if (!input.value.trim().length) return;
 
-        if (player1Name == null) {
+        if (text.startsWith('Player 1')) {
             player1Name = input.value;
         } else {
             player2Name = input.value;
@@ -298,8 +298,8 @@ function checkForSnakeCollision() {
 // Function: resetting the game (if the player dies)
 function resetGame() {
 
-    player1Name = null;
-    player2Name = null;
+    // player1Name = null;
+    // player2Name = null;
 
     // Draw the starting snake screen
     drawStartingScreen();
@@ -325,6 +325,8 @@ function playerLoses(losingSnakes) {
     else {
         // Draw the screen showing the "L" snake
         drawLosingScreen(losingSnakes[0].trueColor);
+
+        alert(snakes.filter(s => s != losingSnakes[0])[0].name + ' is the winner!');
 
         // Wait 3 seconds, and then reset the game
         setTimeout(resetGame, 3000);
