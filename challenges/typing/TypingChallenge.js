@@ -1,8 +1,9 @@
-class TargetTypeChallenge {
+class TypingChallenge {
     constructor() {
         this.config = {
             parent: document.body,
             targets: [],
+            decoys: [],
             shuffle: false,
             speed: 1,
             levels: 1,
@@ -10,21 +11,23 @@ class TargetTypeChallenge {
             inputFont: 'Monospace',
             blockFont: 'Monospace',
             bannerFont: 'Arial',
-            objective: '',
-            winMessage: '',
+            objective: 'Type the falling words EXACTLY as it\'s shown.',
+            praise: 'Well done! You scored #SCORE#/#TOTAL# points in #TIME#.',
         };
 
+        this.render = null;
         this.startTime = null;
         this.handlers = {};
 
         this.score = 0;
+        this.time = 0;
 
         this.blockFontSize = 0.03;
         this.inputFontSize = 0.04;
-        this.bannerFontSize = 0.025,
+        this.bannerFontSize = 0.025;
 
-            // these should possibly belong to a parent class
-            this.events = Object.freeze(['complete', 'score', 'miss']);
+        // these should possibly belong to a parent class
+        this.events = Object.freeze(['complete', 'score', 'miss']);
         this.util = Object.freeze({
             aspectRatio: 4 / 3,
             range: (min, max, int = false) => {
@@ -75,20 +78,7 @@ class TargetTypeChallenge {
 
     start() {
         // check config
-        if (this.levels < 1) {
-            alert('The value of config.levels must be 1 or greater.');
-            throw new Error('The value of config.levels must be 1 or greater.');
-        }
-        else if (this.levels > 1) {
-            if (!Array.isArray(this.speed)) {
-                alert('Speed must be an array when config.levels is greater than 1.');
-                throw new Error('Speed must be an array when config.levels is greater than 1.');
-            }
-            else if (this.speed.length != this.levels) {
-                alert('The length of config.speed must equal to the value of config.levels.');
-                throw new Error('The length of config.speed must equal to the value of config.levels.');
-            }
-        }
+        this.checkConfig();
 
         // create UI
         document.children[0].style.height = '100%';
@@ -100,7 +90,7 @@ class TargetTypeChallenge {
         console.info('"margin: 0" was added to the <body> tag.');
         console.info('"overflow: hidden" was added to the <body> tag.');
 
-        this.UI = TargetTypeChallenge.createUI(this.config);
+        this.UI = TypingChallenge.createUI(this.config);
 
         // define reference object
         const ref = {
@@ -111,9 +101,7 @@ class TargetTypeChallenge {
         // callback function to adapt elements
         const adaptToParent = () => {
             this.UI.frame.adapt(ref);
-            this.UI.blocks.forEach(block => {
-                if (block.adapt) block.adapt(ref);
-            });
+            this.UI.blocks.forEach(block => { if (block.adapt) block.adapt(ref); });
             this.UI.input.adapt(ref);
             this.UI.topBanner.adapt(ref);
             this.UI.start.adapt(ref);
@@ -161,6 +149,8 @@ class TargetTypeChallenge {
         this.UI.start.onclick = () => {
             // define properties for each block
             if (this.config.shuffle) this.util.shuffle(this.UI.blocks);
+
+            // prepare all the blocks
             this.UI.blocks.forEach((block, i, arr) => {
                 // randomly offset user defined speed by 10% for each block
                 block.speed = this.util.fluc(this.config.speed, 0.1) / 1000;
@@ -171,6 +161,13 @@ class TargetTypeChallenge {
 
                 // resize block font before positioning it
                 block.style.fontSize = `${this.blockFontSize * ref.f.width}px`;
+
+                // define onclick event handler
+                block.onclick = () => {
+                    if (block.isDecoy) this.commend();
+                    else this.crit();
+                    this.remove(block);
+                };
 
                 // add the block to the frame
                 this.UI.frame.insertBefore(block, this.UI.input);
@@ -183,7 +180,7 @@ class TargetTypeChallenge {
                 // define position ratio in relation to the frame
                 block.pr = {
                     x: this.util.range(min, max) / ref.f.width,
-                    y: 0,
+                    y: 0.03,
                 };
 
                 // adapt method
@@ -197,9 +194,9 @@ class TargetTypeChallenge {
             });
 
             this.UI.start.style.opacity = 0;
-            this.UI.start.addEventListener('transitionend', () => this.UI.frame.removeChild(event.target));
+            this.UI.start.addEventListener('transitionend', e => this.UI.frame.removeChild(e.target));
 
-            requestAnimationFrame((ts) => this.animate(ref, ts));
+            this.render = requestAnimationFrame((ts) => this.animate(ref, ts));
         };
 
         // event handler for the input field
@@ -211,52 +208,32 @@ class TargetTypeChallenge {
         this.config.parent.onresize = adaptToParent;
     }
 
-    spawnBlocks() {
+    checkConfig() {
+        const errors = [
+            {
+                found: this.config.levels < 1,
+                tip: 'The value of config.levels must be 1 or greater.',
+            },
+            {
+                found: this.config.levels > 1 && !Array.isArray(this.config.speed),
+                tip: 'config.speed must be an array when config.levels is greater than 1.',
+            },
+            {
+                found: this.config.levels > 1 && this.config.speed.length != this.config.levels,
+                tip: 'The length of config.speed must equal to the value of config.levels.',
+            },
+            {
+                found: this.config.levels > 1 ? !this.config.speed.every(s => s > 0) : this.config.speed <= 0,
+                tip: 'config.speed value(s) must be greater than 0.',
+            },
+        ];
 
-    }
-
-    checkInput() {
-        if (event.code == 'Enter' || event.code == 'NumpadEnter') {
-            const s = this.UI.input.value.trim();
-
-            // if user input matches text in an on-screen block
-            if (this.UI.blocks.map(b => b.textContent).includes(s)) {
-                const block = this.UI.blocks.filter(b => b.textContent === s)[0];
-                this.UI.frame.removeChild(block);
-                this.UI.blocks.splice(this.UI.blocks.indexOf(block), 1);
-                this.UI.input.value = '';
-
-                this.score++;
-                TargetTypeChallenge.dispatch('score', this.handlers);
-                this.checkComplete();
+        errors.forEach(error => {
+            if (error.found) {
+                alert(error.tip);
+                throw new Error(error.tip);
             }
-            // no match found
-            else {
-                this.UI.input.style.color = 'firebrick';
-                setTimeout(() => this.UI.input.style.color = 'black', 500);
-            }
-        }
-        else if (event.code == 'Escape') {
-            this.UI.input.value = '';
-        }
-    }
-
-    checkComplete() {
-        if (this.UI.blocks.length) return;
-        this.startTime = null;
-
-        if (this.levels > 1) {
-            this.nextLevel();
-        }
-        else {
-            this.UI.topBanner.textContent = `Well done! You have completed this challenge. You scored ${this.score} out of ${this.config.targets.length}.`;
-            TargetTypeChallenge.dispatch('complete', this.handlers);
-            return true;
-        }
-    }
-
-    nextLevel() {
-
+        });
     }
 
     animate(r, ts) {
@@ -267,7 +244,7 @@ class TargetTypeChallenge {
 
         // animate each block
         this.UI.blocks.forEach((block, i) => {
-            if (!i && block.time < ts) block.time = ts;
+            if (!i && block.time > ts) block.time = ts;
 
             if (ts >= block.time) {
                 block.pr.y += block.speed;
@@ -277,16 +254,85 @@ class TargetTypeChallenge {
 
                 // remove blocks that are too close to the bottom
                 if (y > r.f.height * 0.8) {
-                    this.UI.blocks.splice(i, 1);
-                    block.style.opacity = 0;
-                    block.addEventListener('transitionend', e => this.UI.frame.removeChild(e.target));
-
-                    TargetTypeChallenge.dispatch('miss', this.handlers);
-                    this.checkComplete();
+                    if (block.isDecoy) this.commend();
+                    else this.crit();
+                    this.remove(block, i);
                 }
             }
         });
-        requestAnimationFrame((ts) => this.animate(r, ts));
+
+        this.time = ts;
+
+        if (!this.UI.blocks.length) cancelAnimationFrame(this.render);
+        else this.render = requestAnimationFrame((ts) => this.animate(r, ts));
+    }
+
+    checkInput() {
+        if (event.code == 'Enter' || event.code == 'NumpadEnter') {
+            const s = this.UI.input.value.trim();
+
+            // if user input matches text in an on-screen block
+            if (this.UI.blocks.map(b => b.textContent).includes(s)) {
+                const block = this.UI.blocks.filter(b => b.textContent === s)[0];
+
+                if (block.isDecoy) this.crit();
+                else this.commend();
+
+                this.UI.input.value = '';
+                this.remove(block);
+            }
+            // no match found
+            else {
+                this.UI.input.style.color = 'firebrick';
+                setTimeout(() => {
+                    this.UI.input.style.color = 'black';
+                    this.UI.input.value = '';
+                }, 500);
+            }
+        }
+        else if (event.code == 'Escape') {
+            this.UI.input.value = '';
+        }
+    }
+
+    commend() {
+        this.score++;
+        this.UI.topBanner.textContent = 'Good job!';
+        if (this.UI.blocks.length > 1) setTimeout(() => this.UI.topBanner.textContent = this.config.objective, 1000);
+        TypingChallenge.dispatch('score', this.handlers);
+    }
+
+    crit() {
+        this.UI.topBanner.textContent = 'That wasn\'t quite right.';
+        if (this.UI.blocks.length > 1) setTimeout(() => this.UI.topBanner.textContent = this.config.objective, 1000);
+        TypingChallenge.dispatch('miss', this.handlers);
+    }
+
+    remove(el, i = this.UI.blocks.indexOf(el)) {
+        this.UI.blocks.splice(i, 1);
+        el.style.opacity = 0;
+        el.addEventListener('transitionend', e => this.UI.frame.removeChild(e.target));
+
+        this.checkComplete();
+    }
+
+    checkComplete() {
+        if (this.UI.blocks.length) return;
+
+        this.startTime = null;
+        this.render = null;
+
+        if (this.levels > 1) {
+            this.nextLevel();
+        }
+        else {
+            this.UI.topBanner.textContent = this.config.praise
+                .replace('#SCORE#', this.score)
+                .replace('#TOTAL#', this.config.targets.concat(this.config.decoys).length)
+                .replace('#TIME#', `${Math.ceil(this.time / 1000)} seconds`);
+            TypingChallenge.dispatch('complete', this.handlers);
+            return true;
+        }
     }
 
     on(eventName, handler) {
@@ -316,20 +362,25 @@ class TargetTypeChallenge {
         };
 
         // style & append frame
-        Object.assign(UI.frame.style, UI.defaultStyle, {
-            backgroundColor: 'silver',
-        });
+        Object.assign(UI.frame.style, UI.defaultStyle, { backgroundColor: 'silver' });
         config.parent.appendChild(UI.frame);
 
         // create, style & append blocks
-        config.targets.forEach(text => {
-            const block = document.createElement('div');
-            block.textContent = text;
-            Object.assign(block.style, UI.defaultStyle, {
+        const append = (el, text) => {
+            el.textContent = text;
+            Object.assign(el.style, UI.defaultStyle, {
                 fontFamily: config.blockFont,
                 transition: 'opacity 0.1s',
+                cursor: 'pointer',
             });
-            UI.blocks.push(block);
+            UI.blocks.push(el);
+        };
+
+        config.targets.forEach(text => append(document.createElement('div'), text));
+        config.decoys.forEach(text => {
+            const decoy = document.createElement('div');
+            decoy.isDecoy = true;
+            append(decoy, text);
         });
 
         // style & append input
