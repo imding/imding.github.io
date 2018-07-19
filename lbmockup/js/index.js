@@ -40,6 +40,8 @@ let codeToken, codeTokenEnd, codeBlock, codeExp;
 let logicToken, logicTokenEnd, logicBlock, logicExp;
 let stepToken, stepTokenEnd;
 
+let ctrlKey, altKey, returnFocus;
+
 const htmlToken = ['##HTML##', '##HTML_E##', /##HTML##.*##HTML_E##/];
 const cssToken = ['##CSS##', '##CSS_E##', /##CSS##.*##CSS_E##/];
 const jsToken = ['##JS##', '##JS_E##', /##JS##.*##JS_E##/];
@@ -70,7 +72,6 @@ const template = [
 
 // ==================== EVENT LISTENER ==================== //
 window.onload = () => {
-    taInstruction.addEventListener('keydown', keyHandler, false);
     taInstruction.onblur = () => { info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`; };
     info.onfocus = () => { editProjectInfo(); };
     info.onblur = () => { updateProjectInfo(); };
@@ -131,48 +132,17 @@ window.onload = () => {
     setInterval(saveToLocal, 100000);
 };
 
-window.onkeydown = (evt) => {
-    //   console.log(evt.code);
-    const c1 = evt.keyCode == 116;                    // DISABLE F5
-    const c2 = evt.location == 1 && evt.ctrlKey;      // EXTRA 'CTRL' KEY PRODUCED BY 'LEFT ALT'
-
-    if (c1 || c2) return false;
-
-    if (evt.altKey && evt.code != pkey) {           // 'ALT' KEY *AND* NON-REPEATED KEY
-        evt.preventDefault();
-        switch (evt.code) {
-            case 'Digit0': taInstruction.value = template[0]; break;
-            case 'Digit1': taInstruction.value = template[1]; break;
-            case 'Digit2': taInstruction.value = template[2]; break;
-            case 'Digit3': taInstruction.value = template[3]; break;
-            case 'Slash': convertEditable(); break;
-            case 'KeyN': btnAdd.click(); break;
-            case 'KeyP': btnRun.click(); break;
-            case 'KeyL': if (cStep > 1) { testLogic(); break; } else { break; }
-            case 'KeyK': generateTest(); break;
-            case 'KeyI': btnConvert.click(); break;
-            case 'Backspace': closePreview(); break;
-            case 'BracketLeft': btnPrev.click(); break;
-            case 'BracketRight': btnNext.click(); break;
-            case 'Minus': activeCodeBtn == btnHTML ? btnHTML.click() : (activeCodeBtn == btnCSS ? btnHTML.click() : btnCSS.click()); break;
-            case 'Equal': activeCodeBtn == btnJS ? btnJS.click() : (activeCodeBtn == btnCSS ? btnJS.click() : btnCSS.click()); break;
-            case 'Period': btnDupPrev.click(); break;
-            case 'Comma': btnDupNext.click(); break;
-            default: break;
-        }
-        pkey = evt.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal/, '');       // LIST OF KEYS TO ALLOW REPEATED PRESS
-    }
-
-    if (evt.code == 'Escape') {
-        const b = document.getElementById('glsClose');
-        if (b) {
-            evt.preventDefault();
-            b.click();
-        }
-    }
-};
+window.onkeydown = keyHandler;
 
 window.onresize = updateUI;
+
+window.onkeyup = () => {
+    if (event.code == 'AltRight') {
+        altKey = false;
+        returnFocus.focus();
+        // console.log(altKey);
+    }
+};
 
 window.onmouseup = () => {
     window.removeEventListener('mousemove', moveDivider, true);
@@ -686,17 +656,75 @@ function readValue(value, title) {
 }
 
 // ==================== HANDLER ==================== //
-function keyHandler(e) {
-    const TABKEY = 9;
-    if (e.keyCode == TABKEY) {
-        const bc = this.value.slice(0, this.selectionStart),
-            ac = this.value.slice(this.selectionStart, this.value.length);
-        this.value = `${bc}\t${ac}`;
-        this.setSelectionRange(this.value.length - ac.length, this.value.length - ac.length);
-        if (e.preventDefault) {
-            e.preventDefault();
+function keyHandler() {
+    // disable F5 key
+    if (event.code == 'F5') {
+        event.preventDefault();
+        return;
+    }
+
+    // handle tab key inside instruction editor
+    else if (event.code == 'Tab' && event.target == taInstruction) {
+        const
+            t = taInstruction,
+            bc = t.value.slice(0, t.selectionStart),
+            ac = t.value.slice(t.selectionStart, t.value.length);
+        t.value = `${bc}\t${ac}`;
+        t.setSelectionRange(t.value.length - ac.length, t.value.length - ac.length);
+        event.preventDefault();
+        return;
+    }
+
+    else if (event.code == 'Escape') {
+        const b = document.getElementById('glsClose');
+        if (b) {
+            event.preventDefault();
+            b.click();
         }
-        return false;
+    }
+    
+    else if (event.code == 'AltRight' && event.timeStamp - ctrlKey.timeStamp <= 1 && !altKey) {
+            ctrlKey = { timeStamp: 0 };
+            altKey = true;
+            returnFocus = document.activeElement;
+            returnFocus.blur();
+            // console.log(altKey);
+    }
+
+    else if (event.code == 'ControlLeft') {
+        ctrlKey = event;
+    }
+
+    else {
+        ctrlKey = {timeStamp: 0};
+    }
+
+    if (altKey && event.code != pkey) {
+
+        event.preventDefault();
+
+        switch (event.code) {
+            case 'Digit0': taInstruction.value = template[0]; break;
+            case 'Digit1': taInstruction.value = template[1]; break;
+            case 'Digit2': taInstruction.value = template[2]; break;
+            case 'Digit3': taInstruction.value = template[3]; break;
+            case 'Slash': convertEditable(); break;
+            case 'KeyN': btnAdd.click(); break;
+            case 'KeyP': btnRun.click(); break;
+            case 'KeyL': if (cStep > 1) { testLogic(); break; } else { break; }
+            case 'KeyK': generateTest(); break;
+            case 'KeyI': btnConvert.click(); break;
+            case 'Backspace': closePreview(); break;
+            case 'BracketLeft': btnPrev.click(); break;
+            case 'BracketRight': btnNext.click(); break;
+            case 'Minus': activeCodeBtn == btnHTML ? btnHTML.click() : (activeCodeBtn == btnCSS ? btnHTML.click() : btnCSS.click()); break;
+            case 'Equal': activeCodeBtn == btnJS ? btnJS.click() : (activeCodeBtn == btnCSS ? btnJS.click() : btnCSS.click()); break;
+            case 'Period': btnDupPrev.click(); break;
+            case 'Comma': btnDupNext.click(); break;
+            default: break;
+        }
+
+        pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal/, '');       // LIST OF KEYS TO ALLOW REPEATED PRESS
     }
 }
 

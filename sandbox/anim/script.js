@@ -47,7 +47,6 @@ function init() {
 
     util.initDoc();
 
-    
     Explorer.style.width = '250px';
     Explorer.style.height = `${util.vh}px`;
     Explorer.addEventListener('contextmenu', () => {
