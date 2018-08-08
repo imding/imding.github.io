@@ -132,6 +132,7 @@ function showNamePopup(text, handler) {
 
     input.style.left = `${banner.offsetWidth / 2 - input.offsetWidth / 2}px`;
     input.style.top = `${prompt.offsetTop + prompt.offsetHeight + 25}px`;
+    // improve player name popup to remember previous entry
     input.focus();
     input.value = text.startsWith('Player 1') ? (player1Name || 'Snake 1') : (player2Name || 'Snake 2');
 
@@ -151,6 +152,7 @@ function showNamePopup(text, handler) {
         // validate user input
         if (!input.value.trim().length) return;
 
+        // // improve player name popup to remember previous entry
         if (text.startsWith('Player 1')) {
             player1Name = input.value;
         } else {
@@ -257,6 +259,7 @@ function refreshGame() {
 }
 
 function refreshSnakes() {
+    // bug fix for snakes running into obstacles at the same time
     var losingSnakes = [];
     // If any snake draw fails, stop all drawing
     snakes.forEach(snake => {
@@ -298,6 +301,7 @@ function checkForSnakeCollision() {
 // Function: resetting the game (if the player dies)
 function resetGame() {
 
+    // improve player name popup to remember previous entry
     // player1Name = null;
     // player2Name = null;
 
@@ -318,6 +322,7 @@ function playerLoses(losingSnakes) {
     // Stop the canvas from refreshing
     clearInterval(window.refresher);
 
+    // bug fix for snakes colliding head-to-head
     if (losingSnakes.length == 2 && losingSnakes[0].trueColor != losingSnakes[1].trueColor) {
         alert('It is a tie! Rematch!');
         resetGame();
@@ -619,6 +624,7 @@ class Snake {
             return false;
         }
 
+        // bug fix for displaying winning snake in losing screen
         if (!gameHasStarted) return true;
 
         for (var i = 0; i < this.segments.length; i++) {

@@ -41,7 +41,7 @@ window.onload = () => {
   c.set().decoyGroup = ['birdsCanFly', 'True', 'False', '0', '1', 'Yes', 'No'];
   c.set().prompt = 'Find the Booleans!';
 
-  c.set().showScore = true;
+  // c.set().showScore = true;
   c.set().winMessage = 'Well done, you correctly matched everything!';
   c.start();
 };
