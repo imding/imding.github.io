@@ -11,14 +11,23 @@ window.onload = () => {
         // list of strings that the challenger must type
         targets: [
             'var life = 42;',
-            'function sayHello() {}',
-            'var name = "John";',
+            'var singleQuote = \'You won!\';',
+            'var innerQuote = "Bruce \'Batman\' Wayne";',
+            'var doubleQuote = "John";',
             'var gameHasBegun = true;',
-            'if (you\'re happy) {}',
-            'return home();',
+            'if (happy) {}',
+            'var alive = health > 0;',
             'console.log("back to the future");',
-            'while (hungry == true) {}',
+            'if (hungry == true) {}',
             'console.log("Hello " + person.name);',
+            'var string = "Good game!";',
+            'if (3 + 3 == 6) {}',
+            'else if (playerIsAlive) {}',
+            'else { console.log("You died."); }',
+            'else if (playerHealth <= 100) {}',
+            'else { playerHealth += 20; }',
+            'counter++;',
+            'playerHealth++;',
         ],
         // decoys: [
         //     'var 1p = 42;',
@@ -28,7 +37,7 @@ window.onload = () => {
         shuffle: true,
         // message displayed in the top banner
         // objective: 'Type what\'s right and click what\'s wrong',
-        // praise: 'Well done! You scored #SCORE#/#TOTAL# points in #TIME#.',
+        praise: 'Well done! You scored #SCORE#/#TOTAL# points in #TIME#.',
     });
 
     c.start();
