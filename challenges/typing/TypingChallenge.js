@@ -14,7 +14,7 @@ class TypingChallenge {
             objective: 'Type the falling words EXACTLY as it\'s shown.',
             praise: 'Well done! You scored #SCORE#/#TOTAL# points in #TIME#.',
         };
-
+        
         this.render = null;
         this.startTime = null;
         this.handlers = {};
@@ -163,11 +163,13 @@ class TypingChallenge {
                 block.style.fontSize = `${this.blockFontSize * ref.f.width}px`;
 
                 // define onclick event handler
-                block.onclick = () => {
-                    if (block.isDecoy) this.commend();
-                    else this.crit();
-                    this.remove(block);
-                };
+                if (this.config.decoys.length) {
+                    block.onclick = () => {
+                        if (block.isDecoy) this.commend();
+                        else this.crit();
+                        this.remove(block);
+                    };
+                }
 
                 // add the block to the frame
                 this.UI.frame.insertBefore(block, this.UI.input);

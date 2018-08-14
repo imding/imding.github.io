@@ -2,41 +2,7 @@ const
     app = {
         ui: {}
     },
-    util = {
-        css: (el) => {
-            const
-                cs = window.getComputedStyle(el),
-                val = (p) => cs.getPropertyValue(p);
 
-            return {
-                get width() {
-                    return parseFloat(val('width'));
-                },
-
-                get height() {
-                    return parseFloat(val('height'));
-                },
-
-                get left() {
-                    return parseFloat(val('left'));
-                }
-            };
-        },
-
-        initDoc() {
-            document.children[0].style.height = '100%';
-            document.body.style.height = '100%';
-            document.body.style.margin = '0';
-        },
-
-        get vw() {
-            return this.css(document.body).width;
-        },
-
-        get vh() {
-            return this.css(document.body).height;
-        }
-    },
 
 
     data = {
@@ -67,6 +33,7 @@ window.onload = () => {
     // add root node to graph
     root = newNode({
         id: 'rootNode',
+        fill: 'mediumspringgreen',
         x: 100,
         y: 100,
         w: 150,
@@ -82,34 +49,46 @@ window.onload = () => {
     // add new node
     graph.node.oncontextmenu = e => {
         e.preventDefault();
-        nodes.push(newNode({
-            id: `node${nodes.length + 1}`,
-            x: e.clientX - 75,
-            y: e.clientY - 50,
-            w: 150,
-            h: 100,
-        }));
+
+        if (Object.is(e.target, graph.node)) {
+            nodes.push(newNode({
+                id: `node${nodes.length + 1}`,
+                x: e.clientX - 75,
+                y: e.clientY - 50,
+                w: 150,
+                h: 100,
+            }));
+        }
     };
 };
 
 function newNode(p) {
     const
-        node = graph.rect(p.w, p.h).attr({
+        node = graph.nested(),
+
+        nodeBody = node.rect(p.w, p.h).attr({
             id: p.id,
             x: p.x, y: p.y,
             rx: 10, ry: 10,
-            fill: 'skyblue',
+            fill: p.fill || 'azure',
             stroke: 'rgba(0, 0, 0, 0.3)',
             'stroke-width': 5,
+        }).style({
+            cursor: 'grabbing',
         }),
 
         dropNode = e => {
+            if (e.button === 2) return;
             activeNode = null;
             console.log(`dropped ${e.target.id}`);
         };
 
     // dnd events
-    node.mousedown(e => grabNode(node, e.clientX, e.clientY));
+    node.mousedown(e => {
+        if (e.button === 2) return;
+        grabNode(node, e.clientX, e.clientY);
+    });
+
     node.touchstart(e => {
         if (e.touches.length > 1) return;
         grabNode(node, e.touches[0].clientX, e.touches[0].clientY);
@@ -128,6 +107,7 @@ function moveNode(x, y) {
         x: Math.min(Math.max(10, x - activeNode.grabOffset.x), graph.node.width.animVal.value - activeNode.node.width.animVal.value - 10),
         y: Math.min(Math.max(10, y - activeNode.grabOffset.y), graph.node.height.animVal.value - activeNode.node.height.animVal.value - 10),
     };
+
     activeNode.move(coord.x, coord.y);
 
     console.clear();
@@ -135,11 +115,11 @@ function moveNode(x, y) {
 }
 
 function grabNode(el, x, y) {
-    const g = graph.node.getBBox();
     el.grabOffset = {
-        x: x - g.x,
-        y: y - g.y,
+        x: x - graph.node.x.animVal.value - el.node.x.animVal.value,
+        y: y - graph.node.y.animVal.value - el.node.y.animVal.value,
     };
+
     activeNode = el;
 
     console.clear();
@@ -150,8 +130,4 @@ function initDoc() {
     document.children[0].style.height = '100%';
     document.body.style.height = '100%';
     document.body.style.margin = '0';
-}
-
-function frame(el) {
-
 }

@@ -2,14 +2,32 @@
 <html>
 
 <head>
-    <link rel='stylesheet' href='style.css' />
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/svg.js/2.6.5/svg.min.js'></script>
-    <script src='Node.js'></script>
-    <script src='script.js'></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+        }
+    </style>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/gojs/1.8.27/go-debug.js'></script>
+    <!-- <script src='script.js'></script> -->
 </head>
 
-<body>
+<body onload='init()'>
+    <div id='graphEl'></div>
 
+    <script>
+        let graph;
+
+        function init() {
+            graphEl.style.width = '100%';
+            graphEl.style.height = '100%';
+
+            graph = go.GraphObject.make(go.Diagram, 'graphEl', {
+                "undoManager.isEnabled": true // enable Ctrl-Z to undo and Ctrl-Y to redo
+            });
+        }
+    </script>
 </body>
 
 </html>
