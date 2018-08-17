@@ -1,0 +1,121 @@
+<html>
+<head>
+    <title>FBP Example</title>
+</head>
+<body>
+    <script type="text/javascript" src="../dist/fbp.js"></script>
+    <script type="text/javascript">
+
+    /* FBP.component(config)
+     *  Defines a component.
+     *  The config argument should contain the following properties:
+     *    name
+     *      Required.
+     *      The name of the component.
+     *    inPorts
+     *      Required.
+     *      An array of in port names.
+     *      If there is only one in port, a string of in port name is accepted too.
+     *    outPorts
+     *      Required.
+     *      An array of out port names.
+     *      If there is only one out port, a string of out port name is accepted too.
+     *    body
+     *      Required.
+     *      The component body.
+     *      Note that the function arguments should match the number of in ports and out ports.
+     *      While invoked, the out port arguments are sent as callback functions.
+     *      The callback function accepts two arguments: (err, value).
+     *      Normally the first argument should be sent with null.
+     *      Any error sent in leads to the termination of network.
+     *      The out port value should be sent to the second argument.
+     *    state
+     *      Optional.
+     *      A plain object that store component states.
+     *      More specifically, the object will be treated as 'this' argument.
+     *      Any access to 'this' argument in component body referes to the state object.
+     *      The object can store with JSON-safe type variables.
+     *      If this property is not specified, the state object is an empty object by default.
+     */
+
+    FBP.component({
+        name: 'add',
+        inPorts: ['x', 'y'],
+        outPorts: ['output'],
+        body: function (x, y, output) {
+            output(null, x + y);
+        }
+    });
+
+    FBP.component({
+        name: 'mul',
+        inPorts: ['x', 'y'],
+        outPorts: 'output',
+        body: function (x, y, o) {
+            o(null, x * y);
+        }
+    });
+
+    /* FBP.define(name, constructor)
+     *  Defines a network.
+     *  The constructor argument is a function with single argument 'F'.
+     *  The 'F' argument contains necessary functions to construct a network:
+     *    init(component, port)
+     *      Set an initial port for the network.
+     *      'port' specifies one of the in ports of the component.
+     *    connect(fromName, fromPort, toName, toPort)
+     *      Construct a connection between compoenents.
+     *      As the argument names refers, the fromPort of the fromName component will be connected to the toPort of the toName component.
+     *    end(component, port)
+     *      Set an end port for the network.
+     *      Note that end ports are not necessary; it depends on the network design.
+     *      'port' specifies one of the out ports of the component.
+     *  After definition the define function returns with the network object, so it is convenient to call 'go' directly to invoke the network.
+     *  Or the network object can be retrieved by the function FBP.network(name).
+     */
+
+    FBP.define('network', function (F) {
+
+        F.init('add', 'x');
+        F.init('add', 'y');
+        F.init('mul', 'y');
+
+        F.connect('add', 'output', 'mul', 'x');
+
+        F.end('mul', 'output');
+
+    /* network.go(inputs, callback)
+     *  Invoke a network.
+     *  The inputs argument is a plain object where properties are the input values of the network.
+     *  For each property, the key is a string specifying component and its in port, connected by the '.' character.
+     *  The callback argument is the function that is called upon completion or error occurs.
+     *  The error occurs while the component body is invoking the out port functions with error arguments.
+     *  The results argument contains several properties:
+     *    output
+     *      The output value of network end port.
+     *      Each end ports of the network invokes a callback call.
+     *    port
+     *      The name of output port.
+     *      This value determines which end port invokes the callback.
+     *    interval
+     *      A number indicating execution time (in milliseconds).
+     */
+
+    }).go({
+        'add.x': 1,
+        'add.y': 2,
+        'mul.y': 3
+    }, function (err, result) {
+        if (err) {
+            alert(err);
+        } else {
+            console.log(result.port); // mul.output
+            console.log(result.output); // 9
+            console.log(result.interval); // execution time
+            console.log(result.profile);
+        }
+    });
+
+    </script>
+</body>
+</html>

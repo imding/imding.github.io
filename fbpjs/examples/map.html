@@ -1,0 +1,89 @@
+<html>
+<head>
+    <title>FBP example - Map</title>
+</head>
+<body>
+    <script type="text/javascript" src="../dist/fbp.js"></script>
+    <script type="text/javascript">
+
+    FBP.component({
+        name: 'add-minus',
+        inPorts: ['x', 'y'],
+        outPorts: ['o1', 'o2'],
+        body: function (x, y, o1, o2) {
+            o1(null, x + y);
+            o2(null, x - y);
+        }
+    });
+
+    FBP.component({
+        name: 'pow',
+        inPorts: 'input',
+        outPorts: 'output',
+        body: function (I, O) {
+            O(null, Math.pow(I, I));
+        }
+    });
+
+    FBP.component({
+        name: 'mul2',
+        inPorts: 'input',
+        outPorts: 'output',
+        body: function (I, O) {
+            O(null, I * 2);
+        }
+    });
+
+    FBP.component({
+        name: 'randomArray',
+        inPorts: 'n',
+        outPorts: 'output',
+        body: function (n, output) {
+            var a = [], i = 0;
+            for (i; i < n; i = i + 1) {
+                a.push(Math.random());
+            }
+            output(null, a);
+        }
+    });
+
+    FBP.define({
+        name: 'mapexample',
+        init: 'randomArray.n',
+        end: 'pow.output',
+        connections: {
+            'randomArray.output': {
+                to: 'mul2.input',
+                map: true
+            },
+            'mul2.output': {
+                to: 'pow.input',
+                map: true
+            }
+        }
+    }).go({
+        'randomArray.n': 3
+    }, function (err, result) {
+        console.log(result);
+    });
+
+    FBP.define({
+        name: 'mapexample2',
+        init: ['randomArray.n', 'add-minus.y'],
+        connections: {
+            'randomArray.output': {
+                to: 'add-minus.x',
+                map: true
+            }
+        },
+        end: ['add-minus.o1', 'add-minus.o2']
+    }).go({
+        'randomArray.n': 3,
+        'add-minus.y': [100, 200, 300]
+    }, function (err, result) {
+        console.log(result);
+    });
+
+    </script>
+</body>
+</html>

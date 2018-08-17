@@ -9,25 +9,14 @@
             height: 100%;
         }
     </style>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/gojs/1.8.27/go-debug.js'></script>
-    <!-- <script src='script.js'></script> -->
+    <script src='App.js'></script>
+    <script src='Graph.js'></script>
+    <script src='Node.js'></script>
+    <script src='script.js'></script>
 </head>
 
-<body onload='init()'>
-    <div id='graphEl'></div>
-
-    <script>
-        let graph;
-
-        function init() {
-            graphEl.style.width = '100%';
-            graphEl.style.height = '100%';
-
-            graph = go.GraphObject.make(go.Diagram, 'graphEl', {
-                "undoManager.isEnabled": true // enable Ctrl-Z to undo and Ctrl-Y to redo
-            });
-        }
-    </script>
+<body>
+    <div id='workspace'></div>
 </body>
 
 </html>

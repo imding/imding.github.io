@@ -1,4 +1,5 @@
 const taInstruction = document.getElementById('instruction');
+const btnRecover = document.getElementById('recover');
 const btnLoad = document.getElementById('load');
 const btnConvert = document.getElementById('convert');
 const btnSave = document.getElementById('save');
@@ -72,26 +73,30 @@ const template = [
 
 // ==================== EVENT LISTENER ==================== //
 window.onload = () => {
-    taInstruction.onblur = () => { info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`; };
-    info.onfocus = () => { editProjectInfo(); };
-    info.onblur = () => { updateProjectInfo(); };
-    info.onkeydown = (evt) => { if (evt.code == 'Enter') { info.blur(); } };
-    btnLoad.ondblclick = () => { loadTextFile(); };
-    btnConvert.onclick = () => { convertInstruction(); };
+    taInstruction.onblur = () => info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`;
+    info.onfocus = () => editProjectInfo();
+    info.onblur = () => updateProjectInfo();
+    info.onkeydown = evt => { if (evt.code == 'Enter') { info.blur(); } };
+    btnRecover.onclick = () => recoverFromLocal();
+    btnLoad.ondblclick = () => loadTextFile();
+    btnConvert.onclick = () => convertInstruction();
     btnSave.onclick = () => { commitToMaster(); saveTextFile(master); };
     btnPrev.onclick = () => { prevStep(); updateStepLogic(); };
     btnAdd.onclick = () => { addStep(); updateStepLogic(); };
-    btnDel.onclick = () => { confirmDel(); };
+    btnDel.onclick = () => confirmDel();
     btnNext.onclick = () => { nextStep(); updateStepLogic(); };
-    btnDupPrev.onclick = () => { copyCode(cStep - 1); };
-    btnHTML.onclick = (evt) => { toggleCodePanel(evt.target); codeEditor.getSession().setMode('ace/mode/html'); };
-    btnCSS.onclick = (evt) => { toggleCodePanel(evt.target); codeEditor.getSession().setMode('ace/mode/css'); };
-    btnJS.onclick = (evt) => { toggleCodePanel(evt.target); codeEditor.getSession().setMode('ace/mode/javascript'); };
-    btnRun.onclick = () => { updatePreview(); };
-    btnRun.ondblclick = () => { closePreview(); };
-    btnDupNext.onclick = () => { copyCode(cStep + 1); };
-    btnHTML.disabled = true; btnHTML.style.background = 'indianred'; activeCodeBtn = btnHTML;
-    btnCSS.style.background = 'darkseagreen'; btnJS.style.background = 'darkseagreen';
+    btnDupPrev.onclick = () => copyCode(cStep - 1);
+    btnHTML.onclick = evt => { toggleCodePanel(evt.target); codeEditor.getSession().setMode('ace/mode/html'); };
+    btnCSS.onclick = evt => { toggleCodePanel(evt.target); codeEditor.getSession().setMode('ace/mode/css'); };
+    btnJS.onclick = evt => { toggleCodePanel(evt.target); codeEditor.getSession().setMode('ace/mode/javascript'); };
+    btnRun.onclick = () => updatePreview();
+    btnRun.ondblclick = () => closePreview();
+    btnDupNext.onclick = () => copyCode(cStep + 1);
+    btnHTML.disabled = true;
+    btnHTML.style.background = 'indianred';
+    activeCodeBtn = btnHTML;
+    btnCSS.style.background = 'darkseagreen';
+    btnJS.style.background = 'darkseagreen';
 
     initializeUI();
 
@@ -103,8 +108,25 @@ window.onload = () => {
     logicEditor.setTheme('ace/theme/tomorrow');
     logicEditor.setHighlightGutterLine(false);
     logicEditor.session.setMode('ace/mode/javascript');
-    logicEditor.on('focus', () => { logicEditor.setReadOnly(cStep < 2); });
-    logicEditor.on('blur', () => { highlightButton(); });
+    logicEditor.on('focus', () => logicEditor.setReadOnly(cStep < 2));
+    logicEditor.on('blur', highlightButton);
+    stepLogic.onmouseover = () => {
+        if (cStep < 2) return;
+        
+        const tip = document.createElement('div');
+        
+        document.body.appendChild(tip);
+
+        tip.id = 'logicEditorTip';
+        tip.innerHTML = '<p><b class="hotkey">alt + L</b> apply step logic</p><p><b class="hotkey">alt + K</b> generate expectation code</p>';
+
+        tip.style.left = get(stepLogic, 'left') + (get(stepLogic, 'width') - get(tip, 'width')) / 2 + 'px';
+        tip.style.top = get(stepLogic, 'top') - get(tip, 'height') + 'px';
+    };
+    stepLogic.onmouseout = () => {
+        if (cStep < 2) return;
+        document.body.removeChild(logicEditorTip);
+    };
     gutter = Array.from(document.getElementsByClassName('ace_gutter'))[1];
 
     codeEditor.setOptions(aceOptions);
@@ -144,9 +166,7 @@ window.onkeyup = () => {
     }
 };
 
-window.onmouseup = () => {
-    window.removeEventListener('mousemove', moveDivider, true);
-};
+window.onmouseup = () => window.removeEventListener('mousemove', moveDivider, true);
 
 // ==================== PROJECT INFO ==================== //
 function editProjectInfo() {
@@ -186,20 +206,26 @@ function updateStyledInstruction() {
         link = /\[([^\]:]+)::([^\s]+)\]/g,
         bold = /\*([^\s*]+|[^\s][^*]+[^\s])\*/g,
         code = /`([^\s`]+|[^\s][^`]+[^\s])`/g,
-        glossary = /#GLS\(([a-zA-Z]+)-([a-zA-Z0-9-]+)\)#/g;
+        // glossary = /#GLS\(([a-zA-Z]+)-([a-zA-Z0-9-]+)\)#/g;
+        glossary = /gls#([^#\n]+)#(html|css|js|javascript)#([-a-z0-9]+)/;
     let source = inst[cStep].replace(/</g, '&lt;').split(/\r?\n/).slice(2),
         isList = false,
         isPre = false;
 
     source.forEach((e, i) => {
+        // replace markup for code location link
         while (loc.test(e)) {
             const query = e.match(loc),
                 name = query[1] || (query[2] == 'html' ? 'index' : query[2] == 'css' ? 'style' : 'script');
 
             e = e.replace(loc, `<b>##LINE('${name}.${query[2]}','${query[3]}')${query[4] || ''}##</b>`);
-            if (query.input[query.index - 1] == '+') {
-                e = e.splice(query.index - 1, 1, `<b>${query[2].toUpperCase().replace(/JS/, 'JavaScript')} line</b> `);
-            }
+            if (query.input[query.index - 1] == '+') e = e.splice(query.index - 1, 1, `<b>${query[2].toUpperCase()} line</b> `);
+        }
+
+        // replace markup for glossary link
+        while (glossary.test(e)) {
+            const query = e.match(glossary);
+            e = e.replace(glossary, `<a href='#glossary/${query[2].replace(/^js$/i, 'javascript')}/${query[3]}'>${query[1]}</a>`);
         }
 
         isList = /^\[(-|=)/.test(e) ? true : isList;                    // BEGINNING OF A LIST
@@ -228,7 +254,7 @@ function updateStyledInstruction() {
     source = source.join('\n').replace(/\[-/g, '<ul>').replace(/-\]/g, '</ul>').replace(/\[=/g, '<ol>').replace(/=\]/g, '</ol>');                           // LISTS
     source = source.replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>');     // CODE SNIPPETS
     source = source.replace(bold, '<b>$1</b>').replace(code, '<code class="syntax">$1</code>').replace(link, '<a href="$2" target="_blank">$1</a>');
-    source = source.replace(glossary, '<code class="glossary gls$1"><i class="fa fa-rocket glsIcon"></i><span class="glossary-link gls$1">$2</span></code>');
+    // source = source.replace(glossary, '<code class="glossary gls$1"><i class="fa fa-rocket glsIcon"></i><span class="glossary-link gls$1">$2</span></code>');
     source += (cStep > 1 && cStep < tSteps ? '\n<hr>\n<p class="highlight">Click on <b>Check all objectives</b> to continue</p>' :
         cStep == 1 ? '\n<hr>\n<p class="highlight">Click on <b>Next step</b> to get started</p>' :
             cStep > 10 ? '\n<hr>\n<p class="highlight"><b>Export to Sandbox</b> to continue working on it</p>' : '');
@@ -239,61 +265,61 @@ function updateStyledInstruction() {
     alignElement(styledInstruction);
     convertLineNumber();
 
-    const btnGlossary = Array.from(document.getElementsByClassName('glossary'));
-    btnGlossary.forEach(b => {
-        b.onclick = function () {
-            const glsBackdrop = document.createElement('div');
-            const glsWrapper = document.createElement('div');
-            const glsClose = document.createElement('div');
+    // const btnGlossary = Array.from(document.getElementsByClassName('glossary'));
+    // btnGlossary.forEach(b => {
+    //     b.onclick = function () {
+    //         const glsBackdrop = document.createElement('div');
+    //         const glsWrapper = document.createElement('div');
+    //         const glsClose = document.createElement('div');
 
-            document.body.appendChild(glsBackdrop);
-            document.body.appendChild(glsWrapper);
-            glsWrapper.appendChild(glsClose);
+    //         document.body.appendChild(glsBackdrop);
+    //         document.body.appendChild(glsWrapper);
+    //         glsWrapper.appendChild(glsClose);
 
-            glsBackdrop.id = 'glsBackdrop';
+    //         glsBackdrop.id = 'glsBackdrop';
 
-            glsWrapper.id = 'glsWrapper';
-            glsWrapper.style.left = `${styledInstruction.offsetLeft + b.offsetLeft + (b.offsetWidth / 2)}px`;
-            glsWrapper.style.top = `${styledInstruction.offsetTop + b.offsetTop + (b.offsetHeight / 2)}px`;
+    //         glsWrapper.id = 'glsWrapper';
+    //         glsWrapper.style.left = `${styledInstruction.offsetLeft + b.offsetLeft + (b.offsetWidth / 2)}px`;
+    //         glsWrapper.style.top = `${styledInstruction.offsetTop + b.offsetTop + (b.offsetHeight / 2)}px`;
 
-            setTimeout(() => {
-                glsBackdrop.style.opacity = '0.6';
-                glsWrapper.style.opacity = '1';
-                glsWrapper.style.width = '500px';
-                glsWrapper.style.height = '350px';
-                glsWrapper.style.left = 'calc(50% - 250px)';
-                glsWrapper.style.top = 'calc(50% - 175px)';
-            }, 0);
+    //         setTimeout(() => {
+    //             glsBackdrop.style.opacity = '0.6';
+    //             glsWrapper.style.opacity = '1';
+    //             glsWrapper.style.width = '500px';
+    //             glsWrapper.style.height = '350px';
+    //             glsWrapper.style.left = 'calc(50% - 250px)';
+    //             glsWrapper.style.top = 'calc(50% - 175px)';
+    //         }, 0);
 
-            glsWrapper.addEventListener('transitionend', function (evt) {
-                if (glsClose.id) {
-                    if (evt.propertyName == 'width') {
-                        document.body.removeChild(this);
-                    }
-                }
-                else {
-                    if (evt.propertyName == 'width') {
-                        glsClose.id = 'glsClose';
-                        glsClose.innerHTML = '&#10539;';
-                        glsClose.style.left = `${glsWrapper.offsetWidth - glsClose.offsetWidth - 10}px`;
-                    }
-                }
-            }, false);
+    //         glsWrapper.addEventListener('transitionend', function (evt) {
+    //             if (glsClose.id) {
+    //                 if (evt.propertyName == 'width') {
+    //                     document.body.removeChild(this);
+    //                 }
+    //             }
+    //             else {
+    //                 if (evt.propertyName == 'width') {
+    //                     glsClose.id = 'glsClose';
+    //                     glsClose.innerHTML = '&#10539;';
+    //                     glsClose.style.left = `${glsWrapper.offsetWidth - glsClose.offsetWidth - 10}px`;
+    //                 }
+    //             }
+    //         }, false);
 
-            glsClose.onclick = function () {
-                glsBackdrop.style.opacity = '0';
-                glsWrapper.style.opacity = '0';
-                glsWrapper.style.width = '0';
-                glsWrapper.style.height = '0';
-                glsWrapper.style.left = `${styledInstruction.offsetLeft + b.offsetLeft + (b.offsetWidth / 2)}px`;
-                glsWrapper.style.top = `${styledInstruction.offsetTop + b.offsetTop + (b.offsetHeight / 2)}px`;
+    //         glsClose.onclick = function () {
+    //             glsBackdrop.style.opacity = '0';
+    //             glsWrapper.style.opacity = '0';
+    //             glsWrapper.style.width = '0';
+    //             glsWrapper.style.height = '0';
+    //             glsWrapper.style.left = `${styledInstruction.offsetLeft + b.offsetLeft + (b.offsetWidth / 2)}px`;
+    //             glsWrapper.style.top = `${styledInstruction.offsetTop + b.offsetTop + (b.offsetHeight / 2)}px`;
 
-                glsBackdrop.addEventListener('transitionend', function () {
-                    document.body.removeChild(this);
-                }, false);
-            };
-        };
-    });
+    //             glsBackdrop.addEventListener('transitionend', function () {
+    //                 document.body.removeChild(this);
+    //             }, false);
+    //         };
+    //     };
+    // });
 }
 
 function convertLineNumber() {
@@ -311,9 +337,8 @@ function convertLineNumber() {
                 if (!n) {
                     line = line.replace(markup[2], '');
                     n = line.includes(markup[2]) ? `'${markup[2]}' NOT UNIQUE` : i + 1;
-                } else {
-                    n = `'${markup[2]}' NOT UNIQUE`;
                 }
+                else n = `'${markup[2]}' NOT UNIQUE`;
             }
         });
         n = markup[3] ? eval(`n${markup[3]}`) : n;      // markup[3] is offset
@@ -382,12 +407,7 @@ function updatePreview() {
     headContent = headContent
         .split('\n')
         .map(l => {
-            redundant.forEach(r => {
-                if (r.test(l)) {
-                    l = l.replace(r, '');
-                }
-            });
-
+            redundant.forEach(r => { if (r.test(l)) l = l.replace(r, ''); });
             return l.trim().length ? `\t${l.trim()}` : '';
         })
         .filter(l => l.length);
@@ -442,9 +462,7 @@ function convertEditable() {
         }
         codeEditor.insert(sel);
     }
-    else {
-        codeEditor.insert(`${markup[0]}${sel}${markup[1]}`);
-    }
+    else codeEditor.insert(`${markup[0]}${sel}${markup[1]}`);
 }
 
 function closePreview() {
@@ -486,9 +504,7 @@ function addStep() {
     updateCodeButtons();
     preview ? updatePreview() : null;
     styledInstruction ? btnConvert.click() : null;
-    if (logicEditor.getReadOnly) {
-        logicEditor.setReadOnly(false);
-    }
+    if (logicEditor.getReadOnly) logicEditor.setReadOnly(false);
 }
 
 function confirmDel() {
@@ -541,9 +557,7 @@ function getStepName() {
 
 // ==================== DATA OPERATION ==================== //
 function setValue(editor, value, cursor = {}) {
-    if (!cursor.hasOwnProperty('row', 'column')) {
-        cursor = editor.selection.getCursor();
-    }
+    if (!cursor.hasOwnProperty('row', 'column')) cursor = editor.selection.getCursor();
     editor.setValue(value);
     editor.gotoLine(cursor.row + 1, cursor.column, false);
 }
@@ -568,14 +582,10 @@ function getActiveCode(type, step = cStep) {     // RETURN LOGIC OR SOURCE CODE 
     const token = activeCodeBtn == btnHTML ? htmlToken : (activeCodeBtn == btnCSS ? cssToken : jsToken);
     if (encodeURI(eval(type)[step]).match(token[2])) {
         const activeCode = decodeURI(encodeURI(eval(type)[step]).match(token[2])[0].replace(token[0], '').replace(token[1], ''));
-        if (type == 'code') {
-            return btnHTML.disabled ? html = activeCode : (btnCSS.disabled ? css = activeCode : js = activeCode);
-        } else {
-            return btnHTML.disabled ? htmlLogic = activeCode : (btnCSS.disabled ? cssLogic = activeCode : jsLogic = activeCode);
-        }
-    } else {
-        return '';
+        if (type == 'code') return btnHTML.disabled ? html = activeCode : (btnCSS.disabled ? css = activeCode : js = activeCode);
+        else return btnHTML.disabled ? htmlLogic = activeCode : (btnCSS.disabled ? cssLogic = activeCode : jsLogic = activeCode);
     }
+    else return '';
 }
 
 function loadToMemory(str) {
@@ -601,7 +611,8 @@ function loadCodeInStep(step) {
     if (step == 0) {
         html = ''; css = ''; js = '';
         htmlLogic = ''; cssLogic = ''; jsLogic = '';
-    } else {
+    }
+    else {
         html = decodeURI(encodeURI(code[step]).match(htmlToken[2])[0].replace(htmlToken[0], '').replace(htmlToken[1], ''));
         css = decodeURI(encodeURI(code[step]).match(cssToken[2])[0].replace(cssToken[0], '').replace(cssToken[1], ''));
         js = decodeURI(encodeURI(code[step]).match(jsToken[2])[0].replace(jsToken[0], '').replace(jsToken[1], ''));
@@ -643,7 +654,7 @@ function loadTextFile() {
     fileToLoad.click();
     fileToLoad.onchange = () => {
         const fileReader = new FileReader();
-        fileReader.onload = (fileLoadedEvent) => readValue(fileLoadedEvent.target.result, fileToLoad.value.split('\\').pop().replace(/\.txt/, ''));
+        fileReader.onload = fileLoadedEvent => readValue(fileLoadedEvent.target.result, fileToLoad.value.split('\\').pop().replace(/\.txt/, ''));
         fileReader.readAsText(fileToLoad.files[0], 'UTF-8');
     };
 }
@@ -653,6 +664,12 @@ function readValue(value, title) {
     cProj = title;
     getStepName(cStep);
     info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`;
+}
+
+function recoverFromLocal() {
+    if (confirm('You\'re about to load data from local storage, this may overwrite your current data and cause you to lose work. Are you sure?')) {
+        if (confirm('This action can not be undone. Please confirm.')) readValue(localStorage.lbcontent);
+    }
 }
 
 // ==================== HANDLER ==================== //
@@ -691,13 +708,9 @@ function keyHandler() {
             // console.log(altKey);
     }
 
-    else if (event.code == 'ControlLeft') {
-        ctrlKey = event;
-    }
+    else if (event.code == 'ControlLeft') ctrlKey = event;
 
-    else {
-        ctrlKey = {timeStamp: 0};
-    }
+    else ctrlKey = {timeStamp: 0};
 
     if (altKey && event.code != pkey) {
 
@@ -730,18 +743,20 @@ function keyHandler() {
 
 // ==================== UI ==================== //
 function updateUI() {
-    [btnLoad, btnConvert, btnSave, btnDupPrev, btnHTML, btnCSS, btnJS, btnRun, btnDupNext].forEach((e) => { e.style.top = `${pagePadding}px`; });
-    [btnPrev, btnAdd, btnDel, btnNext, info].forEach((e) => { e.style.bottom = `${pagePadding}px`; });
+    [btnRecover, btnLoad, btnConvert, btnSave, btnDupPrev, btnHTML, btnCSS, btnJS, btnRun, btnDupNext].forEach(e => { e.style.top = `${pagePadding}px`; });
+    [btnPrev, btnAdd, btnDel, btnNext, info].forEach(e => { e.style.bottom = `${pagePadding}px`; });
     flexDivider();
     scaleContent();
 }
 
 function scaleContent() {
     // ===== LEFT SIDE ===== //   
+    btnRecover.style.left = pagePadding + 'px';
+
     btnLoad.style.left = pagePadding * 3 + 'px';
     btnSave.style.left = get(vDiv, 'left') - get(btnSave, 'width') - pagePadding * 2 + 'px';
     [btnPrev, btnAdd, btnDel, btnNext].forEach((e, i, arr) => {
-        e.style.left = i * (get(e, 'width') + margin) +                                                                                     // POSITION EACH BUTTON
+        e.style.left = i * (get(e, 'width') + margin) +                                                                                 // POSITION EACH BUTTON
             (get(vDiv, 'left') - pagePadding - arr.length * get(e, 'width') - margin * (arr.length - 1)) / 2 + pagePadding + 'px';      // OFFSET TO CENTRE
     });
     taInstruction.style.left = pagePadding + 'px';
@@ -764,7 +779,7 @@ function scaleContent() {
     srcCode.style.height = get(hDiv, 'top') - get(srcCode, 'top') + 'px';
     stepLogic.style.top = get(hDiv, 'top') + get(hDiv, 'height') + 'px';
     stepLogic.style.height = get(info, 'top') - get(stepLogic, 'top') - margin + 'px';
-    [srcCode, stepLogic, info].forEach((e) => {
+    [srcCode, stepLogic, info].forEach(e => {
         e.style.left = get(vDiv, 'left') + get(vDiv, 'width') + 'px';
         e.style.width = get(hDiv, 'width') - get(vDiv, 'width') - pagePadding + 'px';
     });
@@ -792,9 +807,7 @@ function alignElement(e, target = taInstruction) {
     e.style.width = get(target, 'width') + 'px';
     e.style.height = get(target, 'height') + 'px';
 
-    if (e == styledInstruction) {
-        e.style.padding = `0 ${(target.offsetWidth - 380) / 2}px`;
-    }
+    if (e == styledInstruction) e.style.padding = `0 ${(target.offsetWidth - 380) / 2}px`;
 }
 
 function initializeUI() {
@@ -803,26 +816,22 @@ function initializeUI() {
     vDiv.id = 'vDiv'; hDiv.id = 'hDiv';
     vDiv.style.width = divWidth; hDiv.style.height = divWidth;
     vDiv.style.top = '0'; hDiv.style.right = '0';
-    [vDiv, hDiv].forEach((e) => {
+    [vDiv, hDiv].forEach(e => {
         e.style.cursor = 'cell';
         e.style.userSelect = 'none';
     });
 
-    vDiv.onmousedown = (evt) => {
+    vDiv.onmousedown = evt => {
         xOffset = evt.clientX - get(vDiv, 'left'); yOffset = evt.clientY - get(hDiv, 'top');
         window.addEventListener('mousemove', moveDivider, true);
     };
-    hDiv.onmousedown = (evt) => {
+    hDiv.onmousedown = evt => {
         xOffset = evt.clientX - get(vDiv, 'left'); yOffset = evt.clientY - get(hDiv, 'top');
         window.addEventListener('mousemove', moveDivider, true);
     };
 
     const elem = Array.from(document.body.getElementsByTagName('*'));
-    elem.forEach((e) => {
-        if (e.tagName != 'LI' && e.tagName != 'SCRIPT' && e.id != 'editor') {
-            e.style.position = 'absolute';
-        }
-    });
+    elem.forEach(e => { if (e.tagName != 'LI' && e.tagName != 'SCRIPT' && e.id != 'editor') e.style.position = 'absolute'; });
     updateUI();
 }
 
@@ -875,11 +884,13 @@ function testLogic() {
             if (typeof (output) == 'string') {
                 setValue(codeEditor, output);
                 gutter.style.background = 'lightgreen';
-            } else {
+            }
+            else {
                 log(`Output type is "${typeof (output)}", should be a string.`, 'warn');
                 gutter.style.background = 'lightcoral';
             }
-        } else {
+        }
+        else {
             log('Transition logic must return a value.', 'warn');
             gutter.style.background = 'lightcoral';
         }
@@ -917,11 +928,13 @@ function generateTest() {
                 if (codeEditor.getSelectedText().trim().length) {
                     logicEditor.setValue(`${logicEditor.getValue()}\npass.if.${activeCodeBtn.innerHTML.toLowerCase()}.editable(${n}).equivalent(\`${codeEditor.getSelectedText().trim().replace(/[\s\n\r]+/g, ' ')}\`);`);
                 }
-            } else {
+            }
+            else {
                 log('Missing #END_EDITABLE#.', 'warn');
                 break;
             }
-        } else {
+        }
+        else {
             log('Missing #BEGIN_EDITABLE#.', 'warn');
             break;
         }
@@ -982,9 +995,8 @@ function round(v, decimal = 0, op = Math.round) {
     if (decimal) {
         const mod = Math.pow(10, decimal);
         return op(v * mod) / mod;
-    } else {
-        return op(v);
     }
+    else return op(v);
 }
 
 String.prototype.splice = function (idx, rem, str) {
