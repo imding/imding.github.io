@@ -50,7 +50,7 @@ const markup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'];
 
 const vDiv = document.createElement('div');
 const hDiv = document.createElement('div');
-const vDivMin = 420, hDivMin = 280;
+const vDivMin = 420, hDivMin = 260;
 let xOffset, yOffset;
 
 const pagePadding = 20, margin = 10;
@@ -113,11 +113,7 @@ window.onload = () => {
     logicEditor.session.setMode('ace/mode/javascript');
     logicEditor.on('focus', () => logicEditor.setReadOnly(cStep < 2));
     logicEditor.on('blur', highlightButton);
-    
-    // srcCode.onmouseover = showCodeTip;
-    // stepLogic.onmouseover = showStepLogicTip;
-    // stepLogic.onmouseout = srcCode.onmouseout = removeTip;
-    
+
     gutter = Array.from(document.getElementsByClassName('ace_gutter'))[1];
 
     codeEditor.setOptions(aceOptions);
@@ -153,7 +149,6 @@ window.onkeyup = () => {
     if (event.code == 'AltRight') {
         altKey = false;
         returnFocus.focus();
-        // console.log(altKey);
     }
 };
 
@@ -187,11 +182,16 @@ function convertInstruction() {
         styledInstruction.id = 'styledInstruction';
         document.body.appendChild(styledInstruction);
         updateStyledInstruction();
-    } else {
+    }
+    else {
         btnConvert.className = 'fa fa-pencil';
         taInstruction.value = inst[cStep];
         document.body.removeChild(styledInstruction);
         styledInstruction = null;
+
+        const selNode = window.getSelection().baseNode;
+
+        if (!altKey && selNode && selNode.id && selNode.id.endsWith('Editor')) eval(selNode.id).focus();
     }
 }
 
@@ -299,7 +299,7 @@ function selectAndCopy(elem) {
     selection.empty();
     selection.addRange(rangeObj);
     document.execCommand('copy');
-    currentFocus ? currentFocus.focus() : null;
+    (currentFocus && !altKey) ? currentFocus.focus() : null;
 }
 
 // =============================================================== //
@@ -646,25 +646,44 @@ function keyHandler() {
         return;
     }
 
-    else if (event.code == 'Escape') {
-        const b = document.getElementById('glsClose');
-        if (b) {
-            event.preventDefault();
-            b.click();
+    // handle right alt key
+    else if (event.code == 'AltRight') {
+        const ua = window.navigator.userAgent;
+
+        // handle windows os
+        if (/Windows/.test(ua)) {
+            if (event.timeStamp - (ctrlKey || event).timeStamp <= 1 && !altKey) {
+                ctrlKey = { timeStamp: 0 };
+                altKey = true;
+                returnFocus = document.activeElement;
+                returnFocus.blur();
+            }
+            else if (event.code == 'ControlLeft') ctrlKey = event;
+
+            else ctrlKey = { timeStamp: 0 };
         }
-    }
-    
-    else if (event.code == 'AltRight' && event.timeStamp - ctrlKey.timeStamp <= 1 && !altKey) {
-            ctrlKey = { timeStamp: 0 };
+
+        // handle mac os
+        else if (/Macintosh/.test(ua)) {
             altKey = true;
             returnFocus = document.activeElement;
             returnFocus.blur();
-            // console.log(altKey);
+        }
+
+        else console.warn('Keyboard shortcut feature is not supported for your OS.');
     }
 
-    else if (event.code == 'ControlLeft') ctrlKey = event;
+    // else if (event.code == 'AltRight' && event.timeStamp - (ctrlKey || event).timeStamp <= 1 && !altKey) {
+    //         ctrlKey = { timeStamp: 0 };
+    //         altKey = true;
+    //         returnFocus = document.activeElement;
+    //         returnFocus.blur();
+    //         // console.log(altKey);
+    // }
 
-    else ctrlKey = {timeStamp: 0};
+    // else if (event.code == 'ControlLeft') ctrlKey = event;
+
+    // else ctrlKey = {timeStamp: 0};
 
     if (altKey && event.code != pkey) {
 
@@ -827,9 +846,9 @@ function testLogic() {
 
         if (!logic.length) {
             logic = 'let output = codeWithoutMarkup.replace(/' +
-                    (activeCodeBtn == btnHTML ? '\\s*<!--.*-->/g,\'' : activeCodeBtn == btnCSS ? '\\s*\\/\\*.*\\*\\//g,\'' : ';\\s*\\/\\/.*/g,\';') +
-                    '\');\n// output = insertLine(output, \'key\', {line: \'\', offset: 0});\nreturn output;';
-                    
+                (activeCodeBtn == btnHTML ? '\\s*<!--.*-->/g,\'' : activeCodeBtn == btnCSS ? '\\s*\\/\\*.*\\*\\//g,\'' : ';\\s*\\/\\/.*/g,\';') +
+                '\');\n// output = insertLine(output, \'key\', {line: \'\', offset: 0});\nreturn output;';
+
             setValue(logicEditor, `${logic}${logicEditor.getValue()}`);
         }
 
@@ -890,7 +909,7 @@ function generateTest() {
                 codeEditor.selection.setRange({ 'start': { 'row': r1.start.row, 'column': r1.start.column }, 'end': { 'row': r2.start.row, 'column': r2.start.column } });
 
                 if (codeEditor.getSelectedText().trim().length) {
-                    logicEditor.setValue(`${logicEditor.getValue()}\npass.if.${activeCodeBtn.innerHTML.toLowerCase()}.editable(${n}).equivalent(\`${codeEditor.getSelectedText().trim().replace(/[\s\n\r]+/g, ' ')}\`);`);
+                    logicEditor.setValue(`${logicEditor.getValue()}\npass.if.${activeCodeBtn.innerHTML.toLowerCase()}.editable(${n++}).equivalent(\`${codeEditor.getSelectedText().trim().replace(/[\s\n\r]+/g, ' ')}\`);`);
                 }
             }
             else {
@@ -902,7 +921,6 @@ function generateTest() {
             log('Missing #BEGIN_EDITABLE#.', 'warn');
             break;
         }
-        n++;
     }
     setValue(codeEditor, src, cursor);
     setValue(logicEditor, logicEditor.getValue().trim());
