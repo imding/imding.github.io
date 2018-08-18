@@ -50,7 +50,7 @@ const markup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'];
 
 const vDiv = document.createElement('div');
 const hDiv = document.createElement('div');
-const vDivMin = 450, hDivMin = 250;
+const vDivMin = 420, hDivMin = 280;
 let xOffset, yOffset;
 
 const pagePadding = 20, margin = 10;
@@ -71,7 +71,10 @@ const template = [
     'Summary\n\nGreat job!\n\nYou have completed this sprint, here is a recap:\n[-\n\t(*)item 1\n\t(*)item 2\n-]'
 ];
 
+// ======================================================== //
 // ==================== EVENT LISTENER ==================== //
+// ======================================================== //
+
 window.onload = () => {
     taInstruction.onblur = () => info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`;
     info.onfocus = () => editProjectInfo();
@@ -111,9 +114,9 @@ window.onload = () => {
     logicEditor.on('focus', () => logicEditor.setReadOnly(cStep < 2));
     logicEditor.on('blur', highlightButton);
     
-    srcCode.onmouseover = showCodeTip;
-    stepLogic.onmouseover = showStepLogicTip;
-    stepLogic.onmouseout = srcCode.onmouseout = removeTip;
+    // srcCode.onmouseover = showCodeTip;
+    // stepLogic.onmouseover = showStepLogicTip;
+    // stepLogic.onmouseout = srcCode.onmouseout = removeTip;
     
     gutter = Array.from(document.getElementsByClassName('ace_gutter'))[1];
 
@@ -156,7 +159,10 @@ window.onkeyup = () => {
 
 window.onmouseup = () => window.removeEventListener('mousemove', moveDivider, true);
 
+// ====================================================== //
 // ==================== PROJECT INFO ==================== //
+// ====================================================== //
+
 function editProjectInfo() {
     info.style.background = 'rgba(248, 248, 255, .1)';
     info.value = cProj;
@@ -169,7 +175,10 @@ function updateProjectInfo() {
     info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`;
 }
 
+// ===================================================== //
 // ==================== INSTRUCTION ==================== //
+// ===================================================== //
+
 function convertInstruction() {
     if (!styledInstruction) {
         inst[cStep] = taInstruction.value;
@@ -194,7 +203,6 @@ function updateStyledInstruction() {
         link = /\[([^\]:]+)::([^\s]+)\]/g,
         bold = /\*([^\s*]+|[^\s][^*]+[^\s])\*/g,
         code = /`([^\s`]+|[^\s][^`]+[^\s])`/g,
-        // glossary = /#GLS\(([a-zA-Z]+)-([a-zA-Z0-9-]+)\)#/g;
         glossary = /gls#([^#\n]+)#(html|css|js|javascript)#([-a-z0-9]+)/;
     let source = inst[cStep].replace(/</g, '&lt;').split(/\r?\n/).slice(2),
         isList = false,
@@ -242,7 +250,6 @@ function updateStyledInstruction() {
     source = source.join('\n').replace(/\[-/g, '<ul>').replace(/-\]/g, '</ul>').replace(/\[=/g, '<ol>').replace(/=\]/g, '</ol>');                           // LISTS
     source = source.replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>');     // CODE SNIPPETS
     source = source.replace(bold, '<b>$1</b>').replace(code, '<code class="syntax">$1</code>').replace(link, '<a href="$2" target="_blank">$1</a>');
-    // source = source.replace(glossary, '<code class="glossary gls$1"><i class="fa fa-rocket glsIcon"></i><span class="glossary-link gls$1">$2</span></code>');
     source += (cStep > 1 && cStep < tSteps ? '\n<hr>\n<p class="highlight">Click on <b>Check all objectives</b> to continue</p>' :
         cStep == 1 ? '\n<hr>\n<p class="highlight">Click on <b>Next step</b> to get started</p>' :
             cStep > 10 ? '\n<hr>\n<p class="highlight"><b>Export to Sandbox</b> to continue working on it</p>' : '');
@@ -252,62 +259,6 @@ function updateStyledInstruction() {
     selectAndCopy(styledInstruction);
     alignElement(styledInstruction);
     convertLineNumber();
-
-    // const btnGlossary = Array.from(document.getElementsByClassName('glossary'));
-    // btnGlossary.forEach(b => {
-    //     b.onclick = function () {
-    //         const glsBackdrop = document.createElement('div');
-    //         const glsWrapper = document.createElement('div');
-    //         const glsClose = document.createElement('div');
-
-    //         document.body.appendChild(glsBackdrop);
-    //         document.body.appendChild(glsWrapper);
-    //         glsWrapper.appendChild(glsClose);
-
-    //         glsBackdrop.id = 'glsBackdrop';
-
-    //         glsWrapper.id = 'glsWrapper';
-    //         glsWrapper.style.left = `${styledInstruction.offsetLeft + b.offsetLeft + (b.offsetWidth / 2)}px`;
-    //         glsWrapper.style.top = `${styledInstruction.offsetTop + b.offsetTop + (b.offsetHeight / 2)}px`;
-
-    //         setTimeout(() => {
-    //             glsBackdrop.style.opacity = '0.6';
-    //             glsWrapper.style.opacity = '1';
-    //             glsWrapper.style.width = '500px';
-    //             glsWrapper.style.height = '350px';
-    //             glsWrapper.style.left = 'calc(50% - 250px)';
-    //             glsWrapper.style.top = 'calc(50% - 175px)';
-    //         }, 0);
-
-    //         glsWrapper.addEventListener('transitionend', function (evt) {
-    //             if (glsClose.id) {
-    //                 if (evt.propertyName == 'width') {
-    //                     document.body.removeChild(this);
-    //                 }
-    //             }
-    //             else {
-    //                 if (evt.propertyName == 'width') {
-    //                     glsClose.id = 'glsClose';
-    //                     glsClose.innerHTML = '&#10539;';
-    //                     glsClose.style.left = `${glsWrapper.offsetWidth - glsClose.offsetWidth - 10}px`;
-    //                 }
-    //             }
-    //         }, false);
-
-    //         glsClose.onclick = function () {
-    //             glsBackdrop.style.opacity = '0';
-    //             glsWrapper.style.opacity = '0';
-    //             glsWrapper.style.width = '0';
-    //             glsWrapper.style.height = '0';
-    //             glsWrapper.style.left = `${styledInstruction.offsetLeft + b.offsetLeft + (b.offsetWidth / 2)}px`;
-    //             glsWrapper.style.top = `${styledInstruction.offsetTop + b.offsetTop + (b.offsetHeight / 2)}px`;
-
-    //             glsBackdrop.addEventListener('transitionend', function () {
-    //                 document.body.removeChild(this);
-    //             }, false);
-    //         };
-    //     };
-    // });
 }
 
 function convertLineNumber() {
@@ -351,7 +302,10 @@ function selectAndCopy(elem) {
     currentFocus ? currentFocus.focus() : null;
 }
 
+// =============================================================== //
 // ==================== SOURCE CODE OPERATION ==================== //
+// =============================================================== //
+
 function toggleCodePanel(targetBtn) {
     storeActiveCode();
     activeCodeBtn.disabled = false;
@@ -473,7 +427,10 @@ function saveToLocal() {
     }
 }
 
+// ====================================================== //
 // ==================== STEP EDITING ==================== //
+// ====================================================== //
+
 function updateStepLogic() {
     btnDel.disabled = tSteps < 2; btnDel.style.background = tSteps < 2 ? 'indianred' : 'forestgreen';
     btnPrev.disabled = cStep < 2; btnPrev.style.background = cStep < 2 ? 'indianred' : 'forestgreen';
@@ -543,7 +500,10 @@ function getStepName() {
     return (btnConvert.className == 'fa fa-pencil' ? (taInstruction.value.trim().length > 0 ? taInstruction.value : `Step ${cStep}`) : inst[cStep]).split(/\r?\n/)[0].trim();
 }
 
+// ======================================================== //
 // ==================== DATA OPERATION ==================== //
+// ======================================================== //
+
 function setValue(editor, value, cursor = {}) {
     if (!cursor.hasOwnProperty('row', 'column')) cursor = editor.selection.getCursor();
     editor.setValue(value);
@@ -622,7 +582,10 @@ function commitToMaster() {
     master = tSteps + step.join('');
 }
 
+// ================================================== //
 // ==================== FILE I/O ==================== //
+// ================================================== //
+
 function saveTextFile(txt) {
     const textToSaveBlob = new Blob([txt], { type: 'text/plain' }),
         textToSaveURL = window.URL.createObjectURL(textToSaveBlob),
@@ -660,7 +623,10 @@ function recoverFromLocal() {
     }
 }
 
+// ================================================= //
 // ==================== HANDLER ==================== //
+// ================================================= //
+
 function keyHandler() {
     // disable F5 key
     if (event.code == 'F5') {
@@ -729,37 +695,9 @@ function keyHandler() {
     }
 }
 
-function showCodeTip() {
-    createTip('<p><b class="hotkey">alt + /</b> selection to editable <u>or</u> remove editable from selection</p>');
-
-    tip.style.left = get(srcCode, 'left') + (get(srcCode, 'width') - get(tip, 'width')) / 2 + 'px';
-    tip.style.top = get(srcCode, 'top') + get(srcCode, 'height') + 'px';
-}
-
-function showStepLogicTip() {
-    createTip('<p><b class="hotkey">alt + L</b> apply step logic code</p>');
-
-    tip.style.left = get(stepLogic, 'left') + (get(stepLogic, 'width') - get(tip, 'width')) / 2 + 'px';
-    tip.style.top = get(stepLogic, 'top') - get(tip, 'height') + 'px';
-}
-
-function removeTip() {
-    if (!tip) return;
-    document.body.removeChild(tip);
-    tip = null;
-}
-
+// ============================================ //
 // ==================== UI ==================== //
-function createTip(tc) {
-    if (!tip) {
-        tip = document.createElement('div');
-        document.body.appendChild(tip);
-    
-        tip.id = 'tipContainer';
-    }
-
-    tip.innerHTML = tc;
-}
+// ============================================ //
 
 function updateUI() {
     [btnRecover, btnLoad, btnConvert, btnSave, btnDupPrev, btnHTML, btnCSS, btnJS, btnRun, btnDupNext].forEach(e => { e.style.top = `${pagePadding}px`; });
@@ -861,7 +799,10 @@ function highlightButton() {
     btnJS.style.borderWidth = (jsLogic.trim().length > 0 || (c1 && activeCodeBtn == btnJS)) ? '5px 0' : '0';
 }
 
+// ==================================================== //
 // ==================== STEP LOGIC ==================== //
+// ==================================================== //
+
 function testLogic() {
     // ===== HELPER FUNCTIONS ===== //
     const insertLine = (c, k, options) => {        // c = CODE; k = KEY; options = { str, int }
@@ -885,9 +826,10 @@ function testLogic() {
         let logic = logicEditor.getValue().replace(/[\s\n\r]*\/\/ Expectation:[\s\S]*/, '').trim();
 
         if (!logic.length) {
-            logic = 'let output = codeWithoutMarkup.replace(/';
-            logic += (activeCodeBtn == btnHTML ? '\\s*<!--.*-->/g,\'' : activeCodeBtn == btnCSS ? '\\s*\\/\\*.*\\*\\//g,\'' : ';\\s*\\/\\/.*/g,\';');
-            logic += '\');\n// output = insertLine(output, \'key\', {line: \'\', offset: 0});\nreturn output;';
+            logic = 'let output = codeWithoutMarkup.replace(/' +
+                    (activeCodeBtn == btnHTML ? '\\s*<!--.*-->/g,\'' : activeCodeBtn == btnCSS ? '\\s*\\/\\*.*\\*\\//g,\'' : ';\\s*\\/\\/.*/g,\';') +
+                    '\');\n// output = insertLine(output, \'key\', {line: \'\', offset: 0});\nreturn output;';
+                    
             setValue(logicEditor, `${logic}${logicEditor.getValue()}`);
         }
 
@@ -927,7 +869,10 @@ function testLogic() {
     generateTest();
 }
 
+// ===================================================== //
 // ==================== Expectation ==================== //
+// ===================================================== //
+
 function generateTest() {
     const src = codeEditor.getValue(), cursor = codeEditor.selection.getCursor();
     let n = 0 /* editable(n) */;
@@ -963,7 +908,10 @@ function generateTest() {
     setValue(logicEditor, logicEditor.getValue().trim());
 }
 
+// ============================================== //
 // ==================== MISC ==================== //
+// ============================================== //
+
 function get(e, p) {
     const v = window.getComputedStyle(e).getPropertyValue(p);
     switch (p) {
