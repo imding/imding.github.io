@@ -41,7 +41,7 @@ let codeToken, codeTokenEnd, codeBlock, codeExp;
 let logicToken, logicTokenEnd, logicBlock, logicExp;
 let stepToken, stepTokenEnd;
 
-let ctrlKey, altKey, returnFocus;
+let ctrlKey, altKey, returnFocus, tip;
 
 const htmlToken = ['##HTML##', '##HTML_E##', /##HTML##.*##HTML_E##/];
 const cssToken = ['##CSS##', '##CSS_E##', /##CSS##.*##CSS_E##/];
@@ -110,23 +110,11 @@ window.onload = () => {
     logicEditor.session.setMode('ace/mode/javascript');
     logicEditor.on('focus', () => logicEditor.setReadOnly(cStep < 2));
     logicEditor.on('blur', highlightButton);
-    stepLogic.onmouseover = () => {
-        if (cStep < 2) return;
-        
-        const tip = document.createElement('div');
-        
-        document.body.appendChild(tip);
-
-        tip.id = 'logicEditorTip';
-        tip.innerHTML = '<p><b class="hotkey">alt + L</b> apply step logic</p><p><b class="hotkey">alt + K</b> generate expectation code</p>';
-
-        tip.style.left = get(stepLogic, 'left') + (get(stepLogic, 'width') - get(tip, 'width')) / 2 + 'px';
-        tip.style.top = get(stepLogic, 'top') - get(tip, 'height') + 'px';
-    };
-    stepLogic.onmouseout = () => {
-        if (cStep < 2) return;
-        document.body.removeChild(logicEditorTip);
-    };
+    
+    srcCode.onmouseover = showCodeTip;
+    stepLogic.onmouseover = showStepLogicTip;
+    stepLogic.onmouseout = srcCode.onmouseout = removeTip;
+    
     gutter = Array.from(document.getElementsByClassName('ace_gutter'))[1];
 
     codeEditor.setOptions(aceOptions);
@@ -741,7 +729,38 @@ function keyHandler() {
     }
 }
 
+function showCodeTip() {
+    createTip('<p><b class="hotkey">alt + /</b> selection to editable <u>or</u> remove editable from selection</p>');
+
+    tip.style.left = get(srcCode, 'left') + (get(srcCode, 'width') - get(tip, 'width')) / 2 + 'px';
+    tip.style.top = get(srcCode, 'top') + get(srcCode, 'height') + 'px';
+}
+
+function showStepLogicTip() {
+    createTip('<p><b class="hotkey">alt + L</b> apply step logic code</p>');
+
+    tip.style.left = get(stepLogic, 'left') + (get(stepLogic, 'width') - get(tip, 'width')) / 2 + 'px';
+    tip.style.top = get(stepLogic, 'top') - get(tip, 'height') + 'px';
+}
+
+function removeTip() {
+    if (!tip) return;
+    document.body.removeChild(tip);
+    tip = null;
+}
+
 // ==================== UI ==================== //
+function createTip(tc) {
+    if (!tip) {
+        tip = document.createElement('div');
+        document.body.appendChild(tip);
+    
+        tip.id = 'tipContainer';
+    }
+
+    tip.innerHTML = tc;
+}
+
 function updateUI() {
     [btnRecover, btnLoad, btnConvert, btnSave, btnDupPrev, btnHTML, btnCSS, btnJS, btnRun, btnDupNext].forEach(e => { e.style.top = `${pagePadding}px`; });
     [btnPrev, btnAdd, btnDel, btnNext, info].forEach(e => { e.style.bottom = `${pagePadding}px`; });

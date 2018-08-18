@@ -65,8 +65,8 @@ button {
 	border-radius: 5px;
 }
 
-#logicEditorTip {
-	font-family: monospace;
+#tipContainer {
+	font-family: 'Averia Sans Libre', cursive;
 	font-size: 11px;
 	position: absolute;
 	padding: 0 10px;
