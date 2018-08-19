@@ -647,43 +647,30 @@ function keyHandler() {
     }
 
     // handle right alt key
-    else if (event.code == 'AltRight') {
-        const ua = window.navigator.userAgent;
+    else if (event.code == 'AltRight' && !altKey) {
 
         // handle windows os
-        if (/Windows/.test(ua)) {
-            if (event.timeStamp - (ctrlKey || event).timeStamp <= 1 && !altKey) {
-                ctrlKey = { timeStamp: 0 };
-                altKey = true;
-                returnFocus = document.activeElement;
-                returnFocus.blur();
-            }
-            else if (event.code == 'ControlLeft') ctrlKey = event;
+        // if (/Windows/.test(ua)) {
+        //     if (event.timeStamp - (ctrlKey || event).timeStamp <= 1 && !altKey) {
+        //         ctrlKey = { timeStamp: 0 };
+        //         altKey = true;
+        //         returnFocus = document.activeElement;
+        //         returnFocus.blur();
+        //     }
+        //     else if (event.code == 'ControlLeft') ctrlKey = event;
 
-            else ctrlKey = { timeStamp: 0 };
-        }
+        //     else ctrlKey = { timeStamp: 0 };
+        // }
 
         // handle mac os
-        else if (/Macintosh/.test(ua)) {
+        // else if (/Macintosh/.test(ua)) {
             altKey = true;
             returnFocus = document.activeElement;
             returnFocus.blur();
-        }
+        // }
 
-        else console.warn('Keyboard shortcut feature is not supported for your OS.');
+        // else console.warn('Keyboard shortcut feature is not supported for your OS.');
     }
-
-    // else if (event.code == 'AltRight' && event.timeStamp - (ctrlKey || event).timeStamp <= 1 && !altKey) {
-    //         ctrlKey = { timeStamp: 0 };
-    //         altKey = true;
-    //         returnFocus = document.activeElement;
-    //         returnFocus.blur();
-    //         // console.log(altKey);
-    // }
-
-    // else if (event.code == 'ControlLeft') ctrlKey = event;
-
-    // else ctrlKey = {timeStamp: 0};
 
     if (altKey && event.code != pkey) {
 
