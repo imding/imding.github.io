@@ -34,6 +34,7 @@ body {
 	user-select: none;
 	background-color: rgb(25, 25, 25);
 	overflow: hidden;
+	transition: filter .25s ease-in-out;
 }
 
 button {
@@ -59,6 +60,10 @@ button {
 	border: solid ghostwhite 2px;
 }
 
+.fa-lightbulb-o {
+	
+}
+
 .hotkey {
 	background-color: paleturquoise;
 	padding: 3px 5px;
@@ -75,7 +80,7 @@ button {
 	border-color: whitesmoke;
 }
 
-#recover {
+#recover, #tips {
 	width: 30px;
 	height: 30px;
 	background-color: slateblue;
@@ -105,37 +110,6 @@ button {
 #styledInstruction {
 	user-select: initial;
 	overflow: auto;
-}
-
-#glsWrapper {
-	position: absolute;
-	width: 0;
-	height: 0;
-	border-radius: 12px;
-	background: rgba(255, 255, 255, .8);
-	z-index: 6;
-	opacity: 0;
-	overflow: hidden;
-	transition: all .3s ease-out;
-}
-
-#glsBackdrop {
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100vw;
-	height: 100vh;
-	background-color: black;
-	z-index: 5;
-	opacity: 0;
-	transition: opacity .25s ease-out;
-}
-
-#glsClose {
-	position: absolute;
-	margin-top: 3px;
-	border-radius: 50%;
-	cursor: pointer;
 }
 
 #codeEditor, #logicEditor {

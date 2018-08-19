@@ -1,21 +1,22 @@
-const taInstruction = document.getElementById('instruction');
-const btnRecover = document.getElementById('recover');
-const btnLoad = document.getElementById('load');
-const btnConvert = document.getElementById('convert');
-const btnSave = document.getElementById('save');
-const btnPrev = document.getElementById('prev');
-const btnNext = document.getElementById('next');
-const btnAdd = document.getElementById('add');
-const btnDel = document.getElementById('delete');
-const btnDupPrev = document.getElementById('dupPrev');
-const btnHTML = document.getElementById('html');
-const btnCSS = document.getElementById('css');
-const btnJS = document.getElementById('js');
-const btnRun = document.getElementById('run');
-const btnDupNext = document.getElementById('dupNext');
-const srcCode = document.getElementById('srcCode');
-const stepLogic = document.getElementById('stepLogic');
-const info = document.getElementById('info');
+const taInstruction = document.getElementById('instruction'),
+    btnRecover = document.getElementById('recover'),
+    btnLoad = document.getElementById('load'),
+    btnConvert = document.getElementById('convert'),
+    btnSave = document.getElementById('save'),
+    btnTips = document.getElementById('tips'),
+    btnPrev = document.getElementById('prev'),
+    btnNext = document.getElementById('next'),
+    btnAdd = document.getElementById('add'),
+    btnDel = document.getElementById('delete'),
+    btnDupPrev = document.getElementById('dupPrev'),
+    btnHTML = document.getElementById('html'),
+    btnCSS = document.getElementById('css'),
+    btnJS = document.getElementById('js'),
+    btnRun = document.getElementById('run'),
+    btnDupNext = document.getElementById('dupNext'),
+    srcCode = document.getElementById('srcCode'),
+    stepLogic = document.getElementById('stepLogic'),
+    info = document.getElementById('info');
 
 let gutter;
 let activeCodeBtn;                  // CURRENT CODE BUTTON
@@ -41,7 +42,7 @@ let codeToken, codeTokenEnd, codeBlock, codeExp;
 let logicToken, logicTokenEnd, logicBlock, logicExp;
 let stepToken, stepTokenEnd;
 
-let ctrlKey, altKey, returnFocus, tip;
+let altKey, returnFocus, tip;
 
 const htmlToken = ['##HTML##', '##HTML_E##', /##HTML##.*##HTML_E##/];
 const cssToken = ['##CSS##', '##CSS_E##', /##CSS##.*##CSS_E##/];
@@ -84,6 +85,7 @@ window.onload = () => {
     btnLoad.ondblclick = () => loadTextFile();
     btnConvert.onclick = () => convertInstruction();
     btnSave.onclick = () => { commitToMaster(); saveTextFile(master); };
+    btnTips.onclick = () => document.body.style.filter = 'blur(2px) grayscale(80%)';
     btnPrev.onclick = () => { prevStep(); updateStepLogic(); };
     btnAdd.onclick = () => { addStep(); updateStepLogic(); };
     btnDel.onclick = () => confirmDel();
@@ -629,7 +631,7 @@ function recoverFromLocal() {
 
 function keyHandler() {
     // disable F5 key
-    if (event.code == 'F5') {
+    if (/F5|ControlLeft/.test(event.code)) {
         event.preventDefault();
         return;
     }
@@ -648,32 +650,12 @@ function keyHandler() {
 
     // handle right alt key
     else if (event.code == 'AltRight' && !altKey) {
-
-        // handle windows os
-        // if (/Windows/.test(ua)) {
-        //     if (event.timeStamp - (ctrlKey || event).timeStamp <= 1 && !altKey) {
-        //         ctrlKey = { timeStamp: 0 };
-        //         altKey = true;
-        //         returnFocus = document.activeElement;
-        //         returnFocus.blur();
-        //     }
-        //     else if (event.code == 'ControlLeft') ctrlKey = event;
-
-        //     else ctrlKey = { timeStamp: 0 };
-        // }
-
-        // handle mac os
-        // else if (/Macintosh/.test(ua)) {
-            altKey = true;
-            returnFocus = document.activeElement;
-            returnFocus.blur();
-        // }
-
-        // else console.warn('Keyboard shortcut feature is not supported for your OS.');
+        altKey = true;
+        returnFocus = document.activeElement;
+        returnFocus.blur();
     }
 
     if (altKey && event.code != pkey) {
-
         event.preventDefault();
 
         switch (event.code) {
@@ -694,10 +676,24 @@ function keyHandler() {
             case 'Equal': activeCodeBtn == btnJS ? btnJS.click() : (activeCodeBtn == btnCSS ? btnJS.click() : btnCSS.click()); break;
             case 'Period': btnDupPrev.click(); break;
             case 'Comma': btnDupNext.click(); break;
-            default: break;
+            case 'Backslash':
+                if (/Windows/.test(window.navigator.userAgent)) {
+                    if (returnFocus == taInstruction) {
+                        const
+                            t = taInstruction,
+                            bc = t.value.slice(0, t.selectionStart),
+                            ac = t.value.slice(t.selectionStart, t.value.length);
+                        t.value = `${bc}\\${ac}`;
+                        t.setSelectionRange(t.value.length - ac.length, t.value.length - ac.length);
+                    }
+                    else if (returnFocus.className == 'ace_text-input') {
+                        eval(returnFocus.parentNode.id).insert('\\');
+                    }
+                }
+                break;
         }
 
-        pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal/, '');       // LIST OF KEYS TO ALLOW REPEATED PRESS
+        pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal|Backslash/, '');       // LIST OF KEYS TO ALLOW REPEATED PRESS
     }
 }
 
@@ -706,18 +702,20 @@ function keyHandler() {
 // ============================================ //
 
 function updateUI() {
-    [btnRecover, btnLoad, btnConvert, btnSave, btnDupPrev, btnHTML, btnCSS, btnJS, btnRun, btnDupNext].forEach(e => { e.style.top = `${pagePadding}px`; });
+    // elements to be aligned to the top of the page
+    [btnRecover, btnLoad, btnConvert, btnSave, btnTips, btnDupPrev, btnHTML, btnCSS, btnJS, btnRun, btnDupNext].forEach(e => { e.style.top = `${pagePadding}px`; });
+    // elememts to be aligned to the bottom of the page
     [btnPrev, btnAdd, btnDel, btnNext, info].forEach(e => { e.style.bottom = `${pagePadding}px`; });
     flexDivider();
-    scaleContent();
+    adaptToView();
 }
 
-function scaleContent() {
+function adaptToView() {
     // ===== LEFT SIDE ===== //   
     btnRecover.style.left = pagePadding + 'px';
-
     btnLoad.style.left = pagePadding * 3 + 'px';
     btnSave.style.left = get(vDiv, 'left') - get(btnSave, 'width') - pagePadding * 2 + 'px';
+    btnTips.style.left = get(vDiv, 'left') - get(btnTips, 'width') + 'px';
     [btnPrev, btnAdd, btnDel, btnNext].forEach((e, i, arr) => {
         e.style.left = i * (get(e, 'width') + margin) +                                                                                 // POSITION EACH BUTTON
             (get(vDiv, 'left') - pagePadding - arr.length * get(e, 'width') - margin * (arr.length - 1)) / 2 + pagePadding + 'px';      // OFFSET TO CENTRE
@@ -748,13 +746,15 @@ function scaleContent() {
     });
     codeEditor ? codeEditor.resize(codeEditor) : null;
     logicEditor ? logicEditor.resize(logicEditor) : null;
+
+    // ===== tools ===== //
 }
 
 function moveDivider(evt) {
     vDiv.style.left = clamp(evt.clientX - xOffset, vDivMin, window.innerWidth - vDivMin) + 'px';
     hDiv.style.top = clamp(evt.clientY - yOffset, hDivMin, window.innerHeight - (hDivMin - 100)) + 'px';
     hDiv.style.width = window.innerWidth - get(vDiv, 'left') + 'px';
-    scaleContent();
+    adaptToView();
 }
 
 function flexDivider() {
@@ -785,10 +785,12 @@ function initializeUI() {
     });
 
     vDiv.onmousedown = evt => {
+        // if (preview) closePreview();
         xOffset = evt.clientX - get(vDiv, 'left'); yOffset = evt.clientY - get(hDiv, 'top');
         window.addEventListener('mousemove', moveDivider, true);
     };
     hDiv.onmousedown = evt => {
+        // if (preview) closePreview();
         xOffset = evt.clientX - get(vDiv, 'left'); yOffset = evt.clientY - get(hDiv, 'top');
         window.addEventListener('mousemove', moveDivider, true);
     };
