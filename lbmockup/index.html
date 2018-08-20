@@ -11,34 +11,36 @@
 </head>
 
 <body>
-    <button id='recover' class='fa fa-upload'></button>
-    <button id='load' class='fa fa-folder-open'></button>
-    <button id='convert' class='fa fa-pencil'></button>
-    <button id='save' class='fa fa-floppy-o'></button>
+    <div id='app'>
+        <button id='recover' class='fa fa-upload'></button>
+        <button id='load' class='fa fa-folder-open'></button>
+        <button id='convert' class='fa fa-pencil'></button>
+        <button id='save' class='fa fa-floppy-o'></button>
+        <button id='tips' class='fa fa-lightbulb-o'></button>
 
-    <button id='html'>HTML</button>
-    <button id='css'>CSS</button>
-    <button id='js'>JS</button>
-    <button id='run' class='fa fa-refresh'></button>
-    <button id='tips' class='fa fa-lightbulb-o'></button>
+        <button id='html'>HTML</button>
+        <button id='css'>CSS</button>
+        <button id='js'>JS</button>
+        <button id='run' class='fa fa-refresh'></button>
 
-    <textarea id='instruction'></textarea>
+        <textarea id='instruction'></textarea>
 
-    <div id='srcCode'>
-        <div id='codeEditor'></div>
+        <div id='srcCode'>
+            <div id='codeEditor'></div>
+        </div>
+        <div id='stepLogic'>
+            <div id='logicEditor'></div>
+        </div>
+
+        <button id='dupPrev' class='fa fa-chevron-circle-right'></button>
+        <button id='prev' class='fa fa-arrow-left'></button>
+        <button id='add' class='fa fa-plus'></button>
+        <button id='delete' class='fa fa-trash'></button>
+        <button id='next' class='fa fa-arrow-right'></button>
+        <button id='dupNext' class='fa fa-chevron-circle-left'></button>
+
+        <input type='text' id='info' placeholder="Project Info">
     </div>
-    <div id='stepLogic'>
-        <div id='logicEditor'></div>
-    </div>
-
-    <button id='dupPrev' class='fa fa-chevron-circle-right'></button>
-    <button id='prev' class='fa fa-arrow-left'></button>
-    <button id='add' class='fa fa-plus'></button>
-    <button id='delete' class='fa fa-trash'></button>
-    <button id='next' class='fa fa-arrow-right'></button>
-    <button id='dupNext' class='fa fa-chevron-circle-left'></button>
-
-    <input type='text' id='info' placeholder="Project Info">
 
     <script src="ace-builds/src-noconflict/ace.js"></script>
     <script src="ace-builds/src-noconflict/ext-language_tools.js"></script>

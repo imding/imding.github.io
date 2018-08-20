@@ -1,4 +1,6 @@
-const taInstruction = document.getElementById('instruction'),
+const
+    app = document.getElementById('app'),
+    taInstruction = document.getElementById('instruction'),
     btnRecover = document.getElementById('recover'),
     btnLoad = document.getElementById('load'),
     btnConvert = document.getElementById('convert'),
@@ -16,61 +18,130 @@ const taInstruction = document.getElementById('instruction'),
     btnDupNext = document.getElementById('dupNext'),
     srcCode = document.getElementById('srcCode'),
     stepLogic = document.getElementById('stepLogic'),
-    info = document.getElementById('info');
+    info = document.getElementById('info'),
 
-let gutter;
-let activeCodeBtn;                  // CURRENT CODE BUTTON
-let codeEditor;                     // CODE EDITOR
-let logicEditor;                    // LOGIC EDITOR
-let preview;                        // PREVIEW IFRAME
-let styledInstruction;              // STYLED INSTRUCTION IFRAME
-let pkey;                           // PREVIOUS KEY PRESSED
-let cProj = 'Untitled';             // CURRENT PROJECT NAME
-let cStep = 1;                      // CURRENT STEP
-let tSteps = 1;                     // TOTAL STEPS
+    htmlToken = ['##HTML##', '##HTML_E##', /##HTML##.*##HTML_E##/],
+    cssToken = ['##CSS##', '##CSS_E##', /##CSS##.*##CSS_E##/],
+    jsToken = ['##JS##', '##JS_E##', /##JS##.*##JS_E##/],
+    markup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'],
 
-let inst = [''];                    // INSTRUCTION FOR ALL STEPS
-let html = '', css = '', js = '';
-let code = [''];                    // CODE FOR ALL STEPS
-let htmlLogic = ''; cssLogic = ''; jsLogic = '';
-let logic = [''];                   // TRANITION FOR ALL STEPS
-let step = [''];                    // COMBINATION OF THE ABOVE
-let master;                         // SINGLE STRING FOR ENTIRE PROJECT
+    vDiv = document.createElement('div'),
+    hDiv = document.createElement('div'),
 
-let instToken, instTokenEnd, instBlock, instExp;
-let codeToken, codeTokenEnd, codeBlock, codeExp;
-let logicToken, logicTokenEnd, logicBlock, logicExp;
-let stepToken, stepTokenEnd;
+    vDivMin = 420,
+    hDivMin = 260,
 
-let altKey, returnFocus, tip;
+    pagePadding = 20,
+    margin = 10,
+    
+    divWidth = '10px',
 
-const htmlToken = ['##HTML##', '##HTML_E##', /##HTML##.*##HTML_E##/];
-const cssToken = ['##CSS##', '##CSS_E##', /##CSS##.*##CSS_E##/];
-const jsToken = ['##JS##', '##JS_E##', /##JS##.*##JS_E##/];
-const markup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'];
+    aceOptions = {
+        printMargin: false,
+        fixedWidthGutter: true,
+        enableBasicAutocompletion: true,
+        enableSnippets: true,
+        enableLiveAutocompletion: true,
+    },
 
-const vDiv = document.createElement('div');
-const hDiv = document.createElement('div');
-const vDivMin = 420, hDivMin = 260;
-let xOffset, yOffset;
+    template = [
+        'Generic\n\nParagraph\n\nParagraph\n\n(***)\n\n(!)On +type#key#, objective',
+        'Syntax\n\nDescribe the purpose of the syntax\n\n(type)(#)\n\n[-\n\t(*)`syntax`\n\t(*)`syntax`\n\t(*)*Example:* \n-]\n\n(***)\n\n(!)On +type#key#, focus on reproducing the syntax\n(!)On +type#key#, focus on reproducing the syntax',
+        'Exercise\n\n[The Problem] Help to understand the problem\n\n[The Question] No answer giveaway\n\n(***)\n\n(!)On +type#key#, focus on applying the syntax',
+        'Summary\n\nGreat job!\n\nYou have completed this sprint, here is a recap:\n[-\n\t(*)item 1\n\t(*)item 2\n-]'
+    ],
 
-const pagePadding = 20, margin = 10;
-const divWidth = '10px';
+    tipsData = [
+        {
+            entry: 'alt + [0-3]',
+            description: 'insert instruction preset',
+        },
+        {
+            entry: 'alt + i',
+            description: 'preview & copy instruction',
+        },
+        'divider',
+        {
+            entry: 'alt + n',
+            description: 'creat a new step',
+        },
+        {
+            entry: 'alt + [',
+            description: 'go to prev step',
+        },
+        {
+            entry: 'alt + ]',
+            description: 'go to next step',
+        },
+        'divider',
+        {
+            entry: 'alt + -',
+            description: 'go to prev code type',
+        },
+        {
+            entry: 'alt + =',
+            description: 'go to next code type',
+        },
+        {
+            entry: 'alt + .',
+            description: 'get code from prev step',
+        },
+        {
+            entry: 'alt + ,',
+            description: 'get code from next step',
+        },
+        {
+            entry: 'alt + p',
+            description: 'show/refresh preview',
+        },
+        {
+            entry: 'alt + backspace',
+            description: 'close preview',
+        },
+        {
+            entry: 'alt + /',
+            description: 'add/remove editable',
+        },
+        'divider',
+        {
+            entry: 'alt + k',
+            description: 'generate expectation code',
+        },
+        {
+            entry: 'alt + l',
+            description: 'apply step logic',
+        },
+    ];
 
-const aceOptions = {
-    printMargin: false,
-    fixedWidthGutter: true,
-    enableBasicAutocompletion: true,
-    enableSnippets: true,
-    enableLiveAutocompletion: true,
-};
+let gutter,
+    activeCodeBtn,                  // CURRENT CODE BUTTON
+    codeEditor,                     // CODE EDITOR
+    logicEditor,                    // LOGIC EDITOR
+    preview,                        // PREVIEW IFRAME
+    styledInstruction,              // STYLED INSTRUCTION IFRAME
+    pkey,                           // PREVIOUS KEY PRESSED
+    cProj = 'Untitled',             // CURRENT PROJECT NAME
+    cStep = 1,                      // CURRENT STEP
+    tSteps = 1,                     // TOTAL STEPS
 
-const template = [
-    'Generic\n\nParagraph\n\nParagraph\n\n(***)\n\n(!)On +type#key#, objective',
-    'Syntax\n\nDescribe the purpose of the syntax\n\n(type)(#)\n\n[-\n\t(*)`syntax`\n\t(*)`syntax`\n\t(*)*Example:* \n-]\n\n(***)\n\n(!)On +type#key#, focus on reproducing the syntax\n(!)On +type#key#, focus on reproducing the syntax',
-    'Exercise\n\n[The Problem] Help to understand the problem\n\n[The Question] No answer giveaway\n\n(***)\n\n(!)On +type#key#, focus on applying the syntax',
-    'Summary\n\nGreat job!\n\nYou have completed this sprint, here is a recap:\n[-\n\t(*)item 1\n\t(*)item 2\n-]'
-];
+    inst = [''],                                    // INSTRUCTION FOR ALL STEPS
+    html = '', css = '', js = '',                   // CODE CONTENT OF EACH TYPE
+    code = [''],                                    // CODE FOR ALL STEPS
+    htmlLogic = '', cssLogic = '', jsLogic = '',    // STEP LOGIC OF EACH CODE TYPE
+    logic = [''],                                   // TRANITION FOR ALL STEPS
+    step = [''],                                    // COMBINATION OF THE ABOVE
+    master,                                         // SINGLE STRING FOR ENTIRE PROJECT
+
+    instToken, instTokenEnd, instBlock, instExp,
+    codeToken, codeTokenEnd, codeBlock, codeExp,
+    logicToken, logicTokenEnd, logicBlock, logicExp,
+    stepToken, stepTokenEnd,
+
+    altKey, returnFocus,
+    
+    tipContainer,
+
+    xOffset, yOffset;
 
 // ======================================================== //
 // ==================== EVENT LISTENER ==================== //
@@ -85,7 +156,7 @@ window.onload = () => {
     btnLoad.ondblclick = () => loadTextFile();
     btnConvert.onclick = () => convertInstruction();
     btnSave.onclick = () => { commitToMaster(); saveTextFile(master); };
-    btnTips.onclick = () => document.body.style.filter = 'blur(2px) grayscale(80%)';
+    btnTips.onclick = showTips;
     btnPrev.onclick = () => { prevStep(); updateStepLogic(); };
     btnAdd.onclick = () => { addStep(); updateStepLogic(); };
     btnDel.onclick = () => confirmDel();
@@ -182,13 +253,13 @@ function convertInstruction() {
         btnConvert.className = 'fa fa-clipboard';
         styledInstruction = document.createElement('div');
         styledInstruction.id = 'styledInstruction';
-        document.body.appendChild(styledInstruction);
+        app.appendChild(styledInstruction);
         updateStyledInstruction();
     }
     else {
         btnConvert.className = 'fa fa-pencil';
         taInstruction.value = inst[cStep];
-        document.body.removeChild(styledInstruction);
+        app.removeChild(styledInstruction);
         styledInstruction = null;
 
         const selNode = window.getSelection().baseNode;
@@ -388,7 +459,7 @@ function updatePreview() {
         preview = document.createElement('iframe');
         preview.id = 'preview';
         alignElement(preview);
-        document.body.appendChild(preview);
+        app.appendChild(preview);
     }
     preview.srcdoc = pCode;
 }
@@ -411,7 +482,7 @@ function convertEditable() {
 
 function closePreview() {
     if (preview) {
-        document.body.removeChild(preview);
+        app.removeChild(preview);
         preview = null;
     }
 }
@@ -655,6 +726,16 @@ function keyHandler() {
         returnFocus.blur();
     }
 
+    else if (event.code == 'F1') {
+        if (tipContainer) closeTips();
+        else showTips();
+    }
+
+    else if (event.code == 'Escape' && tipContainer) {
+        event.preventDefault();
+        closeTips();
+    }
+
     if (altKey && event.code != pkey) {
         event.preventDefault();
 
@@ -695,6 +776,48 @@ function keyHandler() {
 
         pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal|Backslash/, '');       // LIST OF KEYS TO ALLOW REPEATED PRESS
     }
+}
+
+function showTips() {
+    if (tipContainer) return;
+
+    tipContainer = document.createElement('div');
+    tipContainer.id = 'tipContainer';
+
+    tipsData.forEach(data => {
+        if (data == 'divider') {
+            tipContainer.appendChild(document.createElement('hr'));
+            return;
+        }
+
+        const
+            tip = document.createElement('p'),
+            entry = document.createElement('span'),
+            description = document.createTextNode(` ${data.description}`);
+
+        tip.style.margin = '10px 0';
+        entry.className = 'hotkey';
+        entry.textContent = data.entry;
+
+        tip.appendChild(entry);
+        tip.appendChild(description);
+        tipContainer.appendChild(tip);
+    });
+
+    document.body.appendChild(tipContainer);
+    alignTipContainer();
+
+    app.style.filter = 'blur(2px) grayscale(80%)';
+
+    setTimeout(() => app.onclick = closeTips, 250);
+}
+
+function closeTips() {
+    if (!tipContainer) return;
+    document.body.removeChild(tipContainer);
+    app.style.filter = 'initial';
+    tipContainer = null;
+    app.onclick = null;
 }
 
 // ============================================ //
@@ -747,7 +870,15 @@ function adaptToView() {
     codeEditor ? codeEditor.resize(codeEditor) : null;
     logicEditor ? logicEditor.resize(logicEditor) : null;
 
-    // ===== tools ===== //
+    // ===== TIPS ===== //
+    if (tipContainer) alignTipContainer();
+}
+
+function alignTipContainer() {
+    // vDiv.left + (view.width - vDiv.left - tip.width) / 2 
+    const hOffset = get(vDiv, 'left'), vOffset = get(srcCode, 'top');
+    tipContainer.style.left = hOffset + (window.innerWidth - hOffset - get(tipContainer, 'width')) / 2 + 'px';
+    tipContainer.style.top = vOffset + (get(srcCode, 'height') - get(tipContainer, 'height')) / 2 + 'px';
 }
 
 function moveDivider(evt) {
@@ -774,8 +905,8 @@ function alignElement(e, target = taInstruction) {
 }
 
 function initializeUI() {
-    document.body.appendChild(hDiv);
-    document.body.appendChild(vDiv);
+    app.appendChild(hDiv);
+    app.appendChild(vDiv);
     vDiv.id = 'vDiv'; hDiv.id = 'hDiv';
     vDiv.style.width = divWidth; hDiv.style.height = divWidth;
     vDiv.style.top = '0'; hDiv.style.right = '0';
@@ -795,7 +926,7 @@ function initializeUI() {
         window.addEventListener('mousemove', moveDivider, true);
     };
 
-    const elem = Array.from(document.body.getElementsByTagName('*'));
+    const elem = Array.from(app.getElementsByTagName('*'));
     elem.forEach(e => { if (e.tagName != 'LI' && e.tagName != 'SCRIPT' && e.id != 'editor') e.style.position = 'absolute'; });
     updateUI();
 }
