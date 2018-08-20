@@ -44,21 +44,26 @@ const
         enableLiveAutocompletion: true,
     },
 
-    htmlBeautyOpts = {
-        indent_size: 4,
-        wrap_line_length: 0,
-        extra_liners: [],
-        inline: [
-            // https://www.w3.org/TR/html5/dom.html#phrasing-content
-            'a', 'abbr', 'area', 'audio', 'b', 'bdi', 'bdo', 'br', 'button', 'canvas', 'cite',
-            'code', 'data', 'datalist', 'del', 'dfn', 'em', 'embed', 'i', 'iframe', 'img',
-            'input', 'ins', 'kbd', 'keygen', 'label', 'map', 'mark', 'math', 'meter', 'noscript',
-            'object', 'output', 'progress', 'q', 'ruby', 's', 'samp', 'script', 'select', 'small',
-            'span', 'strong', 'sub', 'sup', 'svg', 'template', 'textarea', 'time', 'u', 'var',
-            'video', 'wbr', 'text',
-            // prexisting - not sure of full effect of removing, leaving in
-            'acronym', 'address', 'big', 'dt', 'ins', 'strike', 'tt'
-        ],
+    beautyOpts = {
+        html: {
+            indent_size: 4,
+            wrap_line_length: 0,
+            max_preserve_newlines: 1,
+            extra_liners: [],
+            inline: [
+                // https://www.w3.org/TR/html5/dom.html#phrasing-content
+                'a', 'abbr', 'area', 'audio', 'b', 'bdi', 'bdo', 'br', 'button', 'canvas', 'cite',
+                'code', 'data', 'datalist', 'del', 'dfn', 'em', 'embed', 'i', 'iframe', 'img',
+                'input', 'ins', 'kbd', 'keygen', 'label', 'map', 'mark', 'math', 'meter', 'noscript',
+                'object', 'output', 'progress', 'q', 'ruby', 's', 'samp', 'script', 'select', 'small',
+                'span', 'strong', 'sub', 'sup', 'svg', 'template', 'textarea', 'time', 'u', 'var',
+                'video', 'wbr', 'text',
+                // prexisting - not sure of full effect of removing, leaving in
+                'acronym', 'address', 'big', 'dt', 'ins', 'strike', 'tt'
+            ],
+        },
+        css: {},
+        js: {},
     },
 
     template = [
@@ -723,7 +728,6 @@ function recoverFromLocal() {
 // ================================================= //
 
 function keyHandler() {
-    // console.log(event.shiftKey && event.altKey && (event.code == 'AltLeft' || event.code == 'ShiftLeft'));
     // disable F5 key
     if (/F5|ControlLeft/.test(event.code)) {
         event.preventDefault();
@@ -749,17 +753,20 @@ function keyHandler() {
         returnFocus.blur();
     }
 
+    // F1 key toggles tips
     else if (event.code == 'F1') {
         event.preventDefault();
         if (tipContainer) closeTips();
         else showTips();
     }
 
+    // Esc key closes tips
     else if (event.code == 'Escape' && tipContainer) {
         event.preventDefault();
         closeTips();
     }
 
+    // handles shortcut combos
     if (altKey && event.code != pkey) {
         event.preventDefault();
 
@@ -801,10 +808,11 @@ function keyHandler() {
         pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal|Backslash/, '');       // LIST OF KEYS TO ALLOW REPEATED PRESS
     }
 
+    // shift + alt + f auto formats the code in the code editor
     if (shiftAlt) {
         event.preventDefault();
-        const beautify = eval(`${activeCodeBtn.id}_beautify`);
-        if (event.code == 'KeyF') setValue(codeEditor, beautify(codeEditor.getValue(), eval(`${activeCodeBtn.id}BeautyOpts`)));
+        const beautify = activeCodeBtn.id == 'html' ? html_beautify : activeCodeBtn.id == 'css' ? css_beautify : js_beautify;
+        if (event.code == 'KeyF') setValue(codeEditor, beautify(codeEditor.getValue(), beautyOpts[activeCodeBtn.id]));
     }
 
     shiftAlt = event.shiftKey && event.altKey && (event.code == 'AltLeft' || event.code == 'ShiftLeft');
