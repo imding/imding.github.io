@@ -33,7 +33,7 @@ const
 
     pagePadding = 20,
     margin = 10,
-    
+
     divWidth = '10px',
 
     aceOptions = {
@@ -42,6 +42,23 @@ const
         enableBasicAutocompletion: true,
         enableSnippets: true,
         enableLiveAutocompletion: true,
+    },
+
+    htmlBeautyOpts = {
+        indent_size: 4,
+        wrap_line_length: 0,
+        extra_liners: [],
+        inline: [
+            // https://www.w3.org/TR/html5/dom.html#phrasing-content
+            'a', 'abbr', 'area', 'audio', 'b', 'bdi', 'bdo', 'br', 'button', 'canvas', 'cite',
+            'code', 'data', 'datalist', 'del', 'dfn', 'em', 'embed', 'i', 'iframe', 'img',
+            'input', 'ins', 'kbd', 'keygen', 'label', 'map', 'mark', 'math', 'meter', 'noscript',
+            'object', 'output', 'progress', 'q', 'ruby', 's', 'samp', 'script', 'select', 'small',
+            'span', 'strong', 'sub', 'sup', 'svg', 'template', 'textarea', 'time', 'u', 'var',
+            'video', 'wbr', 'text',
+            // prexisting - not sure of full effect of removing, leaving in
+            'acronym', 'address', 'big', 'dt', 'ins', 'strike', 'tt'
+        ],
     },
 
     template = [
@@ -98,6 +115,11 @@ const
             entry: 'alt + backspace',
             description: 'close preview',
         },
+        'divider',
+        {
+            entry: 'shift + alt + f',
+            description: 'tidy code',
+        },
         {
             entry: 'alt + /',
             description: 'add/remove editable',
@@ -137,8 +159,8 @@ let gutter,
     logicToken, logicTokenEnd, logicBlock, logicExp,
     stepToken, stepTokenEnd,
 
-    altKey, returnFocus,
-    
+    shiftAlt, altKey, returnFocus,
+
     tipContainer,
 
     xOffset, yOffset;
@@ -701,6 +723,7 @@ function recoverFromLocal() {
 // ================================================= //
 
 function keyHandler() {
+    // console.log(event.shiftKey && event.altKey && (event.code == 'AltLeft' || event.code == 'ShiftLeft'));
     // disable F5 key
     if (/F5|ControlLeft/.test(event.code)) {
         event.preventDefault();
@@ -727,6 +750,7 @@ function keyHandler() {
     }
 
     else if (event.code == 'F1') {
+        event.preventDefault();
         if (tipContainer) closeTips();
         else showTips();
     }
@@ -776,6 +800,14 @@ function keyHandler() {
 
         pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal|Backslash/, '');       // LIST OF KEYS TO ALLOW REPEATED PRESS
     }
+
+    if (shiftAlt) {
+        event.preventDefault();
+        const beautify = eval(`${activeCodeBtn.id}_beautify`);
+        if (event.code == 'KeyF') setValue(codeEditor, beautify(codeEditor.getValue(), eval(`${activeCodeBtn.id}BeautyOpts`)));
+    }
+
+    shiftAlt = event.shiftKey && event.altKey && (event.code == 'AltLeft' || event.code == 'ShiftLeft');
 }
 
 function showTips() {
@@ -786,7 +818,11 @@ function showTips() {
 
     tipsData.forEach(data => {
         if (data == 'divider') {
-            tipContainer.appendChild(document.createElement('hr'));
+            const hr = document.createElement('hr');
+            hr.noShade = true;
+            hr.size = 1;
+            hr.color = 'silver';
+            tipContainer.appendChild(hr);
             return;
         }
 
