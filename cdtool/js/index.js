@@ -973,6 +973,8 @@ function initializeUI() {
     const elem = Array.from(app.getElementsByTagName('*'));
     elem.forEach(e => { if (e.tagName != 'LI' && e.tagName != 'SCRIPT' && e.id != 'editor') e.style.position = 'absolute'; });
     updateUI();
+    
+    app.style.visibility = 'visible';
 }
 
 function highlightButton() {

@@ -1,10 +1,23 @@
-let graph;
+loading();
 
-window.onload = init;
+function loading() {
+    if (document.body) init();
+    else window.requestAnimationFrame(loading);
+}
 
 function init() {
-    workspace.style.width = '500px';
-    workspace.style.height = '500px';
+    appContainer.style.visibility = 'visible';
+
     
-    graph = new Graph(workspace);
+}
+
+class Node {
+    constructor(x, y, w, h) {
+
+
+        this.el = document.createElement('g');
+        this.body = document.createElement('rect');
+        
+        this.el.appendChild(this.body);
+    }
 }
