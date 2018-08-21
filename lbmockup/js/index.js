@@ -136,7 +136,7 @@ const
         },
         {
             entry: 'alt + l',
-            description: 'apply step logic',
+            description: 'apply step logic & regenerate expectation',
         },
     ];
 
@@ -225,7 +225,7 @@ window.onload = () => {
         '<!DOCTYPE html>',
         '<html>',
         '<head>',
-        '\t<link rel="stylesheet" href="style.css"/>',
+        '\t<link rel="stylesheet" href="style.css">',
         '\t<script src="script.js"></script>',
         '</head>',
         '<body>\n\t',
@@ -988,30 +988,46 @@ function highlightButton() {
 
 function testLogic() {
     // ===== HELPER FUNCTIONS ===== //
-    const insertLine = (c, k, options) => {        // c = CODE; k = KEY; options = { str, int }
-        c = c.split(/\r?\n/);
+    const
+        insertLine = (c, k, options) => {        // c = CODE; k = KEY; options = { str, int }
+            const m = c.match(new RegExp(k, 'g'));
 
-        c.some((e, i) => {
-            const query = new RegExp(k).test(e);
+            if (!m) log(`step logic failed: '${k}' can not be found.`);
+            else if (m.length > 1) log(`step logic failed: '${k}' is not unique.`);
+            else {
+                c = c.split(/\r?\n/);
 
-            if (query) {
-                const defaultOptions = { line: '', offset: 0 };
-                const opt = Object.assign({}, defaultOptions, options);
+                c.some((e, i) => {
+                    const query = new RegExp(k).test(e);
 
-                c.splice(i + 1 + opt.offset, 0, opt.line);      // log(`Adding [${opt.line}] after line ${i + 1}`);
-                return query;
+                    if (query) {
+                        const defaultOptions = { line: '', offset: 0 };
+                        const opt = Object.assign({}, defaultOptions, options);
+
+                        c.splice(i + 1 + opt.offset, 0, opt.line);      // log(`Adding [${opt.line}] after line ${i + 1}`);
+                        return query;
+                    }
+                });
+                return c.join('\n');
             }
-        });
-        return c.join('\n');
-    };
+        },
+        makeEditableBlock = (c, k) => {
+            const m = c.match(new RegExp(k, 'g'));
+
+            if (!m) log(`step logic failed: '${k}' can not be found.`);
+            else if (m.length > 1) log(`step logic failed: '${k}' is not unique.`);
+            else return c.replace(k, `${markup[0]}${k}${markup[1]}`);
+        };
 
     if (cStep > 1 && get(gutter, 'background') == '246, 246, 246') {
         let logic = logicEditor.getValue().replace(/[\s\n\r]*\/\/ Expectation:[\s\S]*/, '').trim();
 
         if (!logic.length) {
-            logic = 'let output = codeWithoutMarkup.replace(/' +
+            logic = 'let output = codeWithoutMarkup; //.replace(/' +
                 (activeCodeBtn == btnHTML ? '\\s*<!--.*-->/g,\'' : activeCodeBtn == btnCSS ? '\\s*\\/\\*.*\\*\\//g,\'' : ';\\s*\\/\\/.*/g,\';') +
-                '\');\n// output = insertLine(output, \'key\', {line: \'\', offset: 0});\nreturn output;';
+                '\');\n// output = insertLine(output, \'key\', { line: \'\', offset: 0 });' +
+                '\n// output = makeEditableBlock(output, \'key\');' +
+                '\nreturn output;';
 
             setValue(logicEditor, `${logic}${logicEditor.getValue()}`);
         }
@@ -1030,7 +1046,7 @@ function testLogic() {
                 gutter.style.background = 'lightgreen';
             }
             else {
-                log(`Output type is "${typeof (output)}", should be a string.`, 'warn');
+                // log(`Output type is "${typeof (output)}", should be a string.`, 'warn');
                 gutter.style.background = 'lightcoral';
             }
         }
@@ -1049,6 +1065,7 @@ function testLogic() {
 
         highlightButton();
     }
+
     generateTest();
 }
 
