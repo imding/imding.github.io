@@ -1,11 +1,16 @@
+* {
+    box-sizing: border-box;
+}
+
 html, body, #appContainer {
     margin: 0;
     height: 100%;
 }
 
-#workspace {
-    position: absolute;
-    left: 200px;
-    width: 500px;
-    height: 500px;
+.AppUI-WS {
+    border: black 1px solid;
+}
+
+svg {
+    background-color: tomato;
 }
