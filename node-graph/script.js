@@ -92,14 +92,12 @@ class Workspace {
         checkers.forEach(check => { if (!check.pass) console.error(check.message); });
 
         const
-            nzrn = new Utility().nzrn,
-            uid = new Utility().uid,
             gAttr = new Utility().gAttr,
             sAttr = new Utility().sAttr,
             gCss = new Utility().gCss;
 
         this.el = el;
-        this.el.id = this.el.id || uid('WS');
+        this.el.id = this.el.id || new Utility().uid('WS');
         this.el.className = 'AppUI-WS';
 
         this.svg = document.newSVG('svg');
@@ -124,25 +122,28 @@ class Workspace {
         this.activeNode;
         this.el.onmousemove = () => {
             if (!this.activeNode) return;
-            sAttr(this.activeNode.root, {
-                x: event.clientX - this.activeNode.offset.x,
-                y: event.clientY - this.activeNode.offset.y,
-            });
+            // sAttr(this.activeNode.root, {
+            //     x: event.clientX,// - this.activeNode.offset.x,
+            //     y: event.clientY,// - this.activeNode.offset.y,
+            // });
         };
     }
 
-    addNode(opts) {
-        const nn = new Node(opts);
+    addNode(coord) {     console.log(coord);
+        coord = Object.assign({ x: 0, y: 0 }, coord || {});
 
-        nn.root.onmousedown = () => {
+        const nn = new Node(coord);
+
+        nn.body.onmousedown = () => {
             if (event.button) return;
             nn.offset = {
-                x: opts.x - gAttr(nn.root).x,
-                y: 0,
+                x: coord.x - gAttr(nn.body).x,
+                y: coord.y - gAttr(nn.body).y,
             };
+            console.log(nn.offset);
             this.activeNode = nn;
         };
-        nn.root.onmouseup = () => {
+        nn.body.onmouseup = () => {
             if (event.button) return;
             this.activeNode = null;
         };
@@ -153,26 +154,26 @@ class Workspace {
 }
 
 class Node {
-    constructor(opts) {
-        opts = Object.assign({
-            x: 0,
-            y: 0,
-            w: 150,
-            h: 100,
-        }, opts || {});
+    constructor(geo) {
+        geo = Object.assign({ x: 0, y: 0, w: 150, h: 100 }, geo || {});
 
-        const sAttr = new Utility().sAttr;
+        const
+            pr = 10,    // port radius
+            sAttr = new Utility().sAttr;
 
-        this.root = document.newSVG('g');
-        sAttr(this.root, { cursor: 'pointer' });
+        this.root = document.newSVG('svg');
+        sAttr(this.root, { 
+            cursor: 'pointer',
+            x: geo.x - geo.w / 2,
+            y: geo.y - geo.h / 2,
+        });
 
         // create and append node body
         this.body = document.newSVG('rect');
         sAttr(this.body, {
-            width: opts.w,
-            height: opts.h,
-            x: opts.x - opts.w / 2,
-            y: opts.y - opts.h / 2,
+            x: pr,
+            width: geo.w,
+            height: geo.h,
         });
         this.root.appendChild(this.body);
 
@@ -182,10 +183,10 @@ class Node {
         }];
         this.in.forEach(port => {
             sAttr(port.svg, {
-                r: 10,
-                cx: opts.x,
-                cy: opts.y,
-                fill: 'skyblue',
+                r: pr,
+                cx: pr,
+                cy: geo.h / 2,
+                fill: 'lightgreen',
             });
             this.root.appendChild(port.svg);
         });
@@ -195,6 +196,12 @@ class Node {
             svg: document.newSVG('circle'),
         }];
         this.out.forEach(port => {
+            sAttr(port.svg, {
+                r: pr,
+                cx: geo.w + pr,
+                cy: geo.h / 2,
+                fill: 'skyblue',
+            });
             this.root.appendChild(port.svg);
         });
     }
@@ -202,13 +209,13 @@ class Node {
 
 class Utility {
     constructor() {
-        // non-zero random number
-        this.nzrn = () => Math.random() || this.nzrn();
-
         // unique id
         this.uid = prefix => {
+            // non-zero random number
+            const nzrn = () => Math.random() || this.nzrn();
+
             // random string
-            const rs = `${prefix}-${this.nzrn().toString(36).slice(-3)}`;
+            const rs = `${prefix}-${nzrn().toString(36).slice(-3)}`;
 
             if (Array.from(document.documentElement.getElementsByTagName('*')).some(el => el.id == rs)) return this.uid();
             return rs;
