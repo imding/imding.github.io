@@ -8,8 +8,8 @@ function loading() {
 }
 
 function init() {
-    gCss = new Utility().gCss;
-    gAttr = new Utility().gAttr;
+    // gCss = new Utility().gCss;
+    // gAttr = new Utility().gAttr;
     appContainer.style.visibility = 'visible';
 
     flo = new FloApp();
@@ -96,6 +96,9 @@ class Workspace {
             sAttr = new Utility().sAttr,
             gCss = new Utility().gCss;
 
+        // padding inside the workspace
+        this.pad = 10;
+
         this.el = el;
         this.el.id = this.el.id || new Utility().uid('WS');
         this.el.className = 'AppUI-WS';
@@ -110,37 +113,59 @@ class Workspace {
         this.el.appendChild(this.svg);
         this.el.oncontextmenu = () => {
             event.preventDefault();
-            
+
             if (event.target != this.svg) return;
 
             this.addNode({
-                x: event.clientX - gCss(this.el).left,
-                y: event.clientY - gCss(this.el).top,
+                // mouse.x + scroll.x - workspace.left
+                x: event.clientX + window.scrollX - gCss(this.el).left,
+                y: event.clientY + window.scrollY - gCss(this.el).top,
             });
         };
 
         this.activeNode;
+        this.activeLink;
+
         this.el.onmousemove = () => {
-            if (!this.activeNode) return;
-            // sAttr(this.activeNode.root, {
-            //     x: event.clientX,// - this.activeNode.offset.x,
-            //     y: event.clientY,// - this.activeNode.offset.y,
-            // });
+            // animate active node
+            if (this.activeNode) sAttr(this.activeNode.root, {
+                // mouse.x + scroll.x - workspace.left - activeNode.offset.x
+                x: Math.min(
+                    gCss(this.el).width - gAttr(this.activeNode.root).width - this.pad, // max dx
+                    Math.max(
+                        this.pad,   // min dx
+                        event.clientX + window.scrollX - gCss(this.el).left - this.activeNode.offset.x
+                    )
+                ),
+                y: Math.min(
+                    gCss(this.el).height - gAttr(this.activeNode.root).height - this.pad,   // max dy
+                    Math.max(
+                        this.pad,   // min dy
+                        event.clientY + window.scrollY - gCss(this.el).top - this.activeNode.offset.y
+                    )
+                ),
+            });
+
+            // animate active link
+            else if (this.activeLink) sAttr();
         };
     }
 
-    addNode(coord) {     console.log(coord);
+    addNode(coord) {
         coord = Object.assign({ x: 0, y: 0 }, coord || {});
 
-        const nn = new Node(coord);
+        const
+            gAttr = new Utility().gAttr,
+            gCss = new Utility().gCss,
+            nn = new Node(coord);
 
         nn.body.onmousedown = () => {
             if (event.button) return;
             nn.offset = {
-                x: coord.x - gAttr(nn.body).x,
-                y: coord.y - gAttr(nn.body).y,
+                // mouse.x + scroll.x - node.root.x - workspace.left
+                x: event.clientX + window.scrollX - gAttr(nn.root).x - gCss(this.el).left,
+                y: event.clientY + window.scrollY - gAttr(nn.root).y - gCss(this.el).top,
             };
-            console.log(nn.offset);
             this.activeNode = nn;
         };
         nn.body.onmouseup = () => {
@@ -162,9 +187,9 @@ class Node {
             sAttr = new Utility().sAttr;
 
         this.root = document.newSVG('svg');
-        sAttr(this.root, { 
+        sAttr(this.root, {
             cursor: 'pointer',
-            x: geo.x - geo.w / 2,
+            x: geo.x - pr - geo.w / 2,
             y: geo.y - geo.h / 2,
         });
 
@@ -182,12 +207,28 @@ class Node {
             svg: document.newSVG('circle'),
         }];
         this.in.forEach(port => {
+            port.dir = 'in';
+
             sAttr(port.svg, {
                 r: pr,
                 cx: pr,
                 cy: geo.h / 2,
                 fill: 'lightgreen',
             });
+
+            port.onmousedown = () => {
+                // create path
+            };
+
+            port.onmouseup = () => {
+                if (event.target.hasOwnProperty('dir') && event.target.dir == 'in') {
+                    // create link
+                }
+                else {
+                    // remove path
+                }
+            };
+
             this.root.appendChild(port.svg);
         });
 
@@ -196,14 +237,53 @@ class Node {
             svg: document.newSVG('circle'),
         }];
         this.out.forEach(port => {
+            port.dir = 'out';
+
             sAttr(port.svg, {
                 r: pr,
                 cx: geo.w + pr,
                 cy: geo.h / 2,
                 fill: 'skyblue',
             });
+
+            port.onmousedown = () => {
+                port.link = new Link();
+            };
+
+            port.onmouseup = () => {
+                if (event.target.hasOwnProperty('dir') && event.target.dir == 'in') {
+                    // establish link
+                }
+                else port.link = null;
+            };
+
             this.root.appendChild(port.svg);
         });
+    }
+}
+
+class Link {
+    constructor() {
+        this.start = { x: 0, y: 0, cx: 0, cy: 0, node: null };
+        this.end = { x: 0, y: 0, cx: 0, cy: 0, node: null };
+        
+        this.svg = document.newSVG('path');
+        sAttr(this.svg, {
+            d: `M${this.start.x} ${this.start.y} C ${this.start.cx} ${this.start.cy}, ${this.end.cx} ${this.end.cy}, ${this.end.x} ${this.end.y}`,
+            stroke: 'black',
+        });
+
+
+    }
+
+    render(ws) {
+        if (!(ws instanceof Workspace)) console.error('the render method expects an instance of Workspace');
+
+        ws.
+    }
+
+    establish() {
+
     }
 }
 
@@ -227,12 +307,16 @@ class Utility {
         // set & get attribute
         this.sAttr = (el, opts) => Object.entries(opts).forEach(kvp => el.setAttribute(kvp[0], kvp[1].toString()));
         this.gAttr = el => {
-            return new Proxy({
-                get x() { return el.getAttribute('x'); },
-                get y() { return el.getAttribute('y'); },
-            }, {
-                get: (o, attr) => attr in o ? o[attr] : el.getAttribute(attr),
-            });
+            return new Proxy(
+                {
+                    get x() { return parseFloat(el.getAttribute('x')); },
+                    get y() { return parseFloat(el.getAttribute('y')); },
+                    get width() { return parseFloat(el.getAttribute('width')) || el.getBBox().width; },
+                    get height() { return parseFloat(el.getAttribute('height')) || el.getBBox().height; },
+                }, {
+                    get: (o, attr) => attr in o ? o[attr] : el.getAttribute(attr),
+                }
+            );
         };
 
         // set & get css style
@@ -242,14 +326,16 @@ class Utility {
                 cs = window.getComputedStyle(el),
                 val = p => cs.getPropertyValue(p);
 
-            return new Proxy({
-                get width() { return parseFloat(val('width')); },
-                get height() { return parseFloat(val('height')); },
-                get left() { return parseFloat(val('left')); },
-                get top() { return parseFloat(val('top')); },
-            }, {
+            return new Proxy(
+                {
+                    get width() { return parseFloat(val('width')); },
+                    get height() { return parseFloat(val('height')); },
+                    get left() { return parseFloat(val('left')); },
+                    get top() { return parseFloat(val('top')); },
+                }, {
                     get: (o, p) => p in o ? o[p] : val(p.replace(/([A-Z])/g, '-$1'.toLowerCase())),
-                });
+                }
+            );
         };
     }
 }
