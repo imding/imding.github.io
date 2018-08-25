@@ -41,6 +41,18 @@ class FloApp {
 
         document.newSVG = type => document.createElementNS('http://www.w3.org/2000/svg', type);
 
+        el.onmouseup = () => {
+            this.ui.workspace.forEach(ws => {
+                if (event.button) return;
+                
+                ws.activeNode = null;
+
+                if (ws.activeLink) {
+                    ws.svg.removeChild(ws.activeLink.svg);
+                    ws.activeLink = null;
+                }
+            });
+        };
         this.el = el;
 
         const ws = new Workspace(document.createElement('div'));
@@ -128,17 +140,17 @@ class Workspace {
 
         this.el.onmousemove = () => {
             // animate active node
-            if (this.activeNode) sAttr(this.activeNode.root, {
+            if (this.activeNode) sAttr(this.activeNode.svg, {
                 // mouse.x + scroll.x - workspace.left - activeNode.offset.x
                 x: Math.min(
-                    gCss(this.el).width - gAttr(this.activeNode.root).width - this.pad, // max dx
+                    gCss(this.el).width - gAttr(this.activeNode.svg).width - this.pad, // max dx
                     Math.max(
                         this.pad,   // min dx
                         event.clientX + window.scrollX - gCss(this.el).left - this.activeNode.offset.x
                     )
                 ),
                 y: Math.min(
-                    gCss(this.el).height - gAttr(this.activeNode.root).height - this.pad,   // max dy
+                    gCss(this.el).height - gAttr(this.activeNode.svg).height - this.pad,   // max dy
                     Math.max(
                         this.pad,   // min dy
                         event.clientY + window.scrollY - gCss(this.el).top - this.activeNode.offset.y
@@ -147,7 +159,13 @@ class Workspace {
             });
 
             // animate active link
-            else if (this.activeLink) sAttr();
+            else if (this.activeLink) sAttr(this.activeLink.path, {
+                d: `M${this.start.x} ${this.start.y} C ` +
+                    `${this.start.cx} ${this.start.cy}, ` +
+                    `${this.end.cx} ${this.end.cy}, ` +
+                    `${this.end.x} ${this.end.y}`,
+                stroke: 'black',
+            });
         };
     }
 
@@ -162,18 +180,28 @@ class Workspace {
         nn.body.onmousedown = () => {
             if (event.button) return;
             nn.offset = {
-                // mouse.x + scroll.x - node.root.x - workspace.left
-                x: event.clientX + window.scrollX - gAttr(nn.root).x - gCss(this.el).left,
-                y: event.clientY + window.scrollY - gAttr(nn.root).y - gCss(this.el).top,
+                // mouse.x + scroll.x - node.svg.x - workspace.left
+                x: event.clientX + window.scrollX - gAttr(nn.svg).x - gCss(this.el).left,
+                y: event.clientY + window.scrollY - gAttr(nn.svg).y - gCss(this.el).top,
             };
             this.activeNode = nn;
         };
-        nn.body.onmouseup = () => {
-            if (event.button) return;
-            this.activeNode = null;
-        };
 
-        this.svg.appendChild(nn.root);
+        nn.in.forEach(port => {
+            port.svg.onmousedown = () => {
+                if (event.button) return;
+                port.link = new Link();
+                this.activeLink = port.link; 
+                this.svg.appendChild(port.link.svg);
+            };
+
+            port.svg.onmouseup = () => {
+                if (!event.button && this.activeLink && event.target.dir == 'out') return;
+                
+            };
+        });
+
+        this.svg.appendChild(nn.svg);
         this.graph.nodes.push(nn);
     }
 }
@@ -186,8 +214,8 @@ class Node {
             pr = 10,    // port radius
             sAttr = new Utility().sAttr;
 
-        this.root = document.newSVG('svg');
-        sAttr(this.root, {
+        this.svg = document.newSVG('svg');
+        sAttr(this.svg, {
             cursor: 'pointer',
             x: geo.x - pr - geo.w / 2,
             y: geo.y - geo.h / 2,
@@ -200,11 +228,12 @@ class Node {
             width: geo.w,
             height: geo.h,
         });
-        this.root.appendChild(this.body);
+        this.svg.appendChild(this.body);
 
         // create and append node input ports
         this.in = [{
             svg: document.newSVG('circle'),
+            link: null,
         }];
         this.in.forEach(port => {
             port.dir = 'in';
@@ -216,25 +245,13 @@ class Node {
                 fill: 'lightgreen',
             });
 
-            port.onmousedown = () => {
-                // create path
-            };
-
-            port.onmouseup = () => {
-                if (event.target.hasOwnProperty('dir') && event.target.dir == 'in') {
-                    // create link
-                }
-                else {
-                    // remove path
-                }
-            };
-
-            this.root.appendChild(port.svg);
+            this.svg.appendChild(port.svg);
         });
 
         // create and append node output ports
         this.out = [{
             svg: document.newSVG('circle'),
+            link: null,
         }];
         this.out.forEach(port => {
             port.dir = 'out';
@@ -246,18 +263,7 @@ class Node {
                 fill: 'skyblue',
             });
 
-            port.onmousedown = () => {
-                port.link = new Link();
-            };
-
-            port.onmouseup = () => {
-                if (event.target.hasOwnProperty('dir') && event.target.dir == 'in') {
-                    // establish link
-                }
-                else port.link = null;
-            };
-
-            this.root.appendChild(port.svg);
+            this.svg.appendChild(port.svg);
         });
     }
 }
@@ -266,20 +272,15 @@ class Link {
     constructor() {
         this.start = { x: 0, y: 0, cx: 0, cy: 0, node: null };
         this.end = { x: 0, y: 0, cx: 0, cy: 0, node: null };
+
+        this.svg = document.newSVG('svg');
+        this.path = document.newSVG('path');
         
-        this.svg = document.newSVG('path');
-        sAttr(this.svg, {
-            d: `M${this.start.x} ${this.start.y} C ${this.start.cx} ${this.start.cy}, ${this.end.cx} ${this.end.cy}, ${this.end.x} ${this.end.y}`,
-            stroke: 'black',
-        });
-
-
+        this.svg.appendChild(this.path);
     }
 
-    render(ws) {
+    render(ws, coord) {
         if (!(ws instanceof Workspace)) console.error('the render method expects an instance of Workspace');
-
-        ws.
     }
 
     establish() {
