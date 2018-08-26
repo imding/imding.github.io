@@ -44,10 +44,12 @@ class FloApp {
         el.onmouseup = () => {
             this.ui.workspace.forEach(ws => {
                 if (event.button) return;
-                
+
                 ws.activeNode = null;
 
                 if (ws.activeLink) {
+                    // const targetNode = ws.graph.nodes.filter(n => n.);
+                    console.log(event.target);
                     ws.svg.removeChild(ws.activeLink.svg);
                     ws.activeLink = null;
                 }
@@ -159,13 +161,13 @@ class Workspace {
             });
 
             // animate active link
-            else if (this.activeLink) sAttr(this.activeLink.path, {
-                d: `M${this.start.x} ${this.start.y} C ` +
-                    `${this.start.cx} ${this.start.cy}, ` +
-                    `${this.end.cx} ${this.end.cy}, ` +
-                    `${this.end.x} ${this.end.y}`,
-                stroke: 'black',
-            });
+            // else if (this.activeLink) sAttr(this.activeLink.path, {
+            //     d: `M${this.start.x} ${this.start.y} C ` +
+            //         `${this.start.cx} ${this.start.cy}, ` +
+            //         `${this.end.cx} ${this.end.cy}, ` +
+            //         `${this.end.x} ${this.end.y}`,
+            //     stroke: 'black',
+            // });
         };
     }
 
@@ -187,17 +189,23 @@ class Workspace {
             this.activeNode = nn;
         };
 
-        nn.in.forEach(port => {
+        nn.in.concat(nn.out).forEach(port => {
             port.svg.onmousedown = () => {
                 if (event.button) return;
                 port.link = new Link();
-                this.activeLink = port.link; 
+                Object.assign((port.dir == 'in' ? port.link.end : port.link.start), {
+                    node: nn,
+                    x: gAttr(port.svg).x + gAttr(port.svg).width / 2,
+                    y: gAttr(port.svg).y + gAttr(port.svg).height / 2,
+                });
+
+                this.activeLink = port.link;
                 this.svg.appendChild(port.link.svg);
             };
 
             port.svg.onmouseup = () => {
                 if (!event.button && this.activeLink && event.target.dir == 'out') return;
-                
+
             };
         });
 
@@ -211,6 +219,7 @@ class Node {
         geo = Object.assign({ x: 0, y: 0, w: 150, h: 100 }, geo || {});
 
         const
+            br = 10,    // body radius
             pr = 10,    // port radius
             sAttr = new Utility().sAttr;
 
@@ -227,6 +236,9 @@ class Node {
             x: pr,
             width: geo.w,
             height: geo.h,
+            rx: br,
+            ry: br,
+            fill: 'rebeccapurple',
         });
         this.svg.appendChild(this.body);
 
@@ -273,9 +285,10 @@ class Link {
         this.start = { x: 0, y: 0, cx: 0, cy: 0, node: null };
         this.end = { x: 0, y: 0, cx: 0, cy: 0, node: null };
 
+
         this.svg = document.newSVG('svg');
         this.path = document.newSVG('path');
-        
+
         this.svg.appendChild(this.path);
     }
 

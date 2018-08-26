@@ -8,9 +8,5 @@ html, body, #appContainer {
 }
 
 .AppUI-WS {
-    border: black 1px solid;
-}
-
-svg {
     background-color: tomato;
 }
