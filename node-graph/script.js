@@ -1,6 +1,6 @@
 loading();
 
-let flo, gCss, gAttr;
+// let flo, gCss, gAttr;
 
 function loading() {
     if (document.body) init();
@@ -8,10 +8,13 @@ function loading() {
 }
 
 function init() {
-    // gCss = new Utility().gCss;
-    // gAttr = new Utility().gAttr;
+    // add utility functions to window object
+    Object.assign(window, new Utility());
+
+    // display app container
     appContainer.style.visibility = 'visible';
 
+    // create instance of FloApp
     flo = new FloApp();
     flo.render(appContainer);
 
@@ -25,19 +28,18 @@ class FloApp {
     }
 
     render(el) {
-        const
-            checkers = [
-                {
-                    pass: () => arguments.length == 1,
-                    message: 'the render method expects a single argument',
-                },
-                {
-                    pass: () => el && el.tagName == 'DIV',
-                    message: 'the render expects a <div> element',
-                }
-            ];
+        const checkers = [
+            {
+                pass: () => arguments.length == 1,
+                message: 'the render method expects a single argument',
+            },
+            {
+                pass: () => el && el.tagName == 'DIV',
+                message: 'the render expects a <div> element',
+            }
+        ];
 
-        checkers.forEach(check => { if (!check.pass()) console.error(check.message); });
+        checkers.forEach(check => { if (!check.pass()) throw new Error(check.message); });
 
         document.newSVG = type => document.createElementNS('http://www.w3.org/2000/svg', type);
 
@@ -50,11 +52,12 @@ class FloApp {
                 if (ws.activeLink) {
                     // const targetNode = ws.graph.nodes.filter(n => n.);
                     console.log(event.target);
-                    ws.svg.removeChild(ws.activeLink.svg);
+                    // ws.svg.removeChild(ws.activeLink.svg);
                     ws.activeLink = null;
                 }
             });
         };
+
         this.el = el;
 
         const ws = new Workspace(document.createElement('div'));
@@ -62,27 +65,23 @@ class FloApp {
         this.addWorkspace(ws, { x: 100, y: 200, w: 800, h: 650 });
     }
 
-    addWorkspace(ws, opts) {
-        if (!(ws instanceof Workspace)) console.error('the addWorkspace method expects an instance of Workspace');
+    addWorkspace(ws, details) {
+        if (!(ws instanceof Workspace)) throw new Error('the addWorkspace method expects an instance of Workspace');
 
-        opts = Object.assign({ x: 0, y: 0, w: 500, h: 350 }, opts);
-
-        const
-            sAttr = new Utility().sAttr,
-            sCss = new Utility().sCss;
+        details = Object.assign({ x: 0, y: 0, w: 500, h: 350 }, details);
 
         sCss(ws.el, {
             position: 'absolute',
-            left: `${opts.x}px`,
-            top: `${opts.y}px`,
-            width: `${opts.w}px`,
-            height: `${opts.h}px`,
+            left: `${details.x}px`,
+            top: `${details.y}px`,
+            width: `${details.w}px`,
+            height: `${details.h}px`,
         });
 
         sAttr(ws.svg, {
-            width: opts.w,
-            height: opts.h,
-            viewBox: `0 0 ${opts.w} ${opts.h}`,
+            width: details.w,
+            height: details.h,
+            viewBox: `0 0 ${details.w} ${details.h}`,
         });
 
         this.ui.workspace.push(ws);
@@ -103,12 +102,7 @@ class Workspace {
             }
         ];
 
-        checkers.forEach(check => { if (!check.pass) console.error(check.message); });
-
-        const
-            gAttr = new Utility().gAttr,
-            sAttr = new Utility().sAttr,
-            gCss = new Utility().gCss;
+        checkers.forEach(check => { if (!check.pass) throw new Error(check.message); });
 
         // padding inside the workspace
         this.pad = 10;
@@ -130,11 +124,7 @@ class Workspace {
 
             if (event.target != this.svg) return;
 
-            this.addNode({
-                // mouse.x + scroll.x - workspace.left
-                x: event.clientX + window.scrollX - gCss(this.el).left,
-                y: event.clientY + window.scrollY - gCss(this.el).top,
-            });
+            this.addNode(relCursor(this.el));
         };
 
         this.activeNode;
@@ -148,14 +138,14 @@ class Workspace {
                     gCss(this.el).width - gAttr(this.activeNode.svg).width - this.pad, // max dx
                     Math.max(
                         this.pad,   // min dx
-                        event.clientX + window.scrollX - gCss(this.el).left - this.activeNode.offset.x
+                        relCursor(this.el).x - this.activeNode.offset.x
                     )
                 ),
                 y: Math.min(
                     gCss(this.el).height - gAttr(this.activeNode.svg).height - this.pad,   // max dy
                     Math.max(
                         this.pad,   // min dy
-                        event.clientY + window.scrollY - gCss(this.el).top - this.activeNode.offset.y
+                        relCursor(this.el).y - this.activeNode.offset.y
                     )
                 ),
             });
@@ -171,20 +161,17 @@ class Workspace {
         };
     }
 
-    addNode(coord) {
-        coord = Object.assign({ x: 0, y: 0 }, coord || {});
+    addNode(pos) {
+        pos = Object.assign({ x: 0, y: 0 }, pos || {});
 
-        const
-            gAttr = new Utility().gAttr,
-            gCss = new Utility().gCss,
-            nn = new Node(coord);
+        const nn = new Node(pos);
 
         nn.body.onmousedown = () => {
             if (event.button) return;
             nn.offset = {
                 // mouse.x + scroll.x - node.svg.x - workspace.left
-                x: event.clientX + window.scrollX - gAttr(nn.svg).x - gCss(this.el).left,
-                y: event.clientY + window.scrollY - gAttr(nn.svg).y - gCss(this.el).top,
+                x: relCursor(this.el).x - gAttr(nn.svg).x,
+                y: relCursor(this.el).y - gAttr(nn.svg).y,
             };
             this.activeNode = nn;
         };
@@ -192,15 +179,27 @@ class Workspace {
         nn.in.concat(nn.out).forEach(port => {
             port.svg.onmousedown = () => {
                 if (event.button) return;
-                port.link = new Link();
-                Object.assign((port.dir == 'in' ? port.link.end : port.link.start), {
-                    node: nn,
-                    x: gAttr(port.svg).x + gAttr(port.svg).width / 2,
-                    y: gAttr(port.svg).y + gAttr(port.svg).height / 2,
-                });
 
-                this.activeLink = port.link;
-                this.svg.appendChild(port.link.svg);
+                console.log(port);
+
+                const
+                    portPos = {
+                        x: 0,
+                        y: 0,
+                    },
+                    start = dir == 'in' ? null : portPos,
+                    end = dir == 'out' ? null : portPos,
+                    nl = new Link(start, end);
+
+                this.svg.appendChild(nl.svg);
+                this.activeLink = nl;
+
+                // Object.assign((port.dir == 'in' ? port.link.end : port.link.start), {
+                //     node: nn,
+                //     x: gAttr(port.svg).x + gAttr(port.svg).width / 2,
+                //     y: gAttr(port.svg).y + gAttr(port.svg).height / 2,
+                // });
+
             };
 
             port.svg.onmouseup = () => {
@@ -215,27 +214,27 @@ class Workspace {
 }
 
 class Node {
-    constructor(geo) {
-        geo = Object.assign({ x: 0, y: 0, w: 150, h: 100 }, geo || {});
+    constructor(pos, scl) {
+        pos = Object.assign({ x: 0, y: 0 }, pos || {});
+        scl = Object.assign({ x: 150, y: 100 }, scl || {});
 
         const
             br = 10,    // body radius
-            pr = 10,    // port radius
-            sAttr = new Utility().sAttr;
+            pr = 10;    // port radius
 
         this.svg = document.newSVG('svg');
         sAttr(this.svg, {
             cursor: 'pointer',
-            x: geo.x - pr - geo.w / 2,
-            y: geo.y - geo.h / 2,
+            x: pos.x - pr - scl.x / 2,
+            y: pos.y - scl.y / 2,
         });
 
         // create and append node body
         this.body = document.newSVG('rect');
         sAttr(this.body, {
             x: pr,
-            width: geo.w,
-            height: geo.h,
+            width: scl.x,
+            height: scl.y,
             rx: br,
             ry: br,
             fill: 'rebeccapurple',
@@ -244,16 +243,16 @@ class Node {
 
         // create and append node input ports
         this.in = [{
+            dir: 'in',
+            parent: this,
             svg: document.newSVG('circle'),
-            link: null,
+            link: [],
         }];
         this.in.forEach(port => {
-            port.dir = 'in';
-
             sAttr(port.svg, {
                 r: pr,
                 cx: pr,
-                cy: geo.h / 2,
+                cy: scl.y / 2,
                 fill: 'lightgreen',
             });
 
@@ -262,16 +261,16 @@ class Node {
 
         // create and append node output ports
         this.out = [{
+            dir: 'out',
+            parent: this,
             svg: document.newSVG('circle'),
-            link: null,
+            link: [],
         }];
         this.out.forEach(port => {
-            port.dir = 'out';
-
             sAttr(port.svg, {
                 r: pr,
-                cx: geo.w + pr,
-                cy: geo.h / 2,
+                cx: scl.x + pr,
+                cy: scl.y / 2,
                 fill: 'skyblue',
             });
 
@@ -281,19 +280,32 @@ class Node {
 }
 
 class Link {
-    constructor() {
-        this.start = { x: 0, y: 0, cx: 0, cy: 0, node: null };
-        this.end = { x: 0, y: 0, cx: 0, cy: 0, node: null };
-
+    constructor(start, end) {
+        this.start = start;
+        this.end = end;
+        this.nodes = { a: null, b: null };
 
         this.svg = document.newSVG('svg');
         this.path = document.newSVG('path');
 
+        sAttr(this.path, { fill: 'black' });
+        
+        // this.render(start, end);
+
         this.svg.appendChild(this.path);
+
     }
 
-    render(ws, coord) {
-        if (!(ws instanceof Workspace)) console.error('the render method expects an instance of Workspace');
+    render(start, end) {
+        // if (start) sAttr(this.path, {
+        //     d: `M${start.x} ${start.y} C ` +
+        //         `${start.x + } ${start.y}, ` +
+        //         `${} ${}, ` +
+        //         `${} ${}`,
+        // });
+        // else if (end) sAttr(this.path, {
+
+        // });
     }
 
     establish() {
@@ -319,7 +331,7 @@ class Utility {
         this.gifa = (arr, i) => i < 0 ? arr[arr.length + i] : arr[i];
 
         // set & get attribute
-        this.sAttr = (el, opts) => Object.entries(opts).forEach(kvp => el.setAttribute(kvp[0], kvp[1].toString()));
+        this.sAttr = (el, details) => Object.entries(details).forEach(entry => el.setAttribute(entry[0], entry[1].toString()));
         this.gAttr = el => {
             return new Proxy(
                 {
@@ -334,7 +346,7 @@ class Utility {
         };
 
         // set & get css style
-        this.sCss = (el, opts) => Object.entries(opts).forEach(kvp => el.style[kvp[0]] = kvp[1]);
+        this.sCss = (el, details) => Object.entries(details).forEach(entry => el.style[entry[0]] = entry[1]);
         this.gCss = el => {
             const
                 cs = window.getComputedStyle(el),
@@ -351,5 +363,16 @@ class Utility {
                 }
             );
         };
+
+        // relative cursor position
+        this.relCursor = ref => {
+            ref = ref || document.body;
+            if (ref.nodeType != 1) throw new Error('the relCursor method expects an HTML element as argument');
+            return {
+                x: event.clientX + window.scrollX - (this.gCss(ref).left || 0),
+                y: event.clientY + window.scrollY - (this.gCss(ref).top || 0),
+            };
+        };
+        
     }
 }
