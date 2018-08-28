@@ -439,7 +439,7 @@ function updatePreview() {
     const
         // regExp is not sufficient, to be improved later ( using html parser )
         redundant = [
-            /<link\s*rel\s*=\s*(['"])stylesheet\1\s*href\s*=\s*(['"])style.css\2\s*\/>/,
+            /<link\s*rel\s*=\s*(['"])stylesheet\1\s*href\s*=\s*(['"])style.css\2\s*\/?>/,
             /<script\s*src\s*=\s*(['"])script.js\1\s*>\s*<\/script\s*>/,
         ],
         m = noMarkup(html).match(/<head\s*>([\s\S]*)<\/head\s*>/);
