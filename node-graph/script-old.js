@@ -1,131 +1,197 @@
-const
-    app = {
-        ui: {}
-    },
+loading();
 
-    data = {
-        name: 'A',
-        children: [
-            { name: 'B' },
-            { name: 'K' },
-        ],
-    };
+function loading() {
+    if (document.body) init();
+    else window.requestAnimationFrame(loading);
+}
 
-let
-    graph,
-    root,
-    activeNode,
-    quickMenu,
-    nodes = [];
+function init() {
+    // add utility functions to window object
+    Object.assign(window, new Utility());
 
-window.onload = () => {
-    // init document
-    initDoc();
+    // display app container
+    appContainer.style.visibility = 'visible';
 
-    // create svg element
-    graph = SVG(document.body).size('100%', '100%').style({
-        position: 'absolute',
-        top: '0',
-    });
+    // create instance of FloApp
+    fl = new Flapp();
+    fl.render(appContainer);
+}
 
-    // add root node to graph
-    root = newNode({
-        id: 'rootNode',
-        fill: 'mediumspringgreen',
-        x: 100,
-        y: 100,
-        w: 150,
-        h: 100,
-    });
-
-    graph.mousemove(e => moveNode(e.clientX, e.clientY));
-    graph.touchmove(e => {
-        if (e.touches.length > 1) return;
-        moveNode(e.touches[0].clientX, e.touches[0].clientY);
-    });
-
-    // add new node
-    graph.node.oncontextmenu = e => {
-        e.preventDefault();
-
-        if (Object.is(e.target, graph.node)) {
-            nodes.push(newNode({
-                id: `node${nodes.length + 1}`,
-                x: e.clientX - 75,
-                y: e.clientY - 50,
-                w: 150,
-                h: 100,
-            }));
-        }
-    };
-};
-
-function newNode(p) {
-    const
-        node = graph.nested(),
-
-        nodeBody = node.rect(p.w, p.h).attr({
-            id: p.id,
-            x: p.x, y: p.y,
-            rx: 10, ry: 10,
-            fill: p.fill || 'azure',
-            stroke: 'rgba(0, 0, 0, 0.3)',
-            'stroke-width': 5,
-        }).style({
-            cursor: 'grabbing',
-        }),
-
-        dropNode = e => {
-            if (e.button === 2) return;
-            activeNode = null;
-            console.log(`dropped ${e.target.id}`);
+class Flapp {
+    constructor() {
+        this.config = {
+            workspace: {
+                pos: { x: 0, y: 0 },
+                scl: { x: 500, y: 350 },
+                pad: 10,
+            },
+            node: {
+                pos: { x: 0, y: 0 },
+                scl: { x: 120, y: 80 },
+                br: 10,
+                fill: 'rebeccapurple',
+            },
+            port: {
+                r: 8,
+            },
+            link: {},
         };
 
-    // dnd events
-    node.mousedown(e => {
-        if (e.button === 2) return;
-        grabNode(node, e.clientX, e.clientY);
-    });
+        this.root;
+        this.workspace = [];
+        this.activeNode;
+    }
 
-    node.touchstart(e => {
-        if (e.touches.length > 1) return;
-        grabNode(node, e.touches[0].clientX, e.touches[0].clientY);
-    });
+    render(root) {
+        this.root = root;
+        this.newWorkspace({ pos: { x: 100, y: 120 } });
+    }
 
-    node.mouseup(dropNode);
-    node.touchend(dropNode);
+    newWorkspace(cf) {
+        cf = Object.assign(this.config.workspace, cf || {});
 
-    return node;
+        const ws = newSVG('svg');
+
+        // use css for position
+        sCss(ws, {
+            position: 'absolute',
+            left: `${cf.pos.x}px`,
+            top: `${cf.pos.y}px`,
+            backgroundColor: 'tomato',
+        });
+
+        // use attribute for scale
+        sAttr(ws, {
+            width: cf.scl.x,
+            height: cf.scl.y,
+            vewBox: `0 0 ${cf.scl.x} ${cf.scl.y}`,
+        });
+
+        ws.oncontextmenu = () => this.newNode({ pos: relCursor(ws) });
+        ws.onmousemove = () => {
+            // animate active node with cursor
+            if (this.activeNode) sAttr(this.activeNode.root, {
+                x: Math.min(
+                    gAttr(ws).width - gAttr(this.activeNode.root).width - cf.pad, // max dx
+                    Math.max(cf.pad /* min dx */, relCursor(ws).x - this.activeNode.offset.x)
+                ),
+                y: Math.min(
+                    gCss(ws).height - gAttr(this.activeNode.root).height - cf.pad,   // max dy
+                    Math.max(cf.pad /* min dy */, relCursor(ws).y - this.activeNode.offset.y)
+                ),
+            });
+        };
+
+        this.root.appendChild(ws);
+        this.workspace.push(ws);
+    }
+
+    newNode(cf) {
+        event.preventDefault();
+
+        cf = Object.assign(this.config.node, cf || {});
+
+        const node = {
+            parent: event.target,
+            root: newSVG('svg'),
+            body: newSVG('rect'),
+        };
+
+        sAttr(node.root, {
+            cursor: 'pointer',
+            x: cf.pos.x - cf.scl.x / 2,
+            y: cf.pos.y - cf.scl.y / 2,
+        });
+
+        sAttr(node.body, {
+            width: cf.scl.x,
+            height: cf.scl.y,
+            rx: cf.br,
+            ry: cf.br,
+            fill: cf.fill,
+        });
+
+        node.body.onmouseup = () => this.activeNode = null;
+        node.body.onmousedown = () => {
+            this.activeNode = node;
+            this.activeNode.offset = {
+                // cursor distance to node origin
+                x: relCursor(node.parent).x - gAttr(node.root).x,
+                y: relCursor(node.parent).y - gAttr(node.root).y,
+            };
+        };
+
+        node.root.appendChild(node.body);
+        event.target.appendChild(node.root);
+    }
+
+    // newPort(cf) {
+    //     cf = Object.assign(this.config.port, cf || {});
+    // }
 }
 
-function moveNode(x, y) {
-    if (!activeNode) return;
+class Utility {
+    constructor() {
+        // unique id
+        this.uid = prefix => {
+            // non-zero random scalar
+            const nzrs = () => Math.random() || this.nzrs();
 
-    const coord = {
-        x: Math.min(Math.max(10, x - activeNode.grabOffset.x), graph.node.width.animVal.value - activeNode.node.width.animVal.value - 10),
-        y: Math.min(Math.max(10, y - activeNode.grabOffset.y), graph.node.height.animVal.value - activeNode.node.height.animVal.value - 10),
-    };
+            // random string
+            const rs = `${prefix}-${nzrs().toString(36).slice(-3)}`;
 
-    activeNode.move(coord.x, coord.y);
+            if (Array.from(document.documentElement.getElementsByTagName('*')).some(el => el.id == rs)) return this.uid();
+            return rs;
+        };
 
-    console.clear();
-    console.log(`moving ${activeNode.node.id} to ${coord.x}, ${coord.y}`);
-}
+        // get item from array
+        this.gifa = (arr, i) => i < 0 ? arr[arr.length + i] : arr[i];
 
-function grabNode(el, x, y) {
-    el.grabOffset = {
-        x: x - graph.node.x.animVal.value - el.node.x.animVal.value,
-        y: y - graph.node.y.animVal.value - el.node.y.animVal.value,
-    };
+        // set & get attribute
+        this.sAttr = (el, details) => Object.entries(details).forEach(entry => el.setAttribute(entry[0], entry[1].toString()));
+        this.gAttr = el => {
+            return new Proxy(
+                {
+                    get x() { return parseFloat(el.getAttribute('x')); },
+                    get y() { return parseFloat(el.getAttribute('y')); },
+                    get width() { return parseFloat(el.getAttribute('width')) || el.getBBox().width; },
+                    get height() { return parseFloat(el.getAttribute('height')) || el.getBBox().height; },
+                }, {
+                    get: (o, attr) => attr in o ? o[attr] : el.getAttribute(attr),
+                }
+            );
+        };
 
-    activeNode = el;
+        // set & get css style
+        this.sCss = (el, details) => Object.entries(details).forEach(entry => el.style[entry[0]] = entry[1]);
+        this.gCss = el => {
+            const
+                cs = window.getComputedStyle(el),
+                val = p => cs.getPropertyValue(p);
 
-    console.clear();
-    console.log(`picked up ${el.node.id} with offset ${el.grabOffset.x}, ${el.grabOffset.y}`);
-}
+            return new Proxy(
+                {
+                    get width() { return parseFloat(val('width')); },
+                    get height() { return parseFloat(val('height')); },
+                    get left() { return parseFloat(val('left')); },
+                    get top() { return parseFloat(val('top')); },
+                }, {
+                    get: (o, p) => p in o ? o[p] : val(p.replace(/([A-Z])/g, '-$1'.toLowerCase())),
+                }
+            );
+        };
 
-function initDoc() {
-    document.children[0].style.height = '100%';
-    document.body.style.height = '100%';
-    document.body.style.margin = '0';
+        // relative cursor position
+        this.relCursor = ref => {
+            ref = ref || document.body;
+            if (ref.nodeType != 1) throw new Error('the relCursor method expects an HTML element as argument');
+            return {
+                x: event.clientX + window.scrollX - (this.gCss(ref).left || 0),
+                y: event.clientY + window.scrollY - (this.gCss(ref).top || 0),
+            };
+        };
+
+        // new svg element
+        this.newSVG = type => document.createElementNS('http://www.w3.org/2000/svg', type);
+    }
 }
