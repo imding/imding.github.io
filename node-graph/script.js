@@ -38,6 +38,7 @@ class Flo {
                 r: 4,
             },
             link: {
+                error: 'indianred',
                 stroke: 'skyblue',
                 strokeWidth: '4',
                 strokeLinecap: 'round',
@@ -134,6 +135,7 @@ class Flo {
                     cf = Object.assign(this.default.port, cf || {});
 
                     const port = {
+                        owner: node.root.id,
                         dir: cf.dir,
                         root: newElement('div', { className: 'portRoot' }),
                         socket: newElement('div', { className: 'portSocket' }),
@@ -167,8 +169,22 @@ class Flo {
                     });
 
                     port.socket.onclick = () => {
-                        if (this.activeLink) return;
-                        this.newLink(port.dir === 'input' ? { end: port } : { start: port });
+                        if (this.activeLink) {
+                            const
+                                linkedPort = this.activeLink.start || this.activeLink.end,
+                                targetPort = port,
+                                sameDir = linkedPort.dir === targetPort.dir,
+                                sameNode = linkedPort.owner === targetPort.owner;
+
+                            if (sameDir || sameNode) {
+                                sAttr(this.activeLink.svg, { stroke: this.default.link.error });
+                                setTimeout(() => sAttr(this.activeLink.svg, { stroke: this.default.link.stroke }), 250);
+                            }
+                            else {
+                                
+                            }
+                        }
+                        else this.newLink(port.dir === 'input' ? { end: port } : { start: port });
                     };
 
                     // node.ports[port.dir].push(port);
