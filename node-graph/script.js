@@ -38,12 +38,14 @@ class Flo {
                 r: 4,
             },
             link: {
-                error: 'indianred',
                 stroke: 'skyblue',
                 strokeWidth: '4',
                 strokeLinecap: 'round',
                 strokeOpacity: '0.8'
             },
+            error: {
+                link: 'indianred',
+            }
         };
 
         this.root;
@@ -98,16 +100,20 @@ class Flo {
         ws.root.oncontextmenu = () => this.newNode({ pos: relCursor(ws.root) });
         ws.root.onmousemove = () => {
             // animate active node with cursor
-            if (this.activeNode) sCss(this.activeNode.root, {
-                left: `${Math.min(
-                    gCss(ws.root).width - gCss(this.activeNode.root).width - cf.pad,    // max dx
-                    Math.max(cf.pad /* min dx */, relCursor(ws.root).x - this.activeNode.offset.x)
-                )}px`,
-                top: `${Math.min(
-                    gCss(ws.root).height - gCss(this.activeNode.root).height - cf.pad,  // max dy
-                    Math.max(cf.pad /* min dy */, relCursor(ws.root).y - this.activeNode.offset.y)
-                )}px`,
-            });
+            if (this.activeNode) {
+                sCss(this.activeNode.root, {
+                    left: `${Math.min(
+                        gCss(ws.root).width - gCss(this.activeNode.root).width - cf.pad,    // max dx
+                        Math.max(cf.pad /* min dx */, relCursor(ws.root).x - this.activeNode.offset.x)
+                    )}px`,
+                    top: `${Math.min(
+                        gCss(ws.root).height - gCss(this.activeNode.root).height - cf.pad,  // max dy
+                        Math.max(cf.pad /* min dy */, relCursor(ws.root).y - this.activeNode.offset.y)
+                    )}px`,
+                });
+
+                this.activeNode.links.forEach(link => link.update());
+            }
 
             else if (this.activeLink) this.activeLink.update();
         };
@@ -131,6 +137,7 @@ class Flo {
                 input: newElement('div', { className: 'nodeInput' }),
                 output: newElement('div', { className: 'nodeOutput' }),
                 ports: { input: [], output: [] },
+                links: [],
                 newPort: cf => {
                     cf = Object.assign(this.default.port, cf || {});
 
@@ -177,14 +184,19 @@ class Flo {
                                 sameNode = linkedPort.owner === targetPort.owner;
 
                             if (sameDir || sameNode) {
-                                sAttr(this.activeLink.svg, { stroke: this.default.link.error });
+                                sAttr(this.activeLink.svg, { stroke: this.default.error.link });
                                 setTimeout(() => sAttr(this.activeLink.svg, { stroke: this.default.link.stroke }), 250);
                             }
                             else {
-                                
+                                node.links.push(this.activeLink);
+                                this.activeLink.connect(port);
+                                log('connect...');
                             }
                         }
-                        else this.newLink(port.dir === 'input' ? { end: port } : { start: port });
+                        else {
+                            this.activePort = port;
+                            this.newLink();
+                        }
                     };
 
                     // node.ports[port.dir].push(port);
@@ -253,8 +265,8 @@ class Flo {
 
         const link = {
             svg: newSVG('path', { id: uid('L') }),
-            start: cf.start,
-            end: cf.end,
+            start: this.activePort.dir === 'output' ? this.activePort : null,
+            end: this.activePort.dir === 'input' ? this.activePort : null,
             update: () => {
                 const
                     p1 = link.start ? relPos(link.start.socket, this.activeWorkspace.root, 'cog') : relCursor(this.activeWorkspace.root),
@@ -263,8 +275,11 @@ class Flo {
                     c2 = p2;
 
                 sAttr(link.svg, { d: `M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}` });
-
-
+            },
+            connect: port => {
+                link[link.start ? 'end' : 'start'] = port;
+                link.update();
+                this.activeLink = null;
             },
         };
 
