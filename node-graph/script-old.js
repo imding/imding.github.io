@@ -13,13 +13,13 @@ function init() {
     appContainer.style.visibility = 'visible';
 
     // create instance of FloApp
-    fl = new Flapp();
+    fl = new Flo();
     fl.render(appContainer);
 }
 
-class Flapp {
+class Flo {
     constructor() {
-        this.config = {
+        this.default = {
             workspace: {
                 pos: { x: 0, y: 0 },
                 scl: { x: 500, y: 350 },
@@ -32,6 +32,8 @@ class Flapp {
                 fill: 'rebeccapurple',
             },
             port: {
+                type: 'in',
+                pos: { x: 0, y: 0 },
                 r: 8,
             },
             link: {},
@@ -48,7 +50,7 @@ class Flapp {
     }
 
     newWorkspace(cf) {
-        cf = Object.assign(this.config.workspace, cf || {});
+        cf = Object.assign(this.default.workspace, cf || {});
 
         const ws = newSVG('svg');
 
@@ -72,11 +74,11 @@ class Flapp {
             // animate active node with cursor
             if (this.activeNode) sAttr(this.activeNode.root, {
                 x: Math.min(
-                    gAttr(ws).width - gAttr(this.activeNode.root).width - cf.pad, // max dx
+                    gAttr(ws).width - gAttr(this.activeNode.root).width - cf.pad,   // max dx
                     Math.max(cf.pad /* min dx */, relCursor(ws).x - this.activeNode.offset.x)
                 ),
                 y: Math.min(
-                    gCss(ws).height - gAttr(this.activeNode.root).height - cf.pad,   // max dy
+                    gCss(ws).height - gAttr(this.activeNode.root).height - cf.pad,  // max dy
                     Math.max(cf.pad /* min dy */, relCursor(ws).y - this.activeNode.offset.y)
                 ),
             });
@@ -89,12 +91,29 @@ class Flapp {
     newNode(cf) {
         event.preventDefault();
 
-        cf = Object.assign(this.config.node, cf || {});
+        cf = Object.assign(this.default.node, cf || {});
 
         const node = {
             parent: event.target,
             root: newSVG('svg'),
             body: newSVG('rect'),
+            ports: { in: [], out: [] },
+        };
+
+        node.newPort = cf => {
+            cf = Object.assign(this.default.port, cf || {});
+
+            const port = newSVG('circle');
+
+            sAttr(port, {
+                r: cf.r,
+                cx: cf.type == 'in' ? cf.r * 1.5 : gAttr(node.body).width - cf.r * 1.5,
+                cy: gAttr(node.body).height / 2 ,
+                fill: 'white',
+            });
+
+            node.root.appendChild(port);
+            node.ports[cf.type].push(port);
         };
 
         sAttr(node.root, {
@@ -106,7 +125,7 @@ class Flapp {
         sAttr(node.body, {
             width: cf.scl.x,
             height: cf.scl.y,
-            rx: cf.br,
+            // rx: cf.br,
             ry: cf.br,
             fill: cf.fill,
         });
@@ -122,11 +141,16 @@ class Flapp {
         };
 
         node.root.appendChild(node.body);
+        node.newPort({ type: 'out' });
         event.target.appendChild(node.root);
     }
 
     // newPort(cf) {
-    //     cf = Object.assign(this.config.port, cf || {});
+
+
+    //     const port = {
+
+    //     }
     // }
 }
 
