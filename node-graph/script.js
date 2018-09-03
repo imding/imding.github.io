@@ -139,11 +139,6 @@ class Flo {
                         socket: newElement('div', { className: 'portSocket' }),
                         type: newElement('div', { className: 'portType', textContent: cf.type || 'any' }),
                         name: newElement('div', { className: 'portName', textContent: cf.name || cf.dir }),
-                        get pos() {
-                            return {
-                                x: gCss(node.root).left,
-                            };
-                        },
                     };
 
                     node[port.dir].appendChild(port.root);
