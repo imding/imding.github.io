@@ -24,7 +24,7 @@ body {
     border: none;
 }
 
-#debug, #appContainer, .UI-WS, .UI-LINKS, .nodeRoot {
+#debug, #appContainer, #UI-TB, .UI-WS, .UI-LINKS, .nodeRoot {
     position: absolute;
 }
 

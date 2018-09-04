@@ -12,35 +12,13 @@ function init() {
     // display app container
     sCss(appContainer, { visibility: 'visible' });
 
-    // create instance of FloApp
+    // create instance of Flo
     fl = new Flo();
     fl.render(appContainer);
 
     run.onclick = () => {
-        FBP.define('network', function (F) {
-
-            F.init('add', 'x');
-            F.init('add', 'y');
-            F.init('mul', 'y');
-    
-            F.connect('add', 'output', 'mul', 'x');
-    
-            F.end('mul', 'output');
-    
-        }).go({
-            'add.x': 1,
-            'add.y': 2,
-            'mul.y': 3
-        }, function (err, result) {
-            if (err) {
-                alert(err);
-            } else {
-                console.log(result.port); // mul.output
-                console.log(result.output); // 9
-                console.log(result.interval); // execution time
-                console.log(result.profile);
-            }
-        });
+        console.clear();
+        console.log(fl.workspace[0].graph);
     };
 }
 
@@ -67,6 +45,7 @@ class Flo {
             },
             port: {
                 r: 4,
+                editable: false,
             },
             link: {
                 stroke: 'skyblue',
@@ -91,63 +70,92 @@ class Flo {
 
     render(root) {
         this.root = root;
-        this.newToolbox({ pos: { x: 20, y: 120 } });
         this.newWorkspace({ pos: { x: 170, y: 120 } });
+        this.newToolbox();
     }
 
     newToolbox(cf) {
-        cf = Object.assign(this.default.toolbox, cf || {});
+        cf = Object.assign(Object.assign({}, this.default.toolbox), cf || {});
 
         const tb = {
             root: newElement('div', { id: 'UI-TB' }),
             nodes: [],
-            compData: [
-                {
-                    name: 'number',
-                    inPorts: ['a'],
-                    outPorts: ['b'],
-                    body: function (a, output) {
-                        output(null, a);
-                    },
+            nodeData: [{
+                name: 'add',
+                ports: {
+                    in: [{
+                        name: 'A',
+                        type: 'number',
+                        editable: true,
+                    }, {
+                        name: 'B',
+                        type: 'number',
+                        editable: true,
+                    }],
+                    out: [{
+                        name: 'result',
+                        type: 'number',
+                    }],
                 },
-                {
-                    name: 'add',
-                    inPorts: ['a', 'b'],
-                    outPorts: ['a + b'],
-                    body: function (a, b, output) {
-                        output(null, a + b);
-                    }
+                ext: { in: false, out: false },
+                body: function (A, B, result) {
+                    result(A + B);
                 },
-                {
-                    name: 'mul',
-                    inPorts: ['a', 'b'],
-                    outPorts: 'a * b',
-                    body: function (a, b, output) {
-                        output(null, a * b);
-                    }
+            }, {
+                name: 'getElementById',
+                ports: {
+                    in: [{
+                        name: 'id',
+                        type: 'string',
+                        editable: true,
+                    }],
+                    out: [{
+                        name: 'element',
+                        type: 'HTMLElement',
+                    }],
                 },
-            ],
+                ext: { in: false, out: false },
+                body: function (A, B, result) {
+                    result(A + B);
+                },
+            }],
+            show: () => {
+                console.log(`showing toolbox in ${this.activeWorkspace.root.id}`);
+                this.activeWorkspace.root.appendChild(tb.root);
+                sCss(tb.root, {
+                    visibility: 'visible',
+                    left: `${relCursor(this.activeWorkspace.root).x - gCss(tb.root).width / 2}px`,
+                    top: `${relCursor(this.activeWorkspace.root).y - gCss(tb.root).height / 2}px`,
+                });
+                tb.visible = true;
+            },
+            hide: () => {
+                sCss(tb.root, { visibility: 'hidden' });
+                tb.visible = false;
+            },
         };
 
         this.root.appendChild(tb.root);
-        
-        tb.compData.forEach(cd => {
-            FBP.component(cd);
 
+        tb.hide();
+
+        tb.root.onmouseleave = () => tb.hide();
+
+        tb.nodeData.forEach(nd => {
             const node = {
-                resident: newElement('div', { className: 'UI-TBN', textContent: cd.name }),
-                addToWorkspace: () => {
-                    this.newNode({
-                        pos: relCursor(this.activeWorkspace.root),
-                    });
-                },
+                resident: newElement('div', { className: 'UI-TBN', textContent: nd.name }),
+                addToWorkspace: () => this.newNode(Object.assign({ pos: relCursor(this.activeWorkspace.root) }, nd)),
             };
 
+            node.resident.onclick = () => {
+                tb.hide();
+                node.addToWorkspace();
+            };
+
+            tb.root.appendChild(node.resident);
             tb.nodes.push(node);
         });
-        
-        sCss(tb.root, { visibility: 'hidden' });
-        
+
         this.toolbox = tb;
     }
 
@@ -181,15 +189,20 @@ class Flo {
         sCss(ws.links, {
             left: `${cf.pos.x}px`,
             top: `${cf.pos.y}px`,
+            zIndex: 2,
         });
 
-        ws.root.onmouseenter = () => this.activeWorkspace = ws;
-        ws.root.onmouseleave = () => this.activeWorkspace = this.activeNode = null;
+        ws.root.onmouseenter = () => {
+            this.activeWorkspace = ws;
+            console.log(`${this.activeWorkspace.root.id} became the active workspace`);
+        };
+        ws.root.onmouseleave = () => {
+            console.log(`${this.activeWorkspace.root.id} is no longer the active workspace`);
+            this.activeWorkspace = this.activeNode = null;
+        };
 
         ws.root.oncontextmenu = () => {
             event.preventDefault();
-
-            
 
             if (this.activeLink) {
                 const port = (this.activeLink.start || this.activeLink.end);
@@ -199,7 +212,7 @@ class Flo {
                 ws.links.removeChild(this.activeLink.svg);
                 this.activeLink = null;
             }
-            else this.newNode({ pos: relCursor(ws.root) });
+            else if (!this.toolbox.visible && event.target === this.activeWorkspace.root) this.toolbox.show();
         };
 
         ws.root.onmousemove = () => {
@@ -228,7 +241,7 @@ class Flo {
     }
 
     newNode(cf) {       // refactor into the newWorkspace method ***
-        cf = Object.assign(this.default.node, cf || {});
+        cf = Object.assign(Object.assign({}, this.default.node), cf || {});
 
         const
             id = uid(),
@@ -241,7 +254,7 @@ class Flo {
                 ports: { input: [], output: [] },
                 links: [],
                 newPort: cf => {
-                    cf = Object.assign(this.default.port, cf || {});
+                    cf = Object.assign(Object.assign({}, this.default.port), cf || {});
 
                     const port = {
                         owner: node,
@@ -249,30 +262,39 @@ class Flo {
                         link: null,
                         root: newElement('div', { className: 'portRoot' }),
                         socket: newElement('div', { className: 'portSocket' }),
-                        type: newElement('div', { className: 'portType', textContent: cf.type || 'any' }),
+                        type: newElement('div', { className: 'portType', textContent: `(${cf.type || 'any'})` }),
                         name: newElement('div', { className: 'portName', textContent: cf.name || cf.dir }),
                     };
 
                     node[port.dir].appendChild(port.root);
-
-                    // append socket and name in different order depending on port direction
                     port.root.appendChild(port.socket);
+                    
+                    // append socket and name in different order depending on port direction
                     if (port.dir === 'output') port.root.insertBefore(port.name, port.socket);
                     else port.root.appendChild(port.name);
 
                     sCss(port.socket, {
-                        margin: `0 ${port.dir === 'output' ? cf.r : 0}px 0 ${port.dir === 'input' ? cf.r : 0}px`,
+                        margin: `0 ${port.dir === 'output' ? cf.r / 2 : 0}px 0 ${port.dir === 'input' ? cf.r / 2 : 0}px`,
                         width: `${cf.r * 2}px`,
                         height: `${cf.r * 2}px`,
                         backgroundColor: this.default.workspace.fill,
                     });
 
-                    sCss(port.name, {
-                        margin: `0 ${port.dir === 'output' ? cf.r : 0}px 0 ${port.dir === 'input' ? cf.r : 0}px`,
-                    });
+                    sCss(port.name, { margin: `0 ${port.dir === 'output' ? cf.r : 0}px 0 ${port.dir === 'input' ? cf.r : 0}px` });
+
+                    // create and append input field if the port is editable
+                    if (cf.editable) {
+                        port.input = newElement('input', { className: 'portInput' });
+                        port.root.appendChild(port.input);
+
+                        sCss(port.input, {
+                            width: '50px',
+                            height: `${gCss(port.name).height}px`,
+                        });
+                    }
 
                     const
-                        portWidth = gCss(port.socket).width + gCss(port.name).width + cf.r * 2 + cf.r * 4,
+                        portWidth = gCss(port.socket).width + gCss(port.name).width + cf.r * 2 + (cf.editable ? gCss(port.input).width + cf.r : 0) + cf.r * 4,
                         nodeWidth = gCss(node.body).width;
 
                     sCss(port.root, {
@@ -350,9 +372,8 @@ class Flo {
         });
 
         // attach ports only after styling the body
-        node.newPort({ dir: 'input', type: 'number', name: 'a' });
-        node.newPort({ dir: 'input', type: 'number', name: 'b' });
-        node.newPort({ dir: 'output', type: 'number', name: 'a + b' });
+        cf.ports.in.forEach(pcf => node.newPort(Object.assign({ dir: 'input' }, pcf)));
+        cf.ports.out.forEach(pcf => node.newPort(Object.assign({ dir: 'output' }, pcf)));
 
         // trim the x & y scale of the following elements
         // order of arguments is important
@@ -370,8 +391,18 @@ class Flo {
             top: `${cf.pos.y - fixedHeight / 2}px`,
         });
 
-        node.head.onmouseup = () => this.activeNode = null;
+        node.head.onmouseup = () => {
+            sCss(node.root, {
+                zIndex: 'initial',
+                opacity: 'initial',
+            });
+            this.activeNode = null;
+        };
         node.head.onmousedown = () => {
+            sCss(node.root, {
+                zIndex: 1,
+                opacity: 0.8,
+            });
             this.activeNode = node;
             this.activeNode.offset = relCursor(node.root);
         };
@@ -382,7 +413,7 @@ class Flo {
     }
 
     newLink(cf) {
-        cf = Object.assign(this.default.link, cf || {});
+        cf = Object.assign(Object.assign({}, this.default.link), cf || {});
 
         const link = {
             svg: newSVG('path', { id: uid('L') }),
