@@ -3,7 +3,7 @@
     http://github.com/teaualune/fbpjs
     MIT License
 */
-;(function () {
+(function () {
 var FBP = {},
     _FBP = {};
 /*jslint sloppy:true, nomen:true*/
@@ -45,7 +45,7 @@ var objIterate = function (obj, iterate) {
         return {
             name: v[0],
             port: v[1]
-        }
+        };
     };
 
 _FBP.objIterate = objIterate;

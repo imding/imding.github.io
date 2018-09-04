@@ -10,16 +10,47 @@ function init() {
     Object.assign(window, new Utility());
 
     // display app container
-    appContainer.style.visibility = 'visible';
+    sCss(appContainer, { visibility: 'visible' });
 
     // create instance of FloApp
     fl = new Flo();
     fl.render(appContainer);
+
+    run.onclick = () => {
+        FBP.define('network', function (F) {
+
+            F.init('add', 'x');
+            F.init('add', 'y');
+            F.init('mul', 'y');
+    
+            F.connect('add', 'output', 'mul', 'x');
+    
+            F.end('mul', 'output');
+    
+        }).go({
+            'add.x': 1,
+            'add.y': 2,
+            'mul.y': 3
+        }, function (err, result) {
+            if (err) {
+                alert(err);
+            } else {
+                console.log(result.port); // mul.output
+                console.log(result.output); // 9
+                console.log(result.interval); // execution time
+                console.log(result.profile);
+            }
+        });
+    };
 }
 
 class Flo {
     constructor() {
         this.default = {
+            toolbox: {
+                pos: { x: 0, y: 0 },
+                scl: { x: 150, y: 350 },
+            },
             workspace: {
                 pos: { x: 0, y: 0 },
                 scl: { x: 500, y: 350 },
@@ -49,6 +80,7 @@ class Flo {
         };
 
         this.root;
+        this.toolbox;
         this.workspace = [];
 
         this.activeWorkspace;
@@ -59,7 +91,64 @@ class Flo {
 
     render(root) {
         this.root = root;
-        this.newWorkspace({ pos: { x: 100, y: 120 } });
+        this.newToolbox({ pos: { x: 20, y: 120 } });
+        this.newWorkspace({ pos: { x: 170, y: 120 } });
+    }
+
+    newToolbox(cf) {
+        cf = Object.assign(this.default.toolbox, cf || {});
+
+        const tb = {
+            root: newElement('div', { id: 'UI-TB' }),
+            nodes: [],
+            compData: [
+                {
+                    name: 'number',
+                    inPorts: ['a'],
+                    outPorts: ['b'],
+                    body: function (a, output) {
+                        output(null, a);
+                    },
+                },
+                {
+                    name: 'add',
+                    inPorts: ['a', 'b'],
+                    outPorts: ['a + b'],
+                    body: function (a, b, output) {
+                        output(null, a + b);
+                    }
+                },
+                {
+                    name: 'mul',
+                    inPorts: ['a', 'b'],
+                    outPorts: 'a * b',
+                    body: function (a, b, output) {
+                        output(null, a * b);
+                    }
+                },
+            ],
+        };
+
+        this.root.appendChild(tb.root);
+        
+        tb.compData.forEach(cd => {
+            FBP.component(cd);
+
+            const node = {
+                resident: newElement('div', { className: 'UI-TBN', textContent: cd.name }),
+                addToWorkspace: () => {
+                    this.newNode({
+                        pos: relCursor(this.activeWorkspace.root),
+                    });
+                },
+            };
+
+            tb.nodes.push(node);
+        });
+        
+        sCss(tb.root, { visibility: 'hidden' });
+        
+        this.toolbox = tb;
     }
 
     newWorkspace(cf) {
@@ -97,7 +186,22 @@ class Flo {
         ws.root.onmouseenter = () => this.activeWorkspace = ws;
         ws.root.onmouseleave = () => this.activeWorkspace = this.activeNode = null;
 
-        ws.root.oncontextmenu = () => this.newNode({ pos: relCursor(ws.root) });
+        ws.root.oncontextmenu = () => {
+            event.preventDefault();
+
+            
+
+            if (this.activeLink) {
+                const port = (this.activeLink.start || this.activeLink.end);
+                console.log(`-> discarded link from ${port.owner.head.textContent}`);
+                port.link = null;
+                rifa(this.activeLink, port.owner.links);
+                ws.links.removeChild(this.activeLink.svg);
+                this.activeLink = null;
+            }
+            else this.newNode({ pos: relCursor(ws.root) });
+        };
+
         ws.root.onmousemove = () => {
             // animate active node with cursor
             if (this.activeNode) {
@@ -123,16 +227,14 @@ class Flo {
         this.workspace.push(ws);
     }
 
-    newNode(cf) {
-        event.preventDefault();
-
+    newNode(cf) {       // refactor into the newWorkspace method ***
         cf = Object.assign(this.default.node, cf || {});
 
         const
             id = uid(),
             node = {
                 root: newElement('div', { id: `NR-${id}`, className: 'nodeRoot' }),
-                head: newElement('div', { id: `NH-${id}`, className: 'nodeHead', textContent: `node-${id}` }),
+                head: newElement('div', { id: `NH-${id}`, className: 'nodeHead', textContent: cf.name || `node-${id}` }),
                 body: newElement('div', { id: `NB-${id}`, className: 'nodeBody' }),
                 input: newElement('div', { className: 'nodeInput' }),
                 output: newElement('div', { className: 'nodeOutput' }),
@@ -142,8 +244,9 @@ class Flo {
                     cf = Object.assign(this.default.port, cf || {});
 
                     const port = {
-                        owner: node.root.id,
+                        owner: node,
                         dir: cf.dir,
+                        link: null,
                         root: newElement('div', { className: 'portRoot' }),
                         socket: newElement('div', { className: 'portSocket' }),
                         type: newElement('div', { className: 'portType', textContent: cf.type || 'any' }),
@@ -152,6 +255,7 @@ class Flo {
 
                     node[port.dir].appendChild(port.root);
 
+                    // append socket and name in different order depending on port direction
                     port.root.appendChild(port.socket);
                     if (port.dir === 'output') port.root.insertBefore(port.name, port.socket);
                     else port.root.appendChild(port.name);
@@ -175,31 +279,52 @@ class Flo {
                         width: `${port.dir === 'input' ? portWidth : portWidth < nodeWidth ? nodeWidth : portWidth}px`,
                     });
 
+                    // when a port is clicked
                     port.socket.onclick = () => {
+                        // if a link has already been created
                         if (this.activeLink) {
                             const
                                 linkedPort = this.activeLink.start || this.activeLink.end,
                                 targetPort = port,
-                                sameDir = linkedPort.dir === targetPort.dir,
-                                sameNode = linkedPort.owner === targetPort.owner;
+                                // check if the port belongs to the same node
+                                sameNode = linkedPort.owner === targetPort.owner,
+                                // check if the clicked port is of the same direction ( out -> out or in -> in)
+                                sameDir = linkedPort.dir === targetPort.dir;
 
-                            if (sameDir || sameNode) {
+                            if (sameNode || sameDir || port.link /* port already has a link */) {
                                 sAttr(this.activeLink.svg, { stroke: this.default.error.link });
                                 setTimeout(() => sAttr(this.activeLink.svg, { stroke: this.default.link.stroke }), 250);
+                                console.warn(sameNode ?
+                                    'connection can only be made between 2 nodes' : sameDir ?
+                                        'connection can only be made between input & output ports' :
+                                        'only one link is allowed per port'
+                                );
                             }
+
                             else {
+                                // establish connection
                                 node.links.push(this.activeLink);
                                 this.activeLink.connect(port);
-                                log('connect...');
                             }
                         }
-                        else {
+
+                        // else if the clicked port has no link
+                        else if (!port.link) {
+                            // create a new link
                             this.activePort = port;
                             this.newLink();
+                            port.link = this.activeLink;
+                            node.links.push(this.activeLink);
+                        }
+
+                        // otherwise, pluck the link
+                        else {
+                            console.log(`plucked a link from ${port.owner.head.textContent}`);
+                            port.link[port.dir === 'input' ? 'end' : 'start'] = null;
+                            this.activeLink = port.link;
+                            port.link = null;
                         }
                     };
-
-                    // node.ports[port.dir].push(port);
                 },
             };
 
@@ -209,10 +334,8 @@ class Flo {
         node.body.appendChild(node.input);
         node.body.appendChild(newElement('hr'));
         node.body.appendChild(node.output);
-
-        if (!this.activeWorkspace.root) throw new Error('adding a new node requires an active workspace.');
-
-        this.activeWorkspace.root.appendChild(node.root);
+        if (this.activeWorkspace.root) this.activeWorkspace.root.appendChild(node.root);
+        else throw new Error('adding a new node requires an active workspace.');
 
         sCss(node.head, {
             padding: `${cf.hp}px ${cf.hp * 2}px ${cf.hp / 2}px ${cf.hp * 2}px`,
@@ -227,11 +350,9 @@ class Flo {
         });
 
         // attach ports only after styling the body
-        node.newPort({ dir: 'input', type: 'Boolean', name: 'condition' });
-        node.newPort({ dir: 'input', type: 'Boolean', name: 'true' });
-        node.newPort({ dir: 'input', type: 'Boolean', name: 'false' });
-        node.newPort({ dir: 'output', type: 'function', name: 'else if' });
-        node.newPort({ dir: 'output', type: 'function', name: 'else' });
+        node.newPort({ dir: 'input', type: 'number', name: 'a' });
+        node.newPort({ dir: 'input', type: 'number', name: 'b' });
+        node.newPort({ dir: 'output', type: 'number', name: 'a + b' });
 
         // trim the x & y scale of the following elements
         // order of arguments is important
@@ -256,12 +377,12 @@ class Flo {
         };
 
         this.activeWorkspace.graph.nodes.push(node);
+
+        console.log(`created ${node.head.textContent} in ${this.activeWorkspace.root.id}`);
     }
 
     newLink(cf) {
         cf = Object.assign(this.default.link, cf || {});
-
-        log('created new link...');
 
         const link = {
             svg: newSVG('path', { id: uid('L') }),
@@ -271,29 +392,29 @@ class Flo {
                 const
                     p1 = link.start ? relPos(link.start.socket, this.activeWorkspace.root, 'cog') : relCursor(this.activeWorkspace.root),
                     p2 = link.end ? relPos(link.end.socket, this.activeWorkspace.root, 'cog') : relCursor(this.activeWorkspace.root),
+                    // add control points ***
                     c1 = p1,
                     c2 = p2;
 
                 sAttr(link.svg, { d: `M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}` });
             },
             connect: port => {
+                // port.link is used to prevent multiple connections to the same port
+                port.link = link;
                 link[link.start ? 'end' : 'start'] = port;
                 link.update();
                 this.activeLink = null;
+                console.log(`-> contection established: ${link.start.name.textContent} -> ${link.end.name.textContent}`);
             },
         };
 
         sAttr(link.svg, cf);
 
         this.activeWorkspace.links.appendChild(link.svg);
-
         this.activeLink = link;
-    }
-}
 
-function log(msg) {
-    if (!msg) return debug.innerHTML = '';
-    debug.innerHTML += `${debug.textContent.trim().length ? '\n' : ''}${msg}`;
+        console.log(`created a link on ${this.activePort.owner.head.textContent}`);
+    }
 }
 
 class Utility {
@@ -312,6 +433,9 @@ class Utility {
 
         // get item from array
         this.gifa = (arr, i) => i < 0 ? arr[arr.length + i] : arr[i];
+
+        // remove item from array
+        this.rifa = (item, arr) => arr.splice(arr.indexOf(item), 1);
 
         // set & get attribute
         this.sAttr = (el, details) => Object.entries(details).forEach(entry => el.setAttribute(entry[0].replace(/([A-Z])/g, '-$1').toLowerCase(), entry[1].toString()));

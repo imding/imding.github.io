@@ -74,6 +74,6 @@ body {
     top: 0;
 }
 
-#debug {
-    padding-left: 10px;
+#run {
+    position: absolute;
 }
