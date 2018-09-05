@@ -48,6 +48,7 @@ body {
     margin: 2px;
     padding: 2px 8px;
     border-radius: 4px;
+    color: skyblue;
     background-color: #404040;
 }
 
@@ -103,4 +104,15 @@ body {
 
 #run {
     position: absolute;
+}
+
+::-webkit-scrollbar {
+	width: 4px;
+	height: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: lightcyan;
+	border-radius: 2px;
+	height: 10px;
 }

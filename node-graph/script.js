@@ -206,7 +206,7 @@ class Flo {
                 name: 'getElementById',
                 ports: {
                     in: [{
-                        name: 'Parent',
+                        name: 'Element',
                         type: 'HTMLElement',
                         editable: false,
                     },{
@@ -217,6 +217,23 @@ class Flo {
                     out: [{
                         name: 'Element',
                         type: 'HTMLElement',
+                    }],
+                },
+                ext: { in: false, out: false },
+                body: function (Parent, ID, result) {
+                    result(Parent.getElementById(ID));
+                },
+            }, {
+                name: 'innerHTML',
+                ports: {
+                    in: [{
+                        name: 'Element',
+                        type: 'HTMLElement',
+                        editable: false,
+                    }],
+                    out: [{
+                        name: 'htmlString',
+                        type: 'sting',
                     }],
                 },
                 ext: { in: false, out: false },
