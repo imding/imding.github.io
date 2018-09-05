@@ -60,7 +60,10 @@ body {
 }
 
 .UI-LINKS {
+    left: 0;
+    top: 0;
     pointer-events: none;
+    z-index: 2;
 }
 
 .nodeHead {

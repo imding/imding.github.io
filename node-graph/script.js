@@ -209,7 +209,7 @@ class Flo {
                         name: 'Element',
                         type: 'HTMLElement',
                         editable: false,
-                    },{
+                    }, {
                         name: 'ID',
                         type: 'string',
                         editable: true,
@@ -269,6 +269,7 @@ class Flo {
                 tb.visible = true;
             },
             hide: () => {
+                this.root.appendChild(tb.root);
                 sCss(tb.root, { visibility: 'hidden' });
                 tb.visible = false;
             },
@@ -306,9 +307,17 @@ class Flo {
             ws = {
                 root: newElement('div', { id: `WS-${id}`, className: 'UI-WS', textContent: `WS-${id}` }),
                 links: newSVG('svg'),
-                graph: { nodes: [], links: [], }
+                graph: { nodes: [], links: [], },
+                newNode: cf => {
+
+                },
+                // put newNode & newLink here ***
             };
-            // put newNode & newLink here ***
+
+        ws.root.appendChild(ws.links);
+        this.root.appendChild(ws.root);
+        // this.root.appendChild(ws.links);
+        this.workspace.push(ws);
 
         sCss(ws.root, {
             width: `${cf.scl.x}px`,
@@ -324,12 +333,6 @@ class Flo {
             width: cf.scl.x,
             height: cf.scl.y,
             viewBox: `0 0 ${cf.scl.x} ${cf.scl.y}`,
-        });
-
-        sCss(ws.links, {
-            left: `${cf.pos.x}px`,
-            top: `${cf.pos.y}px`,
-            zIndex: 2,
         });
 
         ws.root.onmouseenter = () => {
@@ -374,10 +377,6 @@ class Flo {
 
             else if (this.activeLink) this.activeLink.update();
         };
-
-        this.root.appendChild(ws.root);
-        this.root.appendChild(ws.links);
-        this.workspace.push(ws);
     }
 
     newNode(cf) {       // refactor into the newWorkspace method ***
@@ -473,12 +472,12 @@ class Flo {
                             });
 
                             this.root.appendChild(ruler);       // add ruler element to page to get measurement
-                            
+
                             // set the size of the input field with upper & lower boundaries
                             sCss(port.input, { width: `${Math.min(cf.inputMaxWidth, Math.max(cf.inputMinWidth, gCss(ruler).width + 2))}px` });
-                            
+
                             this.root.removeChild(ruler);       // remove ruler
-                            
+
                             port.resize();      // resize the root element that contains the socket, name & input field
                         };
 
