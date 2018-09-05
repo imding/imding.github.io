@@ -45,10 +45,13 @@ class Flo {
             },
             port: {
                 r: 4,
+                inputMinWidth: 30,
+                inputMaxWidth: 120,
+                selectWidth: 55,
                 editable: false,
             },
             link: {
-                stroke: 'skyblue',
+                stroke: 'plum',
                 strokeWidth: '4',
                 strokeLinecap: 'round',
                 strokeOpacity: '0.8'
@@ -70,7 +73,7 @@ class Flo {
 
     render(root) {
         this.root = root;
-        this.newWorkspace({ pos: { x: 170, y: 120 } });
+        this.newWorkspace({ pos: { x: 25, y: 90 } });
         this.newToolbox();
     }
 
@@ -93,7 +96,7 @@ class Flo {
                         editable: true,
                     }],
                     out: [{
-                        name: 'result',
+                        name: 'A + B',
                         type: 'number',
                     }],
                 },
@@ -102,21 +105,127 @@ class Flo {
                     result(A + B);
                 },
             }, {
-                name: 'getElementById',
+                name: 'greater than',
                 ports: {
                     in: [{
-                        name: 'id',
-                        type: 'string',
+                        name: 'A',
+                        type: 'number',
+                        editable: true,
+                    }, {
+                        name: 'B',
+                        type: 'number',
                         editable: true,
                     }],
                     out: [{
-                        name: 'element',
-                        type: 'HTMLElement',
+                        name: 'A > B',
+                        type: 'boolean',
                     }],
                 },
                 ext: { in: false, out: false },
                 body: function (A, B, result) {
-                    result(A + B);
+                    result(A > B);
+                },
+            }, {
+                name: 'number',
+                ports: {
+                    in: [{
+                        name: 'A',
+                        type: 'number',
+                        editable: true,
+                    }],
+                    out: [{
+                        name: 'A',
+                        type: 'number',
+                    }],
+                },
+                ext: { in: false, out: false },
+                body: function (A, result) {
+                    result(Number(A));
+                },
+            }, {
+                name: 'string',
+                ports: {
+                    in: [{
+                        name: 'A',
+                        type: 'string',
+                        editable: true,
+                    }],
+                    out: [{
+                        name: 'A',
+                        type: 'string',
+                    }],
+                },
+                ext: { in: false, out: false },
+                body: function (A, result) {
+                    result(String(A));
+                },
+            }, {
+                name: 'boolean',
+                ports: {
+                    in: [{
+                        name: 'A',
+                        type: 'boolean',
+                        editable: true,
+                    }],
+                    out: [{
+                        name: 'A',
+                        type: 'boolean',
+                    }],
+                },
+                ext: { in: false, out: false },
+                body: function (A, result) {
+                    result(Boolean(A));
+                },
+            }, {
+                name: 'document',
+                ports: {
+                    in: [],
+                    out: [{
+                        name: 'Element',
+                        type: 'HTMLElement',
+                    }],
+                },
+                ext: { in: false, out: false },
+                body: function (result) {
+                    result(document);
+                },
+            }, {
+                name: 'getElementById',
+                ports: {
+                    in: [{
+                        name: 'Parent',
+                        type: 'HTMLElement',
+                        editable: false,
+                    },{
+                        name: 'ID',
+                        type: 'string',
+                        editable: true,
+                    }],
+                    out: [{
+                        name: 'Element',
+                        type: 'HTMLElement',
+                    }],
+                },
+                ext: { in: false, out: false },
+                body: function (Parent, ID, result) {
+                    result(Parent.getElementById(ID));
+                },
+            }, {
+                name: 'log',
+                ports: {
+                    in: [{
+                        name: 'Message',
+                        type: 'string',
+                        editable: true,
+                    }],
+                    out: [{
+                        name: 'Run',
+                        type: 'execute',
+                    }],
+                },
+                ext: { in: false, out: false },
+                body: function (Message, result) {
+                    result(console.log(Message));
                 },
             }],
             show: () => {
@@ -160,7 +269,7 @@ class Flo {
     }
 
     newWorkspace(cf) {
-        cf = Object.assign(this.default.workspace, cf || {});
+        cf = Object.assign(Object.assign({}, this.default.workspace), cf || {});
 
         const
             id = uid(),
@@ -169,6 +278,7 @@ class Flo {
                 links: newSVG('svg'),
                 graph: { nodes: [], links: [], }
             };
+            // put newNode & newLink here ***
 
         sCss(ws.root, {
             width: `${cf.scl.x}px`,
@@ -219,14 +329,14 @@ class Flo {
             // animate active node with cursor
             if (this.activeNode) {
                 sCss(this.activeNode.root, {
-                    left: `${Math.min(
+                    left: `${Math.round(Math.min(
                         gCss(ws.root).width - gCss(this.activeNode.root).width - cf.pad,    // max dx
                         Math.max(cf.pad /* min dx */, relCursor(ws.root).x - this.activeNode.offset.x)
-                    )}px`,
-                    top: `${Math.min(
+                    ))}px`,
+                    top: `${Math.round(Math.min(
                         gCss(ws.root).height - gCss(this.activeNode.root).height - cf.pad,  // max dy
                         Math.max(cf.pad /* min dy */, relCursor(ws.root).y - this.activeNode.offset.y)
-                    )}px`,
+                    ))}px`,
                 });
 
                 this.activeNode.links.forEach(link => link.update());
@@ -264,17 +374,32 @@ class Flo {
                         socket: newElement('div', { className: 'portSocket' }),
                         type: newElement('div', { className: 'portType', textContent: `(${cf.type || 'any'})` }),
                         name: newElement('div', { className: 'portName', textContent: cf.name || cf.dir }),
+                        resize: () => {
+                            const
+                                portWidth = gCss(port.socket).width + gCss(port.name).width + cf.r * 2 + (cf.editable ? gCss(port.input).width : 0) + cf.r * 4,
+                                nodeWidth = gCss(node.body).width;
+
+                            sCss(port.root, { width: `${port.dir === 'input' ? portWidth : portWidth < nodeWidth ? nodeWidth : portWidth}px` });
+
+                            const newWidth = Math.max(node.minWidth, elarr(node.root.querySelectorAll('.portRoot')).maxWidth);
+
+                            sCss(node.root, { width: `${newWidth}px` });
+                            node.ports.output.forEach(p => sCss(p.root, { marginLeft: `${newWidth - gCss(p.root).width}px` }));
+                            node.links.forEach(l => l.update());
+                        },
                     };
+
+                    node.ports[port.dir].push(port);
 
                     node[port.dir].appendChild(port.root);
                     port.root.appendChild(port.socket);
-                    
+
                     // append socket and name in different order depending on port direction
                     if (port.dir === 'output') port.root.insertBefore(port.name, port.socket);
                     else port.root.appendChild(port.name);
 
                     sCss(port.socket, {
-                        margin: `0 ${port.dir === 'output' ? cf.r / 2 : 0}px 0 ${port.dir === 'input' ? cf.r / 2 : 0}px`,
+                        margin: `0 ${port.dir === 'output' ? cf.r : 0}px 0 ${port.dir === 'input' ? cf.r : 0}px`,
                         width: `${cf.r * 2}px`,
                         height: `${cf.r * 2}px`,
                         backgroundColor: this.default.workspace.fill,
@@ -284,22 +409,56 @@ class Flo {
 
                     // create and append input field if the port is editable
                     if (cf.editable) {
-                        port.input = newElement('input', { className: 'portInput' });
+                        const isBool = /boolean/.test(cf.type);
+
+                        if (isBool) {
+                            const
+                                trueOpt = newElement('option', { value: 1, text: 'true' }),
+                                falseOpt = newElement('option', { value: 0, text: 'false' });
+
+                            port.input = newElement('select', { className: 'portInput' });
+                            port.input.add(trueOpt);
+                            port.input.add(falseOpt);
+
+                            port.input.onchange = () => {
+                                console.log(!Boolean(port.input.selectedIndex));
+                            };
+                        }
+
+                        else port.input = newElement('input', { className: 'portInput' });
+
                         port.root.appendChild(port.input);
 
+                        port.input.oninput = () => {
+                            if (isBool) return;
+
+                            // create new ruler element
+                            const ruler = newElement('span', { textContent: port.input.value.replace(/\s/g, '_') });
+
+                            // make sure ruler element has the same font family ans size as the input field
+                            sCss(ruler, {
+                                fontFamily: gCss(port.input).fontFamily,
+                                fontSize: gCss(port.input).fontSize,
+                            });
+
+                            this.root.appendChild(ruler);       // add ruler element to page to get measurement
+                            
+                            // set the size of the input field with upper & lower boundaries
+                            sCss(port.input, { width: `${Math.min(cf.inputMaxWidth, Math.max(cf.inputMinWidth, gCss(ruler).width + 2))}px` });
+                            
+                            this.root.removeChild(ruler);       // remove ruler
+                            
+                            port.resize();      // resize the root element that contains the socket, name & input field
+                        };
+
                         sCss(port.input, {
-                            width: '50px',
+                            margin: `0 0 0 ${cf.r}px`,
+                            width: `${isBool ? cf.selectWidth : cf.inputMinWidth}px`,
                             height: `${gCss(port.name).height}px`,
                         });
                     }
 
-                    const
-                        portWidth = gCss(port.socket).width + gCss(port.name).width + cf.r * 2 + (cf.editable ? gCss(port.input).width + cf.r : 0) + cf.r * 4,
-                        nodeWidth = gCss(node.body).width;
-
-                    sCss(port.root, {
-                        width: `${port.dir === 'input' ? portWidth : portWidth < nodeWidth ? nodeWidth : portWidth}px`,
-                    });
+                    port.resize();
 
                     // when a port is clicked
                     port.socket.onclick = () => {
@@ -377,17 +536,17 @@ class Flo {
 
         // trim the x & y scale of the following elements
         // order of arguments is important
-        trimScale(node.input, node.output, node.body, node.head);
+        // trimScale(node.input, node.output, node.body, node.head);
 
-        // calculate x & y scale of the node root element
-        const
-            fixedWidth = gCss(node.head).width,
-            fixedHeight = gCss(node.head).height + gCss(node.body).height;
+        // calculate scale of the node root element
+        node.minWidth = gCss(node.head).width;
+        const fixedHeight = gCss(node.head).height + gCss(node.body).height;
 
         sCss(node.root, {
-            width: `${fixedWidth}px`,
+            // width is omitted because it will be set by adding a new port
+            // and every node has at least one port
             height: `${fixedHeight}px`,
-            left: `${cf.pos.x - fixedWidth / 2}px`,
+            left: `${cf.pos.x - node.minWidth / 2}px`,
             top: `${cf.pos.y - fixedHeight / 2}px`,
         });
 
@@ -460,6 +619,26 @@ class Utility {
 
             if (Array.from(document.documentElement.getElementsByTagName('*')).some(el => el.id == rs)) return this.uid(prefix);
             return rs;
+        };
+
+        // element array queries
+        this.elarr = arr => {
+            arr = Array.from(arr);
+            if (!Array.isArray(arr)) throw new Error('the elarr method expects and array like object');
+
+            return {
+                get maxWidth() {
+                    return Math.max(...arr.map(el => gCss(el).width));
+                },
+            };
+        };
+
+        // flatten array
+        this.flarr = arr => {
+            return {
+                get shallow() { return arr.reduce((acc, val) => acc.concat(val), []); },
+                get deep() { return arr.reduce((acc, val) => Array.isArray(val) ? acc.concat(this.flarr(val)) : acc.concat(val), []); },
+            };
         };
 
         // get item from array
