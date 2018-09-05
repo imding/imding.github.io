@@ -37,6 +37,20 @@ body {
     cursor: pointer;
 }
 
+#UI-TB {
+    max-height: 100px;
+    font-size: 12px;
+    text-align: center;
+    overflow-y: scroll;
+}
+
+.UI-TBN {
+    margin: 2px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: #404040;
+}
+
 .UI-WS {
     color: dimgrey;
     padding: 5px 0 0 5px;

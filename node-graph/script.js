@@ -84,6 +84,19 @@ class Flo {
             root: newElement('div', { id: 'UI-TB' }),
             nodes: [],
             nodeData: [{
+                name: 'scheduler',
+                ports: {
+                    in: [{
+                        name: 'A',
+                        type: 'Execute',
+                    }],
+                    out: [],
+                },
+                ext: { in: true, out: false },
+                body: function (...process) {
+                    process.forEach(p => setTimeout(() => p(), 0));
+                },
+            }, {
                 name: 'add',
                 ports: {
                     in: [{
@@ -369,6 +382,7 @@ class Flo {
                     const port = {
                         owner: node,
                         dir: cf.dir,
+                        editable: cf.editable,
                         link: null,
                         root: newElement('div', { className: 'portRoot' }),
                         socket: newElement('div', { className: 'portSocket' }),
@@ -485,6 +499,7 @@ class Flo {
                             else {
                                 // establish connection
                                 node.links.push(this.activeLink);
+                                console.log(port);
                                 this.activeLink.connect(port);
                             }
                         }
@@ -502,6 +517,10 @@ class Flo {
                         else {
                             console.log(`plucked a link from ${port.owner.head.textContent}`);
                             port.link[port.dir === 'input' ? 'end' : 'start'] = null;
+                            if (port.editable) {
+                                port.input.disabled = false;
+                                sCss(port.input, { opacity: 1 });
+                            }
                             this.activeLink = port.link;
                             port.link = null;
                         }
@@ -591,6 +610,10 @@ class Flo {
             connect: port => {
                 // port.link is used to prevent multiple connections to the same port
                 port.link = link;
+                if (port.editable) {
+                    port.input.disabled = true;
+                    sCss(port.input, { opacity: 0 });
+                }
                 link[link.start ? 'end' : 'start'] = port;
                 link.update();
                 this.activeLink = null;
