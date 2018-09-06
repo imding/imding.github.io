@@ -17,30 +17,7 @@ function init() {
 
     fl.init(appContainer);
 
-    run.onclick = () => {
-        console.clear();
-        // console.log(fl.workspace[0].graph);
-
-        fl.workspace.forEach(ws => {
-            const linkedNodes = ws.graph.nodes.filter(n => n.links.length);
-            console.log(linkedNodes);
-
-            ws.graph.linkedNodes = ws.graph.nodes.filter(n => n.links.length);
-
-            ws.graph.linkedNodes.forEach(ln => {
-                const nodeInfo = {
-                    name: ln.name,
-                    inPorts: ln.ports.input.map(ip => camelize(ip.name.textContent)),
-                    outPorts: ln.ports.output.map(op => camelize(op.name.textContent)),
-                    body: ln.eval,
-                };
-
-                FBP.component(nodeInfo);
-            });
-        });
-
-        
-    };
+    run.onclick = () => fl.evaluate();
 }
 
 class Flo {
@@ -98,6 +75,88 @@ class Flo {
         this.newToolbox();
     }
 
+    evaluate() {
+        console.clear();
+
+        this.workspace.forEach(ws => {
+            // filter linked nodes
+            const linkedNodes = ws.graph.nodes.filter(n => n.links.length);
+
+            // define components
+            linkedNodes.forEach(ln => {
+                const nodeInfo = {
+                    name: ln.name,
+                    inPorts: ln.ports.input.map(ip => camelize(ip.name)),
+                    outPorts: Array(ln.ports.output.length).fill('result'),
+                    body: ln.eval,
+                };
+
+                console.log(nodeInfo);
+                FBP.component(nodeInfo);
+            });
+
+            // ensure graph has only one scheculer
+            let scheduler = linkedNodes.filter(n => n.name.startsWith('scheduler'));
+            if (scheduler.length !== 1) throw new Error('make sure there is exactly one linked scheduler in the graph.');
+            else scheduler = scheduler[0];
+
+            let initValues = {};
+
+            // define network
+            FBP.define('network', function (F) {
+                const schedulerLinkedNodes = scheduler.ports.input.filter(ip => ip.link).map(ip => ip.link.start.owner);
+
+                schedulerLinkedNodes.forEach(sln => {
+                    // console.log(sln);
+
+                    const
+                        // filter unlinked input ports on nodes directly linked to the scheduler
+                        unlinkedInputPorts = sln.ports.input.filter(ip => !ip.link),
+                        // filter linked input ports...
+                        linkedInputPorts = sln.ports.input.filter(ip => ip.link),
+                        // filter linked output ports...
+                        linkedOutputPorts = sln.ports.output.filter(op => op.link);
+
+                    unlinkedInputPorts.forEach(uip => {
+                        // console.log(uip);
+
+                        // throw error if unlinked input port is not editable
+                        if (!uip.editable) throw new Error(`the ${uip.owner.name} node failed to evaluate: the ${uip.name.textContent} port requires an input`);
+
+                        let value = uip.input.tagName === 'INPUT' ? uip.input.value : Boolean(uip.input.selectedIndex);
+
+                        // need better validation of user input value ***
+                        value =
+                            uip.type === 'number' ? Number(value) :
+                                uip.type === 'string' ? String(value) :
+                                    uip.type === 'boolean' ? Boolean(value) :
+                                        uip.type === 'array' ? (new Function('return [' + value + '];')()) :
+                                            JSON.parse(value);
+
+                        // console.log(value);
+
+                        // F.init(nodeName, portName)
+                        console.log(uip.owner.name, uip.name);
+                        F.init(uip.owner.name, uip.name);
+
+                        initValues[`${uip.owner.name}.${uip.name}`] = value;
+                    });
+
+                    // F.connect(fromNode, fromPort, toNode, toPort)
+                    linkedOutputPorts.forEach(lop => {
+                        console.log(sln.name, lop.name, scheduler.name, camelize(lop.link.end.label.textContent));
+                        F.connect(sln.name, lop.name, scheduler.name, camelize(lop.link.end.label.textContent));
+                    });
+
+                    F.end(scheduler.name, 'result');
+                });
+            }).go(initValues, function (err, result) {
+                if (err) alert(err);
+                else console.log(`!! evaluation took ${Math.round(result.interval)}ms, it returned ${result.output == undefined ? 'nothing' : result.output}`);
+            });
+        });
+    }
+
     // ====================================== //
     // class method for creating the tool box //
     // ====================================== //
@@ -113,10 +172,15 @@ class Flo {
                         name: 'A',
                         type: 'Execute',
                     }],
-                    out: [],
+                    out: [{
+                        name: 'result',
+                        type: 'Execute',
+                    }],
                 },
                 ext: { in: true, out: false },
-                eval: null,
+                eval: function (A, result) {
+                    result(null, A);
+                },
             }, {
                 name: 'add',
                 ports: {
@@ -130,136 +194,14 @@ class Flo {
                         editable: true,
                     }],
                     out: [{
-                        name: 'A + B',
+                        name: 'result',
+                        label: 'A + B',
                         type: 'number',
                     }],
                 },
                 ext: { in: false, out: false },
                 eval: function (A, B, result) {
                     result(null, A + B);
-                },
-            }, {
-                name: 'greater than',
-                ports: {
-                    in: [{
-                        name: 'A',
-                        type: 'number',
-                        editable: true,
-                    }, {
-                        name: 'B',
-                        type: 'number',
-                        editable: true,
-                    }],
-                    out: [{
-                        name: 'A > B',
-                        type: 'boolean',
-                    }],
-                },
-                ext: { in: false, out: false },
-                eval: function (A, B, result) {
-                    result(null, A > B);
-                },
-            }, {
-                name: 'number',
-                ports: {
-                    in: [{
-                        name: 'A',
-                        type: 'number',
-                        editable: true,
-                    }],
-                    out: [{
-                        name: 'A',
-                        type: 'number',
-                    }],
-                },
-                ext: { in: false, out: false },
-                eval: function (A, result) {
-                    result(null, Number(A));
-                },
-            }, {
-                name: 'string',
-                ports: {
-                    in: [{
-                        name: 'A',
-                        type: 'string',
-                        editable: true,
-                    }],
-                    out: [{
-                        name: 'A',
-                        type: 'string',
-                    }],
-                },
-                ext: { in: false, out: false },
-                eval: function (A, result) {
-                    result(null, String(A));
-                },
-            }, {
-                name: 'boolean',
-                ports: {
-                    in: [{
-                        name: 'A',
-                        type: 'boolean',
-                        editable: true,
-                    }],
-                    out: [{
-                        name: 'A',
-                        type: 'boolean',
-                    }],
-                },
-                ext: { in: false, out: false },
-                eval: function (A, result) {
-                    result(null, Boolean(A));
-                },
-            }, {
-                name: 'document',
-                ports: {
-                    in: [],
-                    out: [{
-                        name: 'Element',
-                        type: 'HTMLElement',
-                    }],
-                },
-                ext: { in: false, out: false },
-                eval: function (result) {
-                    result(null, document);
-                },
-            }, {
-                name: 'getElementById',
-                ports: {
-                    in: [{
-                        name: 'Element',
-                        type: 'HTMLElement',
-                        editable: false,
-                    }, {
-                        name: 'ID',
-                        type: 'string',
-                        editable: true,
-                    }],
-                    out: [{
-                        name: 'Element',
-                        type: 'HTMLElement',
-                    }],
-                },
-                ext: { in: false, out: false },
-                eval: function (Parent, ID, result) {
-                    result(Parent.getElementById(ID));
-                },
-            }, {
-                name: 'innerHTML',
-                ports: {
-                    in: [{
-                        name: 'Element',
-                        type: 'HTMLElement',
-                        editable: false,
-                    }],
-                    out: [{
-                        name: 'htmlString',
-                        type: 'sting',
-                    }],
-                },
-                ext: { in: false, out: false },
-                eval: function (Parent, ID, result) {
-                    result(Parent.getElementById(ID));
                 },
             }, {
                 name: 'log',
@@ -270,13 +212,32 @@ class Flo {
                         editable: true,
                     }],
                     out: [{
-                        name: 'Run',
+                        name: 'result',
+                        label: 'Run',
                         type: 'execute',
                     }],
                 },
                 ext: { in: false, out: false },
                 eval: function (Message, result) {
-                    result(console.log(Message));
+                    result(null, console.log(Message));
+                },
+            }, {
+                name: 'alert',
+                ports: {
+                    in: [{
+                        name: 'Message',
+                        type: 'string',
+                        editable: true,
+                    }],
+                    out: [{
+                        name: 'result',
+                        label: 'Run',
+                        type: 'execute',
+                    }],
+                },
+                ext: { in: false, out: false },
+                eval: function (Message, result) {
+                    result(null, alert(Message));
                 },
             }],
 
@@ -361,7 +322,7 @@ class Flo {
                             output: newElement('div', { className: 'nodeOutput' }),
                             ports: { input: [], output: [] },
                             links: [],
-                            name: camelize(cf.name),
+                            name: `${camelize(cf.name)}-${id}`,
                             eval: cf.eval,
 
                             // ================================== //
@@ -373,16 +334,18 @@ class Flo {
 
                                 const port = {
                                     owner: node,
+                                    name: cf.name,
                                     dir: cf.dir,
+                                    type: cf.type,
                                     editable: cf.editable,
                                     link: null,
                                     root: newElement('div', { className: 'portRoot' }),
                                     socket: newElement('div', { className: 'portSocket' }),
-                                    type: newElement('div', { className: 'portType', textContent: `(${cf.type || 'any'})` }),
-                                    name: newElement('div', { className: 'portName', textContent: cf.name || cf.dir }),
+                                    // type: newElement('div', { className: 'portType', textContent: `(${cf.type || 'any'})` }),
+                                    label: newElement('div', { className: 'portName', textContent: cf.label || cf.name || cf.dir }),
                                     resize: () => {
                                         const
-                                            portWidth = gCss(port.socket).width + gCss(port.name).width + cf.r * 2 + (cf.editable ? gCss(port.input).width : 0) + cf.r * 4,
+                                            portWidth = gCss(port.socket).width + gCss(port.label).width + cf.r * 2 + (cf.editable ? gCss(port.input).width : 0) + cf.r * 4,
                                             nodeWidth = gCss(node.body).width;
 
                                         sCss(port.root, { width: `${port.dir === 'input' ? portWidth : portWidth < nodeWidth ? nodeWidth : portWidth}px` });
@@ -400,8 +363,8 @@ class Flo {
                                 port.root.appendChild(port.socket);
 
                                 // append socket and name in different order depending on port direction
-                                if (port.dir === 'output') port.root.insertBefore(port.name, port.socket);
-                                else port.root.appendChild(port.name);
+                                if (port.dir === 'output') port.root.insertBefore(port.label, port.socket);
+                                else port.root.appendChild(port.label);
 
                                 // add
                                 node.ports[port.dir].push(port);
@@ -413,7 +376,7 @@ class Flo {
                                     backgroundColor: this.default.workspace.fill,
                                 });
 
-                                sCss(port.name, { margin: `0 ${port.dir === 'output' ? cf.r : 0}px 0 ${port.dir === 'input' ? cf.r : 0}px` });
+                                sCss(port.label, { margin: `0 ${port.dir === 'output' ? cf.r : 0}px 0 ${port.dir === 'input' ? cf.r : 0}px` });
 
                                 // create and append input field if the port is editable
                                 if (cf.editable) {
@@ -421,12 +384,12 @@ class Flo {
 
                                     if (isBool) {
                                         const
-                                            trueOpt = newElement('option', { value: 1, text: 'true' }),
-                                            falseOpt = newElement('option', { value: 0, text: 'false' });
+                                            falseOpt = newElement('option', { value: 0, text: 'false' }),
+                                            trueOpt = newElement('option', { value: 1, text: 'true' });
 
                                         port.input = newElement('select', { className: 'portInput' });
-                                        port.input.add(trueOpt);
                                         port.input.add(falseOpt);
+                                        port.input.add(trueOpt);
                                     }
 
                                     else port.input = newElement('input', { className: 'portInput' });
@@ -458,7 +421,7 @@ class Flo {
                                     sCss(port.input, {
                                         margin: `0 0 0 ${cf.r}px`,
                                         width: `${isBool ? cf.selectWidth : cf.inputMinWidth}px`,
-                                        height: `${gCss(port.name).height}px`,
+                                        height: `${gCss(port.label).height}px`,
                                     });
                                 }
 
@@ -700,7 +663,7 @@ class Utility {
             // random string
             const rs = `${prefix ? `${prefix}-` : ''}${nzrs().toString(36).slice(-3)}`;
 
-            if (Array.from(document.documentElement.getElementsByTagName('*')).some(el => el.id == rs)) return this.uid(prefix);
+            if (Array.from(document.documentElement.getElementsByTagName('*')).some(el => prefix ? el.id == rs : el.id.endsWith(`-${rs}`))) return this.uid(prefix);
             return rs;
         };
 
@@ -826,6 +789,7 @@ class Utility {
 
         // convert string to camel case
         this.camelize = str => {
+            if (!/\s/.test(str.trim())) return str;
             return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
                 return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
             }).replace(/\s+/g, '');
