@@ -75,6 +75,10 @@ class Flo {
         this.newToolbox();
     }
 
+    // ====================================== //
+    // class method for evaluating the graphs //
+    // ====================================== //
+
     evaluate() {
         console.clear();
 
@@ -91,7 +95,6 @@ class Flo {
                     body: ln.eval,
                 };
 
-                console.log(nodeInfo);
                 FBP.component(nodeInfo);
             });
 
@@ -107,8 +110,6 @@ class Flo {
                 const schedulerLinkedNodes = scheduler.ports.input.filter(ip => ip.link).map(ip => ip.link.start.owner);
 
                 schedulerLinkedNodes.forEach(sln => {
-                    // console.log(sln);
-
                     const
                         // filter unlinked input ports on nodes directly linked to the scheduler
                         unlinkedInputPorts = sln.ports.input.filter(ip => !ip.link),
@@ -118,11 +119,10 @@ class Flo {
                         linkedOutputPorts = sln.ports.output.filter(op => op.link);
 
                     unlinkedInputPorts.forEach(uip => {
-                        // console.log(uip);
-
                         // throw error if unlinked input port is not editable
                         if (!uip.editable) throw new Error(`the ${uip.owner.name} node failed to evaluate: the ${uip.name.textContent} port requires an input`);
 
+                        // set value depending on input element type
                         let value = uip.input.tagName === 'INPUT' ? uip.input.value : Boolean(uip.input.selectedIndex);
 
                         // need better validation of user input value ***
@@ -133,21 +133,19 @@ class Flo {
                                         uip.type === 'array' ? (new Function('return [' + value + '];')()) :
                                             JSON.parse(value);
 
-                        // console.log(value);
-
                         // F.init(nodeName, portName)
-                        console.log(uip.owner.name, uip.name);
                         F.init(uip.owner.name, uip.name);
-
+                        // store initial values
                         initValues[`${uip.owner.name}.${uip.name}`] = value;
                     });
 
                     // F.connect(fromNode, fromPort, toNode, toPort)
-                    linkedOutputPorts.forEach(lop => {
-                        console.log(sln.name, lop.name, scheduler.name, camelize(lop.link.end.label.textContent));
-                        F.connect(sln.name, lop.name, scheduler.name, camelize(lop.link.end.label.textContent));
-                    });
+                    linkedOutputPorts.forEach(lop => F.connect(sln.name, lop.name, scheduler.name, camelize(lop.link.end.label.textContent)));
 
+                    // recursive function to process upstream nodes ***
+                    
+
+                    // always end with the scheduler node
                     F.end(scheduler.name, 'result');
                 });
             }).go(initValues, function (err, result) {
