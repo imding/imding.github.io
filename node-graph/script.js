@@ -14,24 +14,41 @@ function init() {
 
     // create instance of Flo
     fl = new Flo();
-    fl.render(appContainer);
+
+    fl.init(appContainer);
 
     run.onclick = () => {
         console.clear();
-        console.log(fl.workspace[0].graph);
+        // console.log(fl.workspace[0].graph);
+
+        fl.workspace.forEach(ws => {
+            const linkedNodes = ws.graph.nodes.filter(n => n.links.length);
+            console.log(linkedNodes);
+
+            ws.graph.linkedNodes = ws.graph.nodes.filter(n => n.links.length);
+
+            ws.graph.linkedNodes.forEach(ln => {
+                const nodeInfo = {
+                    name: ln.name,
+                    inPorts: ln.ports.input.map(ip => camelize(ip.name.textContent)),
+                    outPorts: ln.ports.output.map(op => camelize(op.name.textContent)),
+                    body: ln.eval,
+                };
+
+                FBP.component(nodeInfo);
+            });
+        });
+
+        
     };
 }
 
 class Flo {
     constructor() {
         this.default = {
-            toolbox: {
-                pos: { x: 0, y: 0 },
-                scl: { x: 150, y: 350 },
-            },
             workspace: {
                 pos: { x: 0, y: 0 },
-                scl: { x: 500, y: 350 },
+                scl: { x: 600, y: 350 },
                 pad: 10,
                 fill: '#303030',
             },
@@ -71,15 +88,21 @@ class Flo {
         this.activeLink;
     }
 
-    render(root) {
+    // ================================== //
+    // class method for initiating the UI //
+    // ================================== //
+
+    init(root) {
         this.root = root;
         this.newWorkspace({ pos: { x: 25, y: 90 } });
         this.newToolbox();
     }
 
-    newToolbox(cf) {
-        cf = Object.assign(Object.assign({}, this.default.toolbox), cf || {});
+    // ====================================== //
+    // class method for creating the tool box //
+    // ====================================== //
 
+    newToolbox() {
         const tb = {
             root: newElement('div', { id: 'UI-TB' }),
             nodes: [],
@@ -93,9 +116,7 @@ class Flo {
                     out: [],
                 },
                 ext: { in: true, out: false },
-                body: function (...process) {
-                    process.forEach(p => setTimeout(() => p(), 0));
-                },
+                eval: null,
             }, {
                 name: 'add',
                 ports: {
@@ -114,8 +135,8 @@ class Flo {
                     }],
                 },
                 ext: { in: false, out: false },
-                body: function (A, B, result) {
-                    result(A + B);
+                eval: function (A, B, result) {
+                    result(null, A + B);
                 },
             }, {
                 name: 'greater than',
@@ -135,8 +156,8 @@ class Flo {
                     }],
                 },
                 ext: { in: false, out: false },
-                body: function (A, B, result) {
-                    result(A > B);
+                eval: function (A, B, result) {
+                    result(null, A > B);
                 },
             }, {
                 name: 'number',
@@ -152,8 +173,8 @@ class Flo {
                     }],
                 },
                 ext: { in: false, out: false },
-                body: function (A, result) {
-                    result(Number(A));
+                eval: function (A, result) {
+                    result(null, Number(A));
                 },
             }, {
                 name: 'string',
@@ -169,8 +190,8 @@ class Flo {
                     }],
                 },
                 ext: { in: false, out: false },
-                body: function (A, result) {
-                    result(String(A));
+                eval: function (A, result) {
+                    result(null, String(A));
                 },
             }, {
                 name: 'boolean',
@@ -186,8 +207,8 @@ class Flo {
                     }],
                 },
                 ext: { in: false, out: false },
-                body: function (A, result) {
-                    result(Boolean(A));
+                eval: function (A, result) {
+                    result(null, Boolean(A));
                 },
             }, {
                 name: 'document',
@@ -199,8 +220,8 @@ class Flo {
                     }],
                 },
                 ext: { in: false, out: false },
-                body: function (result) {
-                    result(document);
+                eval: function (result) {
+                    result(null, document);
                 },
             }, {
                 name: 'getElementById',
@@ -220,7 +241,7 @@ class Flo {
                     }],
                 },
                 ext: { in: false, out: false },
-                body: function (Parent, ID, result) {
+                eval: function (Parent, ID, result) {
                     result(Parent.getElementById(ID));
                 },
             }, {
@@ -237,7 +258,7 @@ class Flo {
                     }],
                 },
                 ext: { in: false, out: false },
-                body: function (Parent, ID, result) {
+                eval: function (Parent, ID, result) {
                     result(Parent.getElementById(ID));
                 },
             }, {
@@ -254,10 +275,15 @@ class Flo {
                     }],
                 },
                 ext: { in: false, out: false },
-                body: function (Message, result) {
+                eval: function (Message, result) {
                     result(console.log(Message));
                 },
             }],
+
+            // ================================= //
+            // toolbox method for showing itself //
+            // ================================= //
+
             show: () => {
                 console.log(`showing toolbox in ${this.activeWorkspace.root.id}`);
                 this.activeWorkspace.root.appendChild(tb.root);
@@ -268,6 +294,11 @@ class Flo {
                 });
                 tb.visible = true;
             },
+
+            // ================================ //
+            // toolbox method for hiding itself //
+            // ================================ //
+
             hide: () => {
                 this.root.appendChild(tb.root);
                 sCss(tb.root, { visibility: 'hidden' });
@@ -284,7 +315,7 @@ class Flo {
         tb.nodeData.forEach(nd => {
             const node = {
                 resident: newElement('div', { className: 'UI-TBN', textContent: nd.name }),
-                addToWorkspace: () => this.newNode(Object.assign({ pos: relCursor(this.activeWorkspace.root) }, nd)),
+                addToWorkspace: () => this.activeWorkspace.newNode(Object.assign({ pos: relCursor(this.activeWorkspace.root) }, nd)),
             };
 
             node.resident.onclick = () => {
@@ -299,6 +330,10 @@ class Flo {
         this.toolbox = tb;
     }
 
+    // ========================================= //
+    // class method for creating a new workspace //
+    // ========================================= //
+
     newWorkspace(cf) {
         cf = Object.assign(Object.assign({}, this.default.workspace), cf || {});
 
@@ -308,15 +343,290 @@ class Flo {
                 root: newElement('div', { id: `WS-${id}`, className: 'UI-WS', textContent: `WS-${id}` }),
                 links: newSVG('svg'),
                 graph: { nodes: [], links: [], },
-                newNode: cf => {
 
+                // ======================================== //
+                // workspace method for createing new nodes //
+                // ======================================== //
+
+                newNode: cf => {
+                    cf = Object.assign(Object.assign({}, this.default.node), cf || {});
+
+                    const
+                        id = uid(),
+                        node = {
+                            root: newElement('div', { id: `NR-${id}`, className: 'nodeRoot' }),
+                            head: newElement('div', { id: `NH-${id}`, className: 'nodeHead', textContent: cf.name || `node-${id}` }),
+                            body: newElement('div', { id: `NB-${id}`, className: 'nodeBody' }),
+                            input: newElement('div', { className: 'nodeInput' }),
+                            output: newElement('div', { className: 'nodeOutput' }),
+                            ports: { input: [], output: [] },
+                            links: [],
+                            name: camelize(cf.name),
+                            eval: cf.eval,
+
+                            // ================================== //
+                            // node method for creating new ports //
+                            // ================================== //
+
+                            newPort: cf => {
+                                cf = Object.assign(Object.assign({}, this.default.port), cf || {});
+
+                                const port = {
+                                    owner: node,
+                                    dir: cf.dir,
+                                    editable: cf.editable,
+                                    link: null,
+                                    root: newElement('div', { className: 'portRoot' }),
+                                    socket: newElement('div', { className: 'portSocket' }),
+                                    type: newElement('div', { className: 'portType', textContent: `(${cf.type || 'any'})` }),
+                                    name: newElement('div', { className: 'portName', textContent: cf.name || cf.dir }),
+                                    resize: () => {
+                                        const
+                                            portWidth = gCss(port.socket).width + gCss(port.name).width + cf.r * 2 + (cf.editable ? gCss(port.input).width : 0) + cf.r * 4,
+                                            nodeWidth = gCss(node.body).width;
+
+                                        sCss(port.root, { width: `${port.dir === 'input' ? portWidth : portWidth < nodeWidth ? nodeWidth : portWidth}px` });
+
+                                        const newWidth = Math.max(node.minWidth, elarr(node.root.querySelectorAll('.portRoot')).maxWidth);
+
+                                        sCss(node.root, { width: `${newWidth}px` });
+                                        node.ports.output.forEach(p => sCss(p.root, { marginLeft: `${newWidth - gCss(p.root).width}px` }));
+                                        node.links.forEach(l => l.update());
+                                    },
+                                };
+
+                                // append port root to input or output section depending on port direction
+                                node[port.dir].appendChild(port.root);
+                                port.root.appendChild(port.socket);
+
+                                // append socket and name in different order depending on port direction
+                                if (port.dir === 'output') port.root.insertBefore(port.name, port.socket);
+                                else port.root.appendChild(port.name);
+
+                                // add
+                                node.ports[port.dir].push(port);
+
+                                sCss(port.socket, {
+                                    margin: `0 ${port.dir === 'output' ? cf.r : 0}px 0 ${port.dir === 'input' ? cf.r : 0}px`,
+                                    width: `${cf.r * 2}px`,
+                                    height: `${cf.r * 2}px`,
+                                    backgroundColor: this.default.workspace.fill,
+                                });
+
+                                sCss(port.name, { margin: `0 ${port.dir === 'output' ? cf.r : 0}px 0 ${port.dir === 'input' ? cf.r : 0}px` });
+
+                                // create and append input field if the port is editable
+                                if (cf.editable) {
+                                    const isBool = /boolean/.test(cf.type);
+
+                                    if (isBool) {
+                                        const
+                                            trueOpt = newElement('option', { value: 1, text: 'true' }),
+                                            falseOpt = newElement('option', { value: 0, text: 'false' });
+
+                                        port.input = newElement('select', { className: 'portInput' });
+                                        port.input.add(trueOpt);
+                                        port.input.add(falseOpt);
+                                    }
+
+                                    else port.input = newElement('input', { className: 'portInput' });
+
+                                    port.root.appendChild(port.input);
+
+                                    port.input.oninput = () => {
+                                        if (isBool) return;
+
+                                        // create new ruler element
+                                        const ruler = newElement('span', { textContent: port.input.value.replace(/\s/g, '_') });
+
+                                        // make sure ruler element has the same font family ans size as the input field
+                                        sCss(ruler, {
+                                            fontFamily: gCss(port.input).fontFamily,
+                                            fontSize: gCss(port.input).fontSize,
+                                        });
+
+                                        this.root.appendChild(ruler);       // add ruler element to page to get measurement
+
+                                        // set the size of the input field with upper & lower boundaries
+                                        sCss(port.input, { width: `${Math.min(cf.inputMaxWidth, Math.max(cf.inputMinWidth, gCss(ruler).width + 2))}px` });
+
+                                        this.root.removeChild(ruler);       // remove ruler
+
+                                        port.resize();      // resize the root element that contains the socket, name & input field
+                                    };
+
+                                    sCss(port.input, {
+                                        margin: `0 0 0 ${cf.r}px`,
+                                        width: `${isBool ? cf.selectWidth : cf.inputMinWidth}px`,
+                                        height: `${gCss(port.name).height}px`,
+                                    });
+                                }
+
+                                port.resize();
+
+                                // when a port is clicked
+                                port.socket.onclick = () => {
+                                    // if a link has already been created
+                                    if (this.activeLink) {
+                                        const
+                                            linkedPort = this.activeLink.start || this.activeLink.end,
+                                            targetPort = port,
+                                            // check if the port belongs to the same node
+                                            sameNode = linkedPort.owner === targetPort.owner,
+                                            // check if the clicked port is of the same direction ( out -> out or in -> in)
+                                            sameDir = linkedPort.dir === targetPort.dir;
+
+                                        if (sameNode || sameDir || port.link /* port already has a link */) {
+                                            sAttr(this.activeLink.svg, { stroke: this.default.error.link });
+                                            setTimeout(() => sAttr(this.activeLink.svg, { stroke: this.default.link.stroke }), 250);
+                                            console.warn(sameNode ?
+                                                'connection can only be made between 2 nodes' : sameDir ?
+                                                    'connection can only be made between input & output ports' :
+                                                    'only one link is allowed per port'
+                                            );
+                                        }
+
+                                        else {
+                                            // establish connection
+                                            node.links.push(this.activeLink);
+                                            console.log(port);
+                                            this.activeLink.connect(port);
+                                        }
+                                    }
+
+                                    // else if the clicked port has no link
+                                    else if (!port.link) {
+                                        // create a new link
+                                        this.activePort = port;
+                                        ws.newLink();
+                                        port.link = this.activeLink;
+                                        node.links.push(this.activeLink);
+                                    }
+
+                                    // otherwise, pluck the link
+                                    else {
+                                        console.log(`plucked a link from ${port.owner.head.textContent}`);
+                                        rifa(port.link, port.owner.links);
+                                        port.link[port.dir === 'input' ? 'end' : 'start'] = null;
+                                        if (port.editable) {
+                                            port.input.disabled = false;
+                                            sCss(port.input, { opacity: 1 });
+                                        }
+                                        this.activeLink = port.link;
+                                        port.link = null;
+                                    }
+                                };
+                            },
+                        };
+
+                    // assemble node & append to workspace so...
+                    // it has computed CSS values for further calculation
+                    node.root.appendChild(node.head);
+                    node.root.appendChild(node.body);
+                    node.body.appendChild(node.input);
+                    node.body.appendChild(newElement('hr'));
+                    node.body.appendChild(node.output);
+                    ws.root.appendChild(node.root);
+
+                    sCss(node.head, {
+                        padding: `${cf.hp}px ${cf.hp * 2}px ${cf.hp / 2}px ${cf.hp * 2}px`,
+                        borderRadius: `${cf.br}px ${cf.br}px 0 0`,
+                        backgroundColor: cf.hfill,
+                    });
+
+                    sCss(node.body, {
+                        padding: `${cf.br / 2}px 0 ${cf.br}px 0`,
+                        borderRadius: `0 0 ${cf.br}px ${cf.br}px`,
+                        backgroundColor: cf.bfill,
+                    });
+
+                    // attach ports only after styling the body
+                    cf.ports.in.forEach(pcf => node.newPort(Object.assign({ dir: 'input' }, pcf)));
+                    cf.ports.out.forEach(pcf => node.newPort(Object.assign({ dir: 'output' }, pcf)));
+
+                    // trim the x & y scale of the following elements
+                    // order of arguments is important
+                    // trimScale(node.input, node.output, node.body, node.head);
+
+                    // calculate scale of the node root element
+                    node.minWidth = gCss(node.head).width;
+                    const fixedHeight = gCss(node.head).height + gCss(node.body).height;
+
+                    sCss(node.root, {
+                        // width is omitted because it will be set by adding a new port
+                        // and every node has at least one port
+                        height: `${fixedHeight}px`,
+                        left: `${cf.pos.x - node.minWidth / 2}px`,
+                        top: `${cf.pos.y - fixedHeight / 2}px`,
+                    });
+
+                    node.head.onmouseup = () => {
+                        sCss(node.root, {
+                            zIndex: 'initial',
+                            opacity: 'initial',
+                        });
+                        this.activeNode = null;
+                    };
+                    node.head.onmousedown = () => {
+                        sCss(node.root, {
+                            zIndex: 1,
+                            opacity: 0.8,
+                        });
+                        this.activeNode = node;
+                        this.activeNode.offset = relCursor(node.root);
+                    };
+
+                    ws.graph.nodes.push(node);
+
+                    console.log(`created ${node.name} in ${ws.root.id}`);
                 },
-                // put newNode & newLink here ***
+
+                // ======================================= //
+                // workspace method for creating new links //
+                // ======================================= //
+
+                newLink: cf => {
+                    cf = Object.assign(Object.assign({}, this.default.link), cf || {});
+
+                    const link = {
+                        svg: newSVG('path', { id: uid('L') }),
+                        start: this.activePort.dir === 'output' ? this.activePort : null,
+                        end: this.activePort.dir === 'input' ? this.activePort : null,
+                        update: () => {
+                            const
+                                p1 = link.start ? relPos(link.start.socket, ws.root, 'cog') : relCursor(ws.root),
+                                p2 = link.end ? relPos(link.end.socket, ws.root, 'cog') : relCursor(ws.root),
+                                // add control points ***
+                                c1 = p1,
+                                c2 = p2;
+
+                            sAttr(link.svg, { d: `M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}` });
+                        },
+                        connect: port => {
+                            // port.link is used to prevent multiple connections to the same port
+                            port.link = link;
+                            if (port.editable) {
+                                port.input.disabled = true;
+                                sCss(port.input, { opacity: 0 });
+                            }
+                            link[link.start ? 'end' : 'start'] = port;
+                            link.update();
+                            this.activeLink = null;
+                            console.log(`-> contection established: ${link.start.name.textContent} -> ${link.end.name.textContent}`);
+                        },
+                    };
+
+                    sAttr(link.svg, cf);
+
+                    ws.links.appendChild(link.svg);
+                    this.activeLink = link;
+
+                    console.log(`created a link on ${this.activePort.owner.head.textContent}`);
+                },
             };
 
         ws.root.appendChild(ws.links);
         this.root.appendChild(ws.root);
-        // this.root.appendChild(ws.links);
         this.workspace.push(ws);
 
         sCss(ws.root, {
@@ -337,10 +647,10 @@ class Flo {
 
         ws.root.onmouseenter = () => {
             this.activeWorkspace = ws;
-            console.log(`${this.activeWorkspace.root.id} became the active workspace`);
+            console.log(`${ws.root.id} became the active workspace`);
         };
         ws.root.onmouseleave = () => {
-            console.log(`${this.activeWorkspace.root.id} is no longer the active workspace`);
+            console.log(`${ws.root.id} is no longer the active workspace`);
             this.activeWorkspace = this.activeNode = null;
         };
 
@@ -355,7 +665,7 @@ class Flo {
                 ws.links.removeChild(this.activeLink.svg);
                 this.activeLink = null;
             }
-            else if (!this.toolbox.visible && event.target === this.activeWorkspace.root) this.toolbox.show();
+            else if (!this.toolbox.visible && event.target === ws.root) this.toolbox.show();
         };
 
         ws.root.onmousemove = () => {
@@ -377,272 +687,6 @@ class Flo {
 
             else if (this.activeLink) this.activeLink.update();
         };
-    }
-
-    newNode(cf) {       // refactor into the newWorkspace method ***
-        cf = Object.assign(Object.assign({}, this.default.node), cf || {});
-
-        const
-            id = uid(),
-            node = {
-                root: newElement('div', { id: `NR-${id}`, className: 'nodeRoot' }),
-                head: newElement('div', { id: `NH-${id}`, className: 'nodeHead', textContent: cf.name || `node-${id}` }),
-                body: newElement('div', { id: `NB-${id}`, className: 'nodeBody' }),
-                input: newElement('div', { className: 'nodeInput' }),
-                output: newElement('div', { className: 'nodeOutput' }),
-                ports: { input: [], output: [] },
-                links: [],
-                newPort: cf => {
-                    cf = Object.assign(Object.assign({}, this.default.port), cf || {});
-
-                    const port = {
-                        owner: node,
-                        dir: cf.dir,
-                        editable: cf.editable,
-                        link: null,
-                        root: newElement('div', { className: 'portRoot' }),
-                        socket: newElement('div', { className: 'portSocket' }),
-                        type: newElement('div', { className: 'portType', textContent: `(${cf.type || 'any'})` }),
-                        name: newElement('div', { className: 'portName', textContent: cf.name || cf.dir }),
-                        resize: () => {
-                            const
-                                portWidth = gCss(port.socket).width + gCss(port.name).width + cf.r * 2 + (cf.editable ? gCss(port.input).width : 0) + cf.r * 4,
-                                nodeWidth = gCss(node.body).width;
-
-                            sCss(port.root, { width: `${port.dir === 'input' ? portWidth : portWidth < nodeWidth ? nodeWidth : portWidth}px` });
-
-                            const newWidth = Math.max(node.minWidth, elarr(node.root.querySelectorAll('.portRoot')).maxWidth);
-
-                            sCss(node.root, { width: `${newWidth}px` });
-                            node.ports.output.forEach(p => sCss(p.root, { marginLeft: `${newWidth - gCss(p.root).width}px` }));
-                            node.links.forEach(l => l.update());
-                        },
-                    };
-
-                    node.ports[port.dir].push(port);
-
-                    node[port.dir].appendChild(port.root);
-                    port.root.appendChild(port.socket);
-
-                    // append socket and name in different order depending on port direction
-                    if (port.dir === 'output') port.root.insertBefore(port.name, port.socket);
-                    else port.root.appendChild(port.name);
-
-                    sCss(port.socket, {
-                        margin: `0 ${port.dir === 'output' ? cf.r : 0}px 0 ${port.dir === 'input' ? cf.r : 0}px`,
-                        width: `${cf.r * 2}px`,
-                        height: `${cf.r * 2}px`,
-                        backgroundColor: this.default.workspace.fill,
-                    });
-
-                    sCss(port.name, { margin: `0 ${port.dir === 'output' ? cf.r : 0}px 0 ${port.dir === 'input' ? cf.r : 0}px` });
-
-                    // create and append input field if the port is editable
-                    if (cf.editable) {
-                        const isBool = /boolean/.test(cf.type);
-
-                        if (isBool) {
-                            const
-                                trueOpt = newElement('option', { value: 1, text: 'true' }),
-                                falseOpt = newElement('option', { value: 0, text: 'false' });
-
-                            port.input = newElement('select', { className: 'portInput' });
-                            port.input.add(trueOpt);
-                            port.input.add(falseOpt);
-
-                            port.input.onchange = () => {
-                                console.log(!Boolean(port.input.selectedIndex));
-                            };
-                        }
-
-                        else port.input = newElement('input', { className: 'portInput' });
-
-                        port.root.appendChild(port.input);
-
-                        port.input.oninput = () => {
-                            if (isBool) return;
-
-                            // create new ruler element
-                            const ruler = newElement('span', { textContent: port.input.value.replace(/\s/g, '_') });
-
-                            // make sure ruler element has the same font family ans size as the input field
-                            sCss(ruler, {
-                                fontFamily: gCss(port.input).fontFamily,
-                                fontSize: gCss(port.input).fontSize,
-                            });
-
-                            this.root.appendChild(ruler);       // add ruler element to page to get measurement
-
-                            // set the size of the input field with upper & lower boundaries
-                            sCss(port.input, { width: `${Math.min(cf.inputMaxWidth, Math.max(cf.inputMinWidth, gCss(ruler).width + 2))}px` });
-
-                            this.root.removeChild(ruler);       // remove ruler
-
-                            port.resize();      // resize the root element that contains the socket, name & input field
-                        };
-
-                        sCss(port.input, {
-                            margin: `0 0 0 ${cf.r}px`,
-                            width: `${isBool ? cf.selectWidth : cf.inputMinWidth}px`,
-                            height: `${gCss(port.name).height}px`,
-                        });
-                    }
-
-                    port.resize();
-
-                    // when a port is clicked
-                    port.socket.onclick = () => {
-                        // if a link has already been created
-                        if (this.activeLink) {
-                            const
-                                linkedPort = this.activeLink.start || this.activeLink.end,
-                                targetPort = port,
-                                // check if the port belongs to the same node
-                                sameNode = linkedPort.owner === targetPort.owner,
-                                // check if the clicked port is of the same direction ( out -> out or in -> in)
-                                sameDir = linkedPort.dir === targetPort.dir;
-
-                            if (sameNode || sameDir || port.link /* port already has a link */) {
-                                sAttr(this.activeLink.svg, { stroke: this.default.error.link });
-                                setTimeout(() => sAttr(this.activeLink.svg, { stroke: this.default.link.stroke }), 250);
-                                console.warn(sameNode ?
-                                    'connection can only be made between 2 nodes' : sameDir ?
-                                        'connection can only be made between input & output ports' :
-                                        'only one link is allowed per port'
-                                );
-                            }
-
-                            else {
-                                // establish connection
-                                node.links.push(this.activeLink);
-                                console.log(port);
-                                this.activeLink.connect(port);
-                            }
-                        }
-
-                        // else if the clicked port has no link
-                        else if (!port.link) {
-                            // create a new link
-                            this.activePort = port;
-                            this.newLink();
-                            port.link = this.activeLink;
-                            node.links.push(this.activeLink);
-                        }
-
-                        // otherwise, pluck the link
-                        else {
-                            console.log(`plucked a link from ${port.owner.head.textContent}`);
-                            port.link[port.dir === 'input' ? 'end' : 'start'] = null;
-                            if (port.editable) {
-                                port.input.disabled = false;
-                                sCss(port.input, { opacity: 1 });
-                            }
-                            this.activeLink = port.link;
-                            port.link = null;
-                        }
-                    };
-                },
-            };
-
-        // append elements to document so they have computed CSS values for further calculation
-        node.root.appendChild(node.head);
-        node.root.appendChild(node.body);
-        node.body.appendChild(node.input);
-        node.body.appendChild(newElement('hr'));
-        node.body.appendChild(node.output);
-        if (this.activeWorkspace.root) this.activeWorkspace.root.appendChild(node.root);
-        else throw new Error('adding a new node requires an active workspace.');
-
-        sCss(node.head, {
-            padding: `${cf.hp}px ${cf.hp * 2}px ${cf.hp / 2}px ${cf.hp * 2}px`,
-            borderRadius: `${cf.br}px ${cf.br}px 0 0`,
-            backgroundColor: cf.hfill,
-        });
-
-        sCss(node.body, {
-            padding: `${cf.br / 2}px 0 ${cf.br}px 0`,
-            borderRadius: `0 0 ${cf.br}px ${cf.br}px`,
-            backgroundColor: cf.bfill,
-        });
-
-        // attach ports only after styling the body
-        cf.ports.in.forEach(pcf => node.newPort(Object.assign({ dir: 'input' }, pcf)));
-        cf.ports.out.forEach(pcf => node.newPort(Object.assign({ dir: 'output' }, pcf)));
-
-        // trim the x & y scale of the following elements
-        // order of arguments is important
-        // trimScale(node.input, node.output, node.body, node.head);
-
-        // calculate scale of the node root element
-        node.minWidth = gCss(node.head).width;
-        const fixedHeight = gCss(node.head).height + gCss(node.body).height;
-
-        sCss(node.root, {
-            // width is omitted because it will be set by adding a new port
-            // and every node has at least one port
-            height: `${fixedHeight}px`,
-            left: `${cf.pos.x - node.minWidth / 2}px`,
-            top: `${cf.pos.y - fixedHeight / 2}px`,
-        });
-
-        node.head.onmouseup = () => {
-            sCss(node.root, {
-                zIndex: 'initial',
-                opacity: 'initial',
-            });
-            this.activeNode = null;
-        };
-        node.head.onmousedown = () => {
-            sCss(node.root, {
-                zIndex: 1,
-                opacity: 0.8,
-            });
-            this.activeNode = node;
-            this.activeNode.offset = relCursor(node.root);
-        };
-
-        this.activeWorkspace.graph.nodes.push(node);
-
-        console.log(`created ${node.head.textContent} in ${this.activeWorkspace.root.id}`);
-    }
-
-    newLink(cf) {
-        cf = Object.assign(Object.assign({}, this.default.link), cf || {});
-
-        const link = {
-            svg: newSVG('path', { id: uid('L') }),
-            start: this.activePort.dir === 'output' ? this.activePort : null,
-            end: this.activePort.dir === 'input' ? this.activePort : null,
-            update: () => {
-                const
-                    p1 = link.start ? relPos(link.start.socket, this.activeWorkspace.root, 'cog') : relCursor(this.activeWorkspace.root),
-                    p2 = link.end ? relPos(link.end.socket, this.activeWorkspace.root, 'cog') : relCursor(this.activeWorkspace.root),
-                    // add control points ***
-                    c1 = p1,
-                    c2 = p2;
-
-                sAttr(link.svg, { d: `M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}` });
-            },
-            connect: port => {
-                // port.link is used to prevent multiple connections to the same port
-                port.link = link;
-                if (port.editable) {
-                    port.input.disabled = true;
-                    sCss(port.input, { opacity: 0 });
-                }
-                link[link.start ? 'end' : 'start'] = port;
-                link.update();
-                this.activeLink = null;
-                console.log(`-> contection established: ${link.start.name.textContent} -> ${link.end.name.textContent}`);
-            },
-        };
-
-        sAttr(link.svg, cf);
-
-        this.activeWorkspace.links.appendChild(link.svg);
-        this.activeLink = link;
-
-        console.log(`created a link on ${this.activePort.owner.head.textContent}`);
     }
 }
 
@@ -778,6 +822,13 @@ class Utility {
             const el = document.createElement(type);
             Object.assign(el, attr);
             return el;
+        };
+
+        // convert string to camel case
+        this.camelize = str => {
+            return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
+                return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+            }).replace(/\s+/g, '');
         };
 
         // make width & height integer
