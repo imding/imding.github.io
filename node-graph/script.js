@@ -143,11 +143,12 @@ class Flo {
                     linkedOutputPorts.forEach(lop => F.connect(sln.name, lop.name, scheduler.name, camelize(lop.link.end.label.textContent)));
 
                     // recursive function to process upstream nodes ***
-                    
 
-                    // always end with the scheduler node
-                    F.end(scheduler.name, 'result');
                 });
+
+                // always end with the scheduler node
+                F.end(scheduler.name, 'result');
+                
             }).go(initValues, function (err, result) {
                 if (err) alert(err);
                 else console.log(`!! evaluation took ${Math.round(result.interval)}ms, it returned ${result.output == undefined ? 'nothing' : result.output}`);
