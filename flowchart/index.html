@@ -2,7 +2,6 @@
 <html>
 <head>
 	<link rel="stylesheet" type="text/css" href="style.css"/>
-	<script type="text/javascript" src="script.js"></script>
 </head>
 <body>
     <div id="gcMain">
@@ -29,23 +28,24 @@
         </div>
         
       	<!--
-			1. a deck is displayed after clicking on a node with class name "active" AND "node"
-        	2. each deck must have id name matching the * camelized text content * of a node
-			3. there should be equal number of active nodes and decks
-			4. every active node should have a corresponding deck
-      		5. each deck must have the class name gcDeck
-			6. cards inside a deck must have the calss name giCard
-			7. content of each card can be styled using the following guide:
-				header 			-	<h4>header text</h4>
-				sub-header 		-	<h5>sub-header text</h5>
-				bullet points 	-	<i></i>
-				normal text 	-	<p>text</p>
-				link = 			-	<a target="_blank" href=""></a>
-				highlight 		-	<em></em>
-				code block		-	<code></code>
-				inline code		-	<samp></samp>
-			8. replace any '<' with '&lt;'
-			9. replace any '#' with '&#35;' if viewing in SandBox Mode
+			1.  a node is a <div> with class name "active" AND "node"
+                clicking on it will display a deck
+        	2.  a deck is a <div> with id name matching the * camelized text content * of a node's text content
+			3.  there should be equal number of active nodes and decks
+			4.  every active node should have a corresponding deck
+      		5.  each deck must have the class name gcDeck
+			6.  cards inside a deck must have the calss name giCard
+			7.  content of each card can be styled using the following guide:
+				    header 			-	<h4>header text</h4>
+				    sub-header 		-	<h5>sub-header text</h5>
+				    bullet points 	-	<i></i>
+				    normal text 	-	<p>text</p>
+				    link = 			-	<a target="_blank" href=""></a>
+				    highlight 		-	<em></em>
+				    code block		-	<code></code>
+				    inline code		-	<samp></samp>
+			8.  replace any '<' with '&lt;'
+			9.  replace any '#' with '&#35;' if viewing in SandBox Mode
 		-->
 		
 <!--
@@ -96,7 +96,7 @@
         <div id="technicalFlow" class="gcDeck">
             <div class="giCard">
                 <h4>Create Sprint</h4>
-                <img src="img/flow-chart/new_sprint.png" alt="new_sprint.png">
+                <img src="img/new_sprint.png" alt="new_sprint.png">
                 <h5>New Sprint</h5>
                 <p><i></i> Create a sprint from sracth</p>
                 <h5>Import Sprint</h5>
@@ -104,7 +104,7 @@
             </div>
             <div class="giCard">
                 <h4>Sprint Info</h4>
-                <img src="img/flow-chart/sprint_info.png" alt="sprint_info.png">
+                <img src="img/sprint_info.png" alt="sprint_info.png">
                 <h5>Sprint Title</h5>
                 <p><i></i> Include syntax in the sprint name</p>
                 <p><i></i> ...</p>
@@ -115,16 +115,16 @@
             </div>
             <div class="giCard">
                 <h4>Description & Settings</h4>
-                <img src="img/flow-chart/sprint_description.png" alt="sprint_description.png">
+                <img src="img/sprint_description.png" alt="sprint_description.png">
                 <p><i></i> Description must be short enough to fit inside the pop-up window in Learner Mode</p>
                 <p><i></i> No image is needed for sprints</p>
-                <img src="img/flow-chart/sprint_settings.png" alt="sprint_settings.png">
+                <img src="img/sprint_settings.png" alt="sprint_settings.png">
                 <p><i></i> Select the appropriate level according to the <a target="_blank" href="https://docs.google.com/document/d/1DuWR6Ew7b8mWql6zMEX6R7h0P_jqy-GapPbpR1YNZcs/edit?pli=1#heading=h.jzdojqt5ae9h">Core Curriculum</a></p>
                 <p><i></i> Don't forget to enable JavasScript console if the sprint requires it</p>
             </div>
             <div class="giCard">
                 <h4>Srpint Structure</h4>
-                <img src="img/flow-chart/steps.png" alt="steps.png">
+                <img src="img/steps.png" alt="steps.png">
                 <p><i></i> The first step should always be named <em>Introduction</em></p>
                 <p><i></i> Include dependency step if the sprint requires it</p>
                 <p><i></i> Dedicate one step to the syntax</p>
@@ -166,33 +166,31 @@
                 <h5>Using Template</h5>
                 <p><i></i> Click to select & copy everything under <em>Template</em>, paste into the instruction panel</p>
                 <h5>Line Numbering</h5>
-                <p><i></i> Given a particular line in the CSS file contains the string <samp>catpaw</samp> and it occurs <em>exactly once</em> in the entire CSS code, the number of that line can be retrieved dynamically using the following code
-                    <code>##LINE("style.css","catpaw")##</code>
-                </p>
-                <p><i></i> The resulting location can also be offset
-                    <code>##LINE("style.css","catpaw")+2##</code>
-                </p>
+                <p><i></i> Given a particular line in the CSS file contains the string <samp>catpaw</samp> and it occurs <em>exactly once</em> in the entire CSS code, the number of that line can be retrieved dynamically using the following code</p>
+                <code>##LINE("style.css","catpaw")##</code>
+                <p><i></i> The resulting location can also be offset</p>
+                <code>##LINE("style.css","catpaw")+2##</code>
                 <p><i></i> All line locations must be <em>dynamically referenced</em></p>
                 <p><i></i> Line locations should look like this in Learner Mode</p>
-                <img src="img/flow-chart/line_ref.png" alt="line_ref.png">
+                <img src="img/line_ref.png" alt="line_ref.png">
                 <h5>Code References</h5>
                 <p><i></i> Always highlight code references</p>
-                <img src="img/flow-chart/format_code.png" alt="format_code.png">
+                <img src="img/format_code.png" alt="format_code.png">
                 <p><i></i> Highlight selection should be limited to <em>syntax only</em></p>
                 <h5>Code Snippet</h5>
                 <p><i></i> Code inside a snippet should primarily help to understand <em>syntax structure</em>, do not give actual functioning code</p>
                 <p><i></i> Alert the learner to not use the snippet for copy-and-paste workflow</p>
-                <img src="img/flow-chart/snippet_alert.png" alt="snippet_alert.png">
+                <img src="img/snippet_alert.png" alt="snippet_alert.png">
                 <h5>Images</h5>
                 <p><i></i> All images must themselves be hyperlinks that open <em>in a new tab</em></p>
-                <img src="img/flow-chart/image.png" alt="image.png">
+                <img src="img/image.png" alt="image.png">
                 <h5>Objectives</h5>
                 <p><i></i> Visually separate the objectives from the rest of the instruction text</p>
-                <img src="img/flow-chart/obj_header.png" alt="obj_header.png">
+                <img src="img/obj_header.png" alt="obj_header.png">
                 <p><i></i> When tab switching is required to complete the objectives, use the <em>Notes</em> format to alert the learner</p>
-                <img src="img/flow-chart/tab_switch.png" alt="tab_switch.png">
+                <img src="img/tab_switch.png" alt="tab_switch.png">
                 <p><i></i> Offer tips to help the learner progress, but don't give out answers</p>
-                <img src="img/flow-chart/tips.png" alt="tips.png">
+                <img src="img/tips.png" alt="tips.png">
                 <p><i></i> There should be <em>no more than 3 objectives</em> in a step</p>
                 <h5>...</h5>
                 <p><i></i> ...</p>
@@ -221,7 +219,7 @@
                 <h5>Overview</h5>
                 <p><i></i> Skip if there is no dependency</p>
                 <p><i></i> If the dependency is an available sprint on LaunchBox, simply provide link and redirect learner, the link should always <em>open a new window</em></p>
-                <img src="img/flow-chart/depend_short.png" alt="depend_short.png">
+                <img src="img/depend_short.png" alt="depend_short.png">
                 <p><i></i> Otherwise, start with the dependency name and a general description of the concept, clarify any abbreviated terms</p>
                 <h5>Relevance</h5>
                 <p><i></i> How the concept relate to this sprint and its encompassing domain</p>
@@ -345,12 +343,10 @@
             </div>
             <div class="giCard">
                 <h4>Editable Blocks</h4>
-                <p><i></i> An editable block creates a fixed space in the code panel where the learner can type, an empty editale should always <em>contain 4 spaces</em>
-                    <code>&#35;BEGIN_EDITABLE#&#160;&#160;&#160;&#160;&#35;END_EDITABLE#</code>
-                </p>
-                <p><i></i> Occupied editable blocks should have a <em>1 space padding</em> on both ends
-                    <code>&#35;BEGIN_EDITABLE# var foo = "bar"; &#35;END_EDITABLE#</code>
-                </p>
+                <p><i></i> An editable block creates a fixed space in the code panel where the learner can type, an empty editale should always <em>contain 4 spaces</em></p>
+                <code>&#35;BEGIN_EDITABLE#&#160;&#160;&#160;&#160;&#35;END_EDITABLE#</code>
+                <p><i></i> Occupied editable blocks should have a <em>1 space padding</em> on both ends</p>
+                <code>&#35;BEGIN_EDITABLE# var foo = "bar"; &#35;END_EDITABLE#</code>
                 <p><i></i> ...</p>
             </div>
             <div class="giCard">
@@ -364,8 +360,8 @@
                 </code>
                 <p><i></i> It's not necessary to add empty lines between <samp>&#35;BEGIN_EDITABLE#</samp> and <samp>&#35;END_EDITABLE</samp> because editable lines allow the learner to create new lines in the code</p>
                 <h5>Known Issues</h5>
-                <p><i></i> <samp>&#35;BEGIN_EDITABLE#</samp> creates an editable line and a <em>locked line before it</em>, <samp>&#35;END_EDITABLE#</samp> creates an editable line and a <em>locked line after it</em>. Here is a side-by-side comparison of the code and output:</p>
-                <img src="img/flow-chart/editable_lines.png" alt="editable_lines.png">
+                <p><i></i> <samp>&#35;BEGIN_EDITABLE#</samp> creates an editable line and a <em>locked line before it</em>, <samp>&#35;END_EDITABLE#</samp> creates an editable line and a <em>locked line after it</em>.</p>
+                <!-- <img src="img/editable_lines.png" alt="editable_lines.png"> -->
             </div>
             <div class="giCard">
                 <h4>Comments</h4>
@@ -400,123 +396,99 @@
             <div class="giCard">
                 <h4>AST</h4>
                 <h5>The Syntax</h5>
-                <p><i></i> Use the following AST syntax to test <em>HTML</em> & <em>CSS</em> code:
-                    <code>
-                        pass.if.html.editable(n).equivalent(expectedCode);<br>
-                        pass.if.css.editable(n).equivalent(expectedCode);
-                    </code>
-                </p>
+                <p><i></i> Use the following AST syntax to test <em>HTML</em> & <em>CSS</em> code:</p>
+                <code>
+                    pass.if.html.editable(n).equivalent(expectedCode);<br>
+                    pass.if.css.editable(n).equivalent(expectedCode);
+                </code>
                 <p><i></i> <samp>editable(0)</samp> targets code in the first editable, <samp>editable(1)</samp> the second, and so on...</p>
                 <p><i></i> Use <em>parenthesis</em> to indicate editable location, using square brackets is not considered the AST approach</p>
                 <p><i></i> <samp>expectedCode</samp> must be valid code</p>
-                <p><i></i> If the code files do not have default names, i.e. <em>index.html</em> and <em>style.css</em>, use the following syntax instead
-                    <code>
-                        pass.if.fileName.html.editable(n).equivalent(expectedCode);<br>
-                        pass.if.fileName.css.editable(n).equivalent(expectedCode);
-                    </code>
-                </p>
+                <p><i></i> If the code files do not have default names, i.e. <em>index.html</em> and <em>style.css</em>, use the following syntax instead</p>
+                <code>
+                    pass.if.fileName.html.editable(n).equivalent(expectedCode);<br>
+                    pass.if.fileName.css.editable(n).equivalent(expectedCode);
+                </code>
                 <h5>Feedback</h5>
-                <p><i></i> Don't always rely on auto-generated feedback, write elaborate error messages when it is necessary
-                    <code>pass("useful feedback here").if.html.editable(n).equivalent("");</code>
-                </p>
-                <p><i></i> Provide line numbers when a single objective tests code in multiple places
-                    <code>
-                        pass("CSS LINE 11 - feedback").if.css.editable(2).equivalent("width: 20px");<br>
-                        pass("CSS LINE 13 - feedback").if.css.editable(3).equivalent("height: 50px");
-                    </code>
-                </p>
-                <p><i></i> When the position of <samp>editable(n)</samp> is unpreditable, use the following function to retrive line number dynamically
-                    <code>
-                        function line(file, str) {let n; file.text.split(/\r?\n/).forEach((e, i) => { e.includes(str) ? (n = i + 1) : null }); return n;}<br>
-                    </code>
-                </p>
+                <p><i></i> Don't always rely on auto-generated feedback, write elaborate error messages when it is necessary</p>
+                <code>pass("useful feedback here").if.html.editable(n).equivalent("");</code>
+                <p><i></i> Provide line numbers when a single objective tests code in multiple places</p>
+                <code>
+                    pass("CSS LINE 11 - feedback").if.css.editable(2).equivalent("width: 20px");<br>
+                    pass("CSS LINE 13 - feedback").if.css.editable(3).equivalent("height: 50px");
+                </code>
+                <p><i></i> When the position of <samp>editable(n)</samp> is unpreditable, use the following function to retrive line number dynamically</p>
+                <code>function line(file, str) {let n; file.text.split(/\r?\n/).forEach((e, i) => { e.includes(str) ? (n = i + 1) : null }); return n;}</code>
                 <p><i></i> <samp>line(file, str)</samp> returns a number indicating the location of <samp>str</samp> in the specified <samp>file</samp></p>
                 <p><i></i> <samp>file</samp> can be <samp>code.html</samp>, <samp>code.css</samp> or <samp>code.js</samp> if the file has the <em>default name</em>, otherwise use <samp>code.fileName.html</samp>, <samp>code.fileName.css</samp> or <samp>code.fileName.js</samp></p>
                 <p><i></i> <samp>str</samp> must be a <em>unique string</em> that can be found exactly once in the target file</p>
-                <p><i></i> <em>Example</em>
-                    <code>
-                        function line(file, str) {let n; file.text.split(/\r?\n/).forEach((e, i) => { e.includes(str) ? (n = i + 1) : null }); return n;}<br>
-                        pass("CSS LINE " + line(code.css, '#body') + " - feedback").if.css.editable(2).equivalent("");<br>
-                        pass("HTML LINE " + line(code.gallery.html, '&lt;div id="main">') + " - feedback").if.html.editable(3).equivalent("");<br>
-                        pass("JS LINE " + (line(code.js, 'var foo;') + 9) + " - feedback").if.js.editable(2).equivalent("");<br>
-                    </code>
-                </p>
+                <p><i></i> <em>Example</em></p>
+                <code>
+                    function line(file, str) {let n; file.text.split(/\r?\n/).forEach((e, i) => { e.includes(str) ? (n = i + 1) : null }); return n;}<br>
+                    pass("CSS LINE " + line(code.css, '#body') + " - feedback").if.css.editable(2).equivalent("");<br>
+                    pass("HTML LINE " + line(code.gallery.html, '&lt;div id="main">') + " - feedback").if.html.editable(3).equivalent("");<br>
+                    pass("JS LINE " + (line(code.js, 'var foo;') + 9) + " - feedback").if.js.editable(2).equivalent("");
+                </code>
                 <h5>Quotations</h5>
                 <p><i></i> Both single & double quotes are allowed by the AST tests, as long as the opening & closing quotes match</p>
-                <p><i></i> The following test will pass <samp>&lt;a href="#">&lt;/a></samp> or <samp>&lt;a href='#'>&lt;/a></samp>
-                    <code>pass.if.html.editable(n).equivalent('&lt;a href="#">&lt;/a>');</code>
-                </p>
+                <p><i></i> The following test will pass <samp>&lt;a href="#">&lt;/a></samp> or <samp>&lt;a href='#'>&lt;/a></samp></p>
+                <code>pass.if.html.editable(n).equivalent('&lt;a href="#">&lt;/a>');</code>
                 <p><i></i> ...</p>
             </div>
             <div class="giCard">
                 <h4>HTML</h4>
                 <h5>Element & Content</h5>
-                <p><i></i> <samp>&lt;div>&lt;/div></samp>
-                    <code>pass.if.html.editable(n).equivalent("&lt;div>&lt;/div>");</code>
-                </p>
-                <p><i></i> <samp>&lt;button>Submit&lt;/button></samp>
-                    <code>pass.if.html.editable(n).equivalent("&lt;button>Submit&lt;/button>");</code>
-                </p>
+                <p><i></i> <samp>&lt;div>&lt;/div></samp></p>
+                <code>pass.if.html.editable(n).equivalent("&lt;div>&lt;/div>");</code>
+                <p><i></i> <samp>&lt;button>Submit&lt;/button></samp></p>
+                <code>pass.if.html.editable(n).equivalent("&lt;button>Submit&lt;/button>");</code>
                 <h5>Single Attribute</h5>
-                <p><i></i> <samp>&lt;p id="info">&lt;/p></samp>
-                    <code>pass.if.html.editable(n).equivalent('&lt;p id="info">&lt;/p>');</code>
-                </p>
+                <p><i></i> <samp>&lt;p id="info">&lt;/p></samp></p>
+                <code>pass.if.html.editable(n).equivalent('&lt;p id="info">&lt;/p>');</code>
                 <h5>Multiple Attributes</h5>
-                <p><i></i> The following test will pass <samp>&lt;input id="user" type="text"></samp> or <samp>&lt;input type="text" id="user"></samp>
-                    <code>pass.if.html.editable(n).equivalent.to('&lt;input id="user" type="text">');</code>
-                </p>
+                <p><i></i> The following test will pass <samp>&lt;input id="user" type="text"></samp> or <samp>&lt;input type="text" id="user"></samp></p>
+                <code>pass.if.html.editable(n).equivalent.to('&lt;input id="user" type="text">');</code>
                 <h5>Partial Syntax</h5>
-                <p><i></i> Given that line <samp>n</samp> in the HTML file is <samp>&lt;img &#35;BEGIN_EDITABLE#&nbsp;&nbsp;&nbsp;&nbsp;&#35;END_EDITABLE#></samp> and the learner is expected to insert <samp>src="http://link.png"</samp>, use the following test
-                    <code>pass.if.html(code.html.text.split(/\r?\n/)[n - 1]).equivalent('&lt;img src="http://link.png">');</code>
-                </p>
-                <p><i></i> Alternatively, concatenate learner input with additional strings to make up valid HTML code
-                    <code>pass.if.html("&lt;img " + code.html.editable[n] + ">").equivalent('&lt;img src="http://link.png">');</code>
-                </p>
+                <p><i></i> Given that line <samp>n</samp> in the HTML file is <samp>&lt;img &#35;BEGIN_EDITABLE#&nbsp;&nbsp;&nbsp;&nbsp;&#35;END_EDITABLE#></samp> and the learner is expected to insert <samp>src="http://link.png"</samp>, use the following test</p>
+                <code>pass.if.html(code.html.text.split(/\r?\n/)[n - 1]).equivalent('&lt;img src="http://link.png">');</code>
+                <p><i></i> Alternatively, concatenate learner input with additional strings to make up valid HTML code</p>
+                <code>pass.if.html("&lt;img " + code.html.editable[n] + ">").equivalent('&lt;img src="http://link.png">');</code>
                 <h5>Known Issues</h5>
                 <p><i></i> ...</p>
             </div>
             <div class="giCard">
                 <h4>CSS</h4>
                 <h5>Rule</h5>
-                <p><i></i> <samp>div { width: 100px; height: 120px; }</samp>
-                    <code>pass.if.css.editable(n).equivalent("div { width: 100px; height: 120px; }");</code>
-                </p>
+                <p><i></i> <samp>div { width: 100px; height: 120px; }</samp></p>
+                <code>pass.if.css.editable(n).equivalent("div { width: 100px; height: 120px; }");</code>
                 <h5>Selector</h5>
-                <p><i></i> <samp>#idName</samp>
-                    <code>pass.if.css(code.css.editable[0] + "{}").equivalent("#idName {}");</code>
-                </p>
+                <p><i></i> <samp>#idName</samp></p>
+                <code>pass.if.css(code.css.editable[0] + "{}").equivalent("#idName {}");</code>
                 <h5>Property & Single Value</h5>
-                <p><i></i> <samp>position: absolute;</samp>
-                    <code>pass.if.css.editable(n).equivalent("position: absolute");</code>
-                </p>
-                <p><i></i> <samp>top: 0px;</samp>
-                    <code>pass.if.css.editable(n).equivalent.to("top: 0").or("top: 0px").or("top: 0%");</code>
-                </p>
+                <p><i></i> <samp>position: absolute;</samp></p>
+                <code>pass.if.css.editable(n).equivalent("position: absolute");</code>
+                <p><i></i> <samp>top: 0px;</samp></p>
+                <code>pass.if.css.editable(n).equivalent.to("top: 0").or("top: 0px").or("top: 0%");</code>
                 <h5>Property & Multiple Values</h5>
-                <p><i></i> <samp>margin: 5% auto 10px auto;</samp>
-                    <code>pass.if.css.editable(n).equivalent("margin: 5% auto 10px auto");</code>
-                </p>
-                <p><i></i> <samp>border: solid black;</samp>
-                    <code>pass.if.css.editable(n).equivalent.to("border: solid black").or("border: black solid");</code>
-                </p>
+                <p><i></i> <samp>margin: 5% auto 10px auto;</samp></p>
+                <code>pass.if.css.editable(n).equivalent("margin: 5% auto 10px auto");</code>
+                <p><i></i> <samp>border: solid black;</samp></p>
+                <code>pass.if.css.editable(n).equivalent.to("border: solid black").or("border: black solid");</code>
                 <p><i></i> Although <samp>border: solid black</samp> and <samp>border: black solid</samp> are both valid and will produce the same result, <a target="_blank" href="https://developer.mozilla.org/en/docs/Web/CSS/border#Formal_syntax">ordering standards</a> do exist and should be respected by LaunchBox</p>
                 <h5>Partial Syntax</h5>
                 <p><i></i> Refer to <em>Partial Syntax</em> in the <em>HTML</em> card</p>
                 <h5>Known Issues</h5>
-                <p><i></i> The following test is syntactically correct but a valid input triggers the error <em>"Make sure you have a semi-colon after ..."</em>
-                    <code>pass.if.css.editable(n).equivalent('background-image: url("http://link.png")');</code>
-                </p>
-                <p><i></i> The following test can not test for multiple selectors
-                    <code>pass.if.css.editable(n).equivalent("#idName, .className, tagName {}");</code>
-                </p>
+                <p><i></i> The following test is syntactically correct but a valid input triggers the error <em>"Make sure you have a semi-colon after ..."</em></p>
+                <code>pass.if.css.editable(n).equivalent('background-image: url("http://link.png")');</code>
+                <p><i></i> The following test can not test for multiple selectors</p>
+                <code>pass.if.css.editable(n).equivalent("#idName, .className, tagName {}");</code>
                 <p><i></i> ...</p>
             </div>
             <div class="giCard">
                 <h4>CSS Global [Upcoming]</h4>
                 <h5>Syntax</h5>
-                <p><i></i> Pass the learner if the target CSS file contains a rule with specified selector and declaration
-                    <code>pass.if.css.selector(selector).contains(declaration);</code>
-                </p>
+                <p><i></i> Pass the learner if the target CSS file contains a rule with specified selector and declaration</p>
+                <code>pass.if.css.selector(selector).contains(declaration);</code>
                 <p><i></i> The default CSS file is <em>style.css</em>, use <samp>if.fileName.css</samp> to target additional CSS file</p>
                 <p><i></i> <samp>selector</samp> and <samp>declaration</samp> must be string values</p>
                 <p><i></i> <samp>declaration</samp> must be valid CSS code</p>
@@ -613,8 +585,8 @@
 <!-- end of decks -->
 
     <!--<input id="searchBar" type="text">-->
-    
-    <!--<script src="https://use.fontawesome.com/54c503b2ae.js"></script>-->
-    <!--<script src="https://cloud.tinymce.com/stable/tinymce.min.js?apiKey=2322r6kwtx7u7040qlmfrdvua3gz5badcv8zjvvbllk6q614"></script>-->
+    <script type="text/javascript" src="script.js"></script>
+    <script src="https://use.fontawesome.com/54c503b2ae.js"></script>
+    <!-- <script src="https://cloud.tinymce.com/stable/tinymce.min.js?apiKey=2322r6kwtx7u7040qlmfrdvua3gz5badcv8zjvvbllk6q614"></script> -->
 </body>
 </html>
