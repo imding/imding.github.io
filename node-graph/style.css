@@ -20,36 +20,62 @@ body {
     user-select: none;
 }
 
-.nodeBody > hr {
+select {
+    cursor: pointer;
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+}
+
+#UI-TB, #linkList, input {
+    text-align: center;
+}
+
+.nodeBody>hr {
     border: none;
     margin: 4px;
 }
 
-#debug, #appContainer, #UI-TB, .UI-WS, .UI-LINKS, .nodeRoot {
+#debug, #appContainer, #UI-TB, #linkList, .UI-WS, .UI-LINKS, .nodeRoot {
     position: absolute;
 }
 
-.portSocket, .portType, .portName {
+.portSocket, .portName {
     display: inline-block;
 }
 
-.nodeHead, .portSocket {
+#UI-TB, .portName {
+    font-size: 12px;
+}
+
+#linkList {
+    font-size: 10px;
+}
+
+#UI-TB, #linkList {
+    z-index: 3;
+}
+
+.nodeHead, .portSocket, .linkRef {
     cursor: pointer;
 }
 
 #UI-TB {
-    max-height: 100px;
-    font-size: 12px;
-    text-align: center;
+    padding-right: 2px;
+    max-height: 200px;
     overflow-y: scroll;
+    box-sizing: content-box;
 }
 
-.UI-TBN {
-    margin: 2px;
+.UI-TBN, .linkRef {
     padding: 2px 8px;
     border-radius: 4px;
     color: skyblue;
     background-color: #404040;
+}
+
+.UI-TBN:nth-child(n+2), .linkRef:nth-child(n+2) {
+    margin-top: 4px;
 }
 
 .UI-WS {
@@ -71,23 +97,14 @@ body {
     color: black;
     font-size: 15px;
     font-weight: bold;
-    text-align: center;
 }
 
-.portSocket, .portType, .portName {
-    font-size: 12px;
-}
-
-.nodeOutput > .portRoot {
+.nodeOutput>.portRoot {
     text-align: right;
 }
 
-.portRoot > input, .portRoot > select {
-    position: relative;
-    bottom: 1px;
-    vertical-align: text-bottom;
+.portRoot>input, .portRoot>select {
     font-family: 'Share Tech Mono', monospace;
-    text-align: center;
     border-radius: 2px;
     border: none;
     background-color: rgba(0, 0, 0, 0.1);
@@ -110,12 +127,11 @@ body {
 }
 
 ::-webkit-scrollbar {
-	width: 4px;
-	height: 4px;
+    width: 4px;
+    height: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-	background-color: lightcyan;
-	border-radius: 2px;
-	height: 10px;
+    background-color: lightcyan;
+    border-radius: 2px;
 }

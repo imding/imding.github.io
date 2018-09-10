@@ -48,11 +48,12 @@
     });
 
     FBP.component({
-        name: 'mul',
-        inPorts: ['x', 'y'],
-        outPorts: 'output',
-        body: function (x, y, o) {
-            o(null, x * y);
+        name: 'num',
+        inPorts: ['x'],
+        outPorts: ['output', 'output2'],
+        body: function (x, output, output2) {
+            output(null, x);
+            output2(null, x);
         }
     });
 
@@ -76,13 +77,14 @@
 
     FBP.define('network', function (F) {
 
-        F.init('add', 'x');
-        F.init('add', 'y');
-        F.init('mul', 'y');
+        F.init('num', 'x');
+        // F.init('add', 'y');
+        // F.init('mul', 'y');
 
-        F.connect('add', 'output', 'mul', 'x');
+        F.connect('num', 'output', 'add', 'x');
+        F.connect('num', 'output2', 'add', 'y');
 
-        F.end('mul', 'output');
+        F.end('add', 'output');
 
     /* network.go(inputs, callback)
      *  Invoke a network.
@@ -102,9 +104,9 @@
      */
 
     }).go({
-        'add.x': 1,
-        'add.y': 2,
-        'mul.y': 3
+        'num.x': 2,
+        // 'add.y': 2,
+        // 'mul.y': 3
     }, function (err, result) {
         if (err) {
             alert(err);

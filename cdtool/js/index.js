@@ -1132,7 +1132,7 @@ function spaceBetween(e1, e2, axis = 0) {       // axis: 0 is horizontal, 1 is v
 function log(msg, opt) {
     if (!opt) { opt = 'log'; }
     const time = new Date();
-    eval(`console.${opt}`)(`[${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())}] ${msg}`);
+    console[opt](`[${this.pad(time.getHours())}:${this.pad(time.getMinutes())}:${this.pad(time.getSeconds())}] ${msg}`);
 }
 
 function pad(n) {

@@ -17,7 +17,12 @@ function init() {
 
     fl.init(appContainer);
 
-    run.onclick = () => fl.evaluate();
+    run.onclick = () => {
+        const cf = config.showDebug;
+        config.showDebug = cf || !cf;
+        fl.evaluate();
+        config.showDebug = cf;
+    };
 }
 
 class Flo {
@@ -25,7 +30,7 @@ class Flo {
         this.default = {
             workspace: {
                 pos: { x: 0, y: 0 },
-                scl: { x: 600, y: 350 },
+                scl: { x: 1280, y: 350 },
                 pad: 10,
                 fill: '#303030',
             },
@@ -41,8 +46,9 @@ class Flo {
                 r: 4,
                 inputMinWidth: 30,
                 inputMaxWidth: 120,
-                selectWidth: 55,
+                inputPadding: 4,
                 editable: false,
+                hidden: false,
             },
             link: {
                 stroke: 'plum',
@@ -52,7 +58,7 @@ class Flo {
             },
             error: {
                 link: 'indianred',
-            }
+            },
         };
 
         this.root;
@@ -71,88 +77,116 @@ class Flo {
 
     init(root) {
         this.root = root;
-        this.newWorkspace({ pos: { x: 25, y: 90 } });
+        this.newWorkspace({ pos: { x: 0, y: 90 } });
         this.newToolbox();
     }
 
-    // ====================================== //
-    // class method for evaluating the graphs //
-    // ====================================== //
+    // ======================================== //
+    // class method for evaluating the networks //
+    // ======================================== //
 
     evaluate() {
         console.clear();
 
+        // returns user defined value of a given port
+        const parseVal = port => {
+            // set value depending on input element type
+            const val = port.input.tagName === 'INPUT' ? port.input.value : Boolean(port.input.selectedIndex);
+
+            // need better validation of user input value ***
+            return (new Function(`return ${val};`)());
+        };
+
+        // iterate through all workspaces
         this.workspace.forEach(ws => {
-            // filter linked nodes
-            const linkedNodes = ws.graph.nodes.filter(n => n.links.length);
-
-            // define components
-            linkedNodes.forEach(ln => {
-                const nodeInfo = {
-                    name: ln.name,
-                    inPorts: ln.ports.input.map(ip => camelize(ip.name)),
-                    outPorts: Array(ln.ports.output.length).fill('result'),
-                    body: ln.eval,
-                };
-
-                FBP.component(nodeInfo);
-            });
-
-            // ensure graph has only one scheculer
-            let scheduler = linkedNodes.filter(n => n.name.startsWith('scheduler'));
-            if (scheduler.length !== 1) throw new Error('make sure there is exactly one linked scheduler in the graph.');
+            // ensure graph has only one scheduler
+            let scheduler = ws.network.nodes.filter(n => n.name.startsWith('scheduler'));
+            if (scheduler.length !== 1) throw new Error('make sure there is exactly one scheduler in the network.');
             else scheduler = scheduler[0];
 
-            let initValues = {};
+            const
+                openPorts = {},
+                initValues = {},
+                components = {},
+                connections = [],
+                upstreamLinks = [];
+
+            do {
+                const
+                    link = upstreamLinks.shift(),
+                    node = link ? link.start.owner : scheduler;
+
+                // avoid duplication of components including open ports and their initial values
+                if (!components.hasOwnProperty(node.name)) {
+                    // describe each node as a FBP component
+                    const c = {
+                        name: node.name,
+                        inPorts: node.ports.input.map(ip => ip.name),
+                        outPorts: node.ports.output.map(op => op.name),
+                        body: node.eval,
+                    };
+
+                    components[node.name] = c;
+
+                    print(['new component:', c]);
+
+                    // iterate through all input ports
+                    node.ports.input.forEach(nip => {
+                        // store existing links on each port
+                        if (nip.links.length) nip.links.forEach(ipl => {
+                            upstreamLinks.push(ipl);
+                            print(['new link:', ipl]);
+                        });
+
+                        else if (!nip.editable && !nip.hidden && nip.owner !== scheduler) throw new Error(`the ${nip.owner.name} node failed to evaluate: input port ${nip.label.textContent} requires an input`);
+
+                        else {
+                            // store open ports and the owner node names
+                            openPorts.hasOwnProperty(node.name) ? openPorts[node.name].push(nip.name) : openPorts[node.name] = [nip.name];
+                            print(['new open port:', nip]);
+
+                            // store initial values for open ports
+                            initValues[`${node.name}.${nip.name}`] = nip.input ? parseVal(nip) : null;
+                            print(['new initial value:', initValues[`${node.name}.${nip.name}`]]);
+                        }
+                    });
+                }
+
+                // define connection info for each link
+                if (link) {
+                    const c = {
+                        fromNode: node.name,
+                        fromPort: link.start.name,
+                        toNode: link.end.owner.name,
+                        toPort: link.end.name,
+                    };
+
+                    connections.push(c);
+                    print(['new connection:', c]);
+                }
+            }
+            while (upstreamLinks.length);
+
+            // add all components to FBP
+            Object.values(components).forEach(c => FBP.component(c));
 
             // define network
-            FBP.define('network', function (F) {
-                const schedulerLinkedNodes = scheduler.ports.input.filter(ip => ip.link).map(ip => ip.link.start.owner);
+            FBP.define(`NW-${ws.root.id.split(/-/)[1]}`, function (F) {
+                // indicate nodes and their open input ports
+                // e.g. F.init('add', 'B') tells the network a node called 'add' has an open input port called 'B'
+                Object.entries(openPorts).forEach(entry => entry[1].forEach(port => F.init(entry[0], port)));
 
-                schedulerLinkedNodes.forEach(sln => {
-                    const
-                        // filter unlinked input ports on nodes directly linked to the scheduler
-                        unlinkedInputPorts = sln.ports.input.filter(ip => !ip.link),
-                        // filter linked input ports...
-                        linkedInputPorts = sln.ports.input.filter(ip => ip.link),
-                        // filter linked output ports...
-                        linkedOutputPorts = sln.ports.output.filter(op => op.link);
-
-                    unlinkedInputPorts.forEach(uip => {
-                        // throw error if unlinked input port is not editable
-                        if (!uip.editable) throw new Error(`the ${uip.owner.name} node failed to evaluate: the ${uip.name.textContent} port requires an input`);
-
-                        // set value depending on input element type
-                        let value = uip.input.tagName === 'INPUT' ? uip.input.value : Boolean(uip.input.selectedIndex);
-
-                        // need better validation of user input value ***
-                        value =
-                            uip.type === 'number' ? Number(value) :
-                                uip.type === 'string' ? String(value) :
-                                    uip.type === 'boolean' ? Boolean(value) :
-                                        uip.type === 'array' ? (new Function('return [' + value + '];')()) :
-                                            JSON.parse(value);
-
-                        // F.init(nodeName, portName)
-                        F.init(uip.owner.name, uip.name);
-                        // store initial values
-                        initValues[`${uip.owner.name}.${uip.name}`] = value;
-                    });
-
-                    // F.connect(fromNode, fromPort, toNode, toPort)
-                    linkedOutputPorts.forEach(lop => F.connect(sln.name, lop.name, scheduler.name, camelize(lop.link.end.label.textContent)));
-
-                    // recursive function to process upstream nodes ***
-
-                });
+                // describe connections between nodes to FBP
+                connections.forEach(c => F.connect(c.fromNode, c.fromPort, c.toNode, c.toPort));
 
                 // always end with the scheduler node
                 F.end(scheduler.name, 'result');
-                
+
             }).go(initValues, function (err, result) {
-                if (err) alert(err);
-                else console.log(`!! evaluation took ${Math.round(result.interval)}ms, it returned ${result.output == undefined ? 'nothing' : result.output}`);
+                if (err) print(err, 'warn');
+                else print(`!! evaluation took ${Math.round(result.interval)}ms, it returned ${result.output == undefined ? 'nothing' : result.output}`);
             });
+
         });
     }
 
@@ -164,95 +198,260 @@ class Flo {
         const tb = {
             root: newElement('div', { id: 'UI-TB' }),
             nodes: [],
-            nodeData: [{
-                name: 'scheduler',
-                ports: {
-                    in: [{
-                        name: 'A',
-                        type: 'Execute',
-                    }],
-                    out: [{
-                        name: 'result',
-                        type: 'Execute',
-                    }],
+            nodeData: [
+                {
+                    name: 'scheduler',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', type: 'Execute' },
+                            { name: 'ip2', label: 'B', type: 'Execute' },
+                            { name: 'ip3', label: 'C', type: 'Execute' },
+                            { name: 'ip4', label: 'D', type: 'Execute' },
+                            { name: 'ip5', label: 'E', type: 'Execute' },
+                        ],
+                        out: [{ name: 'result', hidden: true }],
+                    },
+                    eval: (ip1, ip2, ip3, ip4, ip5, result) => result(null, () => {
+                        setTimeout(ip1, 0);
+                        setTimeout(ip2, 0);
+                        setTimeout(ip3, 0);
+                        setTimeout(ip4, 0);
+                        setTimeout(ip5, 0);
+                    }),
                 },
-                ext: { in: true, out: false },
-                eval: function (A, result) {
-                    result(null, A);
+                {
+                    name: 'new variable',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'name', type: 'string', editable: true },
+                            { name: 'ip2', label: 'value', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'Run', type: 'execute' }],
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, () => { eval(`var ${ip1};`);  }),
                 },
-            }, {
-                name: 'add',
-                ports: {
-                    in: [{
-                        name: 'A',
-                        type: 'number',
-                        editable: true,
-                    }, {
-                        name: 'B',
-                        type: 'number',
-                        editable: true,
-                    }],
-                    out: [{
-                        name: 'result',
-                        label: 'A + B',
-                        type: 'number',
-                    }],
+                {
+                    name: 'number',
+                    ports: {
+                        in: [{ name: 'ip1', label: 'A', type: 'number', editable: true }],
+                        out: [{ name: 'op1', label: 'A', type: 'number' }],
+                    },
+                    eval: (ip1, op1) => op1(null, Number(ip1)),
                 },
-                ext: { in: false, out: false },
-                eval: function (A, B, result) {
-                    result(null, A + B);
+                {
+                    name: 'string',
+                    ports: {
+                        in: [{ name: 'ip1', label: 'A', type: 'string', editable: true }],
+                        out: [{ name: 'op1', label: 'A', type: 'string' }],
+                    },
+                    eval: (ip1, op1) => op1(null, String(ip1)),
                 },
-            }, {
-                name: 'log',
-                ports: {
-                    in: [{
-                        name: 'Message',
-                        type: 'string',
-                        editable: true,
-                    }],
-                    out: [{
-                        name: 'result',
-                        label: 'Run',
-                        type: 'execute',
-                    }],
+                {
+                    name: 'boolean',
+                    ports: {
+                        in: [{ name: 'ip1', label: 'A', type: 'boolean', editable: true }],
+                        out: [{ name: 'op1', label: 'A', type: 'boolean' }],
+                    },
+                    eval: (ip1, op1) => op1(null, Boolean(ip1)),
                 },
-                ext: { in: false, out: false },
-                eval: function (Message, result) {
-                    result(null, console.log(Message));
+                {
+                    name: 'add',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', editable: true },
+                            { name: 'ip2', label: 'B', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'A + B', }]
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, ip1 + ip2),
                 },
-            }, {
-                name: 'alert',
-                ports: {
-                    in: [{
-                        name: 'Message',
-                        type: 'string',
-                        editable: true,
-                    }],
-                    out: [{
-                        name: 'result',
-                        label: 'Run',
-                        type: 'execute',
-                    }],
+                {
+                    name: 'subtract',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', editable: true },
+                            { name: 'ip2', label: 'B', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'A - B', }]
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, ip1 - ip2),
                 },
-                ext: { in: false, out: false },
-                eval: function (Message, result) {
-                    result(null, alert(Message));
+                {
+                    name: 'multiply',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', editable: true },
+                            { name: 'ip2', label: 'B', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'A * B', }]
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, ip1 * ip2),
                 },
-            }],
+                {
+                    name: 'divide',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', editable: true },
+                            { name: 'ip2', label: 'B', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'A / B', }]
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, ip1 / ip2),
+                },
+                {
+                    name: 'greater than',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', editable: true },
+                            { name: 'ip2', label: 'B', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'A > B', }],
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, ip1 > ip2),
+                },
+                {
+                    name: 'less than',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', editable: true },
+                            { name: 'ip2', label: 'B', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'A < B', }],
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, ip1 < ip2),
+                },
+                {
+                    name: 'equal to',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', editable: true },
+                            { name: 'ip2', label: 'B', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'A == B', }],
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, ip1 == ip2),
+                },
+                {
+                    name: 'and',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', type: 'boolean', editable: true },
+                            { name: 'ip2', label: 'B', type: 'boolean', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'A && B', }],
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, ip1 && ip2),
+                },
+                {
+                    name: 'or',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', type: 'bolean', editable: true },
+                            { name: 'ip2', label: 'B', type: 'bolean', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'A || B', }],
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, ip1 || ip2),
+                },
+                {
+                    name: 'not',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'A', type: 'boolean', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: '!A', }],
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, !ip1),
+                },
+                {
+                    name: 'if',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'condition', type: 'boolean', editable: true },
+                            { name: 'ip2', label: 'true' },
+                            { name: 'ip3', label: 'false' },
+                        ],
+                        out: [{ name: 'op1', label: 'Result' }],
+                    },
+                    eval: (ip1, ip2, ip3, op1) => op1(null, ip1 ? ip2 : ip3),
+                },
+                {
+                    name: 'document',
+                    ports: {
+                        in: [{ name: 'ip1', hidden: true }],
+                        out: [{ name: 'op1', label: 'document', type: 'HTMLElement' }],
+                    },
+                    eval: (ip1, op1) => op1(null, document),
+                },
+                {
+                    name: 'getElementById',
+                    ports: {
+                        in: [
+                            { name: 'ip1', label: 'Parent', type: 'HTMLElement' },
+                            { name: 'ip2', label: 'ID', type: 'string', editable: true },
+                        ],
+                        out: [{ name: 'op1', label: 'HTML Element', type: 'HTMLElement' }],
+                    },
+                    eval: (ip1, ip2, op1) => op1(null, ip1.getElementById(ip2)),
+                },
+                {
+                    name: 'innerHTML',
+                    ports: {
+                        in: [{ name: 'ip1', label: 'Target', type: 'HTMLElement' }],
+                        out: [{ name: 'op1', label: 'HTML String', type: 'string' }],
+                    },
+                    eval: (ip1, op1) => op1(null, ip1.innerHTML),
+                },
+                {
+                    name: 'create element',
+                    ports: {
+                        in: [{ name: 'ip1', label: 'tag name', type: 'string', editable: true }],
+                        out: [{ name: 'op1', label: 'Element', type: 'HTMLElement' }],
+                    },
+                    eval: (ip1, op1) => op1(null, document.createElement(ip1)),
+                },
+                {
+                    name: 'log',
+                    ports: {
+                        in: [{ name: 'ip1', label: 'Message', type: 'string', editable: true }],
+                        out: [{ name: 'op1', label: 'Run', type: 'execute' }],
+                    },
+                    eval: (ip1, op1) => op1(null, console.log(ip1)),
+                    // eval: new Function(['ip1', 'op1', 'op2'], 'op1(null, console.log(ip1)); op2(null, console.log(ip1));'),
+                },
+                {
+                    name: 'alert',
+                    ports: {
+                        in: [{ name: 'ip1', label: 'Message', type: 'string', editable: true }],
+                        out: [{ name: 'op1', label: 'Run', type: 'execute' }],
+                    },
+                    eval: (ip1, op1) => op1(null, alert(ip1)),
+                },
+                {
+                    name: 'random number',
+                    ports: {
+                        in: [{ name: 'random', hidden: true }],
+                        out: [{ name: 'op1', label: 'number', type: 'number' }],
+                    },
+                    eval: (ip1, op1) => op1(null, Math.random()),
+                }],
 
             // ================================= //
             // toolbox method for showing itself //
             // ================================= //
 
             show: () => {
-                console.log(`showing toolbox in ${this.activeWorkspace.root.id}`);
                 this.activeWorkspace.root.appendChild(tb.root);
+                
                 sCss(tb.root, {
                     visibility: 'visible',
                     left: `${relCursor(this.activeWorkspace.root).x - gCss(tb.root).width / 2}px`,
                     top: `${relCursor(this.activeWorkspace.root).y - gCss(tb.root).height / 2}px`,
                 });
+
                 tb.visible = true;
+
+                print(`showing toolbox in ${this.activeWorkspace.root.id}`);
             },
 
             // ================================ //
@@ -302,7 +501,7 @@ class Flo {
             ws = {
                 root: newElement('div', { id: `WS-${id}`, className: 'UI-WS', textContent: `WS-${id}` }),
                 links: newSVG('svg'),
-                graph: { nodes: [], links: [], },
+                network: { nodes: [], links: [], },
 
                 // ======================================== //
                 // workspace method for createing new nodes //
@@ -337,25 +536,29 @@ class Flo {
                                     dir: cf.dir,
                                     type: cf.type,
                                     editable: cf.editable,
-                                    link: null,
-                                    root: newElement('div', { className: 'portRoot' }),
+                                    hidden: cf.hidden,
+                                    clone: cf.clone || false,
+                                    links: [],
+                                    root: newElement('div', Object.assign({ className: 'portRoot' }, cf.hidden ? { hidden: true } : {})),
                                     socket: newElement('div', { className: 'portSocket' }),
-                                    // type: newElement('div', { className: 'portType', textContent: `(${cf.type || 'any'})` }),
                                     label: newElement('div', { className: 'portName', textContent: cf.label || cf.name || cf.dir }),
                                     resize: () => {
-                                        const
-                                            portWidth = gCss(port.socket).width + gCss(port.label).width + cf.r * 2 + (cf.editable ? gCss(port.input).width : 0) + cf.r * 4,
-                                            nodeWidth = gCss(node.body).width;
+                                        const portWidth = gCss(port.socket).width + gCss(port.label).width + cf.r * 2 + (cf.editable ? gCss(port.input).width : 0) + cf.r * 4;
+                                        let nodeWidth = gCss(node.body).width;
 
                                         sCss(port.root, { width: `${port.dir === 'input' ? portWidth : portWidth < nodeWidth ? nodeWidth : portWidth}px` });
 
-                                        const newWidth = Math.max(node.minWidth, elarr(node.root.querySelectorAll('.portRoot')).maxWidth);
+                                        // determine new width for the node
+                                        nodeWidth = Math.max(node.minWidth, elarr(node.root.querySelectorAll('.portRoot')).maxWidth);
+                                        sCss(node.root, { width: `${nodeWidth}px` });
 
-                                        sCss(node.root, { width: `${newWidth}px` });
-                                        node.ports.output.forEach(p => sCss(p.root, { marginLeft: `${newWidth - gCss(p.root).width}px` }));
+                                        // push output ports to the right side
+                                        node.ports.output.forEach(p => sCss(p.root, { marginLeft: `${nodeWidth - gCss(p.root).width}px` }));
+                                        // redraw all attached link
                                         node.links.forEach(l => l.update());
                                     },
                                 };
+
 
                                 // append port root to input or output section depending on port direction
                                 node[port.dir].appendChild(port.root);
@@ -365,7 +568,7 @@ class Flo {
                                 if (port.dir === 'output') port.root.insertBefore(port.label, port.socket);
                                 else port.root.appendChild(port.label);
 
-                                // add
+                                // store the port on the parent node object
                                 node.ports[port.dir].push(port);
 
                                 sCss(port.socket, {
@@ -381,30 +584,18 @@ class Flo {
                                 if (cf.editable) {
                                     const isBool = /boolean/.test(cf.type);
 
-                                    if (isBool) {
-                                        const
-                                            falseOpt = newElement('option', { value: 0, text: 'false' }),
-                                            trueOpt = newElement('option', { value: 1, text: 'true' });
-
-                                        port.input = newElement('select', { className: 'portInput' });
-                                        port.input.add(falseOpt);
-                                        port.input.add(trueOpt);
-                                    }
-
-                                    else port.input = newElement('input', { className: 'portInput' });
-
+                                    port.input = newElement(isBool ? 'select' : 'input', { className: 'portInput' });
                                     port.root.appendChild(port.input);
 
-                                    port.input.oninput = () => {
-                                        if (isBool) return;
-
+                                    port.input.resize = () => {
                                         // create new ruler element
-                                        const ruler = newElement('span', { textContent: port.input.value.replace(/\s/g, '_') });
+                                        const ruler = newElement('span', { textContent: isBool ? port.input.selectedOptions[0].textContent : port.input.value.replace(/\s/g, '_') });
 
                                         // make sure ruler element has the same font family ans size as the input field
                                         sCss(ruler, {
                                             fontFamily: gCss(port.input).fontFamily,
                                             fontSize: gCss(port.input).fontSize,
+                                            padding: gCss(port.input).padding,
                                         });
 
                                         this.root.appendChild(ruler);       // add ruler element to page to get measurement
@@ -413,14 +604,25 @@ class Flo {
                                         sCss(port.input, { width: `${Math.min(cf.inputMaxWidth, Math.max(cf.inputMinWidth, gCss(ruler).width + 2))}px` });
 
                                         this.root.removeChild(ruler);       // remove ruler
-
-                                        port.resize();      // resize the root element that contains the socket, name & input field
                                     };
+
+                                    port.input.oninput = () => {
+                                        // resize the input field
+                                        port.input.resize();
+                                        // resize the root element that contains the socket, name & input field
+                                        port.resize();
+                                    };
+
+                                    if (isBool) {
+                                        port.input.add(newElement('option', { value: 0, text: 'false' }));
+                                        port.input.add(newElement('option', { value: 1, text: 'true' }));
+                                        port.input.resize();
+                                    }
 
                                     sCss(port.input, {
                                         margin: `0 0 0 ${cf.r}px`,
-                                        width: `${isBool ? cf.selectWidth : cf.inputMinWidth}px`,
-                                        height: `${gCss(port.label).height}px`,
+                                        width: `${isBool ? 'initial' : `${cf.inputMinWidth}px`}`,
+                                        padding: `0 ${cf.inputPadding}px`,
                                     });
                                 }
 
@@ -428,56 +630,121 @@ class Flo {
 
                                 // when a port is clicked
                                 port.socket.onclick = () => {
-                                    // if a link has already been created
+                                    // clicking on a port while a link is active
                                     if (this.activeLink) {
                                         const
-                                            linkedPort = this.activeLink.start || this.activeLink.end,
                                             targetPort = port,
+                                            // store the port at the other end of the active link
+                                            linkedPort = this.activeLink.start || this.activeLink.end,
                                             // check if the port belongs to the same node
                                             sameNode = linkedPort.owner === targetPort.owner,
                                             // check if the clicked port is of the same direction ( out -> out or in -> in)
-                                            sameDir = linkedPort.dir === targetPort.dir;
+                                            sameDir = linkedPort.dir === targetPort.dir,
+                                            // check for attempt to establish multiple connections to an input port
+                                            multipleInputs = port.dir === 'input' && port.links.length;
 
-                                        if (sameNode || sameDir || port.link /* port already has a link */) {
+                                        // invalid attempt to establish connection
+                                        if (sameNode || sameDir || port.links.length) {
                                             sAttr(this.activeLink.svg, { stroke: this.default.error.link });
                                             setTimeout(() => sAttr(this.activeLink.svg, { stroke: this.default.link.stroke }), 250);
-                                            console.warn(sameNode ?
-                                                'connection can only be made between 2 nodes' : sameDir ?
-                                                    'connection can only be made between input & output ports' :
-                                                    'only one link is allowed per port'
-                                            );
+                                            print(`connection can only be established ${sameNode ? 'between 2 nodes' : sameDir ? 'between input & output ports' : 'to an open port'}`, 'warn');
                                         }
 
+                                        // valid attempt to establish connection
                                         else {
+                                            let np;
+
+                                            // attempt to connect to occupied port
+                                            if (port.links.length) {
+                                                const cf = {
+                                                    name: `op${port.links.length + 1}`,
+                                                    dir: port.dir,
+                                                    shadow: port,
+                                                    hidden: true,
+                                                };
+
+                                                np = port.owner.newPort(cf);
+
+
+
+                                                // console.log(cf);
+                                                console.log(port.owner);
+                                                console.log(port.owner.eval);
+
+                                            }
+
                                             // establish connection
                                             node.links.push(this.activeLink);
-                                            console.log(port);
-                                            this.activeLink.connect(port);
+                                            this.activeLink.connect(np || port);
+
                                         }
                                     }
 
-                                    // else if the clicked port has no link
-                                    else if (!port.link) {
-                                        // create a new link
+                                    // clicking on open port with no active link
+                                    else if (!port.links.length) {
                                         this.activePort = port;
+
+                                        // create a new link
                                         ws.newLink();
-                                        port.link = this.activeLink;
+                                        port.links.push(this.activeLink);
                                         node.links.push(this.activeLink);
                                     }
 
-                                    // otherwise, pluck the link
+                                    // clicking on an occupied port with no active link
                                     else {
-                                        console.log(`plucked a link from ${port.owner.head.textContent}`);
-                                        rifa(port.link, port.owner.links);
-                                        port.link[port.dir === 'input' ? 'end' : 'start'] = null;
-                                        if (port.editable) {
-                                            port.input.disabled = false;
-                                            sCss(port.input, { opacity: 1 });
+                                        // define pluck function
+                                        const pluck = link => {
+                                            // remove start/end reference from the link
+                                            link[port.dir === 'input' ? 'end' : 'start'] = null;
+
+                                            if (port.editable) {
+                                                port.input.disabled = false;
+                                                sCss(port.input, { opacity: 1 });
+                                            }
+
+                                            rifa(link, port.links);
+                                            rifa(link, port.owner.links);
+
+                                            this.activeLink = link;
+
+                                            print(`plucked a link from ${port.owner.head.textContent}.${port.label.textContent}`);
+                                        };
+
+                                        // clicking on an output port with no active link
+                                        if (port.dir === 'output') {
+                                            const linkList = newElement('div', { id: 'linkList' });
+
+                                            ws.root.appendChild(linkList);
+
+                                            sCss(linkList, {
+                                                left: `${relPos(port.socket, ws.root, 'cog').x + cf.r * 3}px`,
+                                                top: `${relPos(port.socket, ws.root).y}px`,
+                                            });
+
+                                            port.links.forEach(pl => {
+                                                // define link reference
+                                                const lr = newElement('div', {
+                                                    className: 'linkRef',
+                                                    textContent: `-> ${camelize(pl.end.owner.head.textContent)}.${pl.end.label.textContent}`,
+                                                });
+
+                                                linkList.appendChild(lr);
+
+                                                lr.onclick = () => {
+                                                    ws.root.removeChild(linkList);
+                                                    pluck(pl);
+                                                    pl.update();
+                                                };
+                                            });
+
                                         }
-                                        this.activeLink = port.link;
-                                        port.link = null;
+
+                                        // clicking on an input port with no active link
+                                        else pluck(port.links[0]);
                                     }
                                 };
+
+                                return port;
                             },
                         };
 
@@ -538,9 +805,9 @@ class Flo {
                         this.activeNode.offset = relCursor(node.root);
                     };
 
-                    ws.graph.nodes.push(node);
+                    ws.network.nodes.push(node);
 
-                    console.log(`created ${node.name} in ${ws.root.id}`);
+                    print(`created ${node.name} in ${ws.root.id}`);
                 },
 
                 // ======================================= //
@@ -565,16 +832,19 @@ class Flo {
                             sAttr(link.svg, { d: `M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}` });
                         },
                         connect: port => {
-                            // port.link is used to prevent multiple connections to the same port
-                            port.link = link;
+                            port.links.push(link);
+
                             if (port.editable) {
                                 port.input.disabled = true;
                                 sCss(port.input, { opacity: 0 });
                             }
+
                             link[link.start ? 'end' : 'start'] = port;
                             link.update();
+
                             this.activeLink = null;
-                            console.log(`-> contection established: ${link.start.name.textContent} -> ${link.end.name.textContent}`);
+
+                            print(`-> contection established: ${camelize(link.start.owner.head.textContent)}.${link.start.label.textContent} -> ${camelize(link.end.owner.head.textContent)}.${link.end.label.textContent}`);
                         },
                     };
 
@@ -583,7 +853,7 @@ class Flo {
                     ws.links.appendChild(link.svg);
                     this.activeLink = link;
 
-                    console.log(`created a link on ${this.activePort.owner.head.textContent}`);
+                    print(`created a link on ${this.activePort.owner.head.textContent}`);
                 },
             };
 
@@ -609,10 +879,10 @@ class Flo {
 
         ws.root.onmouseenter = () => {
             this.activeWorkspace = ws;
-            console.log(`${ws.root.id} became the active workspace`);
+            print(`${ws.root.id} became the active workspace`);
         };
         ws.root.onmouseleave = () => {
-            console.log(`${ws.root.id} is no longer the active workspace`);
+            print(`${ws.root.id} is no longer the active workspace`);
             this.activeWorkspace = this.activeNode = null;
         };
 
@@ -621,11 +891,15 @@ class Flo {
 
             if (this.activeLink) {
                 const port = (this.activeLink.start || this.activeLink.end);
-                console.log(`-> discarded link from ${port.owner.head.textContent}`);
-                port.link = null;
+
+                rifa(this.activeLink, port.links);
                 rifa(this.activeLink, port.owner.links);
+
                 ws.links.removeChild(this.activeLink.svg);
+
                 this.activeLink = null;
+
+                print(`-> discarded link from ${port.owner.head.textContent}`);
             }
             else if (!this.toolbox.visible && event.target === ws.root) this.toolbox.show();
         };
@@ -654,6 +928,10 @@ class Flo {
 
 class Utility {
     constructor() {
+        this.config = {
+            showDebug: false,
+        };
+
         // unique id
         this.uid = prefix => {
             // non-zero random scalar
@@ -803,6 +1081,22 @@ class Utility {
                     height: `${Math.ceil(this.gCss(el).height)}px`,
                 });
             });
+        };
+
+        this.print = (msg, opt) => {
+            if (!this.config.showDebug) return;
+            if (!opt) { opt = 'log'; }
+
+            const
+                time = new Date(),
+                tStamp = `[${this.pad(time.getHours())}:${this.pad(time.getMinutes())}:${this.pad(time.getSeconds())}]`;
+
+            if (Array.isArray(msg)) console[opt](tStamp, ...msg);
+            else console[opt](tStamp, msg);
+        };
+
+        this.pad = n => {
+            return n.toString().length == 2 ? n : '0' + n.toString();
         };
     }
 }
