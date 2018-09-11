@@ -76,6 +76,7 @@ html, body {
 
 /* node styles */
 .node {
+    white-space: nowrap;
     padding: 5px 10px;
     margin: auto;
     border-color: #1D2533;
@@ -306,9 +307,6 @@ code:hover {
     border-color: #358ccb;
     box-shadow: 1px 0 2px grey;
     overflow: hidden;
-}
-
-.giCard > .template pre {
 }
 
 .giCard > .template pre code {
