@@ -27,7 +27,7 @@ html, body {
 }
 
 /* grids */
-#gcMain {
+#Root {
     display: grid;
     height: 100%;
     grid-template-columns: 1fr;
@@ -38,7 +38,7 @@ html, body {
     overflow: hidden;
 }
 
-#gcFlowchart {
+#Chart {
     display: grid;
     align-self: end;
     align-items: center;
@@ -46,14 +46,14 @@ html, body {
     padding: 50px 50px 0 50px;
 }
 
-.gcDeck {
+.Deck {
     display: none;
     justify-items: center;
     height: 100%;
     padding: 0 50px;
 }
 
-#gcFlowchart, .gcDeck {
+#Chart, .Deck {
     position: relative;
     grid-gap: 20px;
     grid-auto-flow: column;
@@ -61,7 +61,7 @@ html, body {
 }
 
 /*  arrow for inner nodes */
-.arrow {
+.Arrow {
     width: 0;
     height: 0;
 }
@@ -75,7 +75,7 @@ html, body {
 }
 
 /* node styles */
-.node {
+.Node {
     white-space: nowrap;
     padding: 5px 10px;
     margin: auto;
@@ -83,18 +83,18 @@ html, body {
     border-radius: 5px;
 }
 
-.shell {
+.Shell {
     border: solid 1px #C8CACC;
     border-radius: 10px;
     padding: 15px;
     cursor: default;
 }
 
-.inner {
+.Inner {
     margin-top: 10px;
 }
 
-.active {
+.Active {
     cursor: pointer;
     border-left: solid 5px #1D2533;
     border-right: solid 5px #1D2533;
@@ -103,12 +103,12 @@ html, body {
     transition: 0.2s;
 }
 
-.active:hover {
+.Active:hover {
     color: white;
 }
 
 /* card styles */
-.giCard {
+.Card {
     position: relative;
     width: 350px;
     padding: 15px 6px 10px 15px;
@@ -120,11 +120,11 @@ html, body {
     overflow-y: scroll;
 }
 
-.giCard:nth-child(even) {
+.Card:nth-child(even) {
     background: #424E61;
 }
 
-.shade {
+.Shade {
     position: absolute;
     left: 0;
     top: 0;
@@ -150,7 +150,7 @@ html, body {
     )
 }
 
-.giCard:nth-child(even) > .shade {
+.Card:nth-child(even) > .Shade {
     background-image: linear-gradient(
         hsl(217, 19%, 32%) 50%,
         hsla(217, 19%, 32%, 0.978) 54.75%,
@@ -179,11 +179,11 @@ html, body {
     background-clip: content-box;
 }
 
-.giCard::-webkit-scrollbar {
+.Card::-webkit-scrollbar {
     width: 9px;
 }
 
-.giCard::-webkit-scrollbar-thumb {
+.Card::-webkit-scrollbar-thumb {
     border-width: 10px 5px 10px 0;
 }
 
@@ -258,7 +258,7 @@ img {
     box-shadow: 0 0 5px #1D2533;
 }
 
-samp, .giCard > code {
+samp, .Card > code {
     font-family: 'Share Tech Mono';
     font-size: 13px;
 }
@@ -288,7 +288,7 @@ code:hover {
 }
 
 /* template styles */
-.giCard > .template {
+.Card > .template {
     margin-top: 10px;
     padding: 10px;
     border-radius: 5px;
@@ -299,7 +299,7 @@ code:hover {
     user-select: initial;
 }
 
-.giCard > .template pre {
+.Card > .template pre {
     padding: 5px 0;
     border-radius: 5px;
     border-width: 0 0 0 10px;
@@ -309,14 +309,14 @@ code:hover {
     overflow: hidden;
 }
 
-.giCard > .template pre code {
+.Card > .template pre code {
     font-family: 'Share Tech Mono';
     font-size: 13px;
     color: grey;
     background: initial;
 }
 
-.giCard > .template code {
+.Card > .template code {
     display: initial;
     border: none;
     margin: inherit;
@@ -326,20 +326,20 @@ code:hover {
     overflow: initial;
 }
 
-.giCard > .template img {
+.Card > .template img {
     margin: 2px 0;
     box-shadow: initial;
     border-radius: initial;
 }
 
-.giCard > .template .highlight {
+.Card > .template .highlight {
     margin-bottom: 0;
     padding: 4px 6px;
     border: 1px solid #2c3e50;
     background-color: #d7e6e0;
 }
 
-.giCard > .template .notes {
+.Card > .template .notes {
     margin-bottom: 0;
     padding: 4px 6px;
     border: 1px solid #cccccc;
@@ -347,7 +347,7 @@ code:hover {
     background-color: whitesmoke;
 }
 
-.giCard > .template > * {
+.Card > .template > * {
     pointer-events: none;
 }
 
