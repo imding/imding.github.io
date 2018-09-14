@@ -1,55 +1,80 @@
-class Pipeflow {
+class Pipeline {
     constructor(root) {
+        this.default = {
+            card: {},
+        };
+
         this.root = root;
         this.chart = {
             root: newElement('div', { id: 'Chart' }),
             nodes: [],
-            decks: [],
             cards: [],
+
         };
-        this.decks = [],
 
         this.createLayout();
 
-        this.add(this.newNode('First Node'));
-        this.add(this.newNode('First Node'));
-        this.add(this.newNode('First Node'));
-        this.add(this.newNode('First Node'));
-        this.add(this.newNode('First Node'));
-        this.add(this.newNode('First Node'));
-        this.add(this.newNode('First Node'));
-        this.add(this.newNode('First Node'));
+        const NODE_Instruction = this.newNode('Instruction');
+        NODE_Instruction.addCard({
+            title: 'Formatting',
+            sections: [{
+                subtitle: 'Using Template',
+                content: [{
+                    type: 'p',
+                    bullet: true,
+                    html: 'Click to select & copy everything under <em>Template</em>, paste into the instruction panel'
+                }],
+            }],
+        });
     }
 
     createLayout() {
         this.root.appendChild(this.chart.root);
-
-
-    }
-
-    add(nodes) {
-        if (!nodes) return;
-        if (!Array.isArray(nodes)) nodes = [nodes];
-
-        nodes.forEach(node => this.chart.root.appendChild(node));
     }
 
     newNode(name) {
         const node = {
             self: newElement('div', { className: 'Node Active', textContent: name }),
-            deck: 
+            deck: newElement('div', { id: `${camelize(name)}`, className: 'Deck' }),
+            cards: [],
+            addCard: cf => {
+                const
+                    card = newElement('div', { className: 'Card' }),
+                    title = newElement('h4', { textContent: cf.title || 'Card Title' });
+
+                card.appendChild(title);
+                node.deck.appendChild(card);
+
+                cf.sections.forEach(section => {
+                    if (section.subtitle) card.appendChild(newElement('h5', { textContent: section.subtitle }));
+                    
+                    section.content.forEach(cf => {
+                        const item = newElement(cf.type);
+
+                        if (cf.html) item.innerHTML = `${cf.bullet ? '<i></i>' : ''} ${cf.html}`;
+
+                        card.appendChild(item);
+                    });
+                });
+
+                node.cards.push(card);
+            },
         };
+
+        this.chart.root.appendChild(node.self);
+        this.root.appendChild(node.deck);
+
+        this.chart.nodes.push(node.self);
 
         node.onclick = () => {
             if (this.activeNode === node.textContent) return;
-            this.showDeck(this.activeNode = node.textContent);
+            
+            sCss(node.deck, { display: 'inherit' });
             // snap adjust everything after new deck is displayed
             sCss(this.chart, { transition: 'none' });
             this.dynAdjust(event.clientX);
             setTimeout(() => sCss(this.chart, { transition: 'left 0.2s ease-out' }, 50));
         };
-
-        
 
         return node;
     }
@@ -64,59 +89,62 @@ class Pipeflow {
         return shell;
     }
 
-    newDeck(name) {
-        const
-            deck = newElement('div', { id: camelize(name), className: 'Deck'});
-
-        this.chart.root.appendChild(deck);        
-    }
-
     showDeck(name) {
-        giNode.forEach((node, i) => {
-            if (!node.className.includes('shell')) {
-                giNode[i].style.borderLeft = (node.textContent == name) ? 'solid 5px #B8D3FC' : 'solid 5px #1D2533';
-                giNode[i].style.borderRight = (node.textContent == name) ? 'solid 5px #B8D3FC' : 'solid 5px #1D2533';
-            }
-        });
-        Deck.forEach(gc => {
-            if (gc.id == camelize(name)) {
-                gc.style.display = 'grid';
-                this.activeDeck = gc;
-            } else {
-                gc.style.display = 'none';
-            }
-        });
+        // console.log(this.activeNode);
+        // this.chart.nodes.forEach((node, i) => {
+        //     if (!node.className.includes('Shell')) {
+        //         this.chart.decks[i].style.borderLeft = (node.textContent == name) ? 'solid 5px #B8D3FC' : 'solid 5px #1D2533';
+        //         this.chart.decks[i].style.borderRight = (node.textContent == name) ? 'solid 5px #B8D3FC' : 'solid 5px #1D2533';
+        //     }
+        // });
+
+        // Deck.forEach(gc => {
+        //     if (gc.id == camelize(name)) {
+        //         gc.style.display = 'grid';
+        //         this.activeDeck = gc;
+        //     } else {
+        //         gc.style.display = 'none';
+        //     }
+        // });
     }
 
     dynAdjust(refPoint, focus) {
-        let c = [], scroll = [];
         const
-            chartCss = gCss(this.chart),
+            c = [],
+            scroll = [],
+            vw = window.innerWidth,
+            vh = window.innerHeight,
+            chartCSS = gCss(this.chart),
             deckCSS = gCss(this.activeDeck);
 
         /* conditions */
-        c.push(chartCSS.width >= deckCSS.width);   // c[0] = flowchart wider than or same width as deck
-        c.push(chartCSS.width > winWidth);                  // c[1] = flowchart clipped
-        c.push(deckCSS.width > winWidth);                  // c[2] = deck clipped
+        c.push(chartCSS.width >= deckCSS.width);        // c[0] = flowchart wider than or same width as deck
+        c.push(chartCSS.width > vw);              // c[1] = flowchart clipped
+        c.push(deckCSS.width > vw);               // c[2] = deck clipped
+
         /* normalized scroll range */
-        refPoint = (clamp(refPoint, winWidth * 0.2, winWidth * 0.8) - winWidth * 0.2) / (winWidth * 0.6);
+        refPoint = (clamp(refPoint, vw * 0.2, vw * 0.8) - vw * 0.2) / (vw * 0.6);
+
         /* default scroll values */
-        scroll[0] = refPoint * (winWidth - chartCSS.width);
-        scroll[1] = refPoint * (winWidth - deckCSS.width);
+        scroll[0] = refPoint * (vw - chartCSS.width);
+        scroll[1] = refPoint * (vw - deckCSS.width);
+
         /* calculate flow-chart transform */
         if (c[1]) c[0] ? null : scroll[0] -= ((deckCSS.width - chartCSS.width) / 2);
-        else if (!c[0] && !c[1] && c[2]) scroll[0] = (deckCSS.width - winWidth) / -2;
+        else if (!c[0] && !c[1] && c[2]) scroll[0] = (deckCSS.width - vw) / -2;
         else scroll[0] = 0;
+
         /* calculate deck transform */
         if (c[2]) c[0] ? scroll[1] -= ((chartCSS.width - deckCSS.width) / 2) : null;
-        else if (c[0] && c[1] && !c[2]) scroll[1] = (chartCSS.width - winWidth) / -2;
+        else if (c[0] && c[1] && !c[2]) scroll[1] = (chartCSS.width - vw) / -2;
         else scroll[1] = 0;
+
         /* animate stuff */
         window.requestAnimationFrame(() => {
             /* flow-chart & deck */
             (focus == this.chart || !focus) ? sCss(this.chart, { left: `${scroll[0]}px` }) : null;
             (focus == this.activeDeck || !focus) ? sCss(this.activeDeck, { left: `${scroll[1]}px` }) : null;
-            if (!focus) sCss(this.activeDeck, { height: winHeight - deckCSS.top + 'px' });
+            if (!focus) sCss(this.activeDeck, { height: vh - deckCSS.top + 'px' });
         });
     }
 }
@@ -268,7 +296,7 @@ class Utility {
 
         // convert string to camel case
         this.camelize = str => {
-            if (!/\s/.test(str.trim())) return str;
+            if (!/\s/.test(str.trim())) return str.toLowerCase();
             return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
                 return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
             }).replace(/\s+/g, '');

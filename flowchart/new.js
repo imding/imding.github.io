@@ -10,10 +10,7 @@ function init() {
     Object.assign(window, new Utility());
 
     // display app container
-    sCss(document.body, {
-        visibility: 'visible'
-    });
+    sCss(document.body, { visibility: 'visible' });
 
-    const pf = new Pipeflow(Root);
+    const pl = new Pipeline(Root);
 }
-

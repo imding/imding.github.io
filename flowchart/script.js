@@ -26,7 +26,7 @@ function toggleExpand(subHeader) {
         content.push(content[content.length - 1].nextSibling);
     }
     /* get rid of empty tags and shade element */
-    content = content.filter((el) => { return (el.tagName && !el.className.includes('shade')); });
+    content = content.filter((el) => { return (el.tagName && !el.className.includes('Shade')); });
     /* toggle display property */
     content.forEach((el) => {
         if (el.style.display == 'none') {
@@ -98,7 +98,7 @@ function dynAdjust(refPoint, focus) {
 
 function showDeck(name) {
     giNode.forEach((node, i) => {
-        if (!node.className.includes('shell')) {
+        if (!node.className.includes('Shell')) {
             giNode[i].style.borderLeft = (node.textContent == name) ? 'solid 5px #B8D3FC' : 'solid 5px #1D2533';
             giNode[i].style.borderRight = (node.textContent == name) ? 'solid 5px #B8D3FC' : 'solid 5px #1D2533';
         }
@@ -116,7 +116,7 @@ function showDeck(name) {
 function addShades(card) {
     let shader = document.createElement('div');
 
-    shader.classList.add('shade');
+    shader.classList.add('Shade');
     card.appendChild(shader);
     card.onscroll = () => {
         window.requestAnimationFrame(() => {
@@ -127,11 +127,11 @@ function addShades(card) {
 
 window.onload = () => {
     // console.clear();
-    gcFlowchart = document.getElementById('gcFlowchart');
+    gcFlowchart = document.getElementById('Chart');
     searchBar = document.getElementById('searchBar');
-    giNode = Array.from(document.getElementsByClassName('node'));       // not all nodes are grid items
-    gcDeck = Array.from(document.getElementsByClassName('gcDeck'));
-    giCard = Array.from(document.getElementsByClassName('giCard'));
+    giNode = Array.from(document.getElementsByClassName('Node'));       // not all nodes are grid items
+    gcDeck = Array.from(document.getElementsByClassName('Deck'));
+    giCard = Array.from(document.getElementsByClassName('Card'));
     arrSubHeader = Array.from(document.getElementsByTagName('H5'));
     /* assign font-awesome class names */
     Array.from(document.getElementsByTagName('i')).forEach((iTag) => { iTag.classList.length === 0 ? iTag.classList.add('fa', 'fa-info-circle') : null; });
@@ -146,7 +146,7 @@ window.onload = () => {
     winWidth = window.innerWidth;
     winHeight = window.innerHeight;
     /* filter clickable nodes */
-    giNode = giNode.filter((node) => { return node.className.includes('active'); });
+    giNode = giNode.filter((node) => { return node.className.includes('Active'); });
     /* nodes set up */
     giNode.forEach((node, i, arr) => {
         node.onclick = (evt) => {               // add click event handler
@@ -159,20 +159,20 @@ window.onload = () => {
             }
         };
         /* add arrows after active nodes */
-        if (!node.className.includes('inner') && i < giNode.length - 1) {
+        if (!node.className.includes('Inner') && i < giNode.length - 1) {
             let arrow = document.createElement('i');
             arrow.style.color = 'palegreen';
             arrow.classList.add('fa', 'fa-caret-right', 'fa-lg');
             node.parentNode.insertBefore(arrow, node.nextSibling);
             /* add arrow before shell nodes */
-            if (i > 0 && node.previousSibling.previousSibling.className.includes('shell')) {
+            if (i > 0 && node.previousSibling.previousSibling.className.includes('Shell')) {
                 arrow = document.createElement('i');
                 arrow.style.color = 'palegreen';
                 arrow.classList.add('fa', 'fa-caret-right', 'fa-lg');
                 node.parentNode.insertBefore(arrow, node);
             }
             /* add arrows after inner active nodes */
-        } else if (node.className.includes('inner') && arr[i + 1].className.includes('inner')) {
+        } else if (node.className.includes('inner') && arr[i + 1].className.includes('Inner')) {
             let arrow = document.createElement('div');
             arrow.classList.add('arrow', 'toBottom');
             node.parentNode.insertBefore(arrow, node.nextSibling);

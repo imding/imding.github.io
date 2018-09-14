@@ -4,26 +4,26 @@
 	<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 <body>
-    <div id="gcMain">
-        <div id="gcFlowchart">
+    <div id="Root">
+        <div id="Chart">
           	<!-- add new nodes into the flowchart here -->
-            <div class="node active">Source Code</div>
-            <div class="node active">Learning Objectives</div>
-            <div class="node active">Priority Check</div>
-            <div class="node active">Technical Flow</div>
-            <div class="node active">Approval</div>
-            <div class="node shell">
+            <div class="Node Active">Source Code</div>
+            <div class="Node Active">Learning Objectives</div>
+            <div class="Node Active">Priority Check</div>
+            <div class="Node Active">Technical Flow</div>
+            <div class="Node Active">Approval</div>
+            <div class="Node Shell">
                 <b>Content Creation</b>
-                <div class="node inner active">Instruction</div>
-                <div class="node inner active">Static Code</div>
-                <div class="node inner active">Flow Assessment</div>
-                <div class="node inner active">Objective Tests</div>
-                <div class="node inner active">Transition Logic</div>
-              	<div class="node inner active">Author Review</div>
+                <div class="Node Inner Active">Instruction</div>
+                <div class="Node Inner Active">Static Code</div>
+                <div class="Node Inner Active">Flow Assessment</div>
+                <div class="Node Inner Active">Objective Tests</div>
+                <div class="Node Inner Active">Transition Logic</div>
+              	<div class="Node Inner Active">Author Review</div>
             </div>
-            <div class="node active">Full Review</div>
-            <div class="node active">Publish</div>
-            <div class="node active">Teaching Test</div>
+            <div class="Node Active">Full Review</div>
+            <div class="Node Active">Publish</div>
+            <div class="Node Active">Teaching Test</div>
           	<!-- end of flowchart nodes -->
         </div>
         
@@ -33,8 +33,8 @@
         	2.  a deck is a <div> with id name matching the * camelized text content * of a node's text content
 			3.  there should be equal number of active nodes and decks
 			4.  every active node should have a corresponding deck
-      		5.  each deck must have the class name gcDeck
-			6.  cards inside a deck must have the calss name giCard
+      		5.  each deck must have the class name Deck
+			6.  cards inside a deck must have the calss name Card
 			7.  content of each card can be styled using the following guide:
 				    header 			-	<h4>header text</h4>
 				    sub-header 		-	<h5>sub-header text</h5>
@@ -52,8 +52,8 @@
     deck: source code
 -->
 
-        <div id="sourceCode" class="gcDeck">
-            <div class="giCard">
+        <div id="sourceCode" class="Deck">
+            <div class="Card">
                 <h4>Source Code</h4>
                 <p><i></i> Build the source code</p>
                 <p><i></i> Fill in the <a href="https://docs.google.com/forms/d/e/1FAIpQLSfmfR-wJRnLtsDRYHVm5Fn-b-N7aj3-Ky3Pn9GUXCROnOmqfw/viewform?c=0&w=1" target="_blank">Lesson Plan</a></p>
@@ -67,8 +67,8 @@
     deck: learning objectives
 -->
         
-        <div id="learningObjectives" class="gcDeck">
-            <div class="giCard">
+        <div id="learningObjectives" class="Deck">
+            <div class="Card">
                 <h4>Learning Objectives</h4>
                 <p><i></i> Work with source code provider</p>
                 <p><i></i> Focus on 1 concept</p>
@@ -80,8 +80,8 @@
     deck: priority check
 -->
         
-        <div id="priorityCheck" class="gcDeck">
-            <div class="giCard">
+        <div id="priorityCheck" class="Deck">
+            <div class="Card">
                 <h4>Prioritization</h4>
                 <p><i></i> Direct requests from the sales team</p>
                 <p><i></i> Content that complements what's currently available</p>
@@ -93,8 +93,8 @@
     deck: technical flow
 -->
 
-        <div id="technicalFlow" class="gcDeck">
-            <div class="giCard">
+        <div id="technicalFlow" class="Deck">
+            <div class="Card">
                 <h4>Create Sprint</h4>
                 <img src="img/new_sprint.png" alt="new_sprint.png">
                 <h5>New Sprint</h5>
@@ -102,7 +102,7 @@
                 <h5>Import Sprint</h5>
                 <p><i></i> Create a sprint from imported data</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Sprint Info</h4>
                 <img src="img/sprint_info.png" alt="sprint_info.png">
                 <h5>Sprint Title</h5>
@@ -113,7 +113,7 @@
                 <h5>Core</h5>
                 <p><i></i> Select the appropriate core</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Description & Settings</h4>
                 <img src="img/sprint_description.png" alt="sprint_description.png">
                 <p><i></i> Description must be short enough to fit inside the pop-up window in Learner Mode</p>
@@ -122,7 +122,7 @@
                 <p><i></i> Select the appropriate level according to the <a target="_blank" href="https://docs.google.com/document/d/1DuWR6Ew7b8mWql6zMEX6R7h0P_jqy-GapPbpR1YNZcs/edit?pli=1#heading=h.jzdojqt5ae9h">Core Curriculum</a></p>
                 <p><i></i> Don't forget to enable JavasScript console if the sprint requires it</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Srpint Structure</h4>
                 <img src="img/steps.png" alt="steps.png">
                 <p><i></i> The first step should always be named <em>Introduction</em></p>
@@ -139,14 +139,14 @@
     deck: approval
 -->
 
-        <div id="approval" class="gcDeck">
-            <div class="giCard">
+        <div id="approval" class="Deck">
+            <div class="Card">
                 <h4>Curriculum</h4>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>...</h4>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
@@ -160,8 +160,8 @@
     # = &#35;
 -->
 
-        <div id="instruction" class="gcDeck">
-            <div class="giCard">
+        <div id="instruction" class="Deck">
+            <div class="Card">
                 <h4>Instruction Formatting</h4>
                 <h5>Using Template</h5>
                 <p><i></i> Click to select & copy everything under <em>Template</em>, paste into the instruction panel</p>
@@ -195,7 +195,7 @@
                 <h5>...</h5>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Step: Introduction</h4>
                 <h5>Scenario</h5>
                 <p><i></i> Describe a common scenario where the learning outcome may be useful</p>
@@ -214,7 +214,7 @@
                     <p class='highlight'>When you're ready, click <b>Next Step</b> to get started</p>
                 </div>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Step: Dependency Concepts</h4>
                 <h5>Overview</h5>
                 <p><i></i> Skip if there is no dependency</p>
@@ -252,7 +252,7 @@
                     <p class='highlight'><b>Check Objectives</b> to continue</p>
                 </div>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Step: Syntax & Variation</h4>
                 <h5>Syntax & Breakdowns</h5>
                 <p><i></i> Describe the purpose of the syntax</p>
@@ -279,7 +279,7 @@
                     <p class='highlight'><b>Check Objectives</b> to continue</p>
                 </div>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Step: Exercise</h4>
                 <h5>The Problem</h5>
                 <p><i></i> Present a problem that would be ideally sovlved by the syntax from the preceding step</p>
@@ -299,7 +299,7 @@
                     <p class='highlight'><b>Check Objectives</b> to continue</p>
                 </div>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Step: Summary</h4>
                 <h5>Recap</h5>
                 <p><i></i> Reinterate the objectives completed by the learner</p>
@@ -324,15 +324,15 @@
     # = &#35;
 -->
 
-        <div id="staticCode" class="gcDeck">
-            <div class="giCard">
+        <div id="staticCode" class="Deck">
+            <div class="Card">
                 <h4>Workflow</h4>
                 <p><i></i> Define the state of the code in each step that best relate to the instructions</p>
                 <p><i></i> <em>Don't use modify content</em> at all during this stage, focus on progression and flow</p>
                 <p><i></i> Revise the instruction if necessary</p>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>General Formatting</h4>
                 <p><i></i> The first HTML, CSS and JavasScript file should always be named <em>index.html</em>, <em>style.css</em> and <em>script.js</em> respectively</p>
                 <p><i></i> Separate words in file names with the dash symbol, <em>e.g. about-page.html</em></p>
@@ -341,7 +341,7 @@
                 <p><i></i> Ensure proper indentation, one indentation is <em>4 spaces</em></p>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Editable Blocks</h4>
                 <p><i></i> An editable block creates a fixed space in the code panel where the learner can type, an empty editale should always <em>contain 4 spaces</em></p>
                 <code>&#35;BEGIN_EDITABLE#&#160;&#160;&#160;&#160;&#35;END_EDITABLE#</code>
@@ -349,7 +349,7 @@
                 <code>&#35;BEGIN_EDITABLE# var foo = "bar"; &#35;END_EDITABLE#</code>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Editable Lines</h4>
                 <p><i></i> When <samp>&#35;BEGIN_EDITABLE#</samp> and <samp>&#35;END_EDITABLE#</samp> are on separate lines, <em>editable lines</em> are created for the learner</p>
                 <code>
@@ -363,7 +363,7 @@
                 <p><i></i> <samp>&#35;BEGIN_EDITABLE#</samp> creates an editable line and a <em>locked line before it</em>, <samp>&#35;END_EDITABLE#</samp> creates an editable line and a <em>locked line after it</em>.</p>
                 <!-- <img src="img/editable_lines.png" alt="editable_lines.png"> -->
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>Comments</h4>
                 <p><i></i> Comments on top of editable blocks containing code</p>
                 <p><i></i> Comments next to empty editable blocks</p>
@@ -375,8 +375,8 @@
     deck: flow assessment
 -->
 
-        <div id="flowAssessment" class="gcDeck">
-            <div class="giCard">
+        <div id="flowAssessment" class="Deck">
+            <div class="Card">
                 <h4>Flow Assessment</h4>
                 <p>Work with other instructors to ensure the flow will work in classrooms</p>
                 <p><i></i> There should be 3 or less objectives per step</p>
@@ -392,8 +392,8 @@
     # = &#35;
 -->
 
-        <div id="objectiveTests" class="gcDeck">
-            <div class="giCard">
+        <div id="objectiveTests" class="Deck">
+            <div class="Card">
                 <h4>AST</h4>
                 <h5>The Syntax</h5>
                 <p><i></i> Use the following AST syntax to test <em>HTML</em> & <em>CSS</em> code:</p>
@@ -435,7 +435,7 @@
                 <code>pass.if.html.editable(n).equivalent('&lt;a href="#">&lt;/a>');</code>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>HTML</h4>
                 <h5>Element & Content</h5>
                 <p><i></i> <samp>&lt;div>&lt;/div></samp></p>
@@ -456,7 +456,7 @@
                 <h5>Known Issues</h5>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>CSS</h4>
                 <h5>Rule</h5>
                 <p><i></i> <samp>div { width: 100px; height: 120px; }</samp></p>
@@ -484,7 +484,7 @@
                 <code>pass.if.css.editable(n).equivalent("#idName, .className, tagName {}");</code>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>CSS Global [Upcoming]</h4>
                 <h5>Syntax</h5>
                 <p><i></i> Pass the learner if the target CSS file contains a rule with specified selector and declaration</p>
@@ -493,7 +493,7 @@
                 <p><i></i> <samp>selector</samp> and <samp>declaration</samp> must be string values</p>
                 <p><i></i> <samp>declaration</samp> must be valid CSS code</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>JavasScript</h4>
                 <h5>RegExp</h5>
                 <p><i></i> AST syntax for testing JavasScript is not yet implemented, use <a target="_blank" href="http://regexr.com/">Regular Expression</a> to achieve similar results</p>
@@ -505,8 +505,8 @@
     deck: transition logic
 -->
 
-        <div id="transitionLogic" class="gcDeck">
-            <div class="giCard">
+        <div id="transitionLogic" class="Deck">
+            <div class="Card">
                 <h4>...</h4>
             </div>
         </div>
@@ -515,8 +515,8 @@
     deck: author review
 -->
 
-      	<div id="authorReview" class="gcDeck">
-            <div class="giCard">
+      	<div id="authorReview" class="Deck">
+            <div class="Card">
                 <h4>Author Review</h4>
               	<p><i></i> Run through it in Learner Mode at least once</p>
               	<p><i></i> Ensure the integrity of the sprint is maintained throughout the steps and one can finish it without any technical issue</p>
@@ -528,14 +528,14 @@
     deck: full review
 -->
 
-        <div id="fullReview" class="gcDeck">
-            <div class="giCard">
+        <div id="fullReview" class="Deck">
+            <div class="Card">
                 <h4>Instructor Team</h4>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>...</h4>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
@@ -547,14 +547,14 @@
     deck: publish
 -->
 
-        <div id="publish" class="gcDeck">
-            <div class="giCard">
+        <div id="publish" class="Deck">
+            <div class="Card">
                 <h4>Publish</h4>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>...</h4>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
@@ -566,14 +566,14 @@
     deck: teaching test
 -->
 
-        <div id="teachingTest" class="gcDeck">
-            <div class="giCard">
+        <div id="teachingTest" class="Deck">
+            <div class="Card">
                 <h4>Code Club</h4>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
             </div>
-            <div class="giCard">
+            <div class="Card">
                 <h4>...</h4>
                 <p><i></i> ...</p>
                 <p><i></i> ...</p>
