@@ -90,9 +90,9 @@ function dynAdjust(refPoint, focus) {
         /* flow-chart & deck */
         (focus == gcFlowchart || !focus) ? gcFlowchart.style.left = `${scroll[0]}px` : null;
         (focus == activeDeck || !focus) ? activeDeck.style.left = `${scroll[1]}px` : null;
-        if (!focus) {
-            activeDeck.style.height = winHeight - activeDeck.offsetTop + 'px';
-        }
+        // if (!focus) {
+        //     activeDeck.style.height = winHeight - activeDeck.offsetTop + 'px';
+        // }
     });
 }
 

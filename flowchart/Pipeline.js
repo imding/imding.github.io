@@ -9,28 +9,62 @@ class Pipeline {
             self: newElement('div', { id: 'Chart' }),
             nodes: {},
             cards: [],
-            scrollRatio: 0,
-            scrollTo: ref => this.autoScroll(ref, this.chart),
+            scroll: 0,
         };
 
         this.self.appendChild(this.chart.self);
 
-        this.chart.self.onmousemove = () => this.chart.scrollTo(event.clientX);
-
-        window.onresize = () => {
-            this.chart.scrollTo(this.chart.scrollRatio * window.innerWidth);
-            this.activeNode.deck.scrollTo(this.activeNode.deck.scrollRatio * window.innerWidth);
-        };
+        window.onmousemove = () => this.autoScroll(event.clientX);
+        window.onresize = () => this.autoScroll(window.innerWidth / 2);
     }
 
-    autoScroll(ref, el, elCSS = gCss(el.self)) {
+    autoScroll(ref) {
         const
-            vw = window.innerWidth,
-            clipSize = elCSS.width + 100 - vw;
+            c = [],
+            // focus = 
+            chartCSS = gCss(this.chart.self),
+            deckCSS = gCss(this.activeNode.deck.self),
+            vw = window.innerWidth;
 
-        el.scrollRatio = (clamp(ref, vw * 0.2, vw * 0.8) - vw * 0.2) / (vw * 0.6);
+        /* conditions */
+        c.push(chartCSS.width >= deckCSS.width);  // c[0] = flowchart wider than or same width as deck
+        c.push(chartCSS.width > vw);                 // c[1] = flowchart clipped
+        c.push(deckCSS.width > vw);                  // c[2] = deck clipped
 
-        sCss(el.self, { left: `-${el.scrollRatio * Math.max(0, clipSize)}px` });
+        /* normalized scroll range */
+        ref = (clamp(ref, vw * 0.2, vw * 0.8) - vw * 0.2) / (vw * 0.6);
+
+        /* default scroll values */
+        this.chart.scroll = ref * (vw - chartCSS.width);
+        this.activeNode.deck.scroll = ref * (vw - deckCSS.width);
+
+        /* calculate flow-chart transform */
+        if (c[1]) {
+            c[0] ? null : this.chart.scroll -= ((deckCSS.width - chartCSS.width) / 2);
+        } else if (!c[0] && !c[1] && c[2]) {
+            this.chart.scroll = (deckCSS.width - vw) / -2;
+        } else {
+            this.chart.scroll = 0;
+        }
+
+        /* calculate deck transform */
+        if (c[2]) {
+            c[0] ? this.activeNode.deck.scroll -= ((chartCSS.width - deckCSS.width) / 2) : null;
+        } else if (c[0] && c[1] && !c[2]) {
+            this.activeNode.deck.scroll = (chartCSS.width - vw) / -2;
+        } else {
+            this.activeNode.deck.scroll = 0;
+        }
+
+        /* animate stuff */
+        window.requestAnimationFrame(() => {
+            /* flow-chart & deck */
+            (focus == this.chart.self || !focus) ? sCss(this.chart.self, { left: `${this.chart.scroll}px` }) : null;
+            (focus == this.activeNode.deck.self || !focus) ? sCss(this.activeNode.deck.self, { self: `${this.activeNode.deck.scroll}px` }) : null;
+            // if (!focus) {
+            //     activeDeck.style.height = winHeight - activeDeck.offsetTop + 'px';
+            // }
+        });
     }
 
     newNode(name, parent, cards) {
@@ -40,8 +74,7 @@ class Pipeline {
             self: newElement('div', { className: `Node ${parent ? 'Inner' : ''} Active`, textContent: name.replace(/^[^\w]+|[^\w]+$/, '') }),
             deck: {
                 self: newElement('div', { id: `${camelize(name)}`, className: 'Deck' }),
-                scrollRatio: 0,
-                scrollTo: ref => this.autoScroll(ref, node.deck),
+                scroll: 0,
             },
             cards: [],
             addCard: cf => {
@@ -77,11 +110,6 @@ class Pipeline {
         if (this.chart.nodes.hasOwnProperty(node.deck.self.id)) throw new Error(`the ${name} node already exists`);
 
         this.chart.nodes[node.deck.self.id] = node;
-        
-        node.deck.self.onmousemove = () => {
-            console.log(0);
-            this.activeNode.deck.scrollTo(event.clientX);
-        };
 
         node.self.onclick = () => {
             if (this.activeNode === node) return;
@@ -97,9 +125,9 @@ class Pipeline {
             this.activeNode = node;
 
             // snap adjust everything after new deck is displayed
-            sCss(this.chart.self, { transition: 'none' });
+            // sCss(this.chart.self, { transition: 'none' });
             // this.autoScroll(event.clientX);
-            setTimeout(() => sCss(this.chart.self, { transition: 'left 0.2s ease-out' }, 50));
+            // setTimeout(() => sCss(this.chart.self, { transition: 'left 0.2s ease-out' }, 50));
         };
 
         if (!this.activeNode) {
