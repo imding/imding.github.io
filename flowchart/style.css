@@ -21,6 +21,9 @@
 html, body {
     height: 100%;
     margin: 0;
+}
+
+body {
     color: #C8CACC;
     font-family: 'Abel', sans-serif;
     user-select: none;
@@ -39,17 +42,16 @@ html, body {
 }
 
 #Chart {
+    left: 0;
     display: grid;
-    align-self: end;
     align-items: center;
     text-align: center;
     padding: 50px 50px 0 50px;
 }
 
 .Deck {
-    /* display: none; */
-    justify-items: center;
-    height: 100%;
+    left: 0;
+    display: none;
     padding: 0 50px;
 }
 
@@ -57,7 +59,6 @@ html, body {
     position: relative;
     grid-gap: 20px;
     grid-auto-flow: column;
-    transition: left 0.2s ease-out;
 }
 
 /*  arrow for inner nodes */
@@ -199,6 +200,10 @@ code::-webkit-scrollbar-thumb {
 /* card content styles */
 .fa-info-circle {
     margin-right: 5px;
+}
+
+.fa-caret-right {
+    color: palegreen;
 }
 
 h4 {

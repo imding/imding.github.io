@@ -4,56 +4,64 @@ class Pipeline {
             card: {},
         };
 
-        this.root = root;
+        this.self = root;
         this.chart = {
-            root: newElement('div', { id: 'Chart' }),
-            nodes: [],
+            self: newElement('div', { id: 'Chart' }),
+            nodes: {},
             cards: [],
-
+            scrollRatio: 0,
+            scrollTo: ref => this.autoScroll(ref, this.chart),
         };
 
-        this.createLayout();
+        this.self.appendChild(this.chart.self);
 
-        const NODE_Instruction = this.newNode('Instruction');
-        NODE_Instruction.addCard({
-            title: 'Formatting',
-            sections: [{
-                subtitle: 'Using Template',
-                content: [{
-                    type: 'p',
-                    bullet: true,
-                    html: 'Click to select & copy everything under <em>Template</em>, paste into the instruction panel'
-                }],
-            }],
-        });
+        this.chart.self.onmousemove = () => this.chart.scrollTo(event.clientX);
+
+        window.onresize = () => {
+            this.chart.scrollTo(this.chart.scrollRatio * window.innerWidth);
+            this.activeNode.deck.scrollTo(this.activeNode.deck.scrollRatio * window.innerWidth);
+        };
     }
 
-    createLayout() {
-        this.root.appendChild(this.chart.root);
+    autoScroll(ref, el, elCSS = gCss(el.self)) {
+        const
+            vw = window.innerWidth,
+            clipSize = elCSS.width + 100 - vw;
+
+        el.scrollRatio = (clamp(ref, vw * 0.2, vw * 0.8) - vw * 0.2) / (vw * 0.6);
+
+        sCss(el.self, { left: `-${el.scrollRatio * Math.max(0, clipSize)}px` });
     }
 
-    newNode(name) {
+    newNode(name, parent, cards) {
+        if (!(name || '').trim().length) throw new Error('the newNode() method expects a name');
+
         const node = {
-            self: newElement('div', { className: 'Node Active', textContent: name }),
-            deck: newElement('div', { id: `${camelize(name)}`, className: 'Deck' }),
+            self: newElement('div', { className: `Node ${parent ? 'Inner' : ''} Active`, textContent: name.replace(/^[^\w]+|[^\w]+$/, '') }),
+            deck: {
+                self: newElement('div', { id: `${camelize(name)}`, className: 'Deck' }),
+                scrollRatio: 0,
+                scrollTo: ref => this.autoScroll(ref, node.deck),
+            },
             cards: [],
             addCard: cf => {
-                const
-                    card = newElement('div', { className: 'Card' }),
-                    title = newElement('h4', { textContent: cf.title || 'Card Title' });
+                const card = {
+                    self: newElement('div', { className: 'Card' }),
+                    title: newElement('h4', { textContent: cf.title || 'Card Title' }),
+                };
 
-                card.appendChild(title);
-                node.deck.appendChild(card);
+                card.self.appendChild(card.title);
+                node.deck.self.appendChild(card.self);
 
                 cf.sections.forEach(section => {
-                    if (section.subtitle) card.appendChild(newElement('h5', { textContent: section.subtitle }));
-                    
+                    if (section.subtitle) card.self.appendChild(newElement('h5', { textContent: section.subtitle }));
+
                     section.content.forEach(cf => {
                         const item = newElement(cf.type);
 
-                        if (cf.html) item.innerHTML = `${cf.bullet ? '<i></i>' : ''} ${cf.html}`;
+                        if (cf.html) item.innerHTML = `${cf.bullet ? '<i class=\'fa fa-info-circle\'></i>' : ''} ${cf.html}`;
 
-                        card.appendChild(item);
+                        card.self.appendChild(item);
                     });
                 });
 
@@ -61,91 +69,68 @@ class Pipeline {
             },
         };
 
-        this.chart.root.appendChild(node.self);
-        this.root.appendChild(node.deck);
+        if (!parent) this.newArrow();
 
-        this.chart.nodes.push(node.self);
+        (parent || this.chart.self).appendChild(node.self);
+        this.self.appendChild(node.deck.self);
 
-        node.onclick = () => {
-            if (this.activeNode === node.textContent) return;
-            
-            sCss(node.deck, { display: 'inherit' });
-            // snap adjust everything after new deck is displayed
-            sCss(this.chart, { transition: 'none' });
-            this.dynAdjust(event.clientX);
-            setTimeout(() => sCss(this.chart, { transition: 'left 0.2s ease-out' }, 50));
+        if (this.chart.nodes.hasOwnProperty(node.deck.self.id)) throw new Error(`the ${name} node already exists`);
+
+        this.chart.nodes[node.deck.self.id] = node;
+        
+        node.deck.self.onmousemove = () => {
+            console.log(0);
+            this.activeNode.deck.scrollTo(event.clientX);
         };
+
+        node.self.onclick = () => {
+            if (this.activeNode === node) return;
+
+            if (this.activeNode) {
+                sCss(this.activeNode.deck.self, { display: 'none' });
+                sCss(this.activeNode.self, { borderColor: '#1D2533' });
+            }
+
+            sCss(node.deck.self, { display: 'grid' });
+            sCss(node.self, { borderColor: '#B8D3FC' });
+
+            this.activeNode = node;
+
+            // snap adjust everything after new deck is displayed
+            sCss(this.chart.self, { transition: 'none' });
+            // this.autoScroll(event.clientX);
+            setTimeout(() => sCss(this.chart.self, { transition: 'left 0.2s ease-out' }, 50));
+        };
+
+        if (!this.activeNode) {
+            node.self.click();
+            this.activeNode = node;
+        }
+
+        (cards || []).forEach(card => node.addCard(card));
 
         return node;
     }
 
     newShell(name) {
-        const
-            shell = newElement('div', { className: 'Node Shell' }),
-            title = newElement('b', { textContent: name });
+        const shell = {
+            self: newElement('div', { className: 'Node Shell' }),
+            title: newElement('b', { textContent: name }),
+            newNode: (name, cards) => this.newNode(name, shell.self, cards),
+        };
 
-        shell.appendChild(title);
+        this.newArrow();
+        this.chart.self.appendChild(shell.self);
+        shell.self.appendChild(shell.title);
 
         return shell;
     }
 
-    showDeck(name) {
-        // console.log(this.activeNode);
-        // this.chart.nodes.forEach((node, i) => {
-        //     if (!node.className.includes('Shell')) {
-        //         this.chart.decks[i].style.borderLeft = (node.textContent == name) ? 'solid 5px #B8D3FC' : 'solid 5px #1D2533';
-        //         this.chart.decks[i].style.borderRight = (node.textContent == name) ? 'solid 5px #B8D3FC' : 'solid 5px #1D2533';
-        //     }
-        // });
-
-        // Deck.forEach(gc => {
-        //     if (gc.id == camelize(name)) {
-        //         gc.style.display = 'grid';
-        //         this.activeDeck = gc;
-        //     } else {
-        //         gc.style.display = 'none';
-        //     }
-        // });
-    }
-
-    dynAdjust(refPoint, focus) {
-        const
-            c = [],
-            scroll = [],
-            vw = window.innerWidth,
-            vh = window.innerHeight,
-            chartCSS = gCss(this.chart),
-            deckCSS = gCss(this.activeDeck);
-
-        /* conditions */
-        c.push(chartCSS.width >= deckCSS.width);        // c[0] = flowchart wider than or same width as deck
-        c.push(chartCSS.width > vw);              // c[1] = flowchart clipped
-        c.push(deckCSS.width > vw);               // c[2] = deck clipped
-
-        /* normalized scroll range */
-        refPoint = (clamp(refPoint, vw * 0.2, vw * 0.8) - vw * 0.2) / (vw * 0.6);
-
-        /* default scroll values */
-        scroll[0] = refPoint * (vw - chartCSS.width);
-        scroll[1] = refPoint * (vw - deckCSS.width);
-
-        /* calculate flow-chart transform */
-        if (c[1]) c[0] ? null : scroll[0] -= ((deckCSS.width - chartCSS.width) / 2);
-        else if (!c[0] && !c[1] && c[2]) scroll[0] = (deckCSS.width - vw) / -2;
-        else scroll[0] = 0;
-
-        /* calculate deck transform */
-        if (c[2]) c[0] ? scroll[1] -= ((chartCSS.width - deckCSS.width) / 2) : null;
-        else if (c[0] && c[1] && !c[2]) scroll[1] = (chartCSS.width - vw) / -2;
-        else scroll[1] = 0;
-
-        /* animate stuff */
-        window.requestAnimationFrame(() => {
-            /* flow-chart & deck */
-            (focus == this.chart || !focus) ? sCss(this.chart, { left: `${scroll[0]}px` }) : null;
-            (focus == this.activeDeck || !focus) ? sCss(this.activeDeck, { left: `${scroll[1]}px` }) : null;
-            if (!focus) sCss(this.activeDeck, { height: vh - deckCSS.top + 'px' });
-        });
+    newArrow(cf) {
+        if (Object.keys(this.chart.nodes).length) {
+            const arrow = newElement('i', { className: 'fa fa-caret-right fa-lg' });
+            this.chart.self.appendChild(arrow);
+        }
     }
 }
 
@@ -296,7 +281,8 @@ class Utility {
 
         // convert string to camel case
         this.camelize = str => {
-            if (!/\s/.test(str.trim())) return str.toLowerCase();
+            str = str.replace(/^[^\w]+|[^\w]+$/, '');
+            if (!/\s/.test(str)) return str.toLowerCase();
             return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
                 return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
             }).replace(/\s+/g, '');

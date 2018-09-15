@@ -161,20 +161,18 @@ window.onload = () => {
         /* add arrows after active nodes */
         if (!node.className.includes('Inner') && i < giNode.length - 1) {
             let arrow = document.createElement('i');
-            arrow.style.color = 'palegreen';
             arrow.classList.add('fa', 'fa-caret-right', 'fa-lg');
             node.parentNode.insertBefore(arrow, node.nextSibling);
             /* add arrow before shell nodes */
             if (i > 0 && node.previousSibling.previousSibling.className.includes('Shell')) {
                 arrow = document.createElement('i');
-                arrow.style.color = 'palegreen';
                 arrow.classList.add('fa', 'fa-caret-right', 'fa-lg');
                 node.parentNode.insertBefore(arrow, node);
             }
             /* add arrows after inner active nodes */
-        } else if (node.className.includes('inner') && arr[i + 1].className.includes('Inner')) {
+        } else if (node.className.includes('Inner') && arr[i + 1].className.includes('Inner')) {
             let arrow = document.createElement('div');
-            arrow.classList.add('arrow', 'toBottom');
+            arrow.classList.add('Arrow', 'toBottom');
             node.parentNode.insertBefore(arrow, node.nextSibling);
         }
     });
@@ -189,7 +187,7 @@ window.onload = () => {
         dynAdjust(winWidth / 2);
     };
 
-    giNode[6].click();
+    giNode[0].click();
     window.dispatchEvent(new Event('resize'));
 };
 

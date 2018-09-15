@@ -291,7 +291,7 @@ function convertInstruction() {
 
         const selNode = window.getSelection().baseNode;
 
-        if (!altKey && selNode && selNode.id && selNode.id.endsWith('Editor')) eval(selNode.id).focus();
+        if (!altKey && selNode && selNode.id && selNode.id.endsWith('Editor')) selNode.focus();
     }
 }
 
@@ -311,7 +311,8 @@ function updateStyledInstruction() {
     source.forEach((e, i) => {
         // replace markup for code location link
         while (loc.test(e)) {
-            const query = e.match(loc),
+            const
+                query = e.match(loc),
                 name = query[1] || (query[2] == 'html' ? 'index' : query[2] == 'css' ? 'style' : 'script');
 
             e = e.replace(loc, `<b>##LINE('${name}.${query[2]}','${query[3]}')${query[4] || ''}##</b>`);
@@ -355,7 +356,7 @@ function updateStyledInstruction() {
             cStep > 10 ? '\n<hr>\n<p class="highlight"><b>Export to Sandbox</b> to continue working on it</p>' : '');
 
     // taInstruction.value = source;
-    styledInstruction.innerHTML = source + '<link rel="stylesheet" href="css/instructions.css">';
+    styledInstruction.innerHTML = source;// + '<link rel="stylesheet" href="css/instructions.css">';
     selectAndCopy(styledInstruction);
     alignElement(styledInstruction);
     convertLineNumber();
