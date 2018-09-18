@@ -1,7 +1,7 @@
 class Utility {
     constructor() {
         this.config = {
-            showDebug: false,
+            showDebug: true,
         };
 
         // unique id
@@ -14,6 +14,11 @@ class Utility {
 
             if (Array.from(document.documentElement.getElementsByTagName('*')).some(el => prefix ? el.id == rs : el.id.endsWith(`-${rs}`))) return this.uid(prefix);
             return rs;
+        };
+
+        // clamp number within range
+        this.clamp = (val, min, max) => {
+            return Math.min(Math.max(val, min), max);
         };
 
         // element array queries
@@ -60,6 +65,8 @@ class Utility {
         // set & get css style
         this.sCss = (el, details) => Object.entries(details).forEach(entry => el.style[entry[0]] = entry[1]);
         this.gCss = el => {
+            if (!el) throw new Error('the gCss method expects a valid HTML element');
+
             const
                 cs = window.getComputedStyle(el),
                 val = p => cs.getPropertyValue(p),
@@ -72,7 +79,15 @@ class Utility {
                     get left() { return (parseFloat(val('left')) || box(el).left); },
                     get top() { return (parseFloat(val('top')) || box(el).top); },
                 }, {
-                    get: (o, p) => p in o ? o[p] : val(p.replace(/([A-Z])/g, '-$1'.toLowerCase())),
+                    get: (o, p) => {
+                        if (p in o) {
+                            return o[p];
+                        }
+                        else {
+                            const v = val(p.replace(/([A-Z])/g, '-$1'.toLowerCase()));
+                            return parseFloat(v) || v;
+                        }
+                    },
                 }
             );
         };
@@ -138,7 +153,8 @@ class Utility {
 
         // convert string to camel case
         this.camelize = str => {
-            if (!/\s/.test(str.trim())) return str;
+            str = str.replace(/^[^\w]+|[^\w]+$/, '');
+            if (!/\s/.test(str)) return str.toLowerCase();
             return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
                 return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
             }).replace(/\s+/g, '');
@@ -153,6 +169,16 @@ class Utility {
                     height: `${Math.ceil(this.gCss(el).height)}px`,
                 });
             });
+        };
+
+        // convert string to be HTML safe
+        this.htmlEscape = unsafe => {
+            return unsafe
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         };
 
         this.print = (msg, opt) => {
@@ -172,5 +198,3 @@ class Utility {
         };
     }
 }
-
-window.onload = () => Object.assign(window, new Utility());

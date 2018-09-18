@@ -35,14 +35,13 @@ body {
     height: 100%;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
-    grid-gap: 50px;
+    row-gap: 50px;
     justify-items: center;
     background: #384558;
     overflow: hidden;
 }
 
 #Chart {
-    left: 0;
     display: grid;
     align-items: center;
     text-align: center;
@@ -50,35 +49,22 @@ body {
 }
 
 .Deck {
-    left: 0;
     display: none;
     padding: 0 50px;
 }
 
 #Chart, .Deck {
+    left: 0;
     position: relative;
-    grid-gap: 20px;
+    grid-gap: 14px;
     grid-auto-flow: column;
-}
-
-/*  arrow for inner nodes */
-.Arrow {
-    width: 0;
-    height: 0;
-}
-
-.toBottom {
-    margin: auto;
-    border: solid 10px #1D2533;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-bottom: transparent;
+    transition: left 0.2s ease-out;
 }
 
 /* node styles */
 .Node {
     white-space: nowrap;
-    padding: 5px 10px;
+    padding: 4px 10px 5px 10px;
     margin: auto;
     border-color: #1D2533;
     border-radius: 5px;
@@ -87,12 +73,17 @@ body {
 .Shell {
     border: solid 1px #C8CACC;
     border-radius: 10px;
-    padding: 15px;
+    padding: 8px 14px 14px 14px;
     cursor: default;
 }
 
+.Shell > b {
+    display: block;
+    margin-bottom: 10px;
+}
+
 .Inner {
-    margin-top: 10px;
+    margin: -4px 0;
 }
 
 .Active {
@@ -202,7 +193,7 @@ code::-webkit-scrollbar-thumb {
     margin-right: 5px;
 }
 
-.fa-caret-right {
+.fa-caret-right, .fa-caret-left, .fa-caret-up, .fa-caret-down  {
     color: palegreen;
 }
 
@@ -252,7 +243,6 @@ a {
 
 a:hover {
     color: white;
-    font-weight: 600;
 }
 
 img {
@@ -261,6 +251,7 @@ img {
     margin: auto;
     border-radius: 5px;
     box-shadow: 0 0 5px #1D2533;
+    background-color: whitesmoke;
 }
 
 samp, .Card > code {
@@ -284,7 +275,7 @@ code {
     transition: 0.1s ease-out;
     cursor: pointer;
     overflow-x: scroll;
-    white-space: nowrap;
+    white-space: pre;
     user-select: text;
 }
 
