@@ -104,9 +104,29 @@ function init() {
             title: 'Teacher Interaction',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Unit outlines can be created for either [em::school deliverables] or BSD-initiated [em::content expansion].' },
-                    { type: 'p', html: 'It is a sequenced reference to [em::lesson plans] plus any [em::resources] required by those lessons.' },
-                    { type: 'p', html: 'All unit outlines should be created from this [template::https://docs.google.com/document/d/1jyBubcZiuRMcvU15c4Dx__EkthAT8PkKI4DxPciyuWI/edit?usp=sharing].' },
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'sourceCode',
+        cards: [{
+            title: 'Source Code',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'technicalFlow',
+        cards: [{
+            title: 'Technical Flow',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'This is a list of technical concepts closely relates to the given [em::learning objectives].' },
+                    { type: 'p', html: 'The [em::chronological sequence] or flow of these concepts should offer clear insight as to how the final result can be achieved.' },
+                    { type: 'p', html: 'Both [em::content & curriculum developers] should participate in finalising the technical flow.' },
                 ],
             }],
         }],
@@ -124,10 +144,22 @@ function init() {
                     { type: 'p', html: 'Make sure to remove the [samp::<script>] element if no script file is present.' },
                 ],
             }],
+        }],
+    }, {
+        deck: 'stepExpectation',
+        cards: [{
+            title: 'Step Expectation',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'Step expectaion (a.k.a. objective testing) is the platform mechanism to [em::capture learner code] and compare it with teacher defined code to [em::determine validity] of the former.' },
+                    { type: 'p', html: 'The [em::robustness] of its implementation is critical to successful classroom deployment therefore requires [em::thorough testing].' },
+                    { type: 'p', html: 'Testing step expectations can be [em::time consuming], any outcome that requries re-testing is not advised.' },
+                ],
+            }],
         }, {
             title: 'Editable Regions',
             sections: [{
-                content: [{ type: 'p', html: 'Editable regions are spaces in the code panel where the learner can type, below are guidelines for using it:' }],
+                content: [{ type: 'p', html: 'Editable regions are spaces in the code panel where the learner can type, there are [em::two types] of editable regions:' }],
             }, {
                 title: 'Editable Block',
                 content: [
@@ -137,6 +169,14 @@ function init() {
                     { type: 'p', html: 'Occupied editable blocks should have a [em::1 space padding] on both ends.' },
                     { type: 'code', code: '#BEGIN_EDITABLE# var n = 42; #END_EDITABLE#' },
                 ],
+            }, {
+                title: 'Editable Lines',
+                content: [
+                    { type: 'p', html: 'Editable lines provide [em::expandable spaces] in the code where the learner can type.' },
+                    { type: 'p', html: 'When editable lines are included in the learner code, its length becomes unpreditable and thus all [em::static references] to line locations are [em::unreliable].' },
+                    { type: 'p', html: 'Editable lines can be created by placing mark up keywords on [em::separate lines].' },
+                    { type: 'code', code: '#BEGIN_EDITABLE#\n#END_EDITABLE#' },
+                ],
             }],
         }],
     }, {
@@ -145,7 +185,7 @@ function init() {
             title: 'Content Editing',
             sections: [{
                 content: [
-                    { type: 'p', html: 'This process is carried out by the [em::Curriculum Developer].' },
+                    { type: 'p', html: 'This process is primarily carried out by the [em::Curriculum Developer].' },
                     { type: 'p', html: 'The [em::primary objective] is to ensure our content uses the most appropriate language and formatting.' },
                     { type: 'p', html: 'Content editing is required for all non-technical components of our content, including [em::lesson plans], [em::support materials] & [em::platform content].' },
                 ],
@@ -153,10 +193,15 @@ function init() {
         }, {
             title: 'Project Instruction',
             sections: [{
-                content: [{ type: 'p', html: 'Below are guidelines for project instructions on the platform.' }],
+                content: [
+                    { type: 'p', html: '[em::Reach out] to content developers for technical assistance when necessary.' },
+                    { type: 'p', html: 'Project instructions should comply with the following [em::guidelines]:' },
+                ],
             }, {
                 title: 'Line Location',
                 content: [
+                    { type: 'p', html: 'All [em::code references] must be accompanied by line locations.' },
+                    { type: 'img', src: 'img/line_ref.png' },
                     { type: 'p', html: 'Given a particular line in [samp::index.html] contains the string [samp::catpaw] and it occurs [em::exactly once] in the entire HTML file, the number of that line can be dynamically retrieved using the following code:' },
                     { type: 'code', code: '##LINE("index.html", "catpaw")##' },
                     { type: 'p', bullet: false, html: 'The resulting location can also be [em::offset]:' },
