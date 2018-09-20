@@ -21,7 +21,7 @@ function init() {
         ]],
         '<> Teacher Interaction',
         ['>> Technical Content', [
-            'Source Code',
+            'The Result',
             '<> Technical Flow',
             '>> Static Steps',
             '>> Step Expectation',
@@ -32,11 +32,11 @@ function init() {
             'Lesson Plan',
             '<> Support Materials',
             '>> Content Editing',
-            '<> Review',
-            '>> Delivery',
+            '<> Final Review',
+            '>> Curriculum Delivery',
         ]],
-        '>> Feedback',
-        ['<> Technical Conent', [
+        '>> Feedback Handling',
+        ['<> Maintenance', [
             'Version Control',
         ]],
     ];
@@ -104,14 +104,46 @@ function init() {
             title: 'Teacher Interaction',
             sections: [{
                 content: [
+                    { type: 'p', html: 'Teacher interaction will take place before and after the final curriculum delivery.' },
                     { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: 'Professional Development',
+            sections: [{
+                content: [
+                    { type: 'p', html: '[em::PD] is the process where BSD staff provide training for school teachers.' },
+                    { type: 'p', html: 'The objective of this process is to equip teachers with the knowledge and skill to deliver lessons using our curriculum.' },
                 ],
             }],
         }],
     }, {
-        deck: 'sourceCode',
+        deck: 'theResult',
         cards: [{
-            title: 'Source Code',
+            title: 'The Result',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'Our curriculum should always offer [em::Project Based Learning] whenever possible.' },
+                    { type: 'p', html: 'The [em::first step] in developing the curriculum is to produce the final result first.' },
+                    { type: 'p', html: 'This is an iterative [em::R&D] process which aims to effectively deliver given learning objectives.' },
+                ],
+            }],
+        }, {
+            title: 'Coding Projects',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: 'Hardware Projects',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: 'Coding Projects',
             sections: [{
                 content: [
                     { type: 'p', html: '...' },
@@ -125,7 +157,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'This is a list of technical concepts closely relates to the given [em::learning objectives].' },
-                    { type: 'p', html: 'The [em::chronological sequence] or flow of these concepts should offer clear insight as to how the final result can be achieved.' },
+                    { type: 'p', html: 'The [em::chronological sequence] or flow of these concepts should offer clear insight as to how The Result can be achieved.' },
                     { type: 'p', html: 'Both [em::content & curriculum developers] should participate in finalising the technical flow.' },
                 ],
             }],
@@ -176,6 +208,106 @@ function init() {
                     { type: 'p', html: 'When editable lines are included in the learner code, its length becomes unpreditable and thus all [em::static references] to line locations are [em::unreliable].' },
                     { type: 'p', html: 'Editable lines can be created by placing mark up keywords on [em::separate lines].' },
                     { type: 'code', code: '#BEGIN_EDITABLE#\n#END_EDITABLE#' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'transitionLogic',
+        cards: [{
+            title: 'Transition Logic',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: '...',
+            sections: [{
+                content: [{ type: 'p', html: '...' }],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'projectGuide',
+        cards: [{
+            title: 'Project Guide',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: '...',
+            sections: [{
+                content: [{ type: 'p', html: '...' }],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'lessonPlan',
+        cards: [{
+            title: 'Lesson Plan',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: '...',
+            sections: [{
+                content: [{ type: 'p', html: '...' }],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'supportMaterials',
+        cards: [{
+            title: 'Support Materials',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: '...',
+            sections: [{
+                content: [{ type: 'p', html: '...' }],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
                 ],
             }],
         }],
@@ -232,7 +364,108 @@ function init() {
                 title: 'Objectives',
                 content: [
                     { type: 'p', html: 'No more than [em::3 objectives] per step.' },
+                    { type: 'p', html: '[em::Objective description] in the instruction must be identical to the description in the objective panel.' },
                     { type: 'p', html: 'In most cases, a learner should write no more than [em::1-2 lines] of code for each objective.' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'finalReview',
+        cards: [{
+            title: 'Final Review',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: '...',
+            sections: [{
+                content: [{ type: 'p', html: '...' }],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'curriculumDelivery',
+        cards: [{
+            title: 'Curriculum Delivery',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: '...',
+            sections: [{
+                content: [{ type: 'p', html: '...' }],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'feedbackHandling',
+        cards: [{
+            title: 'Feedback Handling',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: '...',
+            sections: [{
+                content: [{ type: 'p', html: '...' }],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'versionControl',
+        cards: [{
+            title: 'Version Control',
+            sections: [{
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }],
+        }, {
+            title: '...',
+            sections: [{
+                content: [{ type: 'p', html: '...' }],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
+                ],
+            }, {
+                title: '...',
+                content: [
+                    { type: 'p', html: '...' },
                 ],
             }],
         }],
