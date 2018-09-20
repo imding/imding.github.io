@@ -153,8 +153,8 @@ class Utility {
 
         // convert string to camel case
         this.camelize = str => {
-            str = str.replace(/^[^\w]+|[^\w]+$/, '');
-            if (!/\s/.test(str)) return str.toLowerCase();
+            str = str.replace(/^[^\w]+|[^\w]+$/, '').replace(/[^\w\s]/g, '').toLowerCase();
+            if (!/\s/.test(str)) return str;
             return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
                 return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
             }).replace(/\s+/g, '');
