@@ -92,7 +92,7 @@ function init() {
                 content: [
                     { type: 'p', html: 'Introduce the concept of [em::flow charts].' },
                     { type: 'p', html: 'Unplugged: contrast how difficult it is to understand a complex app without the flow chart and vice versa.' },
-                    { type: 'p', html: 'Hands-on: create the UI flow.' },
+                    { type: 'p', html: 'Hands-on: create the flow chart.' },
                     { type: 'p', html: 'Start the to-do list functionality [guided project::#] if there is extra time.' },
                 ],
             }],
