@@ -108,7 +108,7 @@ class Pipeline {
                                 const
                                     m = content.html.match(p),
                                     // patterns to turn into tags
-                                    _p = /^(em|samp)$/.test(m[1]);
+                                    _p = /^(b|i|u|em|del|sub|sup|samp)$/g.test(m[1]);
 
                                 content.html = content.html.replace(m[0], _p ? `<${m[1]}>${htmlEscape(m[2])}</${m[1]}>` : `<a href='${m[2]}' target='_blank'>${m[1]}</a>`);
                             }
