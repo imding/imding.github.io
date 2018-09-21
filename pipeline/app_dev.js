@@ -172,7 +172,7 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Intro to event [em:listener] & [em::handler].' },
+                    { type: 'p', html: 'Intro to event [em::listener] & [em::handler].' },
                     { type: 'p', html: 'Start [guided project::#].' },
                     { type: 'p', html: '[u::Challenge]: responding to the double click event.' },
                 ],
