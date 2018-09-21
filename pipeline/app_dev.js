@@ -78,7 +78,9 @@ function init() {
             //  start guided project
 
             '>> Promoting An App',
-            //  ***
+            //  identifying unique selling point
+            //  5 characteristics to attract target user
+            //  3 for new users & 2 for users of a competitor app
         ]],
         ['>> Sensor API', [
             'Geolocation',
@@ -136,7 +138,7 @@ function init() {
                 content: [
                     { type: 'p', html: 'Revisit the concept of frameworks using previous [slide::#].' },
                     { type: 'p', html: '[u::Unplugged]: interpreter.' },
-                    { type: 'p', html: 'Walkthrough sandbox template for the class to [em::set up] Framework7. Add [slides::#] as supporting material for the teacher.' },
+                    { type: 'p', html: 'Walkthrough sandbox template for the class to [em::set up] Framework7. Add [slides::https://docs.google.com/presentation/d/1a7Qgs74Xl_e_hbwQ4PWPqwcAiU2VWr71oAsX9vCvd5k/edit#slide=id.g4078c7e29c_1_0] as supporting material for the teacher.' },
                     { type: 'p', html: 'Create a basic interface using the [guided project::#] on the platform.' },
                 ],
             }],
