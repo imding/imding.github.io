@@ -67,7 +67,7 @@ const
     },
 
     template = [
-        'Generic\n\nParagraph\n\nParagraph\n\n(***)\n\n(!)On +type#key#, objective',
+        'Generic\n\nWhy do it?\n\nHow to do it?\n\n(***)\n\n(!)On +type#key#, objective',
         'Syntax\n\nDescribe the purpose of the syntax\n\n(type)(#)\n\n[-\n\t(*)`syntax`\n\t(*)`syntax`\n\t(*)*Example:* \n-]\n\n(***)\n\n(!)On +type#key#, focus on reproducing the syntax\n(!)On +type#key#, focus on reproducing the syntax',
         'Exercise\n\n[The Problem] Help to understand the problem\n\n[The Question] No answer giveaway\n\n(***)\n\n(!)On +type#key#, focus on applying the syntax',
         'Summary\n\nGreat job!\n\nYou have completed this sprint, here is a recap:\n[-\n\t(*)item 1\n\t(*)item 2\n-]'
@@ -426,11 +426,11 @@ function updateCodeButtons() {
 
 function copyCode(n) {
     if (n > 0 && n <= tSteps) {
-        setValue(codeEditor,
+        setValue(codeEditor, noMarkup(
             activeCodeBtn == btnHTML ? decodeURI(encodeURI(code[n]).match(htmlToken[2])[0].replace(htmlToken[0], '').replace(htmlToken[1], '')) :
                 activeCodeBtn == btnCSS ? decodeURI(encodeURI(code[n]).match(cssToken[2])[0].replace(cssToken[0], '').replace(cssToken[1], '')) :
                     decodeURI(encodeURI(code[n]).match(jsToken[2])[0].replace(jsToken[0], '').replace(jsToken[1], ''))
-        );
+        ));
     }
 }
 
@@ -548,6 +548,7 @@ function addStep() {
     cStep++;
     inst.splice(cStep, 0, ''); logic.splice(cStep, 0, ''); code.splice(cStep, 0, htmlToken[0] + htmlToken[1] + cssToken[0] + cssToken[1] + jsToken[0] + jsToken[1]);
     updateCodeButtons();
+    taInstruction.value = template[0];
     preview ? updatePreview() : null;
     styledInstruction ? btnConvert.click() : null;
     if (logicEditor.getReadOnly) logicEditor.setReadOnly(false);
@@ -974,7 +975,7 @@ function initializeUI() {
     const elem = Array.from(app.getElementsByTagName('*'));
     elem.forEach(e => { if (e.tagName != 'LI' && e.tagName != 'SCRIPT' && e.id != 'editor') e.style.position = 'absolute'; });
     updateUI();
-    
+
     app.style.visibility = 'visible';
 }
 
