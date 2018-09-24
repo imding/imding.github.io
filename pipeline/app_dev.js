@@ -109,7 +109,7 @@ function init() {
                     { type: 'p', html: '[u::Unplugged]: inspect element.' },
                 ],
             }],
-        }],
+            }],
     }, {
         deck: 'webFundamentals',
         cards: [{
