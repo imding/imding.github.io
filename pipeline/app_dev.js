@@ -59,7 +59,7 @@ function init() {
             //  intro to DOM and working with it
             //  guided project: createElement, createTextNode, appendChild, removeChild, setAttribute
 
-            '>> To-do List Functionality',
+            '>> To-do List UI Update',
             //  recap: adding UI elements with F7
             //  guided project for to-do list functionality
         ]],
@@ -135,7 +135,7 @@ function init() {
                     { type: 'p', html: 'Start by adding an [samp::<h1>] element. ' },
                     { type: 'p', html: 'Use the [samp::<img>] element to add a logo, introduce the [samp::src] attribute and explain the steps of getting an image address.' },
                     { type: 'p', html: 'Use [samp::<input>] elements to add text fields for user name and password.' },
-                    { type: 'p', html: '[u::Challenge]: The real Google site uses [samp::<input>] elements for both the text field and buttons, why is that?' },
+                    { type: 'p', html: '[u::Challenge]: The real Google site uses [samp::<input>] elements for both the text field and buttons but they are clearly different, why is that?' },
                     { type: 'p', html: 'Demo [samp::type="text"] vs [samp::type="submit"].' },
                     { type: 'p', html: 'Use the [samp::<p>] element to add a short description of this sandbox.' },
                     { type: 'p', html: 'Use the [samp::<a>] element to add a link to the real Google site, go over the [samp::href] attribute.' },
@@ -151,7 +151,7 @@ function init() {
                     { type: 'p', html: 'Center block elements on the page using [samp::margin].' },
                     { type: 'p', html: 'Use [samp::margin-top] for vertical alignment.' },
                     { type: 'p', html: 'Use [samp::background-color] & [samp::background-image] to change the background.' },
-                    { type: 'p', html: 'Demo how background image can be further customised [samp::-size], [samp::-position], etc...' },
+                    { type: 'p', html: 'Demo how background image can be further customised with [samp::-size], [samp::-position], etc...' },
                     { type: 'p', html: 'Introduce the [em::nesting] concept followed by [guided project::https://app.bsd.education/project/patterns-with-nested-div-elements].' },
                     { type: 'p', html: 'Demo using [w3schools::www.w3schools.com].' },
                     { type: 'p', html: '[u::Extension]: customise the sandbox using online resources.' },
@@ -213,11 +213,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Intro to event [em::listener] & [em::handler].' },
-                    { type: 'p', html: '[em::Keyboard events] - [samp::onkeydown], [samp::onkeyup].' },
-                    { type: 'p', html: '[em::Mouse events] - [samp::onclick], [samp::onmousemove].' },
-                    { type: 'p', html: '[em::Touch events] - [samp::ontouchstart], [samp::ontouchend].' },
-                    { type: 'p', html: '[em::Long press] can be achieved by combining [samp::setTimeout] with [samp::onmouseup]/[samp::ontouchend].' },
-                    { type: 'p', html: 'Start [guided project::#][sup::wip].' },
+                    { type: 'p', html: 'Start [guided project::#][sup::wip] to learn about [em::keyboard events], [em::pointer events] & [em::custom events] such as [u::long press].' },
                     { type: 'p', html: '[u::Challenge]: responding to the double click event.' },
                 ],
             }],
@@ -247,7 +243,7 @@ function init() {
             }],
         }],
     }, {
-        deck: 'todoListFunctionality',
+        deck: 'todoListUiUpdate',
         cards: [{
             title: 'Lesson Outline',
             sections: [{
@@ -289,7 +285,9 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Discuss how the to-do app handles information - to and from an individual.' },
-                    { type: 'p', html: 'Discuss how a pencil is made [em::from scratch] and pose questions about the people involved in the process. Do they know the full [em::range of possibilities] of their knowledge and skills?.' },
+                    { type: 'p', html: 'Discuss how a pencil is [em::made from scratch] and pose questions about the people involved in the process. Do they know the full [em::range of possibilities] of their knowledge and skills?' },
+                    { type: 'p', html: '[u::Unplugged]: what is the potential improvement that can be achieved by harnessing the collective intelligence of everyone who uses the to-do list? [u::e.g. determine the number of visible items without scrolling based on the average active items of all users.]' },
+                    { type: 'p', html: 'Discuss [em::privacy] practices' },
                 ],
             }],
         }],
