@@ -76,18 +76,15 @@ function init() {
             //  how is it different from the to-do list
             //  create flow chart
             //  start guided project
-
-            '>> Promoting An App',
-            //  identifying unique selling point
-            //  5 characteristics to attract target user
-            //  3 for new users & 2 for users of a competitor app
         ]],
         ['>> Sensor API', [
-            'Geolocation',
+            'Mobile Sensors',
+            // a list of common mobile sensors
+            // demo a few
+
+            '>> Geolocation',
             //  the geolocation API
             //  start guided project
-
-            '>> Lat Long Conversion',
             //  converting lat long values to readable format
 
             '>> Enhance Review App',
@@ -103,7 +100,7 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: '[em::Native vs. Hybrid Development] - Slides & multimedia focused on introducing app development and the different approaches, as well as the pro/con of each.' },
+                    { type: 'p', html: 'Introduce [em::native] & [em::hybrid development] using this [slide::#][sup::wip], how they differenciate and their pro/con.' },
                     { type: 'p', html: 'Include the [em::frameworks] that will be used later on.' },
                     { type: 'p', html: 'Mention that [em::web languages] are requirements for hybrid development.' },
                     { type: 'p', html: '[u::Unplugged]: inspect element.' },
@@ -116,17 +113,39 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Standard unit plan for HTML & CSS.' },
+                    { type: 'p', html: 'Follow the standard unit plan for HTML & CSS.' },
+                    { type: 'p', html: 'Equip students with the knowledge and skills to bulid a simple web page with appropriate [em::content] & [em::styling].' },
+                    { type: 'p', html: 'Use the provided [instructions::#][sup::wip] to lead the class [em::step-by-step] through creating the web page.' },
                 ],
-            }, {
-                title: 'Part I - 60mins',
+            }],
+        }, {
+            title: 'HTML - Content',
+            sections: [{
                 content: [
-                    { type: 'p', html: 'Cover [em::elements], [em::attributes] & [em::nesting].' },
+                    { type: 'p', html: 'Create the interface of a Google clone in [em::sandbox] mode with the [u::mobile view] enabled. Use [u::inspect element] on the real Google site as reference.' },
+                    { type: 'p', html: 'Start by adding an [samp::<h1>] element. ' },
+                    { type: 'p', html: 'Use the [samp::<img>] element to add a logo, introduce the [samp::src] attribute and explain the steps of getting an image address.' },
+                    { type: 'p', html: 'Use [samp::<input>] elements to add text fields for user name and password.' },
+                    { type: 'p', html: '[u::Challenge]: The real Google site uses [samp::<input>] elements for both the text field and buttons, why is that?' },
+                    { type: 'p', html: 'Demo [samp::type="text"] vs [samp::type="submit"].' },
+                    { type: 'p', html: 'Use the [samp::<p>] element to add a short description of this sandbox.' },
+                    { type: 'p', html: 'Use the [samp::<a>] element to add a link to the real Google site, go over the [samp::href] attribute.' },
                 ],
-            }, {
-                title: 'Part II - 60mins',
+            }],
+        }, {
+            title: 'CSS - Style',
+            sections: [{
                 content: [
-                    { type: 'p', html: 'Cover [em::styling], [em::id] & [em::class] names.' },
+                    { type: 'p', html: 'Resize images with the [samp::width] & [samp::height] properties, keep the aspect ratio by only using one.' },
+                    { type: 'p', html: 'Modify text font using the [samp::font-family], [samp::font-size] & [samp::color] properties. Demostrate how [Google Font::https://app.bsd.education/sprint/html-and-css---google-fonts] works.' },
+                    { type: 'p', html: 'Center inline elements using [samp::text-align].' },
+                    { type: 'p', html: 'Center block elements on the page using [samp::margin].' },
+                    { type: 'p', html: 'Use [samp::margin-top] for vertical alignment.' },
+                    { type: 'p', html: 'Use [samp::background-color] & [samp::background-image] to change the background.' },
+                    { type: 'p', html: 'Demo how background image can be further customised [samp::-size], [samp::-position], etc...' },
+                    { type: 'p', html: 'Introduce the [em::nesting] concept followed by [guided project::https://app.bsd.education/project/patterns-with-nested-div-elements].' },
+                    { type: 'p', html: 'Demo using [w3schools::www.w3schools.com].' },
+                    { type: 'p', html: '[u::Extension]: customise the sandbox using online resources.' },
                 ],
             }],
         }],
@@ -136,10 +155,10 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Revisit the concept of frameworks using previous [slide::#].' },
-                    { type: 'p', html: '[u::Unplugged]: interpreter.' },
-                    { type: 'p', html: 'Walkthrough sandbox template for the class to [em::set up] Framework7. Add [slides::https://docs.google.com/presentation/d/1a7Qgs74Xl_e_hbwQ4PWPqwcAiU2VWr71oAsX9vCvd5k/edit#slide=id.g4078c7e29c_1_0] as supporting material for the teacher.' },
-                    { type: 'p', html: 'Create a basic interface using the [guided project::#] on the platform.' },
+                    { type: 'p', html: 'Revisit the concept of frameworks using previous [slide::#][sup::wip].' },
+                    { type: 'p', html: '[u::Unplugged][sup::wip]: interpreter.' },
+                    { type: 'p', html: 'Walkthrough sandbox template for the class to [em::set up] Framework7 using this [slides::https://docs.google.com/presentation/d/1a7Qgs74Xl_e_hbwQ4PWPqwcAiU2VWr71oAsX9vCvd5k/edit#slide=id.g4078c7e29c_1_0].' },
+                    { type: 'p', html: 'Create a basic interface using the [guided project::https://app.bsd.education/project/get-started-with-mobile-app-development-using-framework7] on the platform.' },
                 ],
             }],
         }],
@@ -149,7 +168,7 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Start the to-do list UI [guided porject::#].' },
+                    { type: 'p', html: 'Start the to-do list UI [guided project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---part-1---ui].' },
                     { type: 'p', html: '[u::Extension]: [em::customise] the to-do list.' },
                 ],
             }],
@@ -160,11 +179,18 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Introduce the concept of [em::flow charts].' },
-                    { type: 'p', html: '[u::Unplugged]: contrast how difficult it is to understand a complex app without the flow chart and vice versa.' },
+                    { type: 'p', html: 'Introduce the concept of [em::flow charts] using [resources::#][sup::wip].' },
+                    { type: 'p', html: '[u::Unplugged][sup::wip]: contrast how difficult it is to understand a complex app without the flow chart and vice versa.' },
                     { type: 'p', html: 'Create flow chart for the to-do list.' },
                     { type: 'p', html: 'The flow chart is the visualisation of [em::interactivity] between the app and its user, which requires JavaScript to achieve.' },
                     { type: 'p', html: 'Intro to JavaScript: [em::variables] & [em::functions].' },
+                ],
+            }],
+        }, {
+            title: 'JS Fundamentals',
+            sections: [{
+                content: [
+                    { type: 'p', html: '.' },
                 ],
             }],
         }],
@@ -174,8 +200,8 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Intro to event [em::listener] & [em::handler].' },
-                    { type: 'p', html: 'Start [guided project::#].' },
+                    { type: 'p', html: 'Intro to event [em::listener] & [em::handler] .' },
+                    { type: 'p', html: 'Start [guided project::#][sup::wip].' },
                     { type: 'p', html: '[u::Challenge]: responding to the double click event.' },
                 ],
             }],
@@ -186,7 +212,11 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: '...' },
+                    { type: 'p', html: 'Define static & [em::dynamic websites].' },
+                    { type: 'p', html: 'Using [em::inspect element], show how elements can be added & removed from [this page::https://app.bsd.education/share/V8Wow2aT/].' },
+                    { type: 'p', html: 'Show how attributes and content of elements can also be modified at [em::runtime] in this [sandbox::#][sup::wip].' },
+                    { type: 'p', html: '[u::Unplugged]: Why are these things useful for a web app?' },
+                    { type: 'p', html: 'Start [guided project::#][sup::wip].' },
                 ],
             }],
         }],
@@ -196,10 +226,8 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Introduce the concept of event handling in [em::JavaScript].' },
-                    { type: 'p', html: 'Start the event handler [project::#].' },
-                    { type: 'p', html: 'Revise the process of adding elements to a F7 app by using custom [em::attributes] & [em::class] names.' },
-                    { type: 'p', html: 'Start the to-do list functionality [project::#].' },
+                    { type: 'p', html: 'Revise the process of adding elements to an F7 app using custom [em::attributes] & [em::class] names.' },
+                    { type: 'p', html: 'Start the to-do list functionality [project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---part-2---event-handling].' },
                 ],
             }],
         }],
@@ -213,7 +241,8 @@ function init() {
                     { type: 'p', html: '[u::Unplugged]: activity involving two groups of students.' },
                     { type: 'p', html: 'Revisit the flow chart and [em::identify] which data point needs to be sent to the cloud.' },
                     { type: 'p', html: '[em::Modify] the flow chart to include the additional operations required for the app to become database enabled.' },
-                    { type: 'p', html: 'Demo [em::pinging] the database.' },
+                    { type: 'p', html: 'Walkthrough the process of [em::setting up] Firebase using [slides::https://drive.google.com/open?id=1fc1flrJuhXBRHXDsAtd7SsCpe71Zr_Lm7TOLL9Po5Iw].' },
+                    { type: 'p', html: 'Demo [em::pinging] the database using this [sandbox::#][sup::wip].' },
                 ],
             }],
         }],
@@ -223,7 +252,7 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'start [guided project::#] to add the database component to the to-do list.' },
+                    { type: 'p', html: 'Start [guided project::#][sup::wip] to add the database component to the to-do list.' },
                 ],
             }],
         }],
@@ -233,7 +262,8 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: '...' },
+                    { type: 'p', html: 'Discuss how the to-do app handles information - to and from an individual.' },
+                    { type: 'p', html: 'Discuss how a pencil is made [em::from scratch] and pose questions about the people involved in the process. Do they know the full [em::range of possibilities] of their knowledge and skills?.' },
                 ],
             }],
         }],
@@ -243,17 +273,19 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
+                    { type: 'p', html: 'Start [guided project::#][sup::wip] to create the [em::offline version] of review app.' },
                     { type: 'p', html: '[Sandbox::https://app.bsd.education/sandbox/bTprP2cz]' },
                 ],
             }],
         }],
     }, {
-        deck: 'promotingAnApp',
+        deck: 'mobileSensors',
         cards: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: '...' },
+                    { type: 'p', html: 'Introduce mobile [em::sensor APIs] and draw similarities to frameworks.' },
+                    { type: 'p', html: 'Walkthrough [sandbox templates::#][sup::wip] and view results on a phone.' },
                 ],
             }],
         }],
@@ -263,19 +295,11 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'How does this sensor improve the review app?' },
-                    { type: 'p', html: '[MDN::https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API]' },
-                ],
-            }],
-        }],
-    }, {
-        deck: 'latLongConversion',
-        cards: [{
-            title: 'Lesson Outline',
-            sections: [{
-                content: [
-                    { type: 'p', html: 'Latitude & longtitude values do not mean very much to the average person.' },
-                    { type: 'p', html: '[Live Demo::https://www.w3schools.com/html/tryit.asp?filename=tryhtml5_geolocation_map_script]' },
+                    { type: 'p', html: 'Discuss how the [geolocation::https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API] can improve the review app?' },
+                    { type: 'p', html: 'Complete the [sandbox template::#] to learn & practice how to work with the geolocation API.' },
+                    { type: 'p', html: 'Latitude & longtitude values do not mean very much to the average person so we should [em::convert it].' },
+                    { type: 'p', html: 'Introduce the [Google Map::https://www.w3schools.com/html/tryit.asp?filename=tryhtml5_geolocation_map_script] API.' },
+                    { type: 'p', html: 'Continue with the [same sandbox::#] template to learn & practice using the Google Map API.' },
                 ],
             }],
         }],
@@ -285,7 +309,8 @@ function init() {
             title: 'Lesson App',
             sections: [{
                 content: [
-                    { type: 'p', html: '...' },
+                    { type: 'p', html: 'Start [guided project::#][sup::wip] to include the geolocation feature.' },
+                    { type: 'p', html: '.' },
                 ],
             }],
         }],
@@ -295,7 +320,8 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Introduce the [GoNative::https://docs.google.com/presentation/d/182QE0dmkcqZPyze0yQ0T7zu0igoXl-efBlHG0ThPzm8/edit#slide=id.g23ea995a46_0_0] process.' }
+                    { type: 'p', html: 'Introduce the [GoNative::https://docs.google.com/presentation/d/182QE0dmkcqZPyze0yQ0T7zu0igoXl-efBlHG0ThPzm8/edit#slide=id.g23ea995a46_0_0] process.' },
+                    { type: 'p', html: '[u::Hands-on]: convert the review app using GoNative.' }
                 ]
             }],
         }],
@@ -305,7 +331,7 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: '...' },
+                    { type: 'p', html: '.' },
                 ],
             }],
         }],

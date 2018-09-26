@@ -102,7 +102,7 @@ class Pipeline {
 
                             if (!content.hasOwnProperty('bullet')) content.bullet = true;
 
-                            const p = /\[([^:]+)::([^\]]+)\]/;
+                            const p = /\[([^:\[\]]+)::([^\]]+)\]/;
 
                             while (p.test(content.html)) {
                                 const

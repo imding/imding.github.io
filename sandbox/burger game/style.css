@@ -1,0 +1,278 @@
+/* CSS */
+
+@import url('https://fonts.googleapis.com/css?family=Chelsea+Market');
+body {
+    font-family: 'Chelsea Market', cursive;
+    margin: 0;
+    padding: 0;
+}
+
+#title {
+    color: darkslategrey;
+    text-align: center;
+}
+
+#gameWindow {
+    position: relative;
+    margin: auto;
+    width: 1024px;
+    height: 576px;
+    background-color: slategrey;
+    overflow: hidden;
+}
+
+#notification {
+    position: absolute;
+    width: 100%;
+    margin: 20px auto;
+    color: darkslategrey;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.3);
+    user-select: none;
+    cursor: default;
+}
+
+#gameInfo {
+    width: 100%;
+    color: darkslategrey;
+    font-size: 20px;
+    text-align: center;
+    padding: 0 15px;
+    box-sizing: border-box;
+}
+
+#theButton {
+    margin: auto auto 20px;
+    justify-content: center;
+    align-items: center;
+    width: 300px;
+    height: 50px;
+    color: white;
+    font-size: 35px;
+    background: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+}
+
+.true {
+    color: deepskyblue;
+}
+
+.false {
+    color: darkred;
+}
+
+.hidden {
+    color: white;
+}
+
+#ctrlInfoFrame {
+    position: absolute;
+    display: flex;
+    width: 100%;
+    height: 50px;
+    bottom: -50px;
+}
+
+#ctrlInfoFrame img {
+    width: 35px;
+    height: 35px;
+    user-select: none;
+}
+
+#keyOne {
+    color: #5a2d0c;
+    background: rgba(139, 69, 19, 0.8);
+}
+
+#keyTwo {
+    color: #194d30;
+    background: rgba(46, 139, 87, 0.8);
+}
+
+#keyThree {
+    color: #665700;
+    background: rgba(255, 215, 0, 0.8);
+}
+
+#keyFour {
+    color: #665c00;
+    background: rgba(255, 250, 205, 0.8);
+}
+
+.keyGuides {
+    flex: 1;
+    text-align: center;
+    font-size: 41px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.guidesAnim {
+    animation: guidesIn 0.5s ease-out forwards;
+}
+
+@keyframes guidesIn {
+    from {
+        opacity: 0;
+        bottom: -50px;
+    }
+    to {
+        opacity: 1;
+        bottom: 0px;
+    }
+}
+
+#stackContainer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+#stackBase {
+    position: absolute;
+    left: calc(50% - 100px);
+    bottom: 80px;
+    width: 200px;
+    height: 35px;
+    border-radius: 7px 7px 40px 40px;
+    border: 2px solid #83421d;
+    box-sizing: border-box;
+    background: linear-gradient(#db7328, #83421d);
+    transform: scale(1, 1);
+}
+
+.popIn {
+    animation: popAnim 0.5s ease-out forwards;
+}
+
+.popOut {
+    animation: popOutAnim 0.5s ease-out forwards;
+    animation-delay: 0s !important;
+}
+
+@keyframes popAnim {
+    0% {
+        opacity: 0;
+        transform: scale(0.5, 0.5);
+    }
+    50% {
+        transform: scale(1.1, 1.1);
+    }
+    80% {
+        transform: scale(0.9, 0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1, 1);
+    }
+}
+
+@keyframes popOutAnim {
+    0% {
+        opacity: 1;
+        transform: scale(1, 1) translateY(0);
+    }
+    20% {
+        transform: scale(1.2, 1.2);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.5, 0.5) translateY(-30px);
+    }
+}
+
+.stackCap {
+    position: absolute;
+    width: 200px;
+    height: 45px;
+    opacity: 0;
+    left: calc(50% - 100px);
+    border-radius: 40px 40px 7px 7px;
+    border: 2px solid #83421d;
+    box-sizing: border-box;
+    background: linear-gradient(#83421d, #db7328);
+}
+
+.beef {
+    position: absolute;
+    width: 196px;
+    height: 20px;
+    opacity: 0;
+    left: calc(50% - 98px);
+    border-radius: 8px;
+    border: 2px solid #5a2d0c;
+    box-sizing: border-box;
+    background: linear-gradient(#944b18, #5a2d0c);
+}
+
+.lettuce {
+    position: absolute;
+    width: 210px;
+    height: 24px;
+    opacity: 0;
+    left: calc(50% - 105px);
+    border-radius: 10px;
+    border: 2px solid #194d30;
+    box-sizing: border-box;
+    background: linear-gradient(#239758, #194d30);
+}
+
+.cheese {
+    position: absolute;
+    width: 180px;
+    height: 12px;
+    opacity: 0;
+    left: calc(50% - 90px);
+    border-radius: 5px;
+    border: 2px solid #665700;
+    box-sizing: border-box;
+    background: linear-gradient(#dbbb06, #7e6b02);
+}
+
+.onion {
+    position: absolute;
+    width: 176px;
+    height: 16px;
+    opacity: 0;
+    left: calc(50% - 88px);
+    border-radius: 12px;
+    border: 2px solid #b8ae56;
+    box-sizing: border-box;
+    background: linear-gradient(#fffacd, #b8ae56);
+}
+
+.stackAnim {
+    animation: fadeOut 0.5s ease forwards;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+.copyright {
+    font-size: 12px;
+    padding: 10px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+@media only screen and (max-width: 1024px) {
+    #gameWindow {
+        width: 100%;
+    }
+    #gameInfo {
+        font-size: 20px;
+    }
+    #theButton {
+        font-size: 24px;
+    }
+    #ctrlInfoFrame img {
+        width: 28px;
+        height: 28px;
+    }
+}

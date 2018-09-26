@@ -15,7 +15,9 @@ function init() {
     const nodesData = [
         ['Day 1', [
             'Web Fundamentals',
-            //  HTML & CSS
+            //  what are web applications & how to build one
+            //  the browser & web languages
+            //  inspect element
 
             '>> Game UI',
             //  guided project
@@ -26,7 +28,7 @@ function init() {
             //  conditionals
 
             '>> Handling Events',
-            //  
+            //  guided project
         ]],
         ['>> Day 3', [
             'Intermediate JS',

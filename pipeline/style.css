@@ -283,6 +283,11 @@ code:hover {
     box-shadow: 0 0 1px 1px #1D2533;
 }
 
+sup, sub {
+    font-size: 10px;
+    color: whitesmoke;
+}
+
 /* template styles */
 .Card > .template {
     margin-top: 10px;

@@ -175,6 +175,8 @@ let gutter,
 // ======================================================== //
 
 window.onload = () => {
+    Object.assign(window, new Utility());
+
     taInstruction.onblur = () => info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`;
     info.onfocus = () => editProjectInfo();
     info.onblur = () => updateProjectInfo();
@@ -234,8 +236,6 @@ window.onload = () => {
     ].join('\n'));
 
     taInstruction.value = 'Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the learner will do.\n\n[Result]';
-    // taInstruction.value = `Adding the onclick attribute\n\nThe player needs to click on one of the 3 images to play this game, so they each needs to respond to the *mouse click event*.\n\nWe can do this with the #GLS(HTML-onclick)# attribute.\n\nThe \`onclick\` attribute must have a value that is the name of a JavaScript #GLS(JS-function)#.\n\nYou can even change the #GLS(CSS-background-color)# of the element.\n\n(***)\n\n(!) create the \`onclick\` attribute`;
-
     updateStepLogic();
 
     setInterval(saveToLocal, 100000);
@@ -458,7 +458,7 @@ function updatePreview() {
     headContent.unshift(
         '\t<meta charset="UTF-8">',
         '\t<title>' + cProj + '</title>',
-        '\t<link rel="stylesheet" href="font-awesome-4.7.0/css/font-awesome.min.css">'
+        '\t<link rel="stylesheet" href="../font-awesome-4.7.0/css/font-awesome.min.css">'
     );
 
     headContent.push(
@@ -524,7 +524,7 @@ function saveToLocal() {
         localStorage.lbcontent = master;
         codeEditor.session.setScrollTop(codeScrollTop);
         logicEditor.session.setScrollTop(logicScroolTop);
-        console.info('file saved to local ');
+        print('file saved to local');
     }
 }
 
@@ -720,6 +720,7 @@ function readValue(value, title) {
 }
 
 function recoverFromLocal() {
+    if (!localStorage.lbcontent) return alert('There is nothing stored locally.');
     if (confirm('You\'re about to load data from local storage, this may overwrite your current data and cause you to lose work. Are you sure?')) {
         if (confirm('This action can not be undone. Please confirm.')) readValue(localStorage.lbcontent);
     }
