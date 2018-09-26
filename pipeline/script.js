@@ -124,7 +124,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Our curriculum should always offer [em::Project Based Learning] whenever possible.' },
-                    { type: 'p', html: 'The [em::first step] in developing the curriculum is to produce the final result first.' },
+                    { type: 'p', html: 'The [em::first step] in developing the curriculum is to produce the final result first - hereafter referred to as [samp::The Result].' },
                     { type: 'p', html: 'This is an iterative [em::R&D] process which aims to effectively deliver given learning objectives.' },
                 ],
             }],
@@ -157,8 +157,9 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'This is a list of technical concepts closely relates to the given [em::learning objectives].' },
-                    { type: 'p', html: 'The [em::chronological sequence] or flow of these concepts should offer clear insight as to how The Result can be achieved.' },
+                    { type: 'p', html: 'The [em::chronological sequence] or flow of these concepts should offer clear insight as to how [samp::The Result] can be achieved.' },
                     { type: 'p', html: 'Both [em::content & curriculum developers] should participate in finalising the technical flow.' },
+                    { type: 'p', html: 'The development of [em::curriculum content] should begin once the technical flow is ready.' },
                 ],
             }],
         }],
