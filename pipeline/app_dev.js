@@ -71,7 +71,7 @@ function init() {
             //  Firebase setup + initialise
             //  demo: ping database
 
-            '>> Enhance To-do List',
+            '>> To-do List Database',
             //  start [guided project::#]
         ]],
         ['>> Community', [
@@ -212,7 +212,11 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Intro to event [em::listener] & [em::handler] .' },
+                    { type: 'p', html: 'Intro to event [em::listener] & [em::handler].' },
+                    { type: 'p', html: '[em::Keyboard events] - [samp::onkeydown], [samp::onkeyup].' },
+                    { type: 'p', html: '[em::Mouse events] - [samp::onclick], [samp::onmousemove].' },
+                    { type: 'p', html: '[em::Touch events] - [samp::ontouchstart], [samp::ontouchend].' },
+                    { type: 'p', html: '[em::Long press] can be achieved by combining [samp::setTimeout] with [samp::onmouseup]/[samp::ontouchend].' },
                     { type: 'p', html: 'Start [guided project::#][sup::wip].' },
                     { type: 'p', html: '[u::Challenge]: responding to the double click event.' },
                 ],
@@ -269,7 +273,7 @@ function init() {
             }],
         }],
     }, {
-        deck: 'enhanceTodoList',
+        deck: 'todoListDatabase',
         cards: [{
             title: 'Lesson Outline',
             sections: [{
