@@ -320,10 +320,10 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Discuss how the [geolocation::https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API] can improve the review app?' },
-                    { type: 'p', html: 'Complete the [sandbox template::#] to learn & practice how to work with the geolocation API.' },
+                    { type: 'p', html: 'Complete the [sandbox template::#][sup::wip] to learn & practice how to work with the geolocation API.' },
                     { type: 'p', html: 'Latitude & longtitude values do not mean very much to the average person so we should [em::convert it].' },
                     { type: 'p', html: 'Introduce the [Google Map::https://www.w3schools.com/html/tryit.asp?filename=tryhtml5_geolocation_map_script] API.' },
-                    { type: 'p', html: 'Continue with the [same sandbox::#] template to learn & practice using the Google Map API.' },
+                    { type: 'p', html: 'Continue with the [same sandbox::#][sup::wip] template to learn & practice using the Google Map API.' },
                 ],
             }],
         }],
