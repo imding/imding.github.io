@@ -35,22 +35,31 @@ function init() {
             //  guided project for to-do list UI
             //  optional: customise
         ]],
-        '>> Flow Chart',
-        //  intro + unplugged: sample app analysis with vs. without flow chart
-        //  hands-on: create flow chart for to-do list
-        //  connect flow chart with interactivity which requires JS
-        //  intro to JS + projects ( trivia game, etc... )
+        ['>> App Logic', [
+            'Flow Chart',
+            //  intro + unplugged: sample app analysis with vs. without flow chart
+            //  hands-on: create flow chart for to-do list
+            //  connect flow chart with interactivity which requires JS
 
-        '>> Handling Events',
-        //  intro to event handling
-        //  guided project: onkeyup, onkeydown, keycode, onclick, preventDefault
-        //  challenge: double click, etc...
+            '>> JS Fundamentals',
+            //  intro to JS + projects ( trivia game, etc... )
+        ]],
+
+        ['>> Events', [
+            'Listener & Handler',
+            //  intro to event handling
+            //  guided project: onkeyup, onkeydown, keycode, onclick, preventDefault
+            //  challenge: double click, etc...
+            
+            '>> To-do List Events',
+            //  guided project for adding events to the to-do list
+        ]],
         ['>> DOM', [
             'Document Object Manager',
             //  intro to DOM and working with it
             //  guided project: createElement, createTextNode, appendChild, removeChild, setAttribute
 
-            '>> App Functionality',
+            '>> To-do List Functionality',
             //  recap: adding UI elements with F7
             //  guided project for to-do list functionality
         ]],
@@ -183,19 +192,22 @@ function init() {
                     { type: 'p', html: '[u::Unplugged][sup::wip]: contrast how difficult it is to understand a complex app without the flow chart and vice versa.' },
                     { type: 'p', html: 'Create flow chart for the to-do list.' },
                     { type: 'p', html: 'The flow chart is the visualisation of [em::interactivity] between the app and its user, which requires JavaScript to achieve.' },
-                    { type: 'p', html: 'Intro to JavaScript: [em::variables] & [em::functions].' },
-                ],
-            }],
-        }, {
-            title: 'JS Fundamentals',
-            sections: [{
-                content: [
-                    { type: 'p', html: '.' },
                 ],
             }],
         }],
     }, {
-        deck: 'handlingEvents',
+        deck: 'jsFundamentals',
+        cards: [{
+            title: 'Lesson Outline',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'Follow standard unit plan to teach basic JS.' },
+                    { type: 'p', html: 'JS concepts: [em::variables] & [em::functions].' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'listenerHandler',
         cards: [{
             title: 'Lesson Outline',
             sections: [{
@@ -203,6 +215,16 @@ function init() {
                     { type: 'p', html: 'Intro to event [em::listener] & [em::handler] .' },
                     { type: 'p', html: 'Start [guided project::#][sup::wip].' },
                     { type: 'p', html: '[u::Challenge]: responding to the double click event.' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'todoListEvents',
+        cards: [{
+            title: 'Lesson Outline',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'Start [guided project::#][sup::wip] to add events for the to-do list.' },
                 ],
             }],
         }],
@@ -221,7 +243,7 @@ function init() {
             }],
         }],
     }, {
-        deck: 'appFunctionality',
+        deck: 'todoListFunctionality',
         cards: [{
             title: 'Lesson Outline',
             sections: [{
