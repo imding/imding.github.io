@@ -184,9 +184,24 @@ function init() {
             title: 'Step Expectation',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Step expectaion (a.k.a. objective testing) is the platform mechanism to [em::capture learner code] and compare it with teacher defined code to [em::determine validity] of the former.' },
+                    { type: 'p', html: 'Step expectaion (a.k.a. objective testing) is the platform mechanism to [em::capture learner input] and compare it with teacher expectations to [em::determine validity] of the former.' },
                     { type: 'p', html: 'The [em::robustness] of its implementation is critical to successful classroom deployment therefore requires [em::thorough testing].' },
                     { type: 'p', html: 'Testing step expectations can be [em::time consuming], any outcome that requries re-testing is not advised.' },
+                ],
+            }, {
+                title: 'Objective Versioning',
+                content: [
+                    { type: 'p', html: 'The objective version must be set to [em::2 - (with HTML, and inline error messages)] on all projects.' },
+                    { type: 'img', src: 'img/objective_version.png' },
+                ],
+            }, {
+                title: 'Syntax',
+                content: [
+                    { type: 'p', html: 'Use the following syntax [em::exclusively] to test for HTML, CSS or JS code:' },
+                    { type: 'code', code: 'pass.if.[html|css|js].editable(n).equivalent("");' },
+                    { type: 'p', html: '[em::Multiple input] can be accepted by a single expectation:' },
+                    { type: 'code', code: 'pass.if.[html|css|js].editable(n).equivalent("").or("").or("");' },
+                    { type: 'p', html: 'Any markup syntax such as [samp::##ANY##] & [samp::##URL##] must be [em::capitalised].' },
                 ],
             }],
         }, {
@@ -199,6 +214,7 @@ function init() {
                     { type: 'p', html: 'Editable blocks [em::prevents] the learner from creating [em::new lines] in the code file.' },
                     { type: 'p', html: 'Use the following code to create an editable block. Empty editable blocks should always [em::contain 4 spaces].' },
                     { type: 'code', code: '#BEGIN_EDITABLE#    #END_EDITABLE#' },
+                    { type: 'img', src: 'img/editable_block.png' },
                     { type: 'p', html: 'Occupied editable blocks should have a [em::1 space padding] on both ends.' },
                     { type: 'code', code: '#BEGIN_EDITABLE# var n = 42; #END_EDITABLE#' },
                 ],
@@ -209,6 +225,51 @@ function init() {
                     { type: 'p', html: 'When editable lines are included in the learner code, its length becomes unpreditable and thus all [em::static references] to line locations are [em::unreliable].' },
                     { type: 'p', html: 'Editable lines can be created by placing mark up keywords on [em::separate lines].' },
                     { type: 'code', code: '#BEGIN_EDITABLE#\n#END_EDITABLE#' },
+                    { type: 'img', src: 'img/editable_lines.png' },
+                ],
+            }],
+        }, {
+            title: 'Testing HTML',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'Given the expected input of the [em::1st editable] is [samp::<h1>Hello World</h1>], use the following step expectation:' },
+                    { type: 'code', code: 'pass.if.html.editable(0).equivalent("<h1>Hello World</h1>");' },
+                    { type: 'p', html: 'Given the expected input of the [em::3rd editable] is [samp::<p></p>] with [em::any text content], use the following step expectation:' },
+                    { type: 'code', code: 'pass.if.html.editable(2).equivalent("<p>##ANY##</p>");' },
+                    { type: 'p', html: 'The [samp::##ANY##] markup is allowed for [em::text content only]. The following is [em::invalid]:' },
+                    { type: 'code', code: '.equivalent("<div class=##ANY##></div>");' },
+                ],
+            }, {
+                title: 'Known Issues',
+                content: [
+                    { type: 'p', html: 'Given the expected learner input is an [samp::<img>] tag with flexible [samp::src] value, use the following workaround:' },
+                    { type: 'code', code: 'const input = code.html.editable[0];\ncode.html.editable[0] = input.replace(/src\\s?=\\s?(\'|")[^\'"]+\\1/, "#");\npass.if.html.editable(0).equivalent("<img src=\'#\'>");' },
+                ],
+            }],
+        }, {
+            title: 'Testing CSS',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'Given the expected input of the [em::1st editable] is [samp::div {}], use the following step expectation:.' },
+                    { type: 'code', code: 'pass.if.css.editable(0).equivalent("div {}");' },
+                    { type: 'p', html: 'Given the expected input of the [em::2nd editable] is [samp::width: 100px;], use the following step expectation:.' },
+                    { type: 'code', code: 'pass.if.css.editable(1).equivalent("width: 100px;");' },
+                    { type: 'p', html: 'Given the expected input of the [em::3rd editable] is [samp::background-image] with a flexible [samp::url] value, use the following step expectation:.' },
+                    { type: 'code', code: 'pass.if.css.editable(2).equivalent("background-image: ##URL##;");' },
+                ],
+            }],
+        }, {
+            title: 'Testing JavaScript',
+            sections: [{
+                content: [
+                    { type: 'p', html: '.' },
+                ],
+            }],
+        }, {
+            title: 'Live Objective',
+            sections: [{
+                content: [
+                    { type: 'p', html: '.' },
                 ],
             }],
         }],

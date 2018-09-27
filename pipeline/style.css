@@ -120,7 +120,7 @@ body {
     position: absolute;
     left: 0;
     top: 0;
-    width: 99%;
+    width: 100%;
     height: 55px;
     background-image: linear-gradient(
         hsl(215, 16%, 35%) 50%,
@@ -232,7 +232,7 @@ em {
 
 p {
     line-height: 1.25em;
-    margin: 8px 0;
+    margin: 10px 0 0 0;
 }
 
 a {
@@ -248,7 +248,7 @@ a:hover {
 img {
     display: block;
     width: 100%;
-    margin: auto;
+    margin: 5px auto 0 auto;
     border-radius: 5px;
     box-shadow: 0 0 5px #1D2533;
     background-color: whitesmoke;
