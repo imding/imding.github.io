@@ -243,7 +243,7 @@ function init() {
                 title: 'Known Issues',
                 content: [
                     { type: 'p', html: 'Given the expected learner input is an [samp::<img>] tag with flexible [samp::src] value, use the following workaround:' },
-                    { type: 'code', code: 'const input = code.html.editable[0];\ncode.html.editable[0] = input.replace(/src\\s?=\\s?(\'|")[^\'"]+\\1/, "#");\npass.if.html.editable(0).equivalent("<img src=\'#\'>");' },
+                    { type: 'code', code: 'const input = code.html.editable[0];\ncode.html.editable[0] = input.replace(/src\\s?=\\s?(\'|")[^\'"]+\\1/, "src=\'#\'");\npass.if.html.editable(0).equivalent("<img src=\'#\'>");' },
                 ],
             }],
         }, {

@@ -109,7 +109,7 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Introduce [em::native] & [em::hybrid development] using this [slide::#][sup::wip], how they differenciate and their pro/con.' },
+                    { type: 'p', html: 'Introduce [em::native] & [em::hybrid development] using this [slide::https://drive.google.com/open?id=1VJmaS-b3QBLPaPFPL-h1YoCpxIlOIf3XH8KoJEiQJ9o], how they differenciate and their pro/con.' },
                     { type: 'p', html: 'Include the [em::frameworks] that will be used later on.' },
                     { type: 'p', html: 'Mention that [em::web languages] are requirements for hybrid development.' },
                     { type: 'p', html: '[u::Unplugged]: inspect element.' },
@@ -164,7 +164,7 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Revisit the concept of frameworks using previous [slide::#][sup::wip].' },
+                    { type: 'p', html: 'Revisit the concept of frameworks using previous [slide::https://drive.google.com/open?id=1VJmaS-b3QBLPaPFPL-h1YoCpxIlOIf3XH8KoJEiQJ9o].' },
                     { type: 'p', html: '[u::Unplugged][sup::wip]: interpreter.' },
                     { type: 'p', html: 'Walkthrough sandbox template for the class to [em::set up] Framework7 using this [slides::https://docs.google.com/presentation/d/1a7Qgs74Xl_e_hbwQ4PWPqwcAiU2VWr71oAsX9vCvd5k/edit#slide=id.g4078c7e29c_1_0].' },
                     { type: 'p', html: 'Create a basic interface using the [guided project::https://app.bsd.education/project/get-started-with-mobile-app-development-using-framework7] on the platform.' },
@@ -213,7 +213,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Intro to event [em::listener] & [em::handler].' },
-                    { type: 'p', html: 'Start [guided project::#][sup::wip] to learn about [em::keyboard events], [em::pointer events] & [em::custom events] such as [u::long press].' },
+                    { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/event-handling-in-javascript] to learn about [em::keyboard events], [em::pointer events] & [em::custom events] such as [u::long press].' },
                     { type: 'p', html: '[u::Challenge]: responding to the double click event.' },
                 ],
             }],
@@ -224,7 +224,7 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Start [guided project::#][sup::wip] to add events for the to-do list.' },
+                    { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---part-2---event-handling] to add events for the to-do list.' },
                 ],
             }],
         }],
@@ -238,7 +238,7 @@ function init() {
                     { type: 'p', html: 'Using [em::inspect element], show how elements can be added & removed from [this page::https://app.bsd.education/share/V8Wow2aT/].' },
                     { type: 'p', html: 'Show how attributes and content of elements can also be modified at [em::runtime] in this [sandbox::#][sup::wip].' },
                     { type: 'p', html: '[u::Unplugged]: Why are these things useful for a web app?' },
-                    { type: 'p', html: 'Start [guided project::#][sup::wip].' },
+                    { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/document-object-model-manipulation].' },
                 ],
             }],
         }],
@@ -249,7 +249,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Revise the process of adding elements to an F7 app using custom [em::attributes] & [em::class] names.' },
-                    { type: 'p', html: 'Start the to-do list functionality [project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---part-2---event-handling].' },
+                    { type: 'p', html: 'Start the to-do list functionality [project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---dynamic-content].' },
                 ],
             }],
         }],
@@ -323,7 +323,7 @@ function init() {
                     { type: 'p', html: 'Complete the [sandbox template::#][sup::wip] to learn & practice how to work with the geolocation API.' },
                     { type: 'p', html: 'Latitude & longtitude values do not mean very much to the average person so we should [em::convert it].' },
                     { type: 'p', html: 'Introduce the [Google Map::https://www.w3schools.com/html/tryit.asp?filename=tryhtml5_geolocation_map_script] API.' },
-                    { type: 'p', html: 'Continue with the [same sandbox::#][sup::wip] template to learn & practice using the Google Map API.' },
+                    { type: 'p', html: 'Continue with the [same sandbox::https://app.bsd.education/sandbox/gn1rUukp] template to learn & practice using the Google Map API.' },
                 ],
             }],
         }],

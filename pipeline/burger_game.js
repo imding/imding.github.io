@@ -14,7 +14,7 @@ function init() {
 
     const nodesData = [
         ['Day 1', [
-            'Web Fundamentals',
+            'Web & Game Fundamentals',
             //  what are web applications & how to build one
             //  the browser & web languages
             //  inspect element
@@ -32,6 +32,9 @@ function init() {
         ]],
         ['>> Day 3', [
             'Intermediate JS',
+            //  scope
+            //  loops
+
             '>> Game Mechanics',
         ]],
         ['>> Day 4', [
@@ -46,7 +49,7 @@ function init() {
     ];
 
     const cardsData = [{
-        deck: 'webFundamentals',
+        deck: 'webGameFundamentals',
         cards: [{
             title: 'Lesson Outline',
             sections: [{
