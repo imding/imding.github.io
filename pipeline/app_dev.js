@@ -96,7 +96,7 @@ function init() {
             //  start guided project
             //  converting lat long values to readable format
 
-            '>> Enhance Review App',
+            '>> Review App User Location',
             //  add the geolocation feature
         ]],
         '>> GoNative',
@@ -177,7 +177,7 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Start the to-do list UI [guided project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---part-1---ui].' },
+                    { type: 'p', html: 'Start the to-do list UI [guided project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---ui].' },
                     { type: 'p', html: '[u::Extension]: [em::customise] the to-do list.' },
                 ],
             }],
@@ -213,7 +213,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Intro to event [em::listener] & [em::handler].' },
-                    { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/event-handling-in-javascript] to learn about [em::keyboard events], [em::pointer events] & [em::custom events] such as [u::long press].' },
+                    { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---event-handling] to learn about [em::keyboard events], [em::pointer events] & [em::custom events] such as [u::long press].' },
                     { type: 'p', html: '[u::Challenge]: responding to the double click event.' },
                 ],
             }],
@@ -236,7 +236,7 @@ function init() {
                 content: [
                     { type: 'p', html: 'Define static & [em::dynamic websites].' },
                     { type: 'p', html: 'Using [em::inspect element], show how elements can be added & removed from [this page::https://app.bsd.education/share/V8Wow2aT/].' },
-                    { type: 'p', html: 'Show how attributes and content of elements can also be modified at [em::runtime] in this [sandbox::#][sup::wip].' },
+                    { type: 'p', html: 'Show how attributes and content of elements can also be modified at [em::runtime] in this [sandbox::https://app.bsd.education/sandbox/ifJayW74].' },
                     { type: 'p', html: '[u::Unplugged]: Why are these things useful for a web app?' },
                     { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/document-object-model-manipulation].' },
                 ],
@@ -264,7 +264,7 @@ function init() {
                     { type: 'p', html: 'Revisit the flow chart and [em::identify] which data point needs to be sent to the cloud.' },
                     { type: 'p', html: '[em::Modify] the flow chart to include the additional operations required for the app to become database enabled.' },
                     { type: 'p', html: 'Walkthrough the process of [em::setting up] Firebase using [slides::https://drive.google.com/open?id=1fc1flrJuhXBRHXDsAtd7SsCpe71Zr_Lm7TOLL9Po5Iw].' },
-                    { type: 'p', html: 'Demo [em::pinging] the database using this [sandbox::#][sup::wip].' },
+                    { type: 'p', html: 'Demo [em::pinging] the database using this [sandbox::https://app.bsd.education/sandbox/djBpqeMe].' },
                 ],
             }],
         }],
@@ -298,7 +298,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Start [guided project::#][sup::wip] to create the [em::offline version] of review app.' },
-                    { type: 'p', html: '[Sandbox::https://app.bsd.education/sandbox/bTprP2cz]' },
+                    { type: 'p', html: '[Sandbox::https://app.bsd.education/sandbox/ydExsF28]' },
                 ],
             }],
         }],
@@ -320,15 +320,15 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Discuss how the [geolocation::https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API] can improve the review app?' },
-                    { type: 'p', html: 'Complete the [sandbox template::#][sup::wip] to learn & practice how to work with the geolocation API.' },
+                    { type: 'p', html: 'Complete the [sandbox template::https://app.bsd.education/sandbox/ydExsF28] to learn & practice how to work with the geolocation API.' },
                     { type: 'p', html: 'Latitude & longtitude values do not mean very much to the average person so we should [em::convert it].' },
-                    { type: 'p', html: 'Introduce the [Google Map::https://www.w3schools.com/html/tryit.asp?filename=tryhtml5_geolocation_map_script] API.' },
-                    { type: 'p', html: 'Continue with the [same sandbox::https://app.bsd.education/sandbox/gn1rUukp] template to learn & practice using the Google Map API.' },
+                    { type: 'p', html: 'Introduce the [Google Map::https://app.bsd.education/sandbox/SG3nzyvf] API.' },
+                    { type: 'p', html: 'Continue with the [same sandbox::https://app.bsd.education/sandbox/ydExsF28] template to learn & practice using the Google Map API.' },
                 ],
             }],
         }],
     }, {
-        deck: 'enhanceReviewApp',
+        deck: 'reviewAppUserLocation',
         cards: [{
             title: 'Lesson App',
             sections: [{
