@@ -45,21 +45,17 @@ function init() {
             //  intro to JS + projects ( trivia game, etc... )
         ]],
 
-        ['>> Events', [
+        ['>> Dynamic Behaviour', [
             'Listener & Handler',
             //  intro to event handling
             //  guided project: onkeyup, onkeydown, keycode, onclick, preventDefault
             //  challenge: double click, etc...
             
-            '>> To-do List Events',
-            //  guided project for adding events to the to-do list
-        ]],
-        ['>> DOM', [
-            'Document Object Manager',
+            '>> The DOM',
             //  intro to DOM and working with it
             //  guided project: createElement, createTextNode, appendChild, removeChild, setAttribute
 
-            '>> To-do List UI Update',
+            '>> To-do List Behaviour',
             //  recap: adding UI elements with F7
             //  guided project for to-do list functionality
         ]],
@@ -219,17 +215,7 @@ function init() {
             }],
         }],
     }, {
-        deck: 'todoListEvents',
-        cards: [{
-            title: 'Lesson Outline',
-            sections: [{
-                content: [
-                    { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---part-2---event-handling] to add events for the to-do list.' },
-                ],
-            }],
-        }],
-    }, {
-        deck: 'documentObjectManager',
+        deck: 'theDom',
         cards: [{
             title: 'Lesson Outline',
             sections: [{
@@ -243,7 +229,7 @@ function init() {
             }],
         }],
     }, {
-        deck: 'todoListUiUpdate',
+        deck: 'todoListBehaviour',
         cards: [{
             title: 'Lesson Outline',
             sections: [{
@@ -274,7 +260,7 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Start [guided project::#][sup::wip] to add the database component to the to-do list.' },
+                    { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---part-5---database] to add the database component to the to-do list.' },
                 ],
             }],
         }],
