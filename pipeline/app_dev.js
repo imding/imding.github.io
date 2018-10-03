@@ -221,8 +221,8 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Define static & [em::dynamic websites].' },
-                    { type: 'p', html: 'Using [em::inspect element], show how elements can be added & removed from [this page::https://app.bsd.education/share/V8Wow2aT/].' },
                     { type: 'p', html: 'Show how attributes and content of elements can also be modified at [em::runtime] in this [sandbox::https://app.bsd.education/sandbox/ifJayW74].' },
+                    { type: 'p', html: 'Using [em::inspect element], show how elements can be added & removed from [this page::https://app.bsd.education/share/V8Wow2aT/].' },
                     { type: 'p', html: '[u::Unplugged]: Why are these things useful for a web app?' },
                     { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/document-object-model-manipulation].' },
                 ],
