@@ -1,51 +1,27 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <link rel="stylesheet" type="text/css" href="style.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <h1 id='title'>Burger Game</h1>
+    <div id='title'>Burger Stacker</div>
 
-    <div id="gameWindow">
-        <div id="stackContainer">
-            <div id="stackBase"></div>
-        </div>
-
-        <div id="notification">
-            <p id="gameInfo"></p>
-            <div id="theButton">BUTTON</div>
-        </div>
-
-        <div id="ctrlInfoFrame">
-            <div id="keyOne" data-value="1" class="keyGuides">
-                1
-                <img src="https://app.bsd.education/resources/beef.png" data-value="1" />
-            </div>
-            <div id="keyTwo" data-value="2" class="keyGuides">
-                2
-                <img src="https://app.bsd.education/resources/lettuce.png" data-value="2" />
-            </div>
-            <div id="keyThree" data-value="3" class="keyGuides">
-                3
-                <img src="https://app.bsd.education/resources/cheese.png" data-value="3" />
-            </div>
-            <div id="keyFour" data-value="4" class="keyGuides">
-                4
-                <img src="https://app.bsd.education/resources/onion.png" data-value="4" />
-            </div>
-        </div>
+    <div id='stage'>
+        <div id='stackBase'></div>
     </div>
 
-    <div class="copyright">
-        Icons made by
-        <a href="http://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a>
-        is licensed by
-        <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC3.0 BY</a>
+    <div id='control'>
+        <button id='opt1' class='opts'></button>
+        <button id='opt2' class='opts'></button>
+        <button id='opt3' class='opts'></button>
+        <button id='opt4' class='opts'></button>
+    </div>
+    
+    <div id='notification'>
+        <div id='info'></div>
+        <div id='action' hidden></div>
     </div>
 
-    <script type="text/javascript" src="script.js"></script>
+    <script src="script.js"></script>
 </body>
-
 </html>

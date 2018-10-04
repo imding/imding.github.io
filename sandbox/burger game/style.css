@@ -1,278 +1,152 @@
-/* CSS */
 
-@import url('https://fonts.googleapis.com/css?family=Chelsea+Market');
-body {
-    font-family: 'Chelsea Market', cursive;
+@import url('https://fonts.googleapis.com/css?family=Bangers|Rancho');
+
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body, html {
+    height: 100%;
     margin: 0;
-    padding: 0;
+    text-align: center;
+    font-family: 'Bangers';
+    background-color: lightblue;
 }
 
 #title {
-    color: darkslategrey;
-    text-align: center;
+    font-size: 8vh;
+    height: 15vh;
+    padding-top: 3vh;
+    border-style: double;
+    border-color: royalblue;
+    border-width: 0 0 10px 0;
+    color: royalblue;
+    background-color: mintcream;
+    white-space: nowrap;
 }
 
-#gameWindow {
+#stage {
     position: relative;
-    margin: auto;
-    width: 1024px;
-    height: 576px;
-    background-color: slategrey;
-    overflow: hidden;
+    height: 70vh;
+}
+
+#stackCap, #stackBase {
+    position: absolute;
+    left: calc(50vw - 100px);
+    width: 200px;
+    background-color: peru;
+}
+
+#stackBase {
+    top: calc(90% - 35px);
+    height: 35px;
+    border-radius: 10px 10px 35px 35px;
+}
+
+#stackCap {
+    height: 45px;
+    border-radius: 45px 45px 10px 10px;
+}
+
+#stackCap, #stackBase, .slice {
+    border: solid 2px rgba(0, 0, 0, 0.1);
+}
+
+.slice {
+    position: absolute;
+    border-radius: 10px;
+}
+
+.meat {
+    background-color: sienna;
+    left: calc(50vw - 98px);
+    width: 196px;
+    height: 20px;
+}
+.lettuce {
+    background-color: forestgreen;
+    left: calc(50vw - 105px);
+    width: 210px;
+    height: 24px;
+}
+.cheese {
+    background-color: gold;
+    left: calc(50vw - 90px);
+    width: 180px;
+    height: 12px;
+}
+.onion {
+    background-color: lemonchiffon;
+    left: calc(50vw - 88px);
+    width: 176px;
+    height: 16px;
+}
+
+#control {
+    display: flex;
+    position: absolute;
+    bottom: 0;
+    width: 100vw;
+    height: 15vh;
+}
+
+.opts {
+    flex: 1;
+    margin: 0 10px;
+    width: 25vw;
+    height: 100%;
+    border: none;
+    outline: none;
+    border-radius: 20px 20px 0 0;
+    color: rgba(0, 0, 0, 0.6);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 5vh;
+}
+
+#opt1 {
+    background-color: sienna;
+    background-image: url('https://app.bsd.education/resources/beef.png');
+}
+
+#opt2 {
+    background-color: forestgreen;
+    background-image: url('https://app.bsd.education/resources/lettuce.png');
+}
+
+#opt3 {
+    background-color: gold;
+    background-image: url('https://app.bsd.education/resources/cheese.png');
+}
+
+#opt4 {
+    background-color: lemonchiffon;
+    background-image: url('https://app.bsd.education/resources/onion.png');
 }
 
 #notification {
     position: absolute;
-    width: 100%;
-    margin: 20px auto;
-    color: darkslategrey;
-    text-align: center;
-    background: rgba(255, 255, 255, 0.3);
-    user-select: none;
-    cursor: default;
+    left: 50%;
+    top: calc(15vh + 10px);
+    transform: translateX(-50%);
+    width: 90vw;
+    max-width: 500px;
+    padding: 15px 25px;
+    border-radius: 20px;
+    background-color: royalblue;
+    font-family: 'Rancho';
+    font-size: 3vh;
+    opacity: 1;
 }
 
-#gameInfo {
-    width: 100%;
-    color: darkslategrey;
-    font-size: 20px;
-    text-align: center;
-    padding: 0 15px;
-    box-sizing: border-box;
+#info {
+    color: paleturquoise;
 }
 
-#theButton {
-    margin: auto auto 20px;
-    justify-content: center;
-    align-items: center;
-    width: 300px;
-    height: 50px;
-    color: white;
-    font-size: 35px;
-    background: rgba(0, 0, 0, 0.6);
-    cursor: pointer;
-}
-
-.true {
-    color: deepskyblue;
-}
-
-.false {
-    color: darkred;
-}
-
-.hidden {
-    color: white;
-}
-
-#ctrlInfoFrame {
-    position: absolute;
-    display: flex;
-    width: 100%;
-    height: 50px;
-    bottom: -50px;
-}
-
-#ctrlInfoFrame img {
-    width: 35px;
-    height: 35px;
-    user-select: none;
-}
-
-#keyOne {
-    color: #5a2d0c;
-    background: rgba(139, 69, 19, 0.8);
-}
-
-#keyTwo {
-    color: #194d30;
-    background: rgba(46, 139, 87, 0.8);
-}
-
-#keyThree {
-    color: #665700;
-    background: rgba(255, 215, 0, 0.8);
-}
-
-#keyFour {
-    color: #665c00;
-    background: rgba(255, 250, 205, 0.8);
-}
-
-.keyGuides {
-    flex: 1;
-    text-align: center;
-    font-size: 41px;
-    cursor: pointer;
-    user-select: none;
-}
-
-.guidesAnim {
-    animation: guidesIn 0.5s ease-out forwards;
-}
-
-@keyframes guidesIn {
-    from {
-        opacity: 0;
-        bottom: -50px;
-    }
-    to {
-        opacity: 1;
-        bottom: 0px;
-    }
-}
-
-#stackContainer {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-}
-
-#stackBase {
-    position: absolute;
-    left: calc(50% - 100px);
-    bottom: 80px;
-    width: 200px;
-    height: 35px;
-    border-radius: 7px 7px 40px 40px;
-    border: 2px solid #83421d;
-    box-sizing: border-box;
-    background: linear-gradient(#db7328, #83421d);
-    transform: scale(1, 1);
-}
-
-.popIn {
-    animation: popAnim 0.5s ease-out forwards;
-}
-
-.popOut {
-    animation: popOutAnim 0.5s ease-out forwards;
-    animation-delay: 0s !important;
-}
-
-@keyframes popAnim {
-    0% {
-        opacity: 0;
-        transform: scale(0.5, 0.5);
-    }
-    50% {
-        transform: scale(1.1, 1.1);
-    }
-    80% {
-        transform: scale(0.9, 0.9);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1, 1);
-    }
-}
-
-@keyframes popOutAnim {
-    0% {
-        opacity: 1;
-        transform: scale(1, 1) translateY(0);
-    }
-    20% {
-        transform: scale(1.2, 1.2);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(0.5, 0.5) translateY(-30px);
-    }
-}
-
-.stackCap {
-    position: absolute;
-    width: 200px;
-    height: 45px;
-    opacity: 0;
-    left: calc(50% - 100px);
-    border-radius: 40px 40px 7px 7px;
-    border: 2px solid #83421d;
-    box-sizing: border-box;
-    background: linear-gradient(#83421d, #db7328);
-}
-
-.beef {
-    position: absolute;
-    width: 196px;
-    height: 20px;
-    opacity: 0;
-    left: calc(50% - 98px);
+#action {
+    margin: 10px auto 0 auto;
     border-radius: 8px;
-    border: 2px solid #5a2d0c;
-    box-sizing: border-box;
-    background: linear-gradient(#944b18, #5a2d0c);
-}
-
-.lettuce {
-    position: absolute;
-    width: 210px;
-    height: 24px;
-    opacity: 0;
-    left: calc(50% - 105px);
-    border-radius: 10px;
-    border: 2px solid #194d30;
-    box-sizing: border-box;
-    background: linear-gradient(#239758, #194d30);
-}
-
-.cheese {
-    position: absolute;
-    width: 180px;
-    height: 12px;
-    opacity: 0;
-    left: calc(50% - 90px);
-    border-radius: 5px;
-    border: 2px solid #665700;
-    box-sizing: border-box;
-    background: linear-gradient(#dbbb06, #7e6b02);
-}
-
-.onion {
-    position: absolute;
-    width: 176px;
-    height: 16px;
-    opacity: 0;
-    left: calc(50% - 88px);
-    border-radius: 12px;
-    border: 2px solid #b8ae56;
-    box-sizing: border-box;
-    background: linear-gradient(#fffacd, #b8ae56);
-}
-
-.stackAnim {
-    animation: fadeOut 0.5s ease forwards;
-}
-
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-    }
-    to {
-        opacity: 0;
-    }
-}
-
-.copyright {
-    font-size: 12px;
-    padding: 10px;
-    margin-top: 20px;
-    text-align: center;
-}
-
-@media only screen and (max-width: 1024px) {
-    #gameWindow {
-        width: 100%;
-    }
-    #gameInfo {
-        font-size: 20px;
-    }
-    #theButton {
-        font-size: 24px;
-    }
-    #ctrlInfoFrame img {
-        width: 28px;
-        height: 28px;
-    }
+    color: whitesmoke;
+    cursor: pointer;
 }
