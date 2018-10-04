@@ -6,6 +6,20 @@
     user-select: none;
 }
 
+#stackBase, #stackCap, .slice, #notification {
+    position: absolute;
+}
+
+#stackCap, #stackBase, .slice {
+    border: solid 2px rgba(0, 0, 0, 0.1);
+}
+
+#stackCap, #stackBase {
+    left: calc(50vw - 100px);
+    width: 200px;
+    background-color: peru;
+}
+
 body, html {
     height: 100%;
     margin: 0;
@@ -31,30 +45,18 @@ body, html {
     height: 70vh;
 }
 
-#stackCap, #stackBase {
-    position: absolute;
-    left: calc(50vw - 100px);
-    width: 200px;
-    background-color: peru;
-}
-
 #stackBase {
     top: calc(90% - 35px);
     height: 35px;
-    border-radius: 10px 10px 35px 35px;
+    border-radius: 10px 10px 30px 30px;
 }
 
 #stackCap {
-    height: 45px;
-    border-radius: 45px 45px 10px 10px;
-}
-
-#stackCap, #stackBase, .slice {
-    border: solid 2px rgba(0, 0, 0, 0.1);
+    height: 50px;
+    border-radius: 50px 50px 10px 10px;
 }
 
 .slice {
-    position: absolute;
     border-radius: 10px;
 }
 
@@ -85,8 +87,6 @@ body, html {
 
 #control {
     display: flex;
-    position: absolute;
-    bottom: 0;
     width: 100vw;
     height: 15vh;
 }
@@ -126,7 +126,6 @@ body, html {
 }
 
 #notification {
-    position: absolute;
     left: 50%;
     top: calc(15vh + 10px);
     transform: translateX(-50%);

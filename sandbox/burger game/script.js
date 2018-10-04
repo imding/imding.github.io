@@ -7,53 +7,48 @@ var lastSlice = stackBase;
 var demoStack;
 var inputOptions = document.querySelectorAll('.opts');
 
-inputOptions.forEach((opt, i) => {
-    opt.onclick = function() {
-        var newSlice = createSliceByIndex(i);
+disableInput();
+newBurger();
 
-        lastSlice = newSlice;
+inputOptions.forEach((opt, i) => {
+    opt.onclick = function () {
+        lastSlice = createSliceByIndex(i);
 
         // check for player input
-        var demoSlice = demoStack.shift();
+        var expected = demoStack.shift();
 
-        if (newSlice.className != demoSlice.className) {
-            fail();
-        } else if (demoStack.length === 0) {
-            success();
+        if (lastSlice.className != expected.className) {
+            info.textContent = "Nice try, but that wasn't quite right.";
+            action.textContent = 'Retry';
+
+            resetBurger();
+        }
+        else if (demoStack.length === 0) {
+            info.textContent = "Well done! Let's see you challenge the next burger.";
+            action.textContent = 'Next';
+
+            stackSize++;
+            stackCap = createSliceByIndex(4);
+
+            resetBurger();
         }
     };
 });
 
-disableInput();
-newBurger();
-
-function fail() {
+function resetBurger() {
     disableInput();
     notification.style.opacity = 1;
-    info.textContent = "Nice try, but that wasn't quite right.";
     action.hidden = false;
-    action.textContent = 'Retry';
-    action.onclick = newBurger;
-}
-
-function success() {
-    stackCap = createSliceByIndex(4);
-    disableInput();
-    notification.style.opacity = 1;
-    info.textContent = "Well done! Let's see you challenge the next burger.";
-    action.hidden = false;
-    action.textContent = 'Next';
-    stackSize++;
     action.onclick = newBurger;
 }
 
 function newBurger() {
     clearSlices();
     demoStack = [];
-    
+
     info.textContent = 'Watch closely and memerise the burger stack';
     action.hidden = true;
-    
+
     startDemo();
     setTimeout(clearSlices, delay);
     setTimeout(enableInput, delay);
@@ -73,12 +68,12 @@ function startDemo() {
 
 function clearSlices() {
     lastSlice = stackBase;
-    
+
     if (stackCap) {
         stage.removeChild(stackCap);
         stackCap = null;
     }
-    
+
     document.querySelectorAll('.slice').forEach(slice => stage.removeChild(slice));
 }
 
@@ -86,29 +81,30 @@ function createSliceByIndex(n) {
     var slice = document.createElement('div');
 
     if (n < 4) {
-        slice.classList.add('slice');
+        slice.className = 'slice';
 
         if (n === 0) {
             slice.classList.add('meat');
-        } else if (n === 1) {
+        }
+        else if (n === 1) {
             slice.classList.add('lettuce');
-        } else if (n === 2) {
+        }
+        else if (n === 2) {
             slice.classList.add('cheese');
-        } else if (n === 3) {
+        }
+        else if (n === 3) {
             slice.classList.add('onion');
         }
-    } else if (n === 4) {
+    }
+    else if (n === 4) {
         slice.id = 'stackCap';
     }
 
     stage.appendChild(slice);
-    alignWithLastSlice(slice);
+
+    slice.style.top = css(lastSlice, 'top') - css(slice, 'height') + 'px';
 
     return slice;
-}
-
-function alignWithLastSlice(slice) {
-    slice.style.top = css(lastSlice, 'top') - css(slice, 'height') + 'px';
 }
 
 function disableInput() {
@@ -125,7 +121,7 @@ function enableInput() {
         opt.style.filter = 'initial';
         opt.style.cursor = 'pointer';
     });
-    
+
     notification.style.opacity = 0;
 }
 
