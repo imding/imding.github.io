@@ -120,7 +120,7 @@ function init() {
                 content: [
                     { type: 'p', html: 'Follow the standard unit plan for HTML & CSS.' },
                     { type: 'p', html: 'Equip students with the knowledge and skills to bulid a simple web page with appropriate [em::content] & [em::styling].' },
-                    { type: 'p', html: 'Use the provided [instructions::#][sup::wip] to lead the class [em::step-by-step] through creating the web page.' },
+                    { type: 'p', html: 'Use the provided [instructions::https://drive.google.com/open?id=1TvR5feA-usWvtg6nOj2zGndDHcta-CgBomuGQov5ia8] to lead the class [em::step-by-step] through creating the web page.' },
                 ],
             }],
         }, {
@@ -186,8 +186,8 @@ function init() {
                 content: [
                     { type: 'p', html: 'Introduce the concept of [em::flow charts] using [resources::#][sup::wip].' },
                     { type: 'p', html: '[u::Unplugged][sup::wip]: contrast how difficult it is to understand a complex app without the flow chart and vice versa.' },
-                    { type: 'p', html: 'Create flow chart for the to-do list.' },
-                    { type: 'p', html: 'The flow chart is the visualisation of [em::interactivity] between the app and its user, which requires JavaScript to achieve.' },
+                    { type: 'p', html: 'Create [flowchart::https://drive.google.com/open?id=19VfySI86JsYA2Tg3HrpanUel2i293mBIE-BQ5VabMF8] for the to-do list.' },
+                    { type: 'p', html: 'The flowchart is the visualisation of [em::interactivity] between the app and its user, which requires JavaScript to achieve.' },
                 ],
             }],
         }],
@@ -209,7 +209,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Intro to event [em::listener] & [em::handler].' },
-                    { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/developing-a-todo-list-mobile-app---event-handling] to learn about [em::keyboard events], [em::pointer events] & [em::custom events] such as [u::long press].' },
+                    { type: 'p', html: 'Start [guided project::https://app.bsd.education/project/event-handling-in-javascript] to learn about [em::keyboard events], [em::pointer events] & [em::custom events] such as [u::long press].' },
                     { type: 'p', html: '[u::Challenge]: responding to the double click event.' },
                 ],
             }],

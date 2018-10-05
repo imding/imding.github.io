@@ -57,6 +57,14 @@ function newBurger() {
 function startDemo() {
     for (i = 0; i < stackSize; i++) {
         var dice = Math.floor(Math.random() * 4);
+
+        // extension:
+        // var dice;
+
+        // do {
+        //     dice = Math.floor(Math.random() * 4);
+        // } while (lastSlice.className.includes(getSliceNameByIndex(dice)));
+
         var newSlice = createSliceByIndex(dice);
 
         demoStack.push(newSlice);
@@ -79,22 +87,11 @@ function clearSlices() {
 
 function createSliceByIndex(n) {
     var slice = document.createElement('div');
+    var name = getSliceNameByIndex(n);
 
     if (n < 4) {
         slice.className = 'slice';
-
-        if (n === 0) {
-            slice.classList.add('meat');
-        }
-        else if (n === 1) {
-            slice.classList.add('lettuce');
-        }
-        else if (n === 2) {
-            slice.classList.add('cheese');
-        }
-        else if (n === 3) {
-            slice.classList.add('onion');
-        }
+        slice.classList.add(name);
     }
     else if (n === 4) {
         slice.id = 'stackCap';
@@ -105,6 +102,21 @@ function createSliceByIndex(n) {
     slice.style.top = css(lastSlice, 'top') - css(slice, 'height') + 'px';
 
     return slice;
+}
+
+function getSliceNameByIndex(n) {
+    if (n === 0) {
+        return 'meat';
+    }
+    else if (n === 1) {
+       return 'lettuce';
+    }
+    else if (n === 2) {
+       return 'cheese';
+    }
+    else if (n === 3) {
+       return 'onion';
+    }
 }
 
 function disableInput() {

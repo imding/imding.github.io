@@ -72,6 +72,7 @@ function init() {
             //  scope
             
             '>> Game Mechanics',
+            //  guided project to 
             
             '>> CSS Animation',
             //  animation property in CSS
@@ -92,7 +93,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Welcome and set expectations.' },
-                    { type: 'p', html: 'Intro to the web and [em::web apps].' },
+                    { type: 'p', html: 'Intro to the [web languages::https://youtu.be/gT0Lh1eYk78].' },
                     { type: 'p', html: 'Look under the hood of a popular [web game::http://slither.io] using [em::inspect element].' },
                     { type: 'p', html: 'Set up [em::user accounts] on the platform.' },
                     { type: 'p', html: 'Explain [em::projects] & [em::sandbox] modes.' },
@@ -105,7 +106,8 @@ function init() {
             title: 'Lesson Outline',
             sections: [{
                 content: [
-                    { type: 'p', html: 'In sandbox mode, clone a popular [web page::http://google.com].' },
+                    { type: 'p', html: 'In sandbox mode, clone the popular [Google page::http://www.google.com].' },
+                    { type: 'p', html: 'Achieve the HTML part of this [sandbox::https://app-staging.bsd.education/sandbox/DsDXJbE1].' },
                     { type: 'p', html: 'Quiz the class on terminologies such as [em::elements], [em::tags], [em::attributes] & [em::content].' },
                     { type: 'p', html: 'Demonstrate how [samp::id] & [samp::class] names can help manage HTML elements, involve [em::minimal CSS] here.' },
                     { type: 'p', html: 'Challenge the class to [em::debug] broken HTML code.' },
@@ -119,7 +121,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Break the role of CSS down into 3 categories: [em::size], [em::position] & [em::appearance].' },
-                    { type: 'p', html: 'Illustrate the different processes using [em::sandbox mode].' },
+                    { type: 'p', html: 'Continue with the Google clone [sandbox::https://app-staging.bsd.education/sandbox/DsDXJbE1] and faithfully reproduce the original by [em::adding CSS].' },
                 ],
             }],
         }, {
@@ -205,7 +207,8 @@ function init() {
                 content: [
                     { type: 'p', html: 'Introduce the concept of [em::events], [em::listeners] & [em::handlers].' },
                     { type: 'p', html: '[u::Unplugged]: react to this [sandbox::https://app-staging.bsd.education/sandbox/f6jrgMR1].' },
-                    { type: 'p', html: 'Walkthrough creating this [sandbox::https://app-staging.bsd.education/sandbox/vyzy5j93] with the class.' },
+                    { type: 'p', html: 'For [em::mouse events], walkthrough creating the [clicker game::https://app-staging.bsd.education/sandbox/vyzy5j93] with the class.' },
+                    { type: 'p', html: 'For [em::keyboard events], walkthrough creating the [Pac-man sandbox::https://app-staging.bsd.education/sandbox/SRsSW8UC] with the class.' },
                 ],
             }],
         }],
@@ -216,8 +219,8 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Explain the concept of [em::runtime].' },
-                    { type: 'p', html: 'Teach how to add/remove elements from a page using this [sandbox::https://app-staging.bsd.education/sandbox/9Ari2mQ2]' },
-                    { type: 'p', html: 'Create composite elements such as in this [sandbox::https://app-staging.bsd.education/sandbox/hnqigHcB]' },
+                    { type: 'p', html: 'Teach how to add/remove elements from a page using this [sandbox::https://app-staging.bsd.education/sandbox/9Ari2mQ2].' },
+                    { type: 'p', html: 'Create composite elements such as a light bulb in this [sandbox::https://app-staging.bsd.education/sandbox/hnqigHcB].' },
                 ],
             }],
         }],
@@ -228,12 +231,37 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Introduce the [em::2 techniques] of styling elements using JS.' },
-                    { type: 'p', html: 'Technique 1: define CSS rules beforehand and assgin the corresponding [em::id/class] name to newly create elements.' },
+                    { type: 'p', html: '[em::Technique 1]: define CSS rules beforehand and assgin the corresponding [em::id/class] name to newly create elements, which is what the class did in the light bulb exercise.' },
                     { type: 'code', code: 'var el = document.createElement("div");\nel.className = "circle";' },
-                    { type: 'p', html: 'Technique 2: directly modify the [samp::style] object of HTMl element in JS, be sure to remove the [samp::"-"] symbol and [em::camelise] the CSS property names.' },
+                    { type: 'p', html: '[em::Technique 2]: directly modify the [samp::style] object of HTMl element in JS, be sure to remove the [samp::"-"] symbol and [em::camelise] the CSS property names, as in the [Pac-man sandbox::https://app-staging.bsd.education/sandbox/SRsSW8UC].' },
                     { type: 'code', code: 'circle.style.backgroundColor = "red";' },
-                    { type: 'p', html: 'Teach how to add/remove elements from a page using this [sandbox::https://app-staging.bsd.education/sandbox/9Ari2mQ2]' },
-                    { type: 'p', html: 'Create composite elements such as in this [sandbox::https://app-staging.bsd.education/sandbox/hnqigHcB]' },
+                    { type: 'p', html: 'Pose a [challenge::#][sup::wip] for the class to style a page using JS only.' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'theArray',
+        cards: [{
+            title: 'Lesson Outline',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'Introduce the concept of [em::arrays].' },
+                    { type: 'p', html: 'Provide [em::good example] of an array, i.e. the array represents a category of which each item is a member.' },
+                    { type: 'code', code: 'var fruits = ["apple", "orange", "kiwi"];' },
+                    { type: 'p', html: 'A [em::bad example] of array:' },
+                    { type: 'code', code: 'var things = [42, "car", false]' },
+                    { type: 'p', html: 'Teach the class how to work with arrays using the [samp::length], [samp::push], [samp::unshift], [samp::pop] & [samp::shift] methods using this [sandbox::#][sup::wip].' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'usingLoops',
+        cards: [{
+            title: 'Lesson Outline',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'Introduce [scenarios::#][sup::wip] where it is impractical without loops.' },
+                    { type: 'p', html: 'Explain how the [samp::while] loop works using this [sandbox::#][sup::wip].' },
                 ],
             }],
         }],
