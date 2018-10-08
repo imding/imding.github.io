@@ -364,7 +364,7 @@ function updateStyledInstruction() {
 
 function convertLineNumber() {
     let siClone = styledInstruction.innerHTML;
-    const markupReg = /##LINE\('([^']+)','([^']+)'\)([+-]\d)*##/;
+    const markupReg = /##LINE\('([^']+)','([^']+)'\)([+-]\d+)*##/;
 
     storeActiveCode();
 

@@ -196,6 +196,7 @@ function init() {
                 content: [
                     { type: 'p', html: 'Teach [em::variables] & [em::functions] using this [sandbox::https://app-staging.bsd.education/sandbox/JUaYsStN].' },
                     { type: 'p', html: 'Explain [em::arithmetic operators].' },
+                    { type: 'p', html: 'Demonstrate the [samp::return] syntax.' },
                 ],
             }],
         }],
@@ -262,6 +263,73 @@ function init() {
                 content: [
                     { type: 'p', html: 'Introduce [scenarios::#][sup::wip] where it is impractical without loops.' },
                     { type: 'p', html: 'Explain how the [samp::while] loop works using this [sandbox::#][sup::wip].' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'jsIntermediate',
+        cards: [{
+            title: 'Lesson Outline',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'Explain the concept of [em::scope].' },
+                    { type: 'p', html: 'Function [em::arguments] & [em::return] syntax.' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'cssAnimation',
+        cards: [{
+            title: 'Lesson Outline',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'Introduce the [samp::@keyframes] rule & [samp::animation] property in CSS.' },
+                    { type: 'p', html: 'Demonstrate how they [em::work together].' },
+                    { type: 'p', html: '.' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'customisation',
+        cards: [{
+            title: 'Lesson Outline',
+            sections: [{
+                content: [
+                    { type: 'p', html: '.' },
+                    { type: 'p', html: '.' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'testDebug',
+        cards: [{
+            title: 'Lesson Outline',
+            sections: [{
+                content: [
+                    { type: 'p', html: '.' },
+                    { type: 'p', html: '.' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'tournament',
+        cards: [{
+            title: 'Lesson Outline',
+            sections: [{
+                content: [
+                    { type: 'p', html: '.' },
+                    { type: 'p', html: '.' },
+                ],
+            }],
+        }],
+    }, {
+        deck: 'presentation',
+        cards: [{
+            title: 'Lesson Outline',
+            sections: [{
+                content: [
+                    { type: 'p', html: '.' },
+                    { type: 'p', html: '.' },
                 ],
             }],
         }],

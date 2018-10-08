@@ -5,7 +5,7 @@ var stackCap;
 var lastSlice = stackBase;
 
 var demoStack;
-var inputOptions = document.querySelectorAll('.opts');
+var inputOptions = document.querySelectorAll('.inputOptions');
 
 disableInput();
 newBurger();
@@ -109,13 +109,13 @@ function getSliceNameByIndex(n) {
         return 'meat';
     }
     else if (n === 1) {
-       return 'lettuce';
+        return 'lettuce';
     }
     else if (n === 2) {
-       return 'cheese';
+        return 'cheese';
     }
     else if (n === 3) {
-       return 'onion';
+        return 'onion';
     }
 }
 

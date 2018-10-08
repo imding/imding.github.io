@@ -61,28 +61,28 @@ body, html {
 }
 
 .meat {
-    background-color: sienna;
     left: calc(50vw - 98px);
     width: 196px;
     height: 20px;
+    background-color: sienna;
 }
 .lettuce {
-    background-color: forestgreen;
     left: calc(50vw - 105px);
     width: 210px;
     height: 24px;
+    background-color: forestgreen;
 }
 .cheese {
-    background-color: gold;
     left: calc(50vw - 90px);
     width: 180px;
     height: 12px;
+    background-color: gold;
 }
 .onion {
-    background-color: lemonchiffon;
     left: calc(50vw - 88px);
     width: 176px;
     height: 16px;
+    background-color: lemonchiffon;
 }
 
 #control {
@@ -91,7 +91,7 @@ body, html {
     height: 15vh;
 }
 
-.opts {
+.inputOptions {
     flex: 1;
     margin: 0 10px;
     width: 25vw;
@@ -99,28 +99,27 @@ body, html {
     border: none;
     outline: none;
     border-radius: 20px 20px 0 0;
-    color: rgba(0, 0, 0, 0.6);
     background-repeat: no-repeat;
     background-position: center;
     background-size: 5vh;
 }
 
-#opt1 {
+#option1 {
     background-color: sienna;
     background-image: url('https://app.bsd.education/resources/beef.png');
 }
 
-#opt2 {
+#option2 {
     background-color: forestgreen;
     background-image: url('https://app.bsd.education/resources/lettuce.png');
 }
 
-#opt3 {
+#option3 {
     background-color: gold;
     background-image: url('https://app.bsd.education/resources/cheese.png');
 }
 
-#opt4 {
+#option4 {
     background-color: lemonchiffon;
     background-image: url('https://app.bsd.education/resources/onion.png');
 }
@@ -140,12 +139,11 @@ body, html {
 }
 
 #info {
-    color: paleturquoise;
+    color: paleturquoise; 
 }
 
 #action {
     margin: 10px auto 0 auto;
-    border-radius: 8px;
     color: whitesmoke;
     cursor: pointer;
 }
