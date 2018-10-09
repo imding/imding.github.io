@@ -81,7 +81,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'A course outline is primarily created to [em::deliver learning outcomes] in which case will become part of school deliverables.' },
-                    { type: 'p', html: 'It is a sequenced reference to [em::existing units] or slight variations thereof.' },
+                    { type: 'p', html: 'It is a list of references to [em::existing units] or slight variations thereof.' },
                     { type: 'p', html: 'All course outlines should be created from this [template::https://docs.google.com/document/d/14A55Xb9RKwOan_dUl7MNdiphGIjrJ9V3YgPmjV-F4vM/edit?usp=sharing].' },
                 ],
             }],
@@ -93,7 +93,7 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: 'Unit outlines can be created for either [em::school deliverables] or BSD-initiated [em::content expansion].' },
-                    { type: 'p', html: 'It is a sequenced reference to [em::lesson plans] plus any [em::resources] required by those lessons.' },
+                    { type: 'p', html: 'It is a list of references to [em::lesson plans] plus any [em::resources] required by those lessons.' },
                     { type: 'p', html: 'All unit outlines should be created from this [template::https://docs.google.com/document/d/1jyBubcZiuRMcvU15c4Dx__EkthAT8PkKI4DxPciyuWI/edit?usp=sharing].' },
                 ],
             }],
@@ -143,7 +143,7 @@ function init() {
                 ],
             }],
         }, {
-            title: 'Coding Projects',
+            title: 'Other Projects',
             sections: [{
                 content: [
                     { type: 'p', html: '...' },
@@ -156,7 +156,7 @@ function init() {
             title: 'Details',
             sections: [{
                 content: [
-                    { type: 'p', html: 'This is a list of technical concepts closely relates to the given [em::learning objectives].' },
+                    { type: 'p', html: 'This is a list of technical concepts closely related to the given [em::learning objectives].' },
                     { type: 'p', html: 'The [em::chronological sequence] or flow of these concepts should offer clear insight as to how [samp::The Result] can be achieved.' },
                     { type: 'p', html: 'Both [em::content & curriculum developers] should participate in finalising the technical flow.' },
                     { type: 'p', html: 'The development of [em::curriculum content] should begin once the technical flow is ready.' },
@@ -261,7 +261,7 @@ function init() {
                 title: 'Known Issues',
                 content: [
                     { type: 'p', html: 'Given the expected learner input is an [samp::<img>] tag with flexible [samp::src] value, use the following workaround:' },
-                    { type: 'code', code: 'const input = code.html.editable[0];\ncode.html.editable[0] = input.replace(/src\\s?=\\s?(\'|")[^\'"]+\\1/, "src=\'#\'");\npass.if.html.editable(0).equivalent("<img src=\'#\'>");' },
+                    { type: 'code', code: 'const input = code.html.editable[0];\ncode.html.editable[0] = input.replace(/src\\s*=\\s*(\'|")[^\'"]+\\1/, "src=\'#\'");\npass.if.html.editable(0).equivalent("<img src=\'#\'>");' },
                 ],
             }],
         }, {
