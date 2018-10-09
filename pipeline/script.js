@@ -44,10 +44,10 @@ function init() {
     const cardsData = [{
         deck: 'schoolEngagement',
         cards: [{
-            title: 'School Engagement',
+            title: 'Details',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Ongoing conversation between BSD sales team and the [em::decision makers] of a school with the aim to enter a partnership.' },
+                    { type: 'p', html: 'Ongoing conversation takes place between our sales team and the [em::decision makers] of a school with the aim to enter a partnership.' },
                     { type: 'p', html: '[em::School departments] and BSD education team may join the conversation, at which point we should start receiving curriculum relevant information such as [em::subject area], [em::age group] & [em::program duration].' },
                     { type: 'p', html: 'All curriculum relevant information must be [em::actively communicated] to the education team.' },
                 ],
@@ -56,7 +56,7 @@ function init() {
     }, {
         deck: 'deliverableDetails',
         cards: [{
-            title: 'Deliverable Details',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: 'Evaluate the resource requirements of the proposed deliverables and [em::manage expectations] accordingly.' },
@@ -77,7 +77,7 @@ function init() {
     }, {
         deck: 'courseOutline',
         cards: [{
-            title: 'Course Outline',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: 'A course outline is primarily created to [em::deliver learning outcomes] in which case will become part of school deliverables.' },
@@ -89,7 +89,7 @@ function init() {
     }, {
         deck: 'unitOutline',
         cards: [{
-            title: 'Unit Outline',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: 'Unit outlines can be created for either [em::school deliverables] or BSD-initiated [em::content expansion].' },
@@ -101,7 +101,7 @@ function init() {
     }, {
         deck: 'teacherInteraction',
         cards: [{
-            title: 'Teacher Interaction',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: 'Teacher interaction will take place before and after the final curriculum delivery.' },
@@ -120,7 +120,7 @@ function init() {
     }, {
         deck: 'theResult',
         cards: [{
-            title: 'The Result',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: 'Our curriculum should always offer [em::Project Based Learning] whenever possible.' },
@@ -153,7 +153,7 @@ function init() {
     }, {
         deck: 'technicalFlow',
         cards: [{
-            title: 'Technical Flow',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: 'This is a list of technical concepts closely relates to the given [em::learning objectives].' },
@@ -166,7 +166,7 @@ function init() {
     }, {
         deck: 'staticSteps',
         cards: [{
-            title: 'Static Steps',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: 'The [em::primary objective] of this process is to define the code in each step such the technical flow is best reflected.' },
@@ -177,11 +177,29 @@ function init() {
                     { type: 'p', html: 'Make sure to remove the [samp::<script>] element if no script file is present.' },
                 ],
             }],
+        }, {
+            title: 'Step Context',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'The [u::content developer] should define the [em::context] of each step in the instruction panel, this can then be improved by the [u::curriculum developer].' },
+                    { type: 'p', html: 'As a [u::soft rule], the definition should include [em::why] the learner must complete the step objectives and [em::how] to do it.' },
+                    { type: 'img', src: 'img/staticStep01.png' },
+                ],
+            }],
+        }, {
+            title: 'Objective Description',
+            sections: [{
+                content: [
+                    { type: 'p', html: 'The description for all objectives should be [em::action items].' },
+                    { type: 'img', src: 'img/staticStep02.png' },
+                    { type: 'p', html: 'Explanation   ' },
+                ],
+            }],
         }],
     }, {
         deck: 'stepExpectation',
         cards: [{
-            title: 'Step Expectation',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: 'Step expectaion (a.k.a. objective testing) is the platform mechanism to [em::capture learner input] and compare it with teacher expectations to [em::determine validity] of the former.' },
@@ -276,7 +294,7 @@ function init() {
     }, {
         deck: 'transitionLogic',
         cards: [{
-            title: 'Transition Logic',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: '...' },
@@ -301,7 +319,7 @@ function init() {
     }, {
         deck: 'projectGuide',
         cards: [{
-            title: 'Project Guide',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: '...' },
@@ -326,7 +344,7 @@ function init() {
     }, {
         deck: 'lessonPlan',
         cards: [{
-            title: 'Lesson Plan',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: '...' },
@@ -351,7 +369,7 @@ function init() {
     }, {
         deck: 'supportMaterials',
         cards: [{
-            title: 'Support Materials',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: '...' },
@@ -376,7 +394,7 @@ function init() {
     }, {
         deck: 'contentEditing',
         cards: [{
-            title: 'Content Editing',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: 'This process is primarily carried out by the [em::Curriculum Developer].' },
@@ -434,7 +452,7 @@ function init() {
     }, {
         deck: 'finalReview',
         cards: [{
-            title: 'Final Review',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: '...' },
@@ -459,7 +477,7 @@ function init() {
     }, {
         deck: 'curriculumDelivery',
         cards: [{
-            title: 'Curriculum Delivery',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: '...' },
@@ -484,7 +502,7 @@ function init() {
     }, {
         deck: 'feedbackHandling',
         cards: [{
-            title: 'Feedback Handling',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: '...' },
@@ -509,7 +527,7 @@ function init() {
     }, {
         deck: 'versionControl',
         cards: [{
-            title: 'Version Control',
+            title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: '...' },
