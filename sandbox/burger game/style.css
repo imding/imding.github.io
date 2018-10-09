@@ -6,37 +6,23 @@
     user-select: none;
 }
 
-#stackBase, #stackCap, .slice, #notification {
-    position: absolute;
-}
-
-#stackCap, #stackBase, .slice {
-    border: solid 2px rgba(0, 0, 0, 0.1);
-}
-
-#stackCap, #stackBase {
-    left: calc(50vw - 100px);
-    width: 200px;
-    background-color: peru;
-}
-
 body, html {
-    height: 100%;
     margin: 0;
     text-align: center;
-    font-family: 'Bangers';
+    overflow: hidden;
     background-color: lightblue;
 }
 
 #title {
-    font-size: 8vh;
     height: 15vh;
     padding-top: 3vh;
-    border-style: double;
-    border-color: royalblue;
+    border: double royalblue;
     border-width: 0 0 10px 0;
-    color: royalblue;
     background-color: mintcream;
+    font-family: 'Bangers';
+    font-size: 8vh;
+    text-align: center;
+    color: royalblue;
     white-space: nowrap;
 }
 
@@ -45,10 +31,59 @@ body, html {
     height: 70vh;
 }
 
-#stackBase {
-    top: calc(90% - 35px);
-    height: 35px;
-    border-radius: 10px 10px 30px 30px;
+#stackCap, #stackBase, .slice, #notification {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#stackCap, #stackBase, .slice {
+    border: solid 2px rgba(0, 0, 0, 0.1);
+}
+
+.slice {
+    border-radius: 10px;
+}
+
+.meat, #option1 {
+    background-color: sienna;
+}
+
+.meat {
+    width: 196px;
+    height: 20px;
+}
+
+.lettuce, #option2 {
+    background-color: forestgreen;
+}
+
+.lettuce {
+    width: 210px;
+    height: 24px;
+}
+
+.cheese, #option3 {
+    background-color: gold;
+}
+
+.cheese {
+    width: 180px;
+    height: 12px;
+}
+
+.onion, #option4 {
+    background-color: lemonchiffon;
+}
+
+.onion {
+    width: 176px;
+    height: 16px;
+}
+
+#stackCap, #stackBase {
+    width: 200px;
+    background-color: peru;
 }
 
 #stackCap {
@@ -56,78 +91,56 @@ body, html {
     border-radius: 50px 50px 10px 10px;
 }
 
-.slice {
-    border-radius: 10px;
+#stackBase {
+    top: 85%;
+    height: 35px;
+    border-radius: 10px 10px 20px 20px;
 }
 
-.meat {
-    left: calc(50vw - 98px);
-    width: 196px;
-    height: 20px;
-    background-color: sienna;
-}
-.lettuce {
-    left: calc(50vw - 105px);
-    width: 210px;
-    height: 24px;
-    background-color: forestgreen;
-}
-.cheese {
-    left: calc(50vw - 90px);
-    width: 180px;
-    height: 12px;
-    background-color: gold;
-}
-.onion {
-    left: calc(50vw - 88px);
-    width: 176px;
-    height: 16px;
-    background-color: lemonchiffon;
-}
-
-#control {
+#controls {
     display: flex;
     width: 100vw;
     height: 15vh;
 }
 
 .inputOptions {
-    flex: 1;
-    margin: 0 10px;
-    width: 25vw;
+    width: 25%;
     height: 100%;
-    border: none;
-    outline: none;
-    border-radius: 20px 20px 0 0;
     background-repeat: no-repeat;
     background-position: center;
     background-size: 5vh;
+    margin: 0 10px;
+    border-radius: 20px 20px 0 0;
+    outline: none;
+    border: none;
+}
+
+.inputOptions:hover {
+    background-size: 5.5vh;
+}
+
+.inputOptions:active {
+    background-size: 5.2vh;
 }
 
 #option1 {
-    background-color: sienna;
     background-image: url('https://app.bsd.education/resources/beef.png');
 }
 
 #option2 {
-    background-color: forestgreen;
     background-image: url('https://app.bsd.education/resources/lettuce.png');
 }
 
 #option3 {
-    background-color: gold;
     background-image: url('https://app.bsd.education/resources/cheese.png');
 }
 
 #option4 {
-    background-color: lemonchiffon;
     background-image: url('https://app.bsd.education/resources/onion.png');
 }
 
 #notification {
-    left: 50%;
-    top: calc(15vh + 10px);
-    transform: translateX(-50%);
+    top: 16vh;
     width: 90vw;
     max-width: 500px;
     padding: 15px 25px;
@@ -135,15 +148,22 @@ body, html {
     background-color: royalblue;
     font-family: 'Rancho';
     font-size: 3vh;
-    opacity: 1;
 }
 
 #info {
-    color: paleturquoise; 
+    color: paleturquoise;
 }
 
 #action {
-    margin: 10px auto 0 auto;
+    margin-top: 10px;
     color: whitesmoke;
     cursor: pointer;
+}
+
+#action:hover {
+    transform: scale(1.1);
+}
+
+#action:active {
+    transform: scale(1.05);
 }

@@ -1,18 +1,33 @@
 var stackSize = 3;
 var delay = stackSize * 1200;
 
-var stackCap;
 var lastSlice = stackBase;
 
 var demoStack;
 var inputOptions = document.querySelectorAll('.inputOptions');
 
-disableInput();
+disableAllOptions();
 newBurger();
 
-inputOptions.forEach((opt, i) => {
-    opt.onclick = function () {
-        lastSlice = createSliceByIndex(i);
+addHandler(inputOptions[0], 0);
+addHandler(inputOptions[1], 1);
+addHandler(inputOptions[2], 2);
+addHandler(inputOptions[3], 3);
+
+window.onkeydown = function () {
+    var keyNumber = Number(event.key);
+
+    if (keyNumber > 0 && keyNumber < 5) {
+        inputOptions[keyNumber - 1].click();
+    }
+    else if (event.key == 'Enter' && !action.hidden) {
+        action.click();
+    }
+};
+
+function addHandler(option, optionIndex) {
+    option.onclick = function () {
+        lastSlice = createSliceByIndex(optionIndex);
 
         // check for player input
         var expected = demoStack.shift();
@@ -28,15 +43,15 @@ inputOptions.forEach((opt, i) => {
             action.textContent = 'Next';
 
             stackSize++;
-            stackCap = createSliceByIndex(4);
+            createSliceByIndex(4);
 
             resetBurger();
         }
     };
-});
+}
 
 function resetBurger() {
-    disableInput();
+    disableAllOptions();
     notification.style.opacity = 1;
     action.hidden = false;
     action.onclick = newBurger;
@@ -46,24 +61,25 @@ function newBurger() {
     clearSlices();
     demoStack = [];
 
-    info.textContent = 'Watch closely and memerise the burger stack';
+    info.textContent = 'Watch closely and memorise the burger stack';
     action.hidden = true;
 
     startDemo();
     setTimeout(clearSlices, delay);
-    setTimeout(enableInput, delay);
+    setTimeout(enableAllOptions, delay);
 }
 
 function startDemo() {
     for (i = 0; i < stackSize; i++) {
-        var dice = Math.floor(Math.random() * 4);
+        //  minimum:
+        // var dice = Math.floor(Math.random() * 4);
 
-        // extension:
-        // var dice;
+        //  extension:
+        var dice;
 
-        // do {
-        //     dice = Math.floor(Math.random() * 4);
-        // } while (lastSlice.className.includes(getSliceNameByIndex(dice)));
+        do {
+            dice = Math.floor(Math.random() * 4);
+        } while (lastSlice.className.includes(getSliceNameByIndex(dice)));
 
         var newSlice = createSliceByIndex(dice);
 
@@ -71,30 +87,27 @@ function startDemo() {
         lastSlice = newSlice;
     }
 
-    stackCap = createSliceByIndex(4);
+    createSliceByIndex(4);
 }
 
 function clearSlices() {
     lastSlice = stackBase;
 
-    if (stackCap) {
-        stage.removeChild(stackCap);
-        stackCap = null;
+    while (stage.children.length > 1) {
+        stage.removeChild(stage.lastChild);
     }
-
-    document.querySelectorAll('.slice').forEach(slice => stage.removeChild(slice));
 }
 
-function createSliceByIndex(n) {
+function createSliceByIndex(index) {
     var slice = document.createElement('div');
-    var name = getSliceNameByIndex(n);
 
-    if (n < 4) {
-        slice.className = 'slice';
-        slice.classList.add(name);
+    if (index < 4) {
+        var className = getSliceNameByIndex(index) + ' slice';
+
+        slice.setAttribute('class', className);
     }
-    else if (n === 4) {
-        slice.id = 'stackCap';
+    else if (index === 4) {
+        slice.setAttribute('id', 'stackCap');
     }
 
     stage.appendChild(slice);
@@ -119,22 +132,32 @@ function getSliceNameByIndex(n) {
     }
 }
 
-function disableInput() {
-    inputOptions.forEach(opt => {
-        opt.disabled = true;
-        opt.style.filter = 'grayscale(100%)';
-        opt.style.cursor = 'not-allowed';
-    });
+function disableAllOptions() {
+    disable(inputOptions[0]);
+    disable(inputOptions[1]);
+    disable(inputOptions[2]);
+    disable(inputOptions[3]);
 }
 
-function enableInput() {
-    inputOptions.forEach(opt => {
-        opt.disabled = false;
-        opt.style.filter = 'initial';
-        opt.style.cursor = 'pointer';
-    });
+function disable(option) {
+    option.disabled = true;
+    option.style.filter = 'grayscale(100%)';
+    option.style.cursor = 'not-allowed';
+}
+
+function enableAllOptions() {
+    enable(inputOptions[0]);
+    enable(inputOptions[1]);
+    enable(inputOptions[2]);
+    enable(inputOptions[3]);
 
     notification.style.opacity = 0;
+}
+
+function enable(option) {
+    option.disabled = false;
+    option.style.filter = 'initial';
+    option.style.cursor = 'pointer';
 }
 
 function css(el, p) {
