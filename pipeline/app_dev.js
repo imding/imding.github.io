@@ -161,7 +161,7 @@ function init() {
                 content: [
                     { type: 'p', html: 'Revisit the concept of frameworks using previous [slide::https://drive.google.com/open?id=1VJmaS-b3QBLPaPFPL-h1YoCpxIlOIf3XH8KoJEiQJ9o].' },
                     { type: 'p', html: '[u::Unplugged][sup::wip]: interpreter.' },
-                    { type: 'p', html: 'Walkthrough sandbox template for the class to [em::set up] Framework7 using this [slides::https://docs.google.com/presentation/d/1a7Qgs74Xl_e_hbwQ4PWPqwcAiU2VWr71oAsX9vCvd5k/edit#slide=id.g4078c7e29c_1_0].' },
+                    { type: 'p', html: 'Walkthrough sandbox template for the class to [em::set up] Framework7 using this [slides::https://drive.google.com/open?id=1a7Qgs74Xl_e_hbwQ4PWPqwcAiU2VWr71oAsX9vCvd5k].' },
                     { type: 'p', html: 'Create a basic interface using the [guided project::https://app.bsd.education/project/get-started-with-mobile-app-development-using-framework7] on the platform.' },
                 ],
             }],

@@ -192,7 +192,30 @@ function init() {
                 content: [
                     { type: 'p', html: 'The description for all objectives should be [em::action items].' },
                     { type: 'img', src: 'img/staticStep02.png' },
-                    { type: 'p', html: 'Explanation   ' },
+                ],
+            }],
+        }, {
+            title: 'Editable Regions',
+            sections: [{
+                content: [{ type: 'p', html: 'Editable regions are spaces in the code panel where the learner can type, there are [em::two types] of editable regions:' }],
+            }, {
+                title: 'Editable Block',
+                content: [
+                    { type: 'p', html: 'Editable blocks [em::prevents] the learner from creating [em::new lines] in the code file.' },
+                    { type: 'p', html: 'Use the following code to create an editable block. Empty editable blocks should always [em::contain 4 spaces].' },
+                    { type: 'code', code: '#BEGIN_EDITABLE#    #END_EDITABLE#' },
+                    { type: 'img', src: 'img/editable_block.png' },
+                    { type: 'p', html: 'Occupied editable blocks should have a [em::1 space padding] on both ends.' },
+                    { type: 'code', code: '#BEGIN_EDITABLE# var n = 42; #END_EDITABLE#' },
+                ],
+            }, {
+                title: 'Editable Lines',
+                content: [
+                    { type: 'p', html: 'Editable lines provide [em::expandable spaces] in the code where the learner can type.' },
+                    { type: 'p', html: 'When editable lines are included in the learner code, its length becomes unpreditable and thus all [em::static references] to line locations are [em::unreliable].' },
+                    { type: 'p', html: 'Editable lines can be created by placing mark up keywords on [em::separate lines].' },
+                    { type: 'code', code: '#BEGIN_EDITABLE#\n#END_EDITABLE#' },
+                    { type: 'img', src: 'img/editable_lines.png' },
                 ],
             }],
         }],
@@ -220,30 +243,6 @@ function init() {
                     { type: 'p', html: '[em::Multiple input] can be accepted by a single expectation:' },
                     { type: 'code', code: 'pass.if.[html|css|js].editable(n).equivalent("").or("").or("");' },
                     { type: 'p', html: 'Any markup syntax such as [samp::##ANY##] & [samp::##URL##] must be [em::capitalised].' },
-                ],
-            }],
-        }, {
-            title: 'Editable Regions',
-            sections: [{
-                content: [{ type: 'p', html: 'Editable regions are spaces in the code panel where the learner can type, there are [em::two types] of editable regions:' }],
-            }, {
-                title: 'Editable Block',
-                content: [
-                    { type: 'p', html: 'Editable blocks [em::prevents] the learner from creating [em::new lines] in the code file.' },
-                    { type: 'p', html: 'Use the following code to create an editable block. Empty editable blocks should always [em::contain 4 spaces].' },
-                    { type: 'code', code: '#BEGIN_EDITABLE#    #END_EDITABLE#' },
-                    { type: 'img', src: 'img/editable_block.png' },
-                    { type: 'p', html: 'Occupied editable blocks should have a [em::1 space padding] on both ends.' },
-                    { type: 'code', code: '#BEGIN_EDITABLE# var n = 42; #END_EDITABLE#' },
-                ],
-            }, {
-                title: 'Editable Lines',
-                content: [
-                    { type: 'p', html: 'Editable lines provide [em::expandable spaces] in the code where the learner can type.' },
-                    { type: 'p', html: 'When editable lines are included in the learner code, its length becomes unpreditable and thus all [em::static references] to line locations are [em::unreliable].' },
-                    { type: 'p', html: 'Editable lines can be created by placing mark up keywords on [em::separate lines].' },
-                    { type: 'code', code: '#BEGIN_EDITABLE#\n#END_EDITABLE#' },
-                    { type: 'img', src: 'img/editable_lines.png' },
                 ],
             }],
         }, {
@@ -278,6 +277,13 @@ function init() {
             }],
         }, {
             title: 'Testing JavaScript',
+            sections: [{
+                content: [
+                    { type: 'p', html: '.' },
+                ],
+            }],
+        }, {
+            title: 'Tips & Tricks',
             sections: [{
                 content: [
                     { type: 'p', html: '.' },
