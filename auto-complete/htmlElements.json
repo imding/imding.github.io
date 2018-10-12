@@ -1,0 +1,446 @@
+[
+  {
+    "prefix": "a",
+    "complete": "<a>|^</a>"
+  },
+  {
+    "prefix": "a",
+    "complete": "<a href=\"|\" title=\"\">^</a>"
+  },
+  {
+    "prefix": "abbr",
+    "complete": "<abbr>|^</abbr>"
+  },
+  {
+    "prefix": "acronym",
+    "complete": "<acronym>|^</acronym>"
+  },
+  {
+    "prefix": "address",
+    "complete": "<address>|^</address>"
+  },
+  {
+    "prefix": "area",
+    "complete": "<area alt=\"|^\" />"
+  },
+  {
+    "prefix": "article",
+    "complete": "<article>|^</article>"
+  },
+  {
+    "prefix": "aside",
+    "complete": "<aside>|^</aside>"
+  },
+  {
+    "prefix": "audio",
+    "complete": "<audio>|^</audio>"
+  },
+  {
+    "prefix": "b",
+    "complete": "<b>|^</b>"
+  },
+  {
+    "prefix": "base",
+    "complete": "<base href=\"|^\" />"
+  },
+  {
+    "prefix": "bdo",
+    "complete": "<bdo>|^</bdo>"
+  },
+  {
+    "prefix": "big",
+    "complete": "<big>|^</big>"
+  },
+  {
+    "prefix": "blockquote",
+    "complete": "<blockquote>|^</blockquote>"
+  },
+  {
+    "prefix": "body",
+    "complete": "<body>|^</body>"
+  },
+  {
+    "prefix": "br",
+    "complete": "<br />"
+  },
+  {
+    "prefix": "button",
+    "complete": "<button>|^</button>"
+  },
+  {
+    "prefix": "canvas",
+    "complete": "<canvas>|^</canvas>"
+  },
+  {
+    "prefix": "caption",
+    "complete": "<caption>|^</caption>"
+  },
+  {
+    "prefix": "cite",
+    "complete": "<cite>|^</cite>"
+  },
+  {
+    "prefix": "code",
+    "complete": "<code>|^</code>"
+  },
+  {
+    "prefix": "col",
+    "complete": "<col span=\"|^\" />"
+  },
+  {
+    "prefix": "colgroup",
+    "complete": "<colgroup>|^</colgroup>"
+  },
+  {
+    "prefix": "datalist",
+    "complete": "<datalist>|^</datalist>"
+  },
+  {
+    "prefix": "dd",
+    "complete": "<dd>|^</dd>"
+  },
+  {
+    "prefix": "del",
+    "complete": "<del>|^</del>"
+  },
+  {
+    "prefix": "details",
+    "complete": "<details>|^</details>"
+  },
+  {
+    "prefix": "dfn",
+    "complete": "<dfn>|^</dfn>"
+  },
+  {
+    "prefix": "dialog",
+    "complete": "<dialog>|^</dialog>"
+  },
+  {
+    "prefix": "div",
+    "complete": "<div>|^</div>"
+  },
+  {
+    "prefix": "dl",
+    "complete": "<dl>|^</dl>"
+  },
+  {
+    "prefix": "dt",
+    "complete": "<dt>|^</dt>"
+  },
+  {
+    "prefix": "em",
+    "complete": "<em>|^</em>"
+  },
+  {
+    "prefix": "embed",
+    "complete": "<embed type=\"|\" src=\"^\" />"
+  },
+  {
+    "prefix": "fieldset",
+    "complete": "<fieldset>|^</fieldset>"
+  },
+  {
+    "prefix": "figcaption",
+    "complete": "<figcaption>|^</figcaption>"
+  },
+  {
+    "prefix": "figure",
+    "complete": "<figure>|^</figure>"
+  },
+  {
+    "prefix": "footer",
+    "complete": "<footer>|^</footer>"
+  },
+  {
+    "prefix": "form",
+    "complete": "<form action=\"|\" name=\"\">^</form>"
+  },
+  {
+    "prefix": "frame",
+    "complete": "<frame>|^</frame>"
+  },
+  {
+    "prefix": "frameset",
+    "complete": "<frameset>|^</frameset>"
+  },
+  {
+    "prefix": "h1",
+    "complete": "<h1>|^</h1>"
+  },
+  {
+    "prefix": "h2",
+    "complete": "<h2>|^</h2>"
+  },
+  {
+    "prefix": "h3",
+    "complete": "<h3>|^</h3>"
+  },
+  {
+    "prefix": "h4",
+    "complete": "<h4>|^</h4>"
+  },
+  {
+    "prefix": "h5",
+    "complete": "<h5>|^</h5>"
+  },
+  {
+    "prefix": "h6",
+    "complete": "<h6>|^</h6>"
+  },
+  {
+    "prefix": "head",
+    "complete": "<head>|^</head>"
+  },
+  {
+    "prefix": "header",
+    "complete": "<header>|^</header>"
+  },
+  {
+    "prefix": "hr",
+    "complete": "<hr />"
+  },
+  {
+    "prefix": "html",
+    "complete": "<html>|^</html>"
+  },
+  {
+    "prefix": "i",
+    "complete": "<i>|^</i>"
+  },
+  {
+    "prefix": "iframe",
+    "complete": "<iframe src=\"|\">^</iframe>"
+  },
+  {
+    "prefix": "img",
+    "complete": "<img src=\"|^\" alt=\"\" />"
+  },
+  {
+    "prefix": "input",
+    "complete": "<input type=\"|\" value=\"^\" />"
+  },
+  {
+    "prefix": "ins",
+    "complete": "<ins>|^</ins>"
+  },
+  {
+    "prefix": "kbd",
+    "complete": "<kbd>|^</kbd>"
+  },
+  {
+    "prefix": "label",
+    "complete": "<label>|^</label>"
+  },
+  {
+    "prefix": "legend",
+    "complete": "<legend>|^</legend>"
+  },
+  {
+    "prefix": "li",
+    "complete": "<li>|^</li>"
+  },
+  {
+    "prefix": "link",
+    "complete": "<link href=\"|^\" rel=\"stylesheet\" type=\"text/css\" />"
+  },
+  {
+    "prefix": "link",
+    "complete": "<link href=\"|^\" rel=\"stylesheet\" type=\"text/css\" />"
+  },
+  {
+    "prefix": "main",
+    "complete": "<main>|^</main>"
+  },
+  {
+    "prefix": "map",
+    "complete": "<map>|^</map>"
+  },
+  {
+    "prefix": "mark",
+    "complete": "<mark>|^</mark>"
+  },
+  {
+    "prefix": "meta",
+    "complete": "<meta name=\"|^\" content=\"\" />"
+  },
+  {
+    "prefix": "nav",
+    "complete": "<nav>|^</nav>"
+  },
+  {
+    "prefix": "noframes",
+    "complete": "<noframes>|^</noframes>"
+  },
+  {
+    "prefix": "noscript",
+    "complete": "<noscript>|^</noscript>"
+  },
+  {
+    "prefix": "object",
+    "complete": "<object>|^</object>"
+  },
+  {
+    "prefix": "ol",
+    "complete": "<ol>|^</ol>"
+  },
+  {
+    "prefix": "optgroup",
+    "complete": "<optgroup>|^</optgroup>"
+  },
+  {
+    "prefix": "option",
+    "complete": "<option>|^</option>"
+  },
+  {
+    "prefix": "output",
+    "complete": "<output>|^</output>"
+  },
+  {
+    "prefix": "p",
+    "complete": "<p>|^</p>"
+  },
+  {
+    "prefix": "param",
+    "complete": "<param name=\"|\" value=\"^\" />"
+  },
+  {
+    "prefix": "pre",
+    "complete": "<pre>|^</pre>"
+  },
+  {
+    "prefix": "progress",
+    "complete": "<progress>|^</progress>"
+  },
+  {
+    "prefix": "q",
+    "complete": "<q>|^</q>"
+  },
+  {
+    "prefix": "s",
+    "complete": "<s>|^</s>"
+  },
+  {
+    "prefix": "samp",
+    "complete": "<samp>|^</samp>"
+  },
+  {
+    "prefix": "script",
+    "complete": "<script>|^</script>"
+  },
+  {
+    "prefix": "script",
+    "complete": "<script type=\"text/javascript\">|^</script>"
+  },
+  {
+    "prefix": "script",
+    "complete": "<script type=\"text/javascript\" src=\"|^\"></script>"
+  },
+  {
+    "prefix": "section",
+    "complete": "<section>|^</section>"
+  },
+  {
+    "prefix": "select",
+    "complete": "<select>|^</select>"
+  },
+  {
+    "prefix": "small",
+    "complete": "<small>|^</small>"
+  },
+  {
+    "prefix": "source",
+    "complete": "<source type=\"|\" src=\"^\" />"
+  },
+  {
+    "prefix": "span",
+    "complete": "<span>|^</span>"
+  },
+  {
+    "prefix": "strong",
+    "complete": "<strong>|^</strong>"
+  },
+  {
+    "prefix": "style",
+    "complete": "<style>|^</style>"
+  },
+  {
+    "prefix": "sub",
+    "complete": "<sub>|^</sub>"
+  },
+  {
+    "prefix": "summary",
+    "complete": "<summary>|^</summary>"
+  },
+  {
+    "prefix": "sup",
+    "complete": "<sup>|^</sup>"
+  },
+  {
+    "prefix": "svg",
+    "complete": "<svg>|^</svg>"
+  },
+  {
+    "prefix": "table",
+    "complete": "<table>|^</table>"
+  },
+  {
+    "prefix": "tbody",
+    "complete": "<tbody>|^</tbody>"
+  },
+  {
+    "prefix": "td",
+    "complete": "<td>|^</td>"
+  },
+  {
+    "prefix": "textarea",
+    "complete": "<textarea>|^</textarea>"
+  },
+  {
+    "prefix": "tfoot",
+    "complete": "<tfoot>|^</tfoot>"
+  },
+  {
+    "prefix": "th",
+    "complete": "<th>|^</th>"
+  },
+  {
+    "prefix": "thead",
+    "complete": "<thead>|^</thead>"
+  },
+  {
+    "prefix": "title",
+    "complete": "<title>|^</title>"
+  },
+  {
+    "prefix": "tr",
+    "complete": "<tr>|^</tr>"
+  },
+  {
+    "prefix": "track",
+    "complete": "<track src=\"|^\" />"
+  },
+  {
+    "prefix": "tt",
+    "complete": "<tt>|^</tt>"
+  },
+  {
+    "prefix": "u",
+    "complete": "<u>|^</u>"
+  },
+  {
+    "prefix": "ul",
+    "complete": "<ul>|^</ul>"
+  },
+  {
+    "prefix": "var",
+    "complete": "<var>|^</var>"
+  },
+  {
+    "prefix": "video",
+    "complete": "<video>|^</video>"
+  },
+  {
+    "prefix": "wbr",
+    "complete": "<wbr />"
+  }
+]

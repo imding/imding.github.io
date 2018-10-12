@@ -120,15 +120,14 @@ function init() {
                 content: [
                     { type: 'p', html: 'Follow the standard unit plan for HTML & CSS.' },
                     { type: 'p', html: 'Equip students with the knowledge and skills to bulid a simple web page with appropriate [em::content] & [em::styling].' },
-                    { type: 'p', html: 'Use the provided [instructions::https://drive.google.com/open?id=1TvR5feA-usWvtg6nOj2zGndDHcta-CgBomuGQov5ia8] to lead the class [em::step-by-step] through creating the web page.' },
+                    { type: 'p', html: 'Use the provided [instructions::https://drive.google.com/open?id=1TvR5feA-usWvtg6nOj2zGndDHcta-CgBomuGQov5ia8] to lead the class [em::step-by-step] through cloning the Google site.' },
                 ],
             }],
         }, {
             title: 'HTML - Content',
             sections: [{
                 content: [
-                    { type: 'p', html: 'Create the interface of a Google clone in [em::sandbox] mode with the [u::mobile view] enabled. Use [u::inspect element] on the real Google site as reference.' },
-                    { type: 'p', html: 'Start by adding an [samp::<h1>] element. ' },
+                    { type: 'p', html: 'Create the interface of a Google clone in [em::sandbox] mode. Use [u::inspect element] on the real Google site as reference.' },
                     { type: 'p', html: 'Use the [samp::<img>] element to add a logo, introduce the [samp::src] attribute and explain the steps of getting an image address.' },
                     { type: 'p', html: 'Use [samp::<input>] elements to add text fields for user name and password.' },
                     { type: 'p', html: '[u::Challenge]: The real Google site uses [samp::<input>] elements for both the text field and buttons but they are clearly different, why is that?' },

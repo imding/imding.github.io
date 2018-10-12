@@ -1,0 +1,34 @@
+[
+  {
+    "prefix": "#ffffff",
+    "help": "Hex color white"
+  },
+  {
+    "prefix": "#ff0000",
+    "help": "Hex color red"
+  },
+  {
+    "prefix": "#00ff00",
+    "help": "Hex color green"
+  },
+  {
+    "prefix": "#0000ff",
+    "help": "Hex color blue"
+  },
+  {
+    "prefix": "rgb(0, 0, 0)",
+    "help": "RGB color black"
+  },
+  {
+    "prefix": "rgb(255, 255, 255)",
+    "help": "RGB color white"
+  },
+  {
+    "prefix": "rgba(255, 0, 0, 0.5)",
+    "help": "RGBA color semi-transparent red"
+  },
+  {
+    "prefix": "rgba(0, 255, 255, 0.9)",
+    "help": "RGBA color 90% opaque cyan"
+  }
+]

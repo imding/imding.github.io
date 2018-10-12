@@ -389,9 +389,15 @@ function init() {
             sections: [{
                 content: [
                     { type: 'p', html: '[em::Reach out] to content developers for technical assistance when necessary.' },
-                    { type: 'p', html: 'Project instructions should comply with the following [em::guidelines]:' },
+                    { type: 'p', html: 'Project instructions should follow the [em::guidelines] listed below:' },
                 ],
             }, {
+                title: 'Linked Resources',
+                content: [
+                    { type: 'p', html: 'Links to other [em::platform content] should be limited to the last step of a project, otherwise only [em::sandbox output] links should be linked.' },
+                    { type: 'p', html: 'Links to external resources must be accompanied by [em::clear instructions].' },
+                ],
+            },{
                 title: 'Line Location',
                 content: [
                     { type: 'p', html: 'All [em::code references] must be accompanied by line locations.' },
