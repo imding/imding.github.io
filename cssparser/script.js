@@ -1,4 +1,4 @@
-ide.value = 'color: red;';
+teacher.value = 'color: red;';
 
 let input, AUTO_ADDED_SELECTOR = 'LAUNCHBOX_auto_added_selector';
 
@@ -499,7 +499,7 @@ function getTree() {
     return t;
 }
 
-btnParse.onclick = function () {
+btnCompare.onclick = function () {
     console.clear();
 
     ruleCount = 0;
@@ -507,7 +507,7 @@ btnParse.onclick = function () {
     verdict = '';
     pass = true;
     info.innerHTML = '';
-    input = ide.value;
+    input = teacher.value;
     inputClone = input;
 
     parse(); console.log(tree);
@@ -528,5 +528,5 @@ window.onkeydown = function (evt) {
 
 window.onkeyup = function (evt) {
     if (ctrl && evt.keyCode == 17) ctrl = false;
-    if (evt.keyCode == 13 && ctrl) btnParse.click();
+    if (evt.keyCode == 13 && ctrl) btnCompare.click();
 };

@@ -1,307 +1,132 @@
 [
   {
     "prefix": "a",
-    "complete": "<a>|^</a>"
+    "complete": "<a>|^</a>",
+    "glossary": "#glossary/html/de2005f1-d7e4-424b-8f4a-624783079e7c"
   },
   {
     "prefix": "a",
-    "complete": "<a href=\"|\" title=\"\">^</a>"
-  },
-  {
-    "prefix": "abbr",
-    "complete": "<abbr>|^</abbr>"
-  },
-  {
-    "prefix": "acronym",
-    "complete": "<acronym>|^</acronym>"
-  },
-  {
-    "prefix": "address",
-    "complete": "<address>|^</address>"
-  },
-  {
-    "prefix": "area",
-    "complete": "<area alt=\"|^\" />"
-  },
-  {
-    "prefix": "article",
-    "complete": "<article>|^</article>"
-  },
-  {
-    "prefix": "aside",
-    "complete": "<aside>|^</aside>"
-  },
-  {
-    "prefix": "audio",
-    "complete": "<audio>|^</audio>"
+    "complete": "<a href=\"|\" title=\"\">^</a>",
+    "glossary": "#glossary/html/de2005f1-d7e4-424b-8f4a-624783079e7c"
   },
   {
     "prefix": "b",
-    "complete": "<b>|^</b>"
-  },
-  {
-    "prefix": "base",
-    "complete": "<base href=\"|^\" />"
-  },
-  {
-    "prefix": "bdo",
-    "complete": "<bdo>|^</bdo>"
-  },
-  {
-    "prefix": "big",
-    "complete": "<big>|^</big>"
-  },
-  {
-    "prefix": "blockquote",
-    "complete": "<blockquote>|^</blockquote>"
+    "complete": "<b>|^</b>",
+    "glossary": "#glossary/html/31bdb056-c63b-4a71-bf50-ba798aaec9f4"
   },
   {
     "prefix": "body",
-    "complete": "<body>|^</body>"
+    "complete": "<body>|^</body>",
+    "glossary": "#glossary/html/d694e726-ee2b-4b81-9ca4-21302387ef43"
   },
   {
     "prefix": "br",
-    "complete": "<br />"
+    "complete": "<br />",
+    "glossary": "#glossary/html/beef4a5f-f32f-4266-baf2-f297ce1e7ca3"
   },
   {
     "prefix": "button",
-    "complete": "<button>|^</button>"
+    "complete": "<button>|^</button>",
+    "glossary": "#glossary/html/aef3c0f8-e182-41f8-9f56-5df2f7f0c814"
   },
   {
     "prefix": "canvas",
-    "complete": "<canvas>|^</canvas>"
-  },
-  {
-    "prefix": "caption",
-    "complete": "<caption>|^</caption>"
-  },
-  {
-    "prefix": "cite",
-    "complete": "<cite>|^</cite>"
-  },
-  {
-    "prefix": "code",
-    "complete": "<code>|^</code>"
-  },
-  {
-    "prefix": "col",
-    "complete": "<col span=\"|^\" />"
-  },
-  {
-    "prefix": "colgroup",
-    "complete": "<colgroup>|^</colgroup>"
-  },
-  {
-    "prefix": "datalist",
-    "complete": "<datalist>|^</datalist>"
-  },
-  {
-    "prefix": "dd",
-    "complete": "<dd>|^</dd>"
-  },
-  {
-    "prefix": "del",
-    "complete": "<del>|^</del>"
-  },
-  {
-    "prefix": "details",
-    "complete": "<details>|^</details>"
-  },
-  {
-    "prefix": "dfn",
-    "complete": "<dfn>|^</dfn>"
-  },
-  {
-    "prefix": "dialog",
-    "complete": "<dialog>|^</dialog>"
+    "complete": "<canvas>|^</canvas>",
+    "glossary": "#glossary/html/35dc2e11-8f4b-49a5-942c-7b10d1561de3"
   },
   {
     "prefix": "div",
-    "complete": "<div>|^</div>"
-  },
-  {
-    "prefix": "dl",
-    "complete": "<dl>|^</dl>"
-  },
-  {
-    "prefix": "dt",
-    "complete": "<dt>|^</dt>"
-  },
-  {
-    "prefix": "em",
-    "complete": "<em>|^</em>"
-  },
-  {
-    "prefix": "embed",
-    "complete": "<embed type=\"|\" src=\"^\" />"
-  },
-  {
-    "prefix": "fieldset",
-    "complete": "<fieldset>|^</fieldset>"
-  },
-  {
-    "prefix": "figcaption",
-    "complete": "<figcaption>|^</figcaption>"
-  },
-  {
-    "prefix": "figure",
-    "complete": "<figure>|^</figure>"
-  },
-  {
-    "prefix": "footer",
-    "complete": "<footer>|^</footer>"
-  },
-  {
-    "prefix": "form",
-    "complete": "<form action=\"|\" name=\"\">^</form>"
-  },
-  {
-    "prefix": "frame",
-    "complete": "<frame>|^</frame>"
-  },
-  {
-    "prefix": "frameset",
-    "complete": "<frameset>|^</frameset>"
+    "complete": "<div>|^</div>",
+    "glossary": "#glossary/html/6f45e8ff-64d2-4528-827a-9d2722b8449d"
   },
   {
     "prefix": "h1",
-    "complete": "<h1>|^</h1>"
+    "complete": "<h1>|^</h1>",
+    "glossary": "#glossary/html/2b80319b-5dc3-4f5d-89f8-1f38b5969f6e"
   },
   {
     "prefix": "h2",
-    "complete": "<h2>|^</h2>"
+    "complete": "<h2>|^</h2>",
+    "glossary": "#glossary/html/2b80319b-5dc3-4f5d-89f8-1f38b5969f6e"
   },
   {
     "prefix": "h3",
-    "complete": "<h3>|^</h3>"
+    "complete": "<h3>|^</h3>",
+    "glossary": "#glossary/html/2b80319b-5dc3-4f5d-89f8-1f38b5969f6e"
   },
   {
     "prefix": "h4",
-    "complete": "<h4>|^</h4>"
+    "complete": "<h4>|^</h4>",
+    "glossary": "#glossary/html/2b80319b-5dc3-4f5d-89f8-1f38b5969f6e"
   },
   {
     "prefix": "h5",
-    "complete": "<h5>|^</h5>"
+    "complete": "<h5>|^</h5>",
+    "glossary": "#glossary/html/2b80319b-5dc3-4f5d-89f8-1f38b5969f6e"
   },
   {
     "prefix": "h6",
-    "complete": "<h6>|^</h6>"
+    "complete": "<h6>|^</h6>",
+    "glossary": "#glossary/html/2b80319b-5dc3-4f5d-89f8-1f38b5969f6e"
   },
   {
     "prefix": "head",
-    "complete": "<head>|^</head>"
-  },
-  {
-    "prefix": "header",
-    "complete": "<header>|^</header>"
-  },
-  {
-    "prefix": "hr",
-    "complete": "<hr />"
-  },
-  {
-    "prefix": "html",
-    "complete": "<html>|^</html>"
-  },
-  {
-    "prefix": "i",
-    "complete": "<i>|^</i>"
+    "complete": "<head>|^</head>",
+    "glossary": "#glossary/html/35287bae-ead4-4b8e-b2ca-1d990ea555ca"
   },
   {
     "prefix": "iframe",
-    "complete": "<iframe src=\"|\">^</iframe>"
+    "complete": "<iframe src=\"|\">^</iframe>",
+    "glossary": "#glossary/html/c7d8cbbd-b5e4-4212-baaa-7ee5253c86ed"
   },
   {
     "prefix": "img",
-    "complete": "<img src=\"|^\" alt=\"\" />"
+    "complete": "<img src=\"|^\" />",
+    "glossary": "#glossary/html/1eff844a-cc1d-4e36-b5dc-8b29d9b7ce7d"
   },
   {
     "prefix": "input",
-    "complete": "<input type=\"|\" value=\"^\" />"
+    "complete": "<input type=\"text\" />",
+    "glossary": "#glossary/html/60b2b19d-8c84-4055-846a-1dee1212dc79"
   },
   {
-    "prefix": "ins",
-    "complete": "<ins>|^</ins>"
+    "prefix": "input",
+    "complete": "<input type=\"submit\" value=\"^|\" />",
+    "glossary": "#glossary/html/60b2b19d-8c84-4055-846a-1dee1212dc79"
   },
   {
-    "prefix": "kbd",
-    "complete": "<kbd>|^</kbd>"
+    "prefix": "input",
+    "complete": "<input type=\"radio\" />",
+    "glossary": "#glossary/html/60b2b19d-8c84-4055-846a-1dee1212dc79"
   },
   {
-    "prefix": "label",
-    "complete": "<label>|^</label>"
-  },
-  {
-    "prefix": "legend",
-    "complete": "<legend>|^</legend>"
+    "prefix": "input",
+    "complete": "<input type=\"checkbox\" />",
+    "glossary": "#glossary/html/60b2b19d-8c84-4055-846a-1dee1212dc79"
   },
   {
     "prefix": "li",
-    "complete": "<li>|^</li>"
+    "complete": "<li>|^</li>",
+    "glossary": "#glossary/html/250f676c-a41c-4f5c-bed3-cd53121e1c06"
   },
   {
     "prefix": "link",
     "complete": "<link href=\"|^\" rel=\"stylesheet\" type=\"text/css\" />"
-  },
-  {
-    "prefix": "link",
-    "complete": "<link href=\"|^\" rel=\"stylesheet\" type=\"text/css\" />"
-  },
-  {
-    "prefix": "main",
-    "complete": "<main>|^</main>"
-  },
-  {
-    "prefix": "map",
-    "complete": "<map>|^</map>"
-  },
-  {
-    "prefix": "mark",
-    "complete": "<mark>|^</mark>"
-  },
-  {
-    "prefix": "meta",
-    "complete": "<meta name=\"|^\" content=\"\" />"
-  },
-  {
-    "prefix": "nav",
-    "complete": "<nav>|^</nav>"
-  },
-  {
-    "prefix": "noframes",
-    "complete": "<noframes>|^</noframes>"
-  },
-  {
-    "prefix": "noscript",
-    "complete": "<noscript>|^</noscript>"
-  },
-  {
-    "prefix": "object",
-    "complete": "<object>|^</object>"
   },
   {
     "prefix": "ol",
-    "complete": "<ol>|^</ol>"
-  },
-  {
-    "prefix": "optgroup",
-    "complete": "<optgroup>|^</optgroup>"
+    "complete": "<ol>|^</ol>",
+    "glossary": "#glossary/html/c2f263ef-b424-47fb-9fd7-d5c785d6f6c7"
   },
   {
     "prefix": "option",
-    "complete": "<option>|^</option>"
-  },
-  {
-    "prefix": "output",
-    "complete": "<output>|^</output>"
+    "complete": "<option>|^</option>",
+    "glossary": "#glossary/html/3d1fa716-0e9c-4c30-b11f-82d2198a6794"
   },
   {
     "prefix": "p",
-    "complete": "<p>|^</p>"
-  },
-  {
-    "prefix": "param",
-    "complete": "<param name=\"|\" value=\"^\" />"
+    "complete": "<p>|^</p>",
+    "glossary": "#glossary/html/ae10f238-4678-4f10-9194-f26d0d7d2ea0"
   },
   {
     "prefix": "pre",
@@ -309,15 +134,8 @@
   },
   {
     "prefix": "progress",
-    "complete": "<progress>|^</progress>"
-  },
-  {
-    "prefix": "q",
-    "complete": "<q>|^</q>"
-  },
-  {
-    "prefix": "s",
-    "complete": "<s>|^</s>"
+    "complete": "<progress>|^</progress>",
+    "glossary": "#glossary/html/d4248688-148a-48db-b695-e4e01054e2ae"
   },
   {
     "prefix": "samp",
@@ -336,20 +154,9 @@
     "complete": "<script type=\"text/javascript\" src=\"|^\"></script>"
   },
   {
-    "prefix": "section",
-    "complete": "<section>|^</section>"
-  },
-  {
     "prefix": "select",
-    "complete": "<select>|^</select>"
-  },
-  {
-    "prefix": "small",
-    "complete": "<small>|^</small>"
-  },
-  {
-    "prefix": "source",
-    "complete": "<source type=\"|\" src=\"^\" />"
+    "complete": "<select>|^</select>",
+    "glossary": "#glossary/html/3d1fa716-0e9c-4c30-b11f-82d2198a6794"
   },
   {
     "prefix": "span",
@@ -357,71 +164,17 @@
   },
   {
     "prefix": "strong",
-    "complete": "<strong>|^</strong>"
+    "complete": "<strong>|^</strong>",
+    "glossary": "#glossary/html/31bdb056-c63b-4a71-bf50-ba798aaec9f4"
   },
   {
     "prefix": "style",
     "complete": "<style>|^</style>"
   },
   {
-    "prefix": "sub",
-    "complete": "<sub>|^</sub>"
-  },
-  {
-    "prefix": "summary",
-    "complete": "<summary>|^</summary>"
-  },
-  {
-    "prefix": "sup",
-    "complete": "<sup>|^</sup>"
-  },
-  {
-    "prefix": "svg",
-    "complete": "<svg>|^</svg>"
-  },
-  {
-    "prefix": "table",
-    "complete": "<table>|^</table>"
-  },
-  {
-    "prefix": "tbody",
-    "complete": "<tbody>|^</tbody>"
-  },
-  {
-    "prefix": "td",
-    "complete": "<td>|^</td>"
-  },
-  {
     "prefix": "textarea",
-    "complete": "<textarea>|^</textarea>"
-  },
-  {
-    "prefix": "tfoot",
-    "complete": "<tfoot>|^</tfoot>"
-  },
-  {
-    "prefix": "th",
-    "complete": "<th>|^</th>"
-  },
-  {
-    "prefix": "thead",
-    "complete": "<thead>|^</thead>"
-  },
-  {
-    "prefix": "title",
-    "complete": "<title>|^</title>"
-  },
-  {
-    "prefix": "tr",
-    "complete": "<tr>|^</tr>"
-  },
-  {
-    "prefix": "track",
-    "complete": "<track src=\"|^\" />"
-  },
-  {
-    "prefix": "tt",
-    "complete": "<tt>|^</tt>"
+    "complete": "<textarea>|^</textarea>",
+    "glossary": "#glossary/html/d22db91b-956b-47e6-b873-16d773a8d0fa"
   },
   {
     "prefix": "u",
@@ -429,18 +182,11 @@
   },
   {
     "prefix": "ul",
-    "complete": "<ul>|^</ul>"
-  },
-  {
-    "prefix": "var",
-    "complete": "<var>|^</var>"
+    "complete": "<ul>|^</ul>",
+    "glossary": "#glossary/html/36a7615d-f8de-4db1-8465-5d9821e5e83d"
   },
   {
     "prefix": "video",
     "complete": "<video>|^</video>"
-  },
-  {
-    "prefix": "wbr",
-    "complete": "<wbr />"
   }
 ]

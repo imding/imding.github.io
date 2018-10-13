@@ -563,12 +563,13 @@ function compare(model, input) {
                     if (tn.content.length + ln.content.length && tn.content.length !== ln.content.length) {
                         const
                             someText = tn.content.length === 1 && tn.content[0].type === 'text' && !ln.content.length ? 'some text' : '',
+                            noText = !tn.content.length && ln.content[0].type === 'text' ? 'no text' : '',
                             elements = `element${tn.content.length ? tn.content.length > 1 ? 's' : '' : ''}`,
-                            only = tn.content.length < ln.content.length ? 'only' : '',
+                            only = (tn.content.length && tn.content.length < ln.content.length) ? 'only' : '',
                             n = tn.content.length ? (tn.content.length > 1 ? tn.content.length : (!ln.content.length ? 'an' : 'one')) : 'no',
-                            prepo = tn.closingTag.raw ? 'inside the element' : 'after';
+                            prepo = tn.closingTag.raw ? 'inside' : 'after';
 
-                        verdict = `There should be ${someText || `${only ? `${only} ${n}` : n} ${elements}`} ${prepo} ${tn.openingTag.raw}${tn.closingTag.raw || ''}.`;
+                        verdict = `There should be ${someText || noText || `${only ? `${only} ${n}` : n} ${elements}`} ${prepo} ${tn.openingTag.raw}${tn.closingTag.raw || ''}.`;
                     }
                     // compare content
                     else if (tn.content.length) {
