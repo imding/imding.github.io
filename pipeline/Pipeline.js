@@ -4,7 +4,6 @@ class Pipeline {
         this.chart = {
             self: newElement('div', { id: 'Chart' }),
             nodes: {},
-            cards: [],
             offset: 0,
             scroll: 0,
             updateOffset: () => {
@@ -26,6 +25,9 @@ class Pipeline {
                 print(`offset: chart(${this.chart.offset}), deck(${this.activeNode.deck.offset})`);
             },
         };
+
+        this.nodesData = [];
+        this.cardsData = [];
 
         this.self.appendChild(this.chart.self);
 
@@ -53,7 +55,10 @@ class Pipeline {
         sCss(focus.self, { left: `-${ref * clipSize + focus.offset}px` });
     }
 
-    render(nodesData, cardsData) {
+    render(nodesData, decksData) {
+        this.nodesData = nodesData;
+        this.decksData = decksData;
+
         nodesData.forEach(nd => {
             if (Array.isArray(nd)) {
                 const shell = this.newShell(nd[0]);
@@ -62,13 +67,14 @@ class Pipeline {
             else pl.newNode(nd);
         });
 
-        cardsData.forEach(cd => cd.cards.forEach(card => this.chart.nodes[cd.deck].addCard(card)));
+        decksData.forEach(dd => dd.cards.forEach(card => this.chart.nodes[dd.deck].addCard(card)));
     }
 
     newNode(name, parent) {
         if (!(name || '').trim().length) throw new Error('the newNode() method expects a name');
 
         const node = {
+            // index: Object.keys(this.chart.nodes).length,
             self: newElement('div', { className: `Node ${parent ? 'Inner' : ''} Active`, textContent: name.replace(/^[^\w]+|[^\w]+$/, '') }),
             deck: {
                 self: newElement('div', { id: `${camelize(name)}`, className: 'Deck' }),
@@ -99,6 +105,7 @@ class Pipeline {
 
                         if (content.type === 'p') {
                             item = newElement('p');
+                            content.html = htmlEscape(content.html);
 
                             if (!content.hasOwnProperty('bullet')) content.bullet = true;
 
@@ -110,7 +117,7 @@ class Pipeline {
                                     // patterns to turn into tags
                                     _p = /^(b|i|u|em|del|sub|sup|samp)$/g.test(m[1]);
 
-                                content.html = content.html.replace(m[0], _p ? `<${m[1]}>${htmlEscape(m[2])}</${m[1]}>` : `<a href='${m[2]}' target='_blank'>${m[1]}</a>`);
+                                content.html = content.html.replace(m[0], _p ? `<${m[1]}>${m[2]}</${m[1]}>` : `<a href='${m[2]}' target='_blank'>${m[1]}</a>`);
                             }
 
                             item.innerHTML = `${content.bullet ? '<i class=\'fa fa-info-circle\'></i>' : ''} ${content.html}`;
@@ -205,7 +212,7 @@ class Pipeline {
         const shell = {
             self: newElement('div', { className: 'Node Shell' }),
             title: newElement('b', { textContent: name.replace(/^[^\w]+|[^\w]+$/, '') }),
-            newNode: (name, cards) => this.newNode(name, shell.self, cards),
+            newNode: name => this.newNode(name, shell.self),
         };
 
         this.newArrow({ flow: name.match(/[<>]+/), inner: false });
@@ -238,195 +245,183 @@ class Pipeline {
             (cf.parent || this.chart.self).appendChild(arrowContainer);
         }
     }
+
+    adminAccess() {
+        const
+            admin = newElement('div', { id: 'admin' }),
+            editIcon = newElement('i', { id: 'editIcon', className: 'fa fa-pencil fa-lg' });
+
+        document.body.appendChild(admin);
+        admin.appendChild(editIcon);
+
+        admin.onclick = () => this.showEditPanel();
+    }
+
+    showEditPanel() {
+        admin.onclick = null;
+
+        sCss(editIcon, { display: 'none' });
+        sCss(admin, {
+            cursor: 'default',
+            width: '450px',
+            height: 'calc(100vh - 100px)',
+            top: '50px',
+        });
+
+        const
+            nodesContainer = newElement('div', { id: 'nodesContainer' }),
+            deckContainer = newElement('div', { id: 'deckContainer' }),
+            addNodeInput = (val, arrow, indent, isNode) => {
+                const
+                    nodeInputContainer = newElement('div', { className: 'nodeInputContainer' }),
+                    nodeNameInput = newElement('input', { className: 'adminInput' }),
+                    deckIcon = newElement('i', { className: 'fa fa-edit' }),
+                    shellIcon = newElement('i', { className: 'fa fa-object-group' }),
+                    indentIcon = newElement('i', { className: 'fa fa-indent' }),
+                    removeIcon = newElement('i', { className: 'fa fa-remove' }),
+                    dragIcon = newElement('i', { className: 'fa fa-reorder' });
+
+                nodesContainer.appendChild(nodeInputContainer);
+
+                if (arrow) {
+                    const dir = newElement('div', { className: 'dirToggle', textContent: val.match(/^[<>]+/) || '' });
+                    nodeInputContainer.appendChild(dir);
+                    dir.onclick = () => dir.textContent = (dir.textContent == '>>' ? '<>' : '>>');
+                }
+
+                nodeNameInput.value = val.replace(/^[<>]+\s*/, '');
+
+                nodeInputContainer.appendChild(nodeNameInput);
+                nodeInputContainer.appendChild(deckIcon);
+                nodeInputContainer.appendChild(shellIcon);
+                nodeInputContainer.appendChild(indentIcon);
+                nodeInputContainer.appendChild(removeIcon);
+                nodeInputContainer.appendChild(dragIcon);
+
+                shellIcon.onclick = () => {
+                    if (gCss(shellIcon).opacity > 0.1) {
+                        if (nodeInputContainer.className.includes('shellInput')) {
+                            nodeInputContainer.classList.remove('shellInput');
+                            nodeInputContainer.classList.add('nodeInput');
+                        }
+                        else {
+                            nodeInputContainer.classList.remove('nodeInput');
+                            nodeInputContainer.classList.add('shellInput');
+                        }
+                    }
+                };
+
+                indentIcon.onclick = () => {
+                    if (gCss(indentIcon).opacity > 0.1) {
+                        if (nodeInputContainer.className.includes('indented')) {
+                            nodeInputContainer.classList.remove('indented');
+                        }
+                        else nodeInputContainer.classList.add('indented');
+                    }
+                };
+
+                dragIcon.onmousedown = () => nodesContainer.active = dragIcon.parentNode;
+
+                if (indent) nodeInputContainer.classList.add('indented');
+                if (isNode) {
+                    nodeInputContainer.classList.add('nodeInput');
+                    deckIcon.onclick = () => this.editDeck(camelize(val.replace(/^[<>]+\s*/, '')));
+                }
+                else nodeInputContainer.classList.add('shellInput');
+            };
+
+        //  attach the 'done' button
+        const doneButton = newElement('i', { id: 'doneButton', className: 'fa fa-check-square-o fa-3x' });
+
+        admin.appendChild(doneButton);
+        
+        doneButton.onclick = () => {
+            const nodes = Array.from(document.querySelectorAll('.nodeInputContainer'));
+
+            nodes.forEach(node => {
+
+            });
+        };
+
+        //  attach container for node editor
+        admin.appendChild(nodesContainer);
+
+        admin.onmousemove = () => {
+            const et = event.target, an = nodesContainer.active;
+
+            if (an) {
+                //  valid target
+                const vt = et.className.includes('nodeInputContainer') ? et : et.parentNode.className.includes('nodeInputContainer') ? et.parentNode : null;
+
+                if (!vt) return;
+
+                vt.restorePadding = () => {
+                    sCss(vt, { paddingTop: '10px' });
+                    vt.removeEventListener('mouseout', vt.restorePadding);
+                };
+
+                if (vt != an && vt != an.nextElementSibling) {
+                    sCss(vt, { paddingTop: '20px' });
+                    nodesContainer.target = vt;
+                }
+                else nodesContainer.target = null;
+
+                vt.addEventListener('mouseout', vt.restorePadding);
+            }
+        };
+
+        admin.onmouseup = () => {
+            const an = nodesContainer.active, target = nodesContainer.target;
+
+            if (an) {
+                if (target) {
+                    nodesContainer.insertBefore(an, target);
+                    target.restorePadding();
+                }
+                nodesContainer.active = null;
+            }
+        }
+
+        //  add all data found in chart to the edit panel
+        this.nodesData.forEach((nd, i) => {
+            if (Array.isArray(nd)) {
+                const shell = nd[0];
+                addNodeInput(shell, i, false, false);
+                nd[1].forEach((node, j) => addNodeInput(node, j, true, true));
+            }
+            else addNodeInput(nd, i, false, true);
+        });
+
+        //  attach the 'new node' button
+        const newNodeButton = newElement('i', { id: 'newNodeButton', className: 'fa fa-plus-square fa-2x' });
+
+        nodesContainer.appendChild(newNodeButton);
+
+        newNodeButton.onclick = () => {
+            addNodeInput('New Node', true, false, true);
+            nodesContainer.appendChild(newNodeButton);
+        };
+    }
+
+    editDeck(name) {
+        // this.decksData.some(dd => {
+        //     if (dd.deck != name) return;
+
+        //     dd.cards.forEach(card => {
+        //         console.log(card);
+        //         const
+        //             cardContainer = newElement('div', { className: 'cardContainer' }),
+        //             cardTitleInput = newElement('input', { className: 'cardTitleInput' });
+
+        //         deckContainer.appendChild(cardContainer);
+        //         cardContainer.appendChild(cardTitleInput);
+
+        //         card.sections.forEach(sec => {
+        //             if (sec.hasOwnProperty('title')) {
+        //                 // cardContainer.appendChild();
+        //             }
+        //         });
+        //     });
+        // });
+    }
 }
-
-// class Utility {
-//     constructor() {
-//         this.config = {
-//             showDebug: true,
-//         };
-
-//         // unique id
-//         this.uid = prefix => {
-//             // non-zero random scalar
-//             const nzrs = () => Math.random() || this.nzrs();
-
-//             // random string
-//             const rs = `${prefix ? `${prefix}-` : ''}${nzrs().toString(36).slice(-3)}`;
-
-//             if (Array.from(document.documentElement.getElementsByTagName('*')).some(el => prefix ? el.id == rs : el.id.endsWith(`-${rs}`))) return this.uid(prefix);
-//             return rs;
-//         };
-
-//         // clamp number within range
-//         this.clamp = (val, min, max) => {
-//             return Math.min(Math.max(val, min), max);
-//         };
-
-//         // element array queries
-//         this.elarr = arr => {
-//             arr = Array.from(arr);
-//             if (!Array.isArray(arr)) throw new Error('the elarr method expects and array like object');
-
-//             return {
-//                 get maxWidth() {
-//                     return Math.max(...arr.map(el => gCss(el).width));
-//                 },
-//             };
-//         };
-
-//         // flatten array
-//         this.flarr = arr => {
-//             return {
-//                 get shallow() { return arr.reduce((acc, val) => acc.concat(val), []); },
-//                 get deep() { return arr.reduce((acc, val) => Array.isArray(val) ? acc.concat(this.flarr(val)) : acc.concat(val), []); },
-//             };
-//         };
-
-//         // get item from array
-//         this.gifa = (arr, i) => i < 0 ? arr[arr.length + i] : arr[i];
-
-//         // remove item from array
-//         this.rifa = (item, arr) => arr.splice(arr.indexOf(item), 1);
-
-//         // set & get attribute
-//         this.sAttr = (el, details) => Object.entries(details).forEach(entry => el.setAttribute(entry[0].replace(/([A-Z])/g, '-$1').toLowerCase(), entry[1].toString()));
-//         this.gAttr = el => {
-//             return new Proxy(
-//                 {
-//                     get x() { return parseFloat(el.getAttribute('x')); },
-//                     get y() { return parseFloat(el.getAttribute('y')); },
-//                     get width() { return parseFloat(el.getAttribute('width')) || el.getBBox().width; },
-//                     get height() { return parseFloat(el.getAttribute('height')) || el.getBBox().height; },
-//                 }, {
-//                     get: (o, attr) => attr in o ? o[attr] : el.getAttribute(attr),
-//                 }
-//             );
-//         };
-
-//         // set & get css style
-//         this.sCss = (el, details) => Object.entries(details).forEach(entry => el.style[entry[0]] = entry[1]);
-//         this.gCss = el => {
-//             if (!el) throw new Error('the gCss method expects a valid HTML element');
-
-//             const
-//                 cs = window.getComputedStyle(el),
-//                 val = p => cs.getPropertyValue(p),
-//                 box = el => el.getBoundingClientRect();
-
-//             return new Proxy(
-//                 {
-//                     get width() { return (parseFloat(val('width')) || box(el).width); },
-//                     get height() { return (parseFloat(val('height')) || box(el).height); },
-//                     get left() { return (parseFloat(val('left')) || box(el).left); },
-//                     get top() { return (parseFloat(val('top')) || box(el).top); },
-//                 }, {
-//                     get: (o, p) => {
-//                         if (p in o) {
-//                             return o[p];
-//                         }
-//                         else {
-//                             const v = val(p.replace(/([A-Z])/g, '-$1'.toLowerCase()));
-//                             return parseFloat(v) || v;
-//                         }
-//                     },
-//                 }
-//             );
-//         };
-
-//         // relative cursor position
-//         this.relCursor = (ref, cf) => {
-//             if (ref && ref.nodeType != 1) throw new Error('the relCursor method expects an HTML element as argument');
-
-//             const refBox = (ref || document.body).getBoundingClientRect();
-
-//             let pos = {
-//                 x: event.clientX - refBox.left + window.scrollX,
-//                 y: event.clientY - refBox.top + window.scrollY,
-//             };
-
-//             return this.applyConfig(pos, cf, refBox);
-//         };
-
-//         // relative element position
-//         this.relPos = (el, ref, cf) => {
-//             const
-//                 elBox = el.getBoundingClientRect(),
-//                 refBox = ref.getBoundingClientRect();
-
-//             let pos = {
-//                 x: elBox.left - refBox.left + window.scrollX,
-//                 y: elBox.top - refBox.top + window.scrollY,
-//             };
-
-//             return this.applyConfig(pos, cf, elBox);
-//         };
-
-//         // apply general configurations for 2D vector
-//         this.applyConfig = (v2, cf, ref) => {
-//             if (/cog/.test(cf)) {
-//                 if (!ref) throw new Error('a reference bounding box is required to calculate centre of gravity.');
-//                 v2.x += ref.width / 2;
-//                 v2.y += ref.height / 2;
-//             }
-
-//             if (/round/.test(cf)) {
-//                 v2.x = Math.round(v2.x);
-//                 v2.y = Math.round(v2.y);
-//             }
-
-//             if (/abs/.test(cf)) {
-//                 v2.x = Math.abs(v2.x);
-//                 v2.y = Math.abs(v2.y);
-//             }
-
-//             return v2;
-//         };
-
-//         // new svg element
-//         this.newSVG = type => document.createElementNS('http://www.w3.org/2000/svg', type);
-
-//         // new element
-//         this.newElement = (type, attr) => {
-//             const el = document.createElement(type);
-//             Object.assign(el, attr);
-//             return el;
-//         };
-
-//         // convert string to camel case
-//         this.camelize = str => {
-//             str = str.replace(/^[^\w]+|[^\w]+$/, '');
-//             if (!/\s/.test(str)) return str.toLowerCase();
-//             return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
-//                 return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
-//             }).replace(/\s+/g, '');
-//         };
-
-//         // make width & height integer
-//         this.trimScale = (...o) => {
-//             if (o.length === 1) o = o[0];
-//             Object.values(o).forEach(el => {
-//                 if (el.nodeType === 1) this.sCss(el, {
-//                     width: `${Math.ceil(this.gCss(el).width)}px`,
-//                     height: `${Math.ceil(this.gCss(el).height)}px`,
-//                 });
-//             });
-//         };
-
-//         this.print = (msg, opt) => {
-//             if (!this.config.showDebug) return;
-//             if (!opt) { opt = 'log'; }
-
-//             const
-//                 time = new Date(),
-//                 tStamp = `[${this.pad(time.getHours())}:${this.pad(time.getMinutes())}:${this.pad(time.getSeconds())}]`;
-
-//             if (Array.isArray(msg)) console[opt](tStamp, ...msg);
-//             else console[opt](tStamp, msg);
-//         };
-
-//         this.pad = n => {
-//             return n.toString().length == 2 ? n : '0' + n.toString();
-//         };
-//     }
-// }

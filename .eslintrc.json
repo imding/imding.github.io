@@ -8,19 +8,10 @@
         "sourceType": "module"
     },
     "rules": {
-        "no-undef": "off",
+        "no-undef": ["error", "always"],
         "indent": "off",
-        "linebreak-style": [
-            "error",
-            "unix"
-        ],
-        "quotes": [
-            "error",
-            "single"
-        ],
-        "semi": [
-            "error",
-            "always"
-        ]
+        "linebreak-style": ["error", "unix"],
+        "quotes": ["error", "single"],
+        "semi": ["error", "always"]
     }
 }

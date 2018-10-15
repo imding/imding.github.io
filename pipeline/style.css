@@ -30,8 +30,11 @@ body {
 }
 
 /* grids */
-#Root {
+#Root, #Chart {
     display: grid;
+}
+
+#Root {
     height: 100%;
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
@@ -42,7 +45,6 @@ body {
 }
 
 #Chart {
-    display: grid;
     align-items: center;
     text-align: center;
     padding: 50px 50px 0 50px;
@@ -288,8 +290,111 @@ sup, sub {
     color: whitesmoke;
 }
 
+/* admin styles */
+#admin, .deckToggle, .fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent, #newNodeButton, #doneButton {
+    cursor: pointer;
+}
+
+.shellInput > input, .nodeInput > input {
+    width: 200px;
+    height: 25px;
+    padding: 0 10px;
+    font-family: 'Abel';
+    font-size: 90%;
+    border: none;
+    margin: none;
+    outline: none;
+    border-radius: 5px;
+}
+
+.shellInput > input {
+    background-color: gainsboro;
+    border-radius: 12px;
+}
+
+.indented > input {
+    width: 150px;
+}
+
+.nodeInput > .fa-object-group, .fa-indent {
+    opacity: 0.5;
+}
+
+.indented > .fa-indent {
+    opacity: 1;
+}
+
+.shellInput > .fa-edit, .shellInput > .fa-indent, .indented > .fa-object-group {
+    opacity: 0.1;
+    cursor: not-allowed;
+}
+
+#admin {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 50vw;
+    top: -10px;
+    transform: translateX(-50%);
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.6);
+    text-align: center;
+    overflow: hidden auto;
+}
+
+#editIcon {
+    margin-top: 20px;
+}
+
+.nodeNameInput, .dirToggle {
+    box-sizing: border-box;
+}
+
+.nodeInputContainer {
+    padding: 10px 10% 0 0;
+    text-align: right;
+    transition: padding 0.06s ease-in-out;
+}
+
+.nodeNameInput, .dirToggle, .fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent {
+    vertical-align: middle;
+}
+
+.dirToggle {
+    display: inline-block;
+    width: 25px;
+}
+
+.fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent {
+    margin-left: 4px;
+}
+
+.fa-edit {
+    margin-left: 10px;
+}
+
+.fa-object-group, .fa-indent {
+    transform: scale(0.85);
+}
+
+.fa-indent {
+    transform: scale(0.9);
+}
+
+#doneButton {
+    padding: 13px 10px 10px 16px;
+    border-radius: 10px;
+    color: rgba(0, 0, 0, 0.8);
+    background-color: palegreen;
+}
+
+#newNodeButton {
+    margin: 20px 0 50vh 0;
+
+}
+
 /* template styles */
-.Card > .template {
+/* .Card > .template {
     margin-top: 10px;
     padding: 10px;
     border-radius: 5px;
@@ -350,7 +455,7 @@ sup, sub {
 
 .Card > .template > * {
     pointer-events: none;
-}
+} */
 
 /* search bar styles */
 /*#searchBar {*/
