@@ -1,6 +1,6 @@
 const
-    ti = 'onclick = "func()"',
-    li = '<h1 class="heading"> ';
+    ti = ' <img src=##URL## id="logo"> ',
+    li = ' <img id="logo" src="http://app.bsd.education/resources/mole.png"> ';
 
 let ctrl;
 
@@ -59,6 +59,7 @@ const
             'role' /* jQuery mobile specific */,
         ],
         boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
+        link: ['src', 'href'],
     };
 
 function lastOf(arr) {
@@ -425,10 +426,12 @@ function HtmlAst(strHTML, origin, exception = null) {
                         // look for equal sign(m) followed by single or double quote(m[1])
                         m = attrsRaw.match(/^\s*=\s*(['"])?/);
 
+                        const m2 = attrsRaw.match(/^\s*=\s*##\s*URL\s*##/);
+
                         if (!m) {
                             verdict = `${attrObj.name} is not a Boolean attribute. Please give it a value using the = sign.`;
                         }
-                        else if (!m[1]) {
+                        else if (!m[1] && !m2 && !attributes.link.some(attr => attr == attrObj.name)) {
                             verdict = 'Remember to always use quotes after the = sign.';
                         }
                         else {
@@ -567,7 +570,7 @@ function compare(model, input) {
                             elements = `element${tn.content.length ? tn.content.length > 1 ? 's' : '' : ''}`,
                             only = (tn.content.length && tn.content.length < ln.content.length) ? 'only' : '',
                             n = tn.content.length ? (tn.content.length > 1 ? tn.content.length : (!ln.content.length ? 'an' : 'one')) : 'no',
-                            prepo = tn.closingTag.raw ? 'inside' : 'after';
+                            prepo = tn.closingTag.raw ? 'inside the element' : 'after';
 
                         verdict = `There should be ${someText || noText || `${only ? `${only} ${n}` : n} ${elements}`} ${prepo} ${tn.openingTag.raw}${tn.closingTag.raw || ''}.`;
                     }
@@ -716,12 +719,12 @@ function compare(model, input) {
                 only = tt.attrs.length < lt.attrs.length ? 'only' : '',
                 n = tt.attrs.length ? (tt.attrs.length > 1 ? tt.attrs.length : 'one') : 'no';
 
-            verdict = `There should be ${only ?  `${only} ${n}` : n} attribute${n > 1 ? 's' : ''}${prepo ? ` in the ${tt.tagName} tag` : ''}.`;
+            verdict = `There should be ${only ? `${only} ${n}` : n} attribute${n > 1 ? 's' : ''}${prepo ? ` in the ${tt.tagName} tag` : ''}.`;
         }
 
         return;
     };
-    
+
     //========================================================================//
     // top level logic to compare teacher tree(model) and learner tree(input) //
     // the tree is an array of objects (element or text)                      //
@@ -752,8 +755,8 @@ function compare(model, input) {
                     only = modelElements.length && modelElements.length < inputElements.length ? 'only' : '',
                     n = `${modelElements.length ? (modelElements.length > 1 ? modelElements.length : (!inputElements.length ? 'an' : 'one')) : 'no'}`,
                     elements = `element${modelElements.length ? modelElements.length > 1 ? 's' : '' : ''}`;
-    
-                if (n === 'an') verdict = "Your code shouldn't be empty.";
+
+                if (n === 'an') verdict = 'Your code shouldn\'t be empty.';
                 else verdict = `There should be ${only ? `${only} ${n}` : n} ${elements} in your code.`;
             }
         }
@@ -768,18 +771,18 @@ function compare(model, input) {
                     n = `${modelTexts.length ? (modelTexts.length > 1 ? modelTexts.length : (!inputTexts.length ? 'an' : 'one')) : 'no'}`,
                     textNodes = `text node${modelTexts.length ? modelTexts.length > 1 ? 's' : '' : ''}`;
 
-                if (n === 'an') verdict = "Your code shouldn't be empty.";
+                if (n === 'an') verdict = 'Your code shouldn\'t be empty.';
                 else verdict = `There should be ${only ? `${only} ${n}` : n} ${textNodes} in your code.`;
             }
         }
         else if (!input.length) {
-            verdict = "Your code shouldn't be empty.";
+            verdict = 'Your code shouldn\'t be empty.';
         }
     }
     else {
         if (model[0].type === 'attributes') {
             if (input[0].type !== 'attributes') {
-                const it = input[0].type === 'text' ? `"${input[0].raw.trim()}"` : `${input[0].openingTag.raw}${input[0].content.length ? '...': ''}${input[0].closingTag.raw || ''}`;
+                const it = input[0].type === 'text' ? `"${input[0].raw.trim()}"` : `${input[0].openingTag.raw}${input[0].content.length ? '...' : ''}${input[0].closingTag.raw || ''}`;
                 verdict = `${it} is not an attribute. Please read the instructions again.`;
             }
             else matchAttrs(model[0], input[0]);
@@ -808,6 +811,13 @@ function equalsIgnoreWhitespace(a, b) {
 function removeWhitespace(string) {
     if (string !== undefined) {
         return string.replace(/[\s]/gi, '');
+    }
+    return;
+}
+
+function removeComments(string) {
+    if (string !== undefined) {
+        return string.replace(/(?:\/\*(?:[\s\S]*?)\*\/)|(?:^\s*\/\/(?:.*)$)|(\<![\-\-\s\w\>\/]*\>)/gm, '');
     }
     return;
 }
@@ -891,8 +901,8 @@ const comparisonMode = {
         type: 'any',
         compatible: ['html', 'css', 'js'],
         match: /##\s*ANY\s*##/,
-        comparer: (expt, val) => true,
-        message: (expt, val) => '',
+        comparer: () => true,
+        message: () => '',
     },
     color: {
         type: 'color',
@@ -918,18 +928,23 @@ const comparisonMode = {
     },
     url: {
         type: 'url',
-        compatible: ['css', 'js'],
+        compatible: ['html', 'css', 'js'],
         match: /##\s*URL\s*##/,
-        comparer: (expt, val) => compareWithRegExp('url', '([\'"])?[^\'"\s]+\.(jpg|gif|jpeg|bmp|png|svg)[^\'"\s]*\\1', val),
-        message: (expt, val) => {
-            let wrap = /url[(].*[)]/, link = /^(['"])?[^'"\s]+\.(jpg|gif|jpeg|bmp|png|svg)[^'"\s]*\1$/;
-            if (!wrap.test(val)) {
-                return `${val} is incorrect. The syntax should be: url("link").`;
+        comparer: (expt, val) => compareWithRegExp('url', '([\'"])?[^\'"\\s]+\.(jpg|gif|jpeg|bmp|png|svg)\\s*[\'"]?', val),
+        message: (expt, val, lang) => {
+            let url = val;
+            if (lang === 'css') {
+                const wrap = /url[(].*[)]/;
+                if (!wrap.test(val)) {
+                    return `${val} is incorrect. The syntax should be: url("link").`;
+                }
+                url = val.replace(/url[(](.*)[)]/, '$1').trim();
             }
-            else if (!link.test(val.replace(/url[(](.*)[)]\s*;/, '$1').trim())) {
-                return `${val.replace(/url[(](.*)[)]\s*;/, '$1').trim()} doesn't contain a valid image link. Please read the instructions again.`;
+            const link = /^(['"])?[^'"\s]+\.(jpg|gif|jpeg|bmp|png|svg)[^'"\s]*\1$/;
+            if (link.test(url)) {
+                return '';
             } else {
-                return defaultDeclarationMessage;
+                return `${val} doesn't contain a valid image link. Please read the instructions again.`;
             }
         },
     },
@@ -1015,6 +1030,22 @@ function grammafy(valArray, connector = 'or', quotes = '') {
     });
 
     return valArray.join(' ');
+}
+
+function getTagString(tagType, tagName) {
+    if (tagType == 'tagstart') {
+        return `<${tagName}>`;
+    } else {
+        return `</${tagName}>`;
+    }
+}
+// turns something like `var sentence = "hello there";` into `var sentence = .............;` without changing the string length
+function replaceStrings(str, replacement = '.') {
+    let arr = str.match(/((`)[^`]*\2)|((')[^']*\4)|((")[^"]*\6)/g);
+    arr ? arr.forEach((s) => {
+        str = str.replace(s, Array(s.length + 1).join(replacement));
+    }) : null;
+    return str;
 }
 
 // ===== LB IRRELEVANT ===== //
