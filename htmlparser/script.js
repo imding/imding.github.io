@@ -1,5 +1,5 @@
 const
-    ti = ' <a href=##LINK##> </a> ',
+    ti = ' <img src = ##LINK## alt=##LINK##> ',
     li = ' <a href="google.com"> Click</a> ';
 
 let ctrl;
@@ -85,8 +85,7 @@ const val = (v) => {
 let verdict;
 
 function HtmlAst(strHTML, origin, exception = null) {
-    //                          remove comments                     wrap markup in quotes
-    let inputClone = strHTML    .replace(/<!--.*?(?=-->)-->/g, '')  .replace(/(##\s*[A-Z]+\s*##)/, '"$1"'),
+    let inputClone = strHTML.replace(/<!--.*?(?=-->)-->/g, ''),
         ambiguous = { elem: [], closingTag: [] },
         tree = [];
 
@@ -257,8 +256,8 @@ function HtmlAst(strHTML, origin, exception = null) {
         // assign other parametres for opening tag
         Object.assign(element.openingTag, {
             attrs: attrsRaw ? checkAttribute(attrsRaw, tagRaw.trim()) : [],
-            //          replace markup with ... so it doesn't appear in feedback messages
-            raw: m[0]   .replace(/##\s*[A-Z]+\s*##/, '...'),
+            // replace markup with ... so it doesn't appear in feedback messages
+            raw: m[0].replace(/##\s*[A-Z]+\s*##/, '...'),
             tagName: tagRaw.toLowerCase(),
             type: 'tagstart',
         });
@@ -400,8 +399,11 @@ function HtmlAst(strHTML, origin, exception = null) {
                         verdict = `Please add a space before the ${m[2]} attribute.`;
                     }
                     else {
+                        // store attribute name
                         attrObj.name = m[2].toLowerCase();
+                        // store raw attribute string, more will be added to this string later
                         attrObj.raw = m[0];
+                        // remove attribute name from attrsRaw
                         attrsRaw = attrsRaw.slice(m[0].length);
 
                         const
@@ -424,19 +426,34 @@ function HtmlAst(strHTML, origin, exception = null) {
                             continue;
                         }
 
-                        // look for equal sign(m) followed by single or double quote(m[1])
-                        m = attrsRaw.match(/^\s*=\s*(['"])?/);
+                        // find leading string in attrsRaw
+                        // e.g (=)(")?(##LINK##)?
+                        m = attrsRaw.match(/^(\s*=\s*)(['"])?(##\s*[A-Z]+\s*##)?/);
+
+                        // m[1] - equal sign
+                        // m[2] - single or double quote
+                        // m[3] - markup e.g ##LINK##
+                        if (m && !m[2] && m[3]) {
+                            // wrap the markup in quotes
+                            // e.g. src=##LINK## becomes src="##LINK##"
+                            attrsRaw = attrsRaw.replace(m[3], `"${m[3]}"`);
+                            // manually assign matched values
+                            m[2] = '"';
+                        }
 
                         if (!m) {
                             verdict = `${attrObj.name} is not a Boolean attribute. Please give it a value using the = sign.`;
                         }
-                        else if (!m[1]) {
+                        else if (!m[2]) {
                             verdict = 'Remember to always use quotes after the = sign.';
                         }
                         else {
-                            attrObj.quote = m[1];
-                            attrObj.raw += m[0];
-                            attrsRaw = attrsRaw.slice(m[0].length);
+                            // store quote
+                            attrObj.quote = m[2];
+                            // store raw attribute string
+                            attrObj.raw += `${m[1]}${m[2]}`;
+                            // remove equal sign & opening quote from attrsRaw
+                            attrsRaw = attrsRaw.slice(`${m[1]}${m[2]}`.length);
 
                             // expansive string search until closing quote
                             // store as raw string (attrObj.raw) & attribute value(attrObj.value)
@@ -656,6 +673,9 @@ function compare(model, input) {
             const weak = lt.attrs, due = [];
 
             tt.attrs.every(a => {
+                const flexExpt = findRegularExpression(a.value);
+                if (!(flexExpt.hasOwnProperty('compatible') && flexExpt.compatible.includes('html'))) throw new Error(`Match option "${flexExpt.type}" is incompatible with HTML.`);
+
                 if (val(a.name).isFoundIn(weak.map(_a => _a.name))) {
                     let
                         // it's safe to use the first occurence of an attribute with matching name because duplicate attribute name is an error HtmlAst.js would've caught
@@ -674,13 +694,13 @@ function compare(model, input) {
                             verdict = `${prepo}${prepo ? 's' : 'S'}ome value is missing from the ${a.name} attribute.`;
                         }
                     }
-                    else if (a.value !== inputVal) {
-                        const flexExpt = findRegularExpression(a.value);
-                        if (!(flexExpt.hasOwnProperty('compatible') && flexExpt.compatible.includes('html'))) throw new Error(`Match option "${flexExpt.type}" is incompatible with HTML.`);
-                        
-                        if (!flexExpt.comparer(inputVal.toLowerCase())) {
-                            verdict = `${prepo}"${inputVal}" is not the right value for the ${a.name} attribute.`;
+                    else if (flexExpt.type !== 'default') {
+                        if (!flexExpt.comparer(inputVal)) {
+                            verdict = flexExpt.message(null, `"${inputVal}"`);
                         }
+                    }
+                    else if (a.value !== inputVal) {
+                        verdict = `${prepo}"${inputVal}" is not the right value for the ${a.name} attribute.`;
                     }
 
                     // remove matched attribute from the list of weak attributes
@@ -956,7 +976,7 @@ const comparisonMode = {
         type: 'link',
         compatible: ['html', 'js'],
         match: /##\s*LINK\s*##/,
-        comparer: val => /(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/.test(val),
+        comparer: val => /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/.test(val),
         message: (expt, val) => `${val} is not a valid link. Please read the instructions again.`,
     },
     default: {
