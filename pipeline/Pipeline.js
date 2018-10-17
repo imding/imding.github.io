@@ -2,10 +2,6 @@ class Pipeline {
     constructor(root) {
         this.self = root;
         this.chart = {
-            self: newElement('div', { id: 'Chart' }),
-            nodes: {},
-            offset: 0,
-            scroll: 0,
             updateOffset: () => {
                 // the offset value is necessary for the chart when
                 //  1) the active deck is wider than the window & the chart is not
@@ -26,13 +22,6 @@ class Pipeline {
             },
         };
 
-        this.nodesData = [];
-        this.cardsData = [];
-
-        this.self.appendChild(this.chart.self);
-
-        this.chart.self.onmousemove = () => this.autoScroll(event.clientX, this.chart);
-
         window.onresize = () => {
             if (this.activeNode) {
                 this.chart.updateOffset();
@@ -40,6 +29,16 @@ class Pipeline {
             }
             this.autoScroll(this.chart.scroll, this.chart);
         };
+    }
+
+    init() {
+        this.chart.self = newElement('div', { id: 'Chart' });
+        this.chart.nodes = {};
+        this.chart.offset = 0;
+        this.chart.scroll = 0;
+
+        this.self.appendChild(this.chart.self);
+        this.chart.self.onmousemove = () => this.autoScroll(event.clientX, this.chart);
     }
 
     autoScroll(ref, focus) {
@@ -56,6 +55,8 @@ class Pipeline {
     }
 
     render(nodesData, decksData) {
+        this.init();
+
         this.nodesData = nodesData;
         this.decksData = decksData;
 
@@ -85,7 +86,7 @@ class Pipeline {
                 const card = {
                     self: newElement('div', { className: 'Card' }),
                     title: newElement('h4', { textContent: cf.title || 'Card Title' }),
-                    shade: newElement('div', { className: 'Shade' }),
+
                     sections: [],
                 };
 
@@ -162,9 +163,6 @@ class Pipeline {
 
                     _section.title.click();
                 });
-
-                card.self.appendChild(card.shade);
-                card.self.onscroll = () => sCss(card.shade, { top: `${card.self.scrollTop}px` });
             },
         };
 
@@ -249,31 +247,36 @@ class Pipeline {
     adminAccess() {
         const
             admin = newElement('div', { id: 'admin' }),
-            editIcon = newElement('i', { id: 'editIcon', className: 'fa fa-pencil fa-lg' });
+            editIcon = newElement('i', { id: 'editIcon', className: 'fa fa-gear fa-lg' });
 
         document.body.appendChild(admin);
         admin.appendChild(editIcon);
 
-        admin.onclick = () => this.showEditPanel();
+        editIcon.onclick = () => this.showEditPanel();
+    }
+
+    hideEditPanel() {
+        Array.from(admin.children).forEach(el => el != editIcon ? admin.removeChild(el) : null);
+
+        sCss(this.self, { filter: 'blur(0)', opacity: '1' });
+        sCss(editIcon, { display: 'inline-block' });
+
+        admin.classList.remove('expanded');
     }
 
     showEditPanel() {
-        admin.onclick = null;
-
+        sCss(this.self, { filter: 'blur(5px)', opacity: '0.5' });
         sCss(editIcon, { display: 'none' });
-        sCss(admin, {
-            cursor: 'default',
-            width: '450px',
-            height: 'calc(100vh - 100px)',
-            top: '50px',
-        });
+
+        admin.classList.add('expanded');
 
         const
             nodesContainer = newElement('div', { id: 'nodesContainer' }),
             deckContainer = newElement('div', { id: 'deckContainer' }),
-            addNodeInput = (val, arrow, indent, isNode) => {
+            addNodeInput = (val, indent, isNode) => {
                 const
                     nodeInputContainer = newElement('div', { className: 'nodeInputContainer' }),
+                    dirToggle = newElement('div', { className: 'dirToggle' }),
                     nodeNameInput = newElement('input', { className: 'adminInput' }),
                     deckIcon = newElement('i', { className: 'fa fa-edit' }),
                     shellIcon = newElement('i', { className: 'fa fa-object-group' }),
@@ -281,17 +284,30 @@ class Pipeline {
                     removeIcon = newElement('i', { className: 'fa fa-remove' }),
                     dragIcon = newElement('i', { className: 'fa fa-reorder' });
 
+                //  attach node input container
                 nodesContainer.appendChild(nodeInputContainer);
 
-                if (arrow) {
-                    const dir = newElement('div', { className: 'dirToggle', textContent: val.match(/^[<>]+/) || '' });
-                    nodeInputContainer.appendChild(dir);
-                    dir.onclick = () => dir.textContent = (dir.textContent == '>>' ? '<>' : '>>');
+                //  attach arrows before input box
+                const dir = val.match(/^[<>]+/);
+
+                nodeInputContainer.appendChild(dirToggle);
+
+                if (dir) {
+                    if (/</.test(dir[0])) dirToggle.appendChild(newElement('i', { className: 'fa fa-caret-left' }));
+                    if (/>/.test(dir[0])) dirToggle.appendChild(newElement('i', { className: 'fa fa-caret-right' }));
                 }
 
+                dirToggle.onclick = () => {
+                    if (dirToggle.children.length == 0) dirToggle.appendChild(newElement('i', { className: 'fa fa-caret-right' }));
+                    else if (dirToggle.children.length == 1) dirToggle.insertBefore(newElement('i', { className: 'fa fa-caret-left' }), dirToggle.firstElementChild);
+                    else dirToggle.innerHTML = null;
+                }
+
+                //   attach input box
+                nodeInputContainer.appendChild(nodeNameInput);
                 nodeNameInput.value = val.replace(/^[<>]+\s*/, '');
 
-                nodeInputContainer.appendChild(nodeNameInput);
+                //  attach icons
                 nodeInputContainer.appendChild(deckIcon);
                 nodeInputContainer.appendChild(shellIcon);
                 nodeInputContainer.appendChild(indentIcon);
@@ -331,16 +347,50 @@ class Pipeline {
             };
 
         //  attach the 'done' button
-        const doneButton = newElement('i', { id: 'doneButton', className: 'fa fa-check-square-o fa-3x' });
+        const doneButton = newElement('div', { id: 'doneButton', textContent: 'SAVE & CLOSE' });
 
         admin.appendChild(doneButton);
-        
+
         doneButton.onclick = () => {
-            const nodes = Array.from(document.querySelectorAll('.nodeInputContainer'));
+            let error;
+            const
+                nodes = Array.from(document.querySelectorAll('.nodeInputContainer')),
+                nodesData = [],
+                decksData = [],
+                errorFound = nodes.some((node, i) => {
+                    //  nic: get the value of input element inside a given node input container
+                    const getValue = nic => {
+                        const dir = nic.querySelector('.dirToggle').children.length;
+                        return `${dir ? (dir == 1 ? '>>' : '<>') : ''}${nic.querySelector('input').value.trim()}`;
+                    }
 
-            nodes.forEach(node => {
+                    if (node.classList.contains('shellInput')) {
+                        if (i && nodes[i - 1].classList.contains('shellInput')) return error = 'Group nodes must be followed by a indented node.';
+                        else nodesData.push([getValue(node), []]);
+                    }
+                    else if (node.classList.contains('indented')) {
+                        const lastNode = gifa(nodesData, -1);
 
-            });
+                        if (Array.isArray(lastNode)) lastNode[1].push(getValue(node));
+                        else return error = 'Indented nodes must be preceded by a group node.';
+                    }
+                    else nodesData.push(getValue(node));
+
+                    return;
+                });
+
+            if (errorFound) alert(error);
+            else {
+                console.log(nodesData);
+
+                while (this.self.children.length) {
+                    this.self.removeChild(this.self.firstElementChild);
+                }
+
+                this.render(nodesData, decksData);
+
+                this.hideEditPanel();
+            }
         };
 
         //  attach container for node editor
@@ -383,13 +433,13 @@ class Pipeline {
         }
 
         //  add all data found in chart to the edit panel
-        this.nodesData.forEach((nd, i) => {
+        this.nodesData.forEach(nd => {
             if (Array.isArray(nd)) {
                 const shell = nd[0];
-                addNodeInput(shell, i, false, false);
-                nd[1].forEach((node, j) => addNodeInput(node, j, true, true));
+                addNodeInput(shell, false, false);
+                nd[1].forEach(node => addNodeInput(node, true, true));
             }
-            else addNodeInput(nd, i, false, true);
+            else addNodeInput(nd, false, true);
         });
 
         //  attach the 'new node' button
@@ -398,7 +448,7 @@ class Pipeline {
         nodesContainer.appendChild(newNodeButton);
 
         newNodeButton.onclick = () => {
-            addNodeInput('New Node', true, false, true);
+            addNodeInput('New Node', false, true);
             nodesContainer.appendChild(newNodeButton);
         };
     }

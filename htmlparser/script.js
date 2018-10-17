@@ -1,6 +1,6 @@
 const
-    ti = ' <img src=##URL## id="logo"> ',
-    li = ' <img id="logo" src="http://app.bsd.education/resources/mole.png"> ';
+    ti = ' <a href=##LINK##> </a> ',
+    li = ' <a href="google.com"> Click</a> ';
 
 let ctrl;
 
@@ -16,7 +16,7 @@ const
             'col', 'div', 'img', 'nav', 'sup', 'sub', 'pre', 'wbr',
             'area', 'base', 'code', 'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
             'embed', 'label', 'input', 'param', 'small', 'style', 'table', 'title', 'frame', 'track',
-            'button', 'canvas', 'footer', 'header', 'keygen', 'strong', 'select', 'option', 'script', 'source', 'strike',
+            'button', 'canvas', 'footer', 'header', 'keygen', 'iframe', 'strong', 'select', 'option', 'script', 'source', 'strike',
             'command', 'article', 'section',
             'noscript', 'textarea', 'frameset', 'noframes', 'progress',
             'blockquote',
@@ -59,7 +59,6 @@ const
             'role' /* jQuery mobile specific */,
         ],
         boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
-        link: ['src', 'href'],
     };
 
 function lastOf(arr) {
@@ -86,7 +85,8 @@ const val = (v) => {
 let verdict;
 
 function HtmlAst(strHTML, origin, exception = null) {
-    let inputClone = strHTML.replace(/<!--.*?(?=-->)-->/g, ''),
+    //                          remove comments                     wrap markup in quotes
+    let inputClone = strHTML    .replace(/<!--.*?(?=-->)-->/g, '')  .replace(/(##\s*[A-Z]+\s*##)/, '"$1"'),
         ambiguous = { elem: [], closingTag: [] },
         tree = [];
 
@@ -257,7 +257,8 @@ function HtmlAst(strHTML, origin, exception = null) {
         // assign other parametres for opening tag
         Object.assign(element.openingTag, {
             attrs: attrsRaw ? checkAttribute(attrsRaw, tagRaw.trim()) : [],
-            raw: m[0],
+            //          replace markup with ... so it doesn't appear in feedback messages
+            raw: m[0]   .replace(/##\s*[A-Z]+\s*##/, '...'),
             tagName: tagRaw.toLowerCase(),
             type: 'tagstart',
         });
@@ -426,12 +427,10 @@ function HtmlAst(strHTML, origin, exception = null) {
                         // look for equal sign(m) followed by single or double quote(m[1])
                         m = attrsRaw.match(/^\s*=\s*(['"])?/);
 
-                        const m2 = attrsRaw.match(/^\s*=\s*##\s*URL\s*##/);
-
                         if (!m) {
                             verdict = `${attrObj.name} is not a Boolean attribute. Please give it a value using the = sign.`;
                         }
-                        else if (!m[1] && !m2 && !attributes.link.some(attr => attr == attrObj.name)) {
+                        else if (!m[1]) {
                             verdict = 'Remember to always use quotes after the = sign.';
                         }
                         else {
@@ -676,7 +675,12 @@ function compare(model, input) {
                         }
                     }
                     else if (a.value !== inputVal) {
-                        verdict = `${prepo}"${inputVal}" is not the right value for the ${a.name} attribute.`;
+                        const flexExpt = findRegularExpression(a.value);
+                        if (!(flexExpt.hasOwnProperty('compatible') && flexExpt.compatible.includes('html'))) throw new Error(`Match option "${flexExpt.type}" is incompatible with HTML.`);
+                        
+                        if (!flexExpt.comparer(inputVal.toLowerCase())) {
+                            verdict = `${prepo}"${inputVal}" is not the right value for the ${a.name} attribute.`;
+                        }
                     }
 
                     // remove matched attribute from the list of weak attributes
@@ -928,7 +932,7 @@ const comparisonMode = {
     },
     url: {
         type: 'url',
-        compatible: ['html', 'css', 'js'],
+        compatible: ['css', 'js'],
         match: /##\s*URL\s*##/,
         comparer: (expt, val) => compareWithRegExp('url', '([\'"])?[^\'"\\s]+\.(jpg|gif|jpeg|bmp|png|svg)\\s*[\'"]?', val),
         message: (expt, val, lang) => {
@@ -947,6 +951,13 @@ const comparisonMode = {
                 return `${val} doesn't contain a valid image link. Please read the instructions again.`;
             }
         },
+    },
+    link: {
+        type: 'link',
+        compatible: ['html', 'js'],
+        match: /##\s*LINK\s*##/,
+        comparer: val => /(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/.test(val),
+        message: (expt, val) => `${val} is not a valid link. Please read the instructions again.`,
     },
     default: {
         type: 'default',

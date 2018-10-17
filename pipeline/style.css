@@ -21,6 +21,7 @@
 html, body {
     height: 100%;
     margin: 0;
+    background-color: #384558;
 }
 
 body {
@@ -30,6 +31,7 @@ body {
 }
 
 /* grids */
+
 #Root, #Chart {
     display: grid;
 }
@@ -40,7 +42,6 @@ body {
     grid-template-rows: 1fr 1fr;
     row-gap: 50px;
     justify-items: center;
-    background: #384558;
     overflow: hidden;
 }
 
@@ -64,6 +65,7 @@ body {
 }
 
 /* node styles */
+
 .Node {
     white-space: nowrap;
     padding: 4px 10px 5px 10px;
@@ -79,7 +81,7 @@ body {
     cursor: default;
 }
 
-.Shell > b {
+.Shell>b {
     display: block;
     margin-bottom: 10px;
 }
@@ -102,70 +104,25 @@ body {
 }
 
 /* card styles */
+
 .Card {
-    position: relative;
+    position: sticky;
     width: 350px;
     padding: 15px 6px 10px 15px;
-    border-radius: 8px 8px 0 0;
     box-sizing: border-box;
+    border-radius: 8px 8px 0 0;
     background: #4C5869;
     box-shadow: 0 0 8px #1D2533;
     cursor: default;
-    overflow-y: scroll;
+    overflow: hidden scroll;
 }
 
 .Card:nth-child(even) {
     background: #424E61;
 }
 
-.Shade {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 55px;
-    background-image: linear-gradient(
-        hsl(215, 16%, 35%) 50%,
-        hsla(215, 16%, 35%, 0.978) 54.75%,
-        hsla(215, 16%, 35%, 0.925) 58.85%,
-        hsla(215, 16%, 35%, 0.857) 62.35%,
-        hsla(215, 16%, 35%, 0.781) 65.5%,
-        hsla(215, 16%, 35%, 0.701) 68.4%,
-        hsla(215, 16%, 35%, 0.62) 71.15%,
-        hsla(215, 16%, 35%, 0.538) 73.8%,
-        hsla(215, 16%, 35%, 0.455) 76.45%,
-        hsla(215, 16%, 35%, 0.373) 79.1%,
-        hsla(215, 16%, 35%, 0.291) 81.85%,
-        hsla(215, 16%, 35%, 0.212) 84.75%,
-        hsla(215, 16%, 35%, 0.138) 87.9%,
-        hsla(215, 16%, 35%, 0.07) 91.45%,
-        hsla(215, 16%, 35%, 0.019) 95.6%,
-        hsla(215, 16%, 35%, 0) 100%
-    )
-}
-
-.Card:nth-child(even) > .Shade {
-    background-image: linear-gradient(
-        hsl(217, 19%, 32%) 50%,
-        hsla(217, 19%, 32%, 0.978) 54.75%,
-        hsla(217, 19%, 32%, 0.925) 58.85%,
-        hsla(217, 19%, 32%, 0.857) 62.35%,
-        hsla(217, 19%, 32%, 0.781) 65.5%,
-        hsla(217, 19%, 32%, 0.701) 68.4%,
-        hsla(217, 19%, 32%, 0.62) 71.15%,
-        hsla(217, 19%, 32%, 0.538) 73.8%,
-        hsla(217, 19%, 32%, 0.455) 76.45%,
-        hsla(217, 19%, 32%, 0.373) 79.1%,
-        hsla(217, 19%, 32%, 0.291) 81.85%,
-        hsla(217, 19%, 32%, 0.212) 84.75%,
-        hsla(217, 19%, 32%, 0.138) 87.9%,
-        hsla(217, 19%, 32%, 0.07) 91.45%,
-        hsla(217, 19%, 32%, 0.019) 95.6%,
-        hsla(217, 19%, 32%, 0) 100%
-    )
-}
-
 /* scroll bar */
+
 ::-webkit-scrollbar-thumb {
     border-style: solid;
     border-color: transparent;
@@ -190,18 +147,28 @@ code::-webkit-scrollbar-thumb {
     background-color: #545c6d;
 }
 
+#admin::-webkit-scrollbar {
+    width: 8px;
+}
+
+#admin::-webkit-scrollbar-thumb {
+    border-width: 20px 5px 20px 0;
+    background-color: slategray;
+}
+
 /* card content styles */
+
 .fa-info-circle {
     margin-right: 5px;
 }
 
-.fa-caret-right, .fa-caret-left, .fa-caret-up, .fa-caret-down  {
+.fa-caret-right, .fa-caret-left, .fa-caret-up, .fa-caret-down {
     color: palegreen;
 }
 
 h4 {
     position: sticky;
-    top: -18px;
+    top: -5px;
     color: #1D2533;
     border-style: solid;
     border-width: 0 10px 0 10px;
@@ -212,7 +179,12 @@ h4 {
     padding: 4px;
     font-size: 1.2em;
     text-align: center;
-    z-index: 100;
+    z-index: 2;
+    box-shadow: 0 0 10px 10px #4C5869;
+}
+
+.Card:nth-child(even)>h4 {
+    box-shadow: 0 0 10px 10px #424E61;
 }
 
 h5 {
@@ -256,7 +228,7 @@ img {
     background-color: whitesmoke;
 }
 
-samp, .Card > code {
+samp, .Card>code {
     font-family: 'Share Tech Mono';
     font-size: 13px;
 }
@@ -291,11 +263,12 @@ sup, sub {
 }
 
 /* admin styles */
-#admin, .deckToggle, .fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent, #newNodeButton, #doneButton {
+
+#editIcon, .deckToggle, .dirToggle, .fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent, #newNodeButton, #doneButton {
     cursor: pointer;
 }
 
-.shellInput > input, .nodeInput > input {
+.shellInput>input, .nodeInput>input {
     width: 200px;
     height: 25px;
     padding: 0 10px;
@@ -307,24 +280,24 @@ sup, sub {
     border-radius: 5px;
 }
 
-.shellInput > input {
+.shellInput>input {
     background-color: gainsboro;
     border-radius: 12px;
 }
 
-.indented > input {
+.indented>input {
     width: 150px;
 }
 
-.nodeInput > .fa-object-group, .fa-indent {
+.nodeInput>.fa-object-group, .fa-indent {
     opacity: 0.5;
 }
 
-.indented > .fa-indent {
+.indented>.fa-indent {
     opacity: 1;
 }
 
-.shellInput > .fa-edit, .shellInput > .fa-indent, .indented > .fa-object-group {
+.shellInput>.fa-edit, .shellInput>.fa-indent, .indented>.fa-object-group {
     opacity: 0.1;
     cursor: not-allowed;
 }
@@ -342,8 +315,16 @@ sup, sub {
     overflow: hidden auto;
 }
 
+#admin.expanded {
+    width: 450px;
+    height: calc(100vh - 100px);
+    top: 50px;
+    border-radius: 20px;
+    box-shadow: 0 0 10px #111;
+}
+
 #editIcon {
-    margin-top: 20px;
+    margin-top: 22px;
 }
 
 .nodeNameInput, .dirToggle {
@@ -356,13 +337,19 @@ sup, sub {
     transition: padding 0.06s ease-in-out;
 }
 
-.nodeNameInput, .dirToggle, .fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent {
+.nodeNameInput, .dirToggle, .fa-edit, .fa-object-group, .fa-indent, .fa-remove, .fa-reorder {
     vertical-align: middle;
 }
 
 .dirToggle {
     display: inline-block;
     width: 25px;
+    height: 23px;
+    text-align: center;
+}
+
+.dirToggle>.fa-caret-left {
+    margin-right: 2px;
 }
 
 .fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent {
@@ -382,18 +369,22 @@ sup, sub {
 }
 
 #doneButton {
-    padding: 13px 10px 10px 16px;
-    border-radius: 10px;
+    margin: 30px auto 10px auto;
+    width: 180px;
+    padding: 10px 0;
+    border-radius: 25px;
     color: rgba(0, 0, 0, 0.8);
     background-color: palegreen;
+    font-size: 20px;
+    font-weight: bold;
 }
 
 #newNodeButton {
     margin: 20px 0 50vh 0;
-
 }
 
 /* template styles */
+
 /* .Card > .template {
     margin-top: 10px;
     padding: 10px;
@@ -458,18 +449,31 @@ sup, sub {
 } */
 
 /* search bar styles */
+
 /*#searchBar {*/
+
 /*    display: none;*/
+
 /*    position: absolute;*/
+
 /*    left: 50%;*/
+
 /*    top: 50%;*/
+
 /*    transform: translate(-50%, -50%);*/
+
 /*    border-radius: 10px;*/
+
 /*    border: none;*/
+
 /*    font-size: 1.5em;*/
+
 /*    padding: 5px 10px;*/
+
 /*}*/
 
 /*#searchBar:focus {*/
+
 /*    outline: none;*/
+
 /*}*/

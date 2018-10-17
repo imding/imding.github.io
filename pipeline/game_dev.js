@@ -91,7 +91,7 @@ function init() {
             //  focus on revising JS
             //  describing game logic using flowchart
             //  implementing the flow logic using JS
-            //  guided project: use conditionals and loops to create narrative ( point & click adventure )
+            //  Guided project: football game winning condition
         ]],
 
         ['>> Actors', [
@@ -106,7 +106,10 @@ function init() {
             //  
         ]],
 
+        //  guided project: use conditionals and loops to create narrative ( point & click adventure )
+
         ['>> Rules', [
+
             'Collision Detection',
             //  
         ]],
@@ -159,5 +162,5 @@ function init() {
     pl = new Pipeline(Root);
     pl.render(nodesData, decksData);
 
-    // pl.adminAccess();
+    pl.adminAccess();
 }
