@@ -50,7 +50,7 @@ function init() {
             //  intro to event handling
             //  guided project: onkeyup, onkeydown, keycode, onclick, preventDefault
             //  challenge: double click, etc...
-            
+
             '>> The DOM',
             //  intro to DOM and working with it
             //  guided project: createElement, createTextNode, appendChild, removeChild, setAttribute
@@ -99,9 +99,8 @@ function init() {
         '>> Presentation',
     ];
 
-    const cardsData = [{
-        deck: 'introToAppDev',
-        cards: [{
+    const cardsData = {
+        introToAppDev: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -111,10 +110,8 @@ function init() {
                     { type: 'p', html: '[u::Unplugged]: inspect element.' },
                 ],
             }],
-            }],
-    }, {
-        deck: 'webFundamentals',
-        cards: [{
+        }],
+        webFundamentals: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -153,9 +150,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'introToF7',
-        cards: [{
+        introToF7: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -166,9 +161,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'todoList',
-        cards: [{
+        todoList: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -177,9 +170,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'flowChart',
-        cards: [{
+        flowChart: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -190,9 +181,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'jsFundamentals',
-        cards: [{
+        jsFundamentals: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -201,9 +190,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'listenerHandler',
-        cards: [{
+        listenerHandler: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -213,9 +200,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'theDom',
-        cards: [{
+        theDom: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -227,9 +212,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'todoListBehaviour',
-        cards: [{
+        todoListBehaviour: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -238,9 +221,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'firebaseDataflow',
-        cards: [{
+        firebaseDataflow: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -253,9 +234,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'todoListDatabase',
-        cards: [{
+        todoListDatabase: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -263,9 +242,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'collectiveIntelligence',
-        cards: [{
+        collectiveIntelligence: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -276,9 +253,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'reviewApp',
-        cards: [{
+        reviewApp: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -287,9 +262,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'mobileSensors',
-        cards: [{
+        mobileSensors: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -298,9 +271,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'geolocation',
-        cards: [{
+        geolocation: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -312,9 +283,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'reviewAppUserLocation',
-        cards: [{
+        reviewAppUserLocation: [{
             title: 'Lesson App',
             sections: [{
                 content: [
@@ -323,9 +292,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'gonative',
-        cards: [{
+        gonative: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -334,9 +301,7 @@ function init() {
                 ]
             }],
         }],
-    }, {
-        deck: 'presentation',
-        cards: [{
+        presentation: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -344,7 +309,7 @@ function init() {
                 ],
             }],
         }],
-    }];
+    };
 
     pl = new Pipeline(Root);
     pl.render(nodesData, cardsData);

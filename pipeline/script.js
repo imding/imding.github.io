@@ -41,9 +41,8 @@ function init() {
         ]],
     ];
 
-    const cardsData = [{
-        deck: 'schoolEngagement',
-        cards: [{
+    const cardsData = {
+        schoolEngagement: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -53,9 +52,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'deliverableDetails',
-        cards: [{
+        deliverableDetails: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -74,9 +71,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'courseOutline',
-        cards: [{
+        courseOutline: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -86,9 +81,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'unitOutline',
-        cards: [{
+        unitOutline: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -98,14 +91,11 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'teacherInteraction',
-        cards: [{
+        teacherInteraction: [{
             title: 'Details',
             sections: [{
                 content: [
                     { type: 'p', html: 'Teacher interaction will take place before and after the final curriculum delivery.' },
-                    { type: 'p', html: '...' },
                 ],
             }],
         }, {
@@ -117,9 +107,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'theResult',
-        cards: [{
+        theResult: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -150,9 +138,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'technicalFlow',
-        cards: [{
+        technicalFlow: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -163,9 +149,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'staticSteps',
-        cards: [{
+        staticSteps: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -219,9 +203,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'stepExpectation',
-        cards: [{
+        stepExpectation: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -297,9 +279,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'transitionLogic',
-        cards: [{
+        transitionLogic: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -322,9 +302,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'projectGuide',
-        cards: [{
+        projectGuide: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -347,9 +325,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'lessonPlan',
-        cards: [{
+        lessonPlan: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -372,9 +348,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'supportMaterials',
-        cards: [{
+        supportMaterials: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -397,9 +371,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'contentEditing',
-        cards: [{
+        contentEditing: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -421,7 +393,7 @@ function init() {
                     { type: 'p', html: 'Links to other [em::platform content] should be limited to the last step of a project, otherwise only [em::sandbox output] links should be linked.' },
                     { type: 'p', html: 'Links to external resources must be accompanied by [em::clear instructions].' },
                 ],
-            },{
+            }, {
                 title: 'Line Location',
                 content: [
                     { type: 'p', html: 'All [em::code references] must be accompanied by line locations.' },
@@ -461,9 +433,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'finalReview',
-        cards: [{
+        finalReview: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -486,9 +456,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'curriculumDelivery',
-        cards: [{
+        curriculumDelivery: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -511,9 +479,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'feedbackHandling',
-        cards: [{
+        feedbackHandling: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -536,9 +502,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'versionControl',
-        cards: [{
+        versionControl: [{
             title: 'Details',
             sections: [{
                 content: [
@@ -561,8 +525,10 @@ function init() {
                 ],
             }],
         }],
-    }];
+    };
 
     pl = new Pipeline(Root);
     pl.render(nodesData, cardsData);
+
+    pl.adminAccess();
 }

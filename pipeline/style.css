@@ -157,7 +157,6 @@ code::-webkit-scrollbar-thumb {
 }
 
 /* card content styles */
-
 .fa-info-circle {
     margin-right: 5px;
 }
@@ -263,30 +262,43 @@ sup, sub {
 }
 
 /* admin styles */
-
-#editIcon, .deckToggle, .dirToggle, .fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent, #newNodeButton, #doneButton {
+#editIcon, .deckToggle, .dirToggle, .fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent, #newNodeButton, #doneButton,
+.typeToggle, .newSectionButton, .newContentButton, #newCardButton {
     cursor: pointer;
 }
 
-.shellInput>input, .nodeInput>input {
-    width: 200px;
-    height: 25px;
-    padding: 0 10px;
+input, textarea {
     font-family: 'Abel';
     font-size: 90%;
+    border-radius: 5px;
     border: none;
     margin: none;
     outline: none;
-    border-radius: 5px;
+}
+
+.shellInput>input, .nodeInput>input {
+    font-size: 100%;
+    padding: 5px 10px;
+}
+
+.nodeNameInput {
+    text-align: right;
+    width: calc(85% - 100px);
 }
 
 .shellInput>input {
-    background-color: gainsboro;
-    border-radius: 12px;
+    color: gainsboro;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    text-align: left;
+}
+
+.nodeInput>input {
+    background-color: mintcream;
 }
 
 .indented>input {
-    width: 150px;
+    width: calc(65% - 100px);
 }
 
 .nodeInput>.fa-object-group, .fa-indent {
@@ -302,6 +314,10 @@ sup, sub {
     cursor: not-allowed;
 }
 
+#admin, .deckEditGroup {
+    border-radius: 10px;
+}
+
 #admin {
     position: absolute;
     width: 50px;
@@ -309,14 +325,13 @@ sup, sub {
     left: 50vw;
     top: -10px;
     transform: translateX(-50%);
-    border-radius: 10px;
     background-color: rgba(0, 0, 0, 0.6);
     text-align: center;
     overflow: hidden auto;
 }
 
 #admin.expanded {
-    width: 450px;
+    width: 650px;
     height: calc(100vh - 100px);
     top: 50px;
     border-radius: 20px;
@@ -331,13 +346,14 @@ sup, sub {
     box-sizing: border-box;
 }
 
-.nodeInputContainer {
+.nodeEditor {
     padding: 10px 10% 0 0;
     text-align: right;
     transition: padding 0.06s ease-in-out;
 }
 
-.nodeNameInput, .dirToggle, .fa-edit, .fa-object-group, .fa-indent, .fa-remove, .fa-reorder {
+.dirToggle, .nodeNameInput, .fa-edit, .fa-object-group, .fa-indent, .fa-remove, .fa-reorder,
+.typeToggle, .editor {
     vertical-align: middle;
 }
 
@@ -379,101 +395,84 @@ sup, sub {
     font-weight: bold;
 }
 
-#newNodeButton {
-    margin: 20px 0 50vh 0;
+#newNodeButton, #newCardButton {
+    margin: 20px 0 25vh 0;
 }
 
-/* template styles */
+.deckEditGroup {
+    width: 85%;
+    margin: auto;
+}
 
-/* .Card > .template {
+.deckHeading {
+    margin-top: 20px;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 150%;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.cardEditGroup, .sectionEditGroup {
+    padding: 15px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.cardEditGroup {
+    margin-top: 25px;
+}
+
+.cardEditGroup>input {
+    width: 60%;
+    font-size: 120%;
+    text-align: center;
+}
+
+.sectionEditGroup {
+    margin-top: 15px;
+}
+
+.sectionTitle {
+    width: 50%;
+    padding: 3px 10px;
+    text-align: center;
+}
+
+.itemEditGroup {
     margin-top: 10px;
-    padding: 10px;
-    border-radius: 5px;
-    background: white;
-    color: black;
-    cursor: pointer;
-    transition: 0.2s ease-out;
-    user-select: initial;
+    text-align: center;
 }
 
-.Card > .template pre {
-    padding: 5px 0;
-    border-radius: 5px;
-    border-width: 0 0 0 10px;
-    border-style: solid;
-    border-color: #358ccb;
-    box-shadow: 1px 0 2px grey;
+.itemEditGroup>textarea {
+    width: calc(100% - 60px);
+    min-height: 30px;
+    padding: 5px 10px;
+    box-shadow: inset 0 0 10px 2px white;
+    box-sizing: border-box;
     overflow: hidden;
+    resize: vertical;
 }
 
-.Card > .template pre code {
-    font-family: 'Share Tech Mono';
-    font-size: 13px;
-    color: grey;
-    background: initial;
+.typeToggle {
+    margin-right: 5px;
 }
 
-.Card > .template code {
-    display: initial;
-    border: none;
-    margin: inherit;
-    padding: 3px 4px 3px 6px;
-    color: #c7254e;
-    background-color: #f9f2f4;
-    overflow: initial;
+.newSectionButton, .newContentButton {
+    margin: 15px 20px 0 20px;
 }
 
-.Card > .template img {
-    margin: 2px 0;
-    box-shadow: initial;
-    border-radius: initial;
+.newParagraphButton {
+    color: skyblue;
 }
 
-.Card > .template .highlight {
-    margin-bottom: 0;
-    padding: 4px 6px;
-    border: 1px solid #2c3e50;
-    background-color: #d7e6e0;
+.newImageButton {
+    color: goldenrod;
 }
 
-.Card > .template .notes {
-    margin-bottom: 0;
-    padding: 4px 6px;
-    border: 1px solid #cccccc;
-    border-radius: 5px;
-    background-color: whitesmoke;
+.newCodeButton {
+    color: plum;
 }
 
-.Card > .template > * {
-    pointer-events: none;
-} */
-
-/* search bar styles */
-
-/*#searchBar {*/
-
-/*    display: none;*/
-
-/*    position: absolute;*/
-
-/*    left: 50%;*/
-
-/*    top: 50%;*/
-
-/*    transform: translate(-50%, -50%);*/
-
-/*    border-radius: 10px;*/
-
-/*    border: none;*/
-
-/*    font-size: 1.5em;*/
-
-/*    padding: 5px 10px;*/
-
-/*}*/
-
-/*#searchBar:focus {*/
-
-/*    outline: none;*/
-
-/*}*/
+.hidden {
+    display: none;
+}

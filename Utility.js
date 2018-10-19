@@ -47,6 +47,24 @@ class Utility {
         // remove item from array
         this.rifa = (item, arr) => arr.splice(arr.indexOf(item), 1);
 
+        // turn array into object
+        this.ato = (array, dimension = 2) => {
+            const obj = {};
+
+            if (dimension == 2) {
+                array.forEach((n, i) => {
+                    if (Array.isArray(n)) {
+                        obj[i] = { 0: n[0], 1: [] };
+                        n[1].forEach(_n => obj[i][1].push(_n));
+                    }
+                    else obj[i] = n;
+                });
+            }
+            else return alert('only 2D arrays are supported');
+
+            return obj;
+        };
+
         // set & get attribute
         this.sAttr = (el, details) => Object.entries(details).forEach(entry => el.setAttribute(entry[0].replace(/([A-Z])/g, '-$1').toLowerCase(), entry[1].toString()));
         this.gAttr = el => {
@@ -152,13 +170,15 @@ class Utility {
         };
 
         // convert string to camel case
-        this.camelize = str => {
+        this.camelise = str => {
             str = str.replace(/^[^\w]+|[^\w]+$/, '').replace(/[^\w\s]/g, '').toLowerCase();
             if (!/\s/.test(str)) return str;
             return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
                 return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
             }).replace(/\s+/g, '');
         };
+
+        this.decamelise = str => str.replace(/^[a-z]|([A-Z]|\d+)/g, (v, i) => i ? ' ' + v.toUpperCase() : v.toUpperCase());
 
         // make width & height integer
         this.trimScale = (...o) => {
@@ -179,6 +199,12 @@ class Utility {
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        };
+
+        this.htmlDecode = input => {
+            var e = document.createElement('div');
+            e.innerHTML = input;
+            return e.childNodes.length === 0 ? '' : e.childNodes[0].nodeValue;
         };
 
         this.print = (msg, opt) => {

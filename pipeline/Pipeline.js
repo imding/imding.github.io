@@ -1,6 +1,7 @@
 class Pipeline {
-    constructor(root) {
+    constructor(root, name) {
         this.self = root;
+        this.name = name;
         this.chart = {
             updateOffset: () => {
                 // the offset value is necessary for the chart when
@@ -22,12 +23,44 @@ class Pipeline {
             },
         };
 
+        this.markup = {
+            deco: /\[([^:[\]]+)::([^\]]+)\]/,
+            // b|i|u|em|del|sub|sup|samp
+            tags: /<(b|i|u|em|del|sub|sup|samp)>([^<>]+)<\/\1>/g,
+        };
+
+        if (firebase) {
+            const config = {
+                apiKey: 'AIzaSyBsuGNus_E4va5nZbPQ5ITlvaFHhI99XpA',
+                authDomain: 'd-pipeline.firebaseapp.com',
+                databaseURL: 'https://d-pipeline.firebaseio.com',
+                projectId: 'd-pipeline',
+                storageBucket: 'd-pipeline.appspot.com',
+                messagingSenderId: '821024383895',
+            };
+
+            firebase.initializeApp(config);
+
+            this.fire = firebase.firestore();
+
+            this.fire.settings({ timestampsInSnapshots: true });
+        }
+
         window.onresize = () => {
             if (this.activeNode) {
                 this.chart.updateOffset();
                 this.autoScroll(this.activeNode.deck.scroll, this.activeNode.deck);
             }
             this.autoScroll(this.chart.scroll, this.chart);
+        };
+
+        window.onkeydown = () => {
+            if (event.code == 'Escape') {
+                event.preventDefault();
+
+                if (document.querySelector('#doneButton') && doneButton.textContent == 'GO BACK') doneButton.click();
+                else this.hideEditPanel();
+            }
         };
     }
 
@@ -55,20 +88,36 @@ class Pipeline {
     }
 
     render(nodesData, decksData) {
+        const autofillDeck = name => this.decksData[camelise(name)] = decksData[camelise(name)] || [{
+            title: '',
+            sections: [{ title: '', content: [{ type: 'p', html: '' }] }],
+        }];
+
         this.init();
 
         this.nodesData = nodesData;
         this.decksData = decksData;
 
-        nodesData.forEach(nd => {
+        const renderStatus = nodesData.every(nd => {
             if (Array.isArray(nd)) {
                 const shell = this.newShell(nd[0]);
-                nd[1].forEach(title => shell.newNode(title));
+                return nd[1].every(title => {
+                    autofillDeck(title);
+                    return shell.newNode(title);
+                });
             }
-            else pl.newNode(nd);
+            else {
+                autofillDeck(nd);
+                return this.newNode(nd);
+            }
         });
 
-        decksData.forEach(dd => dd.cards.forEach(card => this.chart.nodes[dd.deck].addCard(card)));
+        Object.entries(decksData).forEach(entry => {
+            const deckName = entry[0], cards = entry[1];
+            cards.forEach(card => this.chart.nodes[deckName].addCard(card));
+        });
+
+        return renderStatus;
     }
 
     newNode(name, parent) {
@@ -78,7 +127,7 @@ class Pipeline {
             // index: Object.keys(this.chart.nodes).length,
             self: newElement('div', { className: `Node ${parent ? 'Inner' : ''} Active`, textContent: name.replace(/^[^\w]+|[^\w]+$/, '') }),
             deck: {
-                self: newElement('div', { id: `${camelize(name)}`, className: 'Deck' }),
+                self: newElement('div', { id: `${camelise(name)}`, className: 'Deck' }),
                 offset: 0,
                 scroll: 0,
             },
@@ -86,7 +135,6 @@ class Pipeline {
                 const card = {
                     self: newElement('div', { className: 'Card' }),
                     title: newElement('h4', { textContent: cf.title || 'Card Title' }),
-
                     sections: [],
                 };
 
@@ -105,23 +153,21 @@ class Pipeline {
                         let item;
 
                         if (content.type === 'p') {
+                            let escHTML = htmlEscape(content.html);
                             item = newElement('p');
-                            content.html = htmlEscape(content.html);
 
                             if (!content.hasOwnProperty('bullet')) content.bullet = true;
 
-                            const p = /\[([^:\[\]]+)::([^\]]+)\]/;
-
-                            while (p.test(content.html)) {
+                            while (this.markup.deco.test(escHTML)) {
                                 const
-                                    m = content.html.match(p),
+                                    m = escHTML.match(this.markup.deco),
                                     // patterns to turn into tags
                                     _p = /^(b|i|u|em|del|sub|sup|samp)$/g.test(m[1]);
 
-                                content.html = content.html.replace(m[0], _p ? `<${m[1]}>${m[2]}</${m[1]}>` : `<a href='${m[2]}' target='_blank'>${m[1]}</a>`);
+                                escHTML = escHTML.replace(m[0], _p ? `<${m[1]}>${m[2]}</${m[1]}>` : `<a href='${m[2]}' target='_blank'>${m[1]}</a>`);
                             }
 
-                            item.innerHTML = `${content.bullet ? '<i class=\'fa fa-info-circle\'></i>' : ''} ${content.html}`;
+                            item.innerHTML = `${content.bullet ? '<i class=\'fa fa-info-circle\'></i>' : ''} ${escHTML}`;
                         }
 
                         else if (content.type === 'img') {
@@ -166,12 +212,15 @@ class Pipeline {
             },
         };
 
+        if (this.chart.nodes.hasOwnProperty(node.deck.self.id)) {
+            alert(`the ${name} node already exists`);
+            return false;
+        }
+
         this.newArrow({ flow: name.match(/[<>]+/), parent: parent });
 
         (parent || this.chart.self).appendChild(node.self);
         this.self.appendChild(node.deck.self);
-
-        if (this.chart.nodes.hasOwnProperty(node.deck.self.id)) throw new Error(`the ${name} node already exists`);
 
         this.chart.nodes[node.deck.self.id] = node;
 
@@ -271,13 +320,15 @@ class Pipeline {
         admin.classList.add('expanded');
 
         const
-            nodesContainer = newElement('div', { id: 'nodesContainer' }),
-            deckContainer = newElement('div', { id: 'deckContainer' }),
+            chartEditor = newElement('div', { id: 'chartEditor' }),
+            newNodeButton = newElement('i', { id: 'newNodeButton', className: 'fa fa-plus-square fa-2x' }),
+            deckEditor = newElement('div', { id: 'deckEditor', className: 'hidden' }),
+            newCardButton = newElement('i', { id: 'newCardButton', className: 'fa fa-plus-circle fa-2x' }),
             addNodeInput = (val, indent, isNode) => {
                 const
-                    nodeInputContainer = newElement('div', { className: 'nodeInputContainer' }),
+                    nodeEditor = newElement('div', { className: 'nodeEditor' }),
                     dirToggle = newElement('div', { className: 'dirToggle' }),
-                    nodeNameInput = newElement('input', { className: 'adminInput' }),
+                    nodeNameInput = newElement('input', { className: 'nodeNameInput' }),
                     deckIcon = newElement('i', { className: 'fa fa-edit' }),
                     shellIcon = newElement('i', { className: 'fa fa-object-group' }),
                     indentIcon = newElement('i', { className: 'fa fa-indent' }),
@@ -285,12 +336,12 @@ class Pipeline {
                     dragIcon = newElement('i', { className: 'fa fa-reorder' });
 
                 //  attach node input container
-                nodesContainer.appendChild(nodeInputContainer);
+                chartEditor.appendChild(nodeEditor);
 
                 //  attach arrows before input box
                 const dir = val.match(/^[<>]+/);
 
-                nodeInputContainer.appendChild(dirToggle);
+                nodeEditor.appendChild(dirToggle);
 
                 if (dir) {
                     if (/</.test(dir[0])) dirToggle.appendChild(newElement('i', { className: 'fa fa-caret-left' }));
@@ -301,49 +352,182 @@ class Pipeline {
                     if (dirToggle.children.length == 0) dirToggle.appendChild(newElement('i', { className: 'fa fa-caret-right' }));
                     else if (dirToggle.children.length == 1) dirToggle.insertBefore(newElement('i', { className: 'fa fa-caret-left' }), dirToggle.firstElementChild);
                     else dirToggle.innerHTML = null;
-                }
+                };
 
-                //   attach input box
-                nodeInputContainer.appendChild(nodeNameInput);
+                //  attach input box
+                nodeEditor.appendChild(nodeNameInput);
                 nodeNameInput.value = val.replace(/^[<>]+\s*/, '');
+                nodeNameInput.targetDeck = camelise(nodeNameInput.value);
+
+                nodeNameInput.onblur = () => {
+                    if (nodeNameInput.parentNode.classList.contains('shellInput')) return;
+
+                    const newKey = camelise(nodeNameInput.value.trim());
+
+                    if (newKey == nodeNameInput.targetDeck) return;
+
+                    const oldValue = this.decksData[nodeNameInput.targetDeck];
+
+                    this.decksData[newKey] = oldValue;
+                    delete this.decksData[nodeNameInput.targetDeck];
+
+                    deckEditor[newKey] = deckEditor[nodeNameInput.targetDeck];
+                    deckEditor[newKey].heading.textContent = decamelise(nodeNameInput.value.trim());
+                    delete deckEditor[nodeNameInput.targetDeck];
+
+                    nodeNameInput.targetDeck = newKey;
+                };
 
                 //  attach icons
-                nodeInputContainer.appendChild(deckIcon);
-                nodeInputContainer.appendChild(shellIcon);
-                nodeInputContainer.appendChild(indentIcon);
-                nodeInputContainer.appendChild(removeIcon);
-                nodeInputContainer.appendChild(dragIcon);
+                nodeEditor.appendChild(deckIcon);
+                nodeEditor.appendChild(shellIcon);
+                nodeEditor.appendChild(indentIcon);
+                nodeEditor.appendChild(removeIcon);
+                nodeEditor.appendChild(dragIcon);
+
+                //  define icon events & handlers
+                deckIcon.onclick = () => {
+                    if (!isNode) return;
+
+                    chartEditor.classList.add('hidden');
+                    deckEditor.activeDeck = {
+                        name: camelise(deckIcon.previousElementSibling.value),
+                        el: deckEditor[camelise(deckIcon.previousElementSibling.value)]
+                    };
+                    deckEditor.classList.remove('hidden');
+                    deckEditor.activeDeck.el.classList.remove('hidden');
+
+                    doneButton.textContent = 'GO BACK';
+                };
 
                 shellIcon.onclick = () => {
                     if (gCss(shellIcon).opacity > 0.1) {
-                        if (nodeInputContainer.className.includes('shellInput')) {
-                            nodeInputContainer.classList.remove('shellInput');
-                            nodeInputContainer.classList.add('nodeInput');
+                        if (nodeEditor.className.includes('shellInput')) {
+                            nodeEditor.classList.remove('shellInput');
+                            nodeEditor.classList.add('nodeInput');
                         }
                         else {
-                            nodeInputContainer.classList.remove('nodeInput');
-                            nodeInputContainer.classList.add('shellInput');
+                            nodeEditor.classList.remove('nodeInput');
+                            nodeEditor.classList.add('shellInput');
                         }
                     }
                 };
 
                 indentIcon.onclick = () => {
                     if (gCss(indentIcon).opacity > 0.1) {
-                        if (nodeInputContainer.className.includes('indented')) {
-                            nodeInputContainer.classList.remove('indented');
+                        if (nodeEditor.className.includes('indented')) {
+                            nodeEditor.classList.remove('indented');
                         }
-                        else nodeInputContainer.classList.add('indented');
+                        else nodeEditor.classList.add('indented');
                     }
                 };
 
-                dragIcon.onmousedown = () => nodesContainer.active = dragIcon.parentNode;
+                removeIcon.onclick = () => {
+                    delete this.decksData[camelise(removeIcon.previousElementSibling.textContent)];
+                    chartEditor.removeChild(removeIcon.parentNode);
+                };
 
-                if (indent) nodeInputContainer.classList.add('indented');
-                if (isNode) {
-                    nodeInputContainer.classList.add('nodeInput');
-                    deckIcon.onclick = () => this.editDeck(camelize(val.replace(/^[<>]+\s*/, '')));
-                }
-                else nodeInputContainer.classList.add('shellInput');
+                dragIcon.onmousedown = () => chartEditor.active = dragIcon.parentNode;
+
+                nodeEditor.classList.add(isNode ? 'nodeInput' : 'shellInput');
+                if (indent) nodeEditor.classList.add('indented');
+            },
+            addCardGroup = (deck, card) => {
+                const
+                    cardEditGroup = newElement('div', { className: 'cardEditGroup' }),
+                    removeIcon = newElement('i', { className: 'fa fa-remove' }),
+                    dragIcon = newElement('i', { className: 'fa fa-reorder' }),
+                    newSectionButton = newElement('i', { className: 'newSectionButton fa fa-plus-circle fa-lg' });
+
+                deck.appendChild(cardEditGroup);
+
+                cardEditGroup.onmouseenter = () => deckEditor.activeCard = cardEditGroup;
+                cardEditGroup.onmouseleave = () => deckEditor.activeCard = null;
+
+                cardEditGroup.appendChild(newElement('input', {
+                    value: card.title || 'Card Title',
+                    className: 'editor cardTitle',
+                }));
+                cardEditGroup.appendChild(removeIcon);
+                cardEditGroup.appendChild(dragIcon);
+
+                card.sections.forEach(sec => addSectionGroup(cardEditGroup, sec));
+
+                //  attach the button to add new item
+                cardEditGroup.appendChild(newSectionButton);
+
+                newSectionButton.onclick = () => {
+                    addSectionGroup(cardEditGroup, {
+                        title: '',
+                        content: [{ type: 'p', html: '' }],
+                    });
+                    cardEditGroup.appendChild(newSectionButton);
+                };
+            },
+            addSectionGroup = (card, section) => {
+                const
+                    sectionEditGroup = newElement('div', { className: 'sectionEditGroup' }),
+                    newParagraphButton = newElement('i', { className: 'newContentButton newParagraphButton fa fa-plus-square fa-lg' }),
+                    newImageButton = newElement('i', { className: 'newContentButton newImageButton fa fa-plus-square fa-lg' }),
+                    newCodeButton = newElement('i', { className: 'newContentButton newCodeButton fa fa-plus-square fa-lg' }),
+                    newContent = (type, key) => {
+                        addContentInput(sectionEditGroup, {
+                            type: type,
+                            [key]: '',
+                        });
+                        appendButtons();
+                    },
+                    appendButtons = () => {
+                        sectionEditGroup.appendChild(newParagraphButton);
+                        sectionEditGroup.appendChild(newImageButton);
+                        sectionEditGroup.appendChild(newCodeButton);
+                    };
+
+                card.appendChild(sectionEditGroup);
+
+                sectionEditGroup.appendChild(newElement('input', {
+                    value: section.title || '',
+                    placeholder: 'Untitled Section',
+                    className: 'editor sectionTitle',
+                }));
+
+                //  attach all items to a section
+                section.content.forEach(item => addContentInput(sectionEditGroup, item));
+
+                appendButtons();
+
+                newParagraphButton.onclick = () => newContent('p', 'html');
+                newImageButton.onclick = () => newContent('img', 'src');
+                newCodeButton.onclick = () => newContent('code', 'code');
+            },
+            addContentInput = (section, item) => {
+                const
+                    itemEditGroup = newElement('div', { className: 'itemEditGroup' }),
+                    typeToggle = newElement('i', { className: `typeToggle fa fa-fw fa-${item.type == 'p' ? 'file-text-o' : item.type == 'img' ? 'file-image-o' : 'code'}` }),
+                    contentInput = newElement('textarea', { placeholder: 'Content', className: 'editor contentInput' }),
+                    removeIcon = newElement('i', { className: 'fa fa-remove' }),
+                    dragIcon = newElement('i', { className: 'fa fa-reorder' }),
+                    type = item.type == 'p' ? 'html' : item.type == 'img' ? 'src' : 'code';
+
+                section.appendChild(itemEditGroup);
+                itemEditGroup.appendChild(typeToggle);
+                itemEditGroup.appendChild(contentInput);
+                itemEditGroup.appendChild(removeIcon);
+                itemEditGroup.appendChild(dragIcon);
+
+                contentInput.value = item[type];
+
+                typeToggle.onclick = () => {
+                    const
+                        isP = typeToggle.classList.contains('fa-file-text-o'),
+                        isImg = typeToggle.classList.contains('fa-file-image-o');
+
+                    typeToggle.classList.remove(isP ? 'fa-file-text-o' : isImg ? 'fa-file-image-o' : 'fa-code');
+                    typeToggle.classList.add(isP ? 'fa-file-image-o' : isImg ? 'fa-code' : 'fa-file-text-o');
+                };
+
+                dragIcon.onmousedown = () => deckEditor.active = dragIcon.parentNode;
+                dragIcon.onmouseup = () => deckEditor.active = null;
             };
 
         //  attach the 'done' button
@@ -354,15 +538,14 @@ class Pipeline {
         doneButton.onclick = () => {
             let error;
             const
-                nodes = Array.from(document.querySelectorAll('.nodeInputContainer')),
+                nodes = Array.from(document.querySelectorAll('.nodeEditor')),
                 nodesData = [],
-                decksData = [],
-                errorFound = nodes.some((node, i) => {
+                checkChart = () => nodes.some((node, i) => {
                     //  nic: get the value of input element inside a given node input container
                     const getValue = nic => {
                         const dir = nic.querySelector('.dirToggle').children.length;
                         return `${dir ? (dir == 1 ? '>>' : '<>') : ''}${nic.querySelector('input').value.trim()}`;
-                    }
+                    };
 
                     if (node.classList.contains('shellInput')) {
                         if (i && nodes[i - 1].classList.contains('shellInput')) return error = 'Group nodes must be followed by a indented node.';
@@ -377,31 +560,85 @@ class Pipeline {
                     else nodesData.push(getValue(node));
 
                     return;
-                });
+                }),
+                checkDecks = () => {
+                    const
+                        thisDeck = [],
+                        cards = Array.from(deckEditor.activeDeck.el.querySelectorAll('.cardEditGroup')),
+                        objFrom = inputGroup => {
+                            const
+                                ttcl = inputGroup.querySelector('.typeToggle').classList,
+                                type = ttcl.contains('fa-file-text-o') ? 'p' : ttcl.contains('fa-file-image-o') ? 'img' : 'code',
+                                key = type == 'p' ? 'html' : type == 'img' ? 'src' : 'code';
 
-            if (errorFound) alert(error);
-            else {
-                console.log(nodesData);
+                            return {
+                                type: type,
+                                [key]: htmlDecode(this.toMarkup(inputGroup.querySelector('.contentInput').value)),
+                            };
+                        };
+
+                    cards.forEach(card => {
+                        thisDeck.unshift({
+                            title: card.querySelector('.cardTitle').value,
+                            sections: [],
+                        });
+
+                        const sections = Array.from(card.querySelectorAll('.sectionEditGroup'));
+
+                        sections.forEach(section => {
+                            thisDeck[0].sections.unshift({
+                                title: section.querySelector('.sectionTitle').value,
+                                content: [],
+                            });
+
+                            const contents = Array.from(section.querySelectorAll('.itemEditGroup'));
+                            contents.forEach(content => thisDeck[0].sections[0].content.push(objFrom(content)));
+                        });
+
+                        thisDeck[0].sections.reverse();
+                    });
+
+                    thisDeck.reverse();
+
+                    this.decksData = Object.assign(this.decksData, { [deckEditor.activeDeck.name]: thisDeck });
+                };
+
+            if (doneButton.textContent == 'SAVE & CLOSE') {
+                checkChart();
+
+                if (error) return alert(error);
 
                 while (this.self.children.length) {
                     this.self.removeChild(this.self.firstElementChild);
                 }
 
-                this.render(nodesData, decksData);
+                if (this.render(nodesData, this.decksData)) this.hideEditPanel();
+            }
+            else {
+                checkDecks();
 
-                this.hideEditPanel();
+                chartEditor.classList.remove('hidden');
+                deckEditor.classList.add('hidden');
+                deckEditor.activeDeck.el.classList.add('hidden');
+                deckEditor.activeDeck = null;
+
+                doneButton.textContent = 'SAVE & CLOSE';
             }
         };
 
         //  attach container for node editor
-        admin.appendChild(nodesContainer);
+        admin.appendChild(chartEditor);
 
         admin.onmousemove = () => {
-            const et = event.target, an = nodesContainer.active;
+            const
+                et = event.target,
+                can = chartEditor.active,
+                dan = deckEditor.active;
 
-            if (an) {
+            //  applicable to the chart edtor only
+            if (can) {
                 //  valid target
-                const vt = et.className.includes('nodeInputContainer') ? et : et.parentNode.className.includes('nodeInputContainer') ? et.parentNode : null;
+                const vt = et.className.includes('nodeEditor') ? et : et.parentNode.className.includes('nodeEditor') ? et.parentNode : null;
 
                 if (!vt) return;
 
@@ -410,68 +647,182 @@ class Pipeline {
                     vt.removeEventListener('mouseout', vt.restorePadding);
                 };
 
-                if (vt != an && vt != an.nextElementSibling) {
+                if (vt != can && vt != can.nextElementSibling) {
                     sCss(vt, { paddingTop: '20px' });
-                    nodesContainer.target = vt;
+                    chartEditor.target = vt;
                 }
-                else nodesContainer.target = null;
+                else chartEditor.target = null;
 
                 vt.addEventListener('mouseout', vt.restorePadding);
+            }
+            else if (dan) {
+                console.log('move');
             }
         };
 
         admin.onmouseup = () => {
-            const an = nodesContainer.active, target = nodesContainer.target;
+            const
+                can = chartEditor.active,
+                ct = chartEditor.target,
+                dan = deckEditor.active;
 
-            if (an) {
-                if (target) {
-                    nodesContainer.insertBefore(an, target);
-                    target.restorePadding();
+            if (can) {
+                if (ct) {
+                    chartEditor.insertBefore(can, ct);
+                    ct.restorePadding();
                 }
-                nodesContainer.active = null;
+                chartEditor.active = null;
             }
-        }
+            else if (dan) {
+                console.log('drop');
+            }
+        };
 
         //  add all data found in chart to the edit panel
         this.nodesData.forEach(nd => {
             if (Array.isArray(nd)) {
-                const shell = nd[0];
-                addNodeInput(shell, false, false);
+                addNodeInput(nd[0], false, false);
                 nd[1].forEach(node => addNodeInput(node, true, true));
             }
             else addNodeInput(nd, false, true);
         });
 
-        //  attach the 'new node' button
-        const newNodeButton = newElement('i', { id: 'newNodeButton', className: 'fa fa-plus-square fa-2x' });
-
-        nodesContainer.appendChild(newNodeButton);
+        //  attach button to add new node
+        chartEditor.appendChild(newNodeButton);
 
         newNodeButton.onclick = () => {
-            addNodeInput('New Node', false, true);
-            nodesContainer.appendChild(newNodeButton);
+            addNodeInput('Outline', false, true);
+            chartEditor.appendChild(newNodeButton);
+        };
+
+        //  attach container for deck editor
+        admin.appendChild(deckEditor);
+
+        Object.entries(this.decksData).forEach(entry => {
+            const
+                deckName = entry[0],
+                cards = entry[1],
+                deckHeading = newElement('div', { className: 'deckHeading', textContent: decamelise(deckName) }),
+                deckEditGroup = newElement('div', { className: 'hidden deckEditGroup' });
+
+            deckEditor.appendChild(deckEditGroup);
+            deckEditGroup.appendChild(deckHeading);
+
+            deckEditor[deckName] = deckEditGroup;
+            deckEditor[deckName].heading = deckHeading;
+
+            cards.forEach(card => addCardGroup(deckEditGroup, card));
+        });
+
+        //  attach new card button
+        deckEditor.appendChild(newCardButton);
+
+        newCardButton.onclick = () => {
+            addCardGroup(deckEditor.activeDeck.el, {
+                title: '',
+                sections: [{
+                    title: '',
+                    content: [{ type: 'p', html: '' }],
+                }],
+            });
+            deckEditor.activeDeck.el.appendChild(newCardButton);
         };
     }
 
-    editDeck(name) {
-        // this.decksData.some(dd => {
-        //     if (dd.deck != name) return;
+    pushToCloud() {
+        if (!this.name) return alert('Give this pipeline a name before pushing to cloud.');
 
-        //     dd.cards.forEach(card => {
-        //         console.log(card);
-        //         const
-        //             cardContainer = newElement('div', { className: 'cardContainer' }),
-        //             cardTitleInput = newElement('input', { className: 'cardTitleInput' });
+        const batch = this.fire.batch();
 
-        //         deckContainer.appendChild(cardContainer);
-        //         cardContainer.appendChild(cardTitleInput);
+        batch.set(
+            this.fire.collection(this.name).doc('nodesData'),
+            ato(this.nodesData)
+        );
 
-        //         card.sections.forEach(sec => {
-        //             if (sec.hasOwnProperty('title')) {
-        //                 // cardContainer.appendChild();
-        //             }
-        //         });
-        //     });
-        // });
+        batch.set(
+            this.fire.collection(this.name).doc('decksData'),
+            (this.decksData)
+        );
+
+        batch.commit().then(() => alert('Pipeline stored in the cloud.'));
+    }
+
+    readFromCloud() {
+        if (!this.name) return alert('Give this pipeline a name before reading from cloud.');
+
+        //  read nodes data from firebase
+        this.fire.collection(this.name).doc('nodesData').get().then(qs => {
+            const nd = [];
+
+            //  build nodes array from cloud data object
+            Object.values(qs.data()).forEach(field => nd.push(typeof (field) == 'object' ? Object.values(field) : field));
+            print('Nodes loaded.');
+
+            //  read decks data from firebase
+            this.fire.collection(this.name).doc('decksData').get().then(qs => {
+                print('Decks loaded.');
+
+                while (this.self.children.length) {
+                    this.self.removeChild(this.self.firstElementChild);
+                }
+
+                this.render(nd, qs.data());
+
+                alert('Pipeline updated.');
+            });
+        });
+    }
+
+    printDeck() {
+        let deckObj = '';
+
+        Object.entries(this.decksData).forEach(entry => {
+            deckObj += `${entry[0]}: [{\n`;
+            entry[1].forEach((card, j) => {
+                const
+                    cardTitle = Object.values(card)[0],
+                    cardSections = Object.values(card)[1];
+
+                deckObj += `\ttitle: '${cardTitle}',\n\tsections: [{\n`;
+
+                cardSections.forEach((sec, k) => {
+                    if (!sec.hasOwnProperty('title')) sec = {
+                        title: '',
+                        content: sec.content,
+                    };
+
+                    const
+                        secTitle = Object.values(sec)[0],
+                        secContent = Object.values(sec)[1];
+
+                    deckObj += `\t\ttitle: '${secTitle}',\n\t\tcontent: [\n`;
+
+                    secContent.forEach(content => {
+                        const
+                            contentType = Object.values(content)[0],
+                            key = Object.keys(content)[1],
+                            value = Object.values(content)[1];
+
+                        deckObj += `\t\t\t{ type: '${contentType}', ${key}: '${value}' },\n`;
+                    });
+
+                    deckObj += '\t\t],\n';
+
+                    if (k == cardSections.length - 1) deckObj += '\t}],\n';
+                    else deckObj += '\t}, {\n';
+                });
+
+                if (j == entry[1].length - 1) deckObj += '}],\n';
+                else deckObj += '}, {\n';
+            });
+        });
+
+        return `\n${deckObj}\n`;
+    }
+
+    toMarkup(string) {
+        return string
+            .replace(this.markup.tags, '[$1::$2]')
+            .replace(/<a href='([^']+)' target='_blank'>([^<>]+)<\/a>/, '[$2::$1]');
     }
 }

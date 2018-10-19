@@ -13,154 +13,175 @@ function init() {
     // display app container
     sCss(document.body, { visibility: 'visible' });
 
-    // Initialize Firebase
-    const config = {
-        apiKey: 'AIzaSyBsuGNus_E4va5nZbPQ5ITlvaFHhI99XpA',
-        authDomain: 'd-pipeline.firebaseapp.com',
-        databaseURL: 'https://d-pipeline.firebaseio.com',
-        projectId: 'd-pipeline',
-        storageBucket: 'd-pipeline.appspot.com',
-        messagingSenderId: '821024383895',
-    };
+    const
+        nodesData = [
+            ['Introduction', [
+                'Game Dev 101',
+                //  analyse classic games and break them down into 2 components: assets & mechanics
+                //  typical workflow of game development using case studies
+                //  activity: define the workflow of an existing/hypothetical game
 
-    // firebase.initializeApp(config);
+                '>> Game Asset',
+                //  revise HTML & CSS
+                //  sandbox & guide: create various game assets using HTML & CSS
+                //  guided project: character selection
 
-    // let fire = firebase.firestore();
+                '>> Game Mechanic',
+                //  focus on revising JS
+                //  guided project: enhance the character selection project into character creation
+                //  extension: customisation
+            ]],
 
-    // fire.settings({ timestampsInSnapshots: true });
+            ['>> Actors', [
+                'Describing Actors',
+                //  demo the football game and identify the actors
+                //  activity: describe an actor using variables
+                //  challenge: describe the actor in terms of variables ( worksheet with 3 column: actors, variables, functions )
 
-    // // initialise pipeline data
-    // let nodesData = [], decksData = [];
+                '>> Controlling Actors',
+                //  sandbox & guide: learn how the .style syntax works
+                //  guided project: create the football game UI & add the controlling mechanism
 
-    // // read data from firebase
-    // fire.collection('game_dev').doc('nodesData').get().then(doc => {
-    //     if (!doc.exists) return;
+                '>> Actor Interactions',
+                //  activity: 
+            ]],
 
-    //     Object.values(doc.data()).forEach(field => {
-    //         const addCard = deckName => decksData.push({
-    //             deck: camelize(deckName),
-    //             cards: [{
-    //                 title: '',
-    //                 sections: [{ content: [{ type: 'p', html: '...' }] }],
-    //             }],
-    //         });
+            '>> Videogame History',
+            //  slides and quizes
 
-    //         if (typeof (field) == 'object') {
-    //             field = Object.values(field);
-    //             field[0] = nodesData.length ? `>> ${field[0]}` : field[0];
-    //             field[1] = field[1].map((val, i) => {
-    //                 addCard(val);
-    //                 return i ? `>> ${val}` : val;
-    //             });
-    //         }
-    //         else {
-    //             field = nodesData.length ? `>> ${field}` : field;
-    //             addCard(field);
-    //         }
+            ['>> Spritesheet', [
+                'Using Spritesheets',
+                //  
+                
+                '>> Dino Jump',
+            ]],
 
-    //         nodesData.push(field);
-    //     });
+            ['>> Collision', [
 
-    //     console.log(nodesData);
+                'Collision Detection',
+                //  
 
-    //     pl = new Pipeline(Root);
-    //     pl.render(nodesData, decksData);
+                '>> Pong',
+                //  
 
-    //     pl.adminAccess();
-    // });
+                '>> Playability'
+            ]],
 
-    // real-time update
-    // fire.collection('game_dev').doc('nodesData').onSnapshot(() => {
-    //     console.log('Updates available.');
-    // });
+            ['>> Frame Update', [
+                'Recursive Function',
+                //  
 
-    const nodesData = [
-        ['Introduction', [
-            'Game Dev 101',
-            //  analyse classic games and break them down into 2 components: assets & mechanics
-            //  typical workflow of game development using case studies
-            //  activity: define the workflow of an existing/hypothetical game
+                '>> Keyframes',
+                //  create a bouncing ball using CSS animation
 
-            '>> Game Asset',
-            //  focus on revising HTML & CSS
-            //  create various game assets using HTML & CSS
-            //  <img> vs <div> + background-image
-            //  guided project: add various game elements to a web page ( generic )
+                '>> Animation'
+            ]],
 
-            '>> Game Mechanic',
-            //  focus on revising JS
-            //  describing game logic using flowchart
-            //  implementing the flow logic using JS
-            //  Guided project: football game winning condition
-        ]],
+            ['>> Physics', [
+                'The Real Physics',
+                //   
 
-        ['>> Actors', [
-            'Describing Actors',
-            //  demo the football game and identify the actors
-            //  learn how to describe an actor using variables
-            //  activity: change the variable values and see how it affects the game
-            //  challenge: watch video clip of a given game, describe the actor in terms of variables ( worksheet )
+                '>> Simulation',
 
-            '>> Controlling Actors'
-            //  learn how the .style syntax works
+                '>> Angry Bird'
+
+            ]],
+
+            ['>> Conclusion', [
+                'Design Your Own Game',
+                //  apply everything 
+
+                '>> Presentation'
+                //  
+            ]],
             //  
-        ]],
-
-        //  guided project: use conditionals and loops to create narrative ( point & click adventure )
-
-        ['>> Rules', [
-
-            'Collision Detection',
-            //  
-        ]],
-
-        ['>> Rendering System', [
-            'Frame Rate'
-        ]],
-
-        '>> Canvas',
-        //  
-    ],
-        decksData = [{
-            deck: 'gameDev101',
-            cards: [{
-                title: '',
+        ],
+        decksData = {
+            gameDev101: [{
+                title: 'Outline',
                 sections: [{
+                    title: '',
                     content: [
+                        { type: 'p', html: 'Introduction to the program. Get a deeper understanding of video games and how they are built using this [slide::#][sup::wip].' },
                         { type: 'p', html: 'Analyse classic games and break them down into 2 components: [em::assets] & [em::mechanics].' },
+                        { type: 'p', html: '[u::Activity]: identify game genres with [worksheet::#][sup::wip].' },
                     ],
                 }],
             }],
-        }, {
-            deck: 'gameAsset',
-            cards: [{
-                title: '',
+            gameAsset: [{
+                title: 'Outline',
                 sections: [{
+                    title: '',
                     content: [
                         { type: 'p', html: 'Focus on revising HTML & CSS.' },
-                        { type: 'p', html: 'create various game assets using HTML & CSS.' },
-                        { type: 'p', html: '<img> vs <div> + background-image.' },
-                        { type: 'p', html: 'Guided project: add various game elements to a web page ( generic ).' },
+                        { type: 'p', html: 'Follow [guided project::#][sup::wip] to create a character selection screen (as in this [sandbox::https://app.bsd.education/sandbox/Remtq4TL]) using HTML & CSS [i::without] JS.' },
                     ],
                 }],
             }],
-        }, {
-            deck: 'gameMechanic',
-            cards: [{
-                title: '',
+            gameMechanic: [{
+                title: 'Outline',
                 sections: [{
+                    title: '',
                     content: [
-                        { type: 'p', html: 'focus on revising JS.' },
-                        { type: 'p', html: 'describing game logic using flowchart.' },
-                        { type: 'p', html: 'implementing the flow logic using JS.' },
-                        { type: 'p', html: 'guided project: use conditionals and loops to create narrative ( point & click adventure ).' },
+                        { type: 'p', html: 'Introduce and/or revise JS using [slide 1::https://drive.google.com/open?id=1A1rw5PJHd1YqtWfsCeuxSF2H4m3rJDc7OiTTVOPTpSw] & [slide 2::https://drive.google.com/open?id=1v3T4rwSqCf8atT7GTuiUB-b2-Fo9Uc4JNfRjlKT9xHk].' },
+                        { type: 'p', html: 'Follow [guided project::#][sup::wip] to turn the previous character selection project include aspects of [em::character creation].' },
+                        { type: 'p', html: '[u::Extension]: customisation.' },
                     ],
                 }],
             }],
-        }];
+            describingActors: [{
+                title: 'Outline',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'Provide definition of an actor in videogames and identify them in case studies.' },
+                        { type: 'p', html: 'Learn to describe actors using variables & functions.' },
+                        { type: 'p', html: 'Demo & play the [football game::https://app.bsd.education/sandbox/35Y4HYmt], identify the variables & functions required to fully describe them in [worksheet::#][sup::wip].' },
+                    ],
+                }],
+            }],
+            controllingActors: [{
+                title: 'Outline',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'In [sandbox::#][sup::wip] with [guide::#][sup::wip], learn and apply the [samp::position] & [samp::.style] syntax to move an HTML element.' },
+                        { type: 'p', html: 'Follow the [guided project::#][sup::wip] to build the UI and controlling mechanism for the football game.' },
+                    ],
+                }],
+            }],
+            actorInteractions: [{
+                title: 'Outline',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'Guide the teacher, step by step, to win/lose the game.' },
+                        { type: 'p', html: 'Summarise the steps using a [em::flow chart].' },
+                        { type: 'p', html: 'Follow the [guided project::#][sup::wip] to add winning/losing conditions to the football game.' },
+                        { type: 'p', html: '[u::Extension]: add a score system to the football game.' },
+                    ],
+                }],
+            }],
+            angryBird: [{
+                title: 'Outline',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'Follow [guided project::#][sup::wip] to build a physics based game.' },
+                        { type: 'p', html: '[u:Extension]: customisation' },
+                    ],
+                }, {
+                    title: 'Internal',
+                    content: [
+                        { type: 'p', html: 'Just an idea, we can do other games.' },
+                        { type: 'p', html: 'Could potentially do [u::Phaser] here but it will be super focused on just the physics component.' },
+                    ],
+                }],
+            }],
+        };
 
-    pl = new Pipeline(Root);
+    pl = new Pipeline(Root, 'game_dev');
     pl.render(nodesData, decksData);
-
+    
     pl.adminAccess();
 }
