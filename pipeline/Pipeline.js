@@ -3,7 +3,7 @@ class Pipeline {
         this.self = root;
         this.creatorMode = false;
         this.chart = {
-            updateOffset: () => {
+            updateOffset() {
                 // the offset value is necessary for the chart when
                 //  1) the active deck is wider than the window & the chart is not
                 //  2) the chart is wider than the window & the active deck is wider than both
@@ -800,7 +800,7 @@ class Pipeline {
     pushToCloud(name) {
         if (!window.firebase) return alert('Firebase is not set up.');
         if (!name) return alert('Specify a name for the pipeline before pushing to cloud, e.g. pushToCloud("project_one").');
-        if (/[^a-z0-9_]/i.test(name)) return alert('Invalid character in name.');
+        if (/(^[^a-z])|[^a-z0-9_]/i.test(name)) return alert('Invalid character in name.');
         if (!this.creatorMode) return alert('Eable creator mode before pushing to cloud.');
         if (editor.classList.contains('expanded')) return alert('Close the editor before pushing to cloud.');
 
