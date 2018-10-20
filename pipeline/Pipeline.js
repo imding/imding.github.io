@@ -19,7 +19,7 @@ class Pipeline {
                 this.chart.offset = deckClipped && !chartIsWider ? (this.activeNode.deck.self.offsetWidth - (chartClipped ? this.chart.self.offsetWidth : vw)) / 2 : 0;
                 this.activeNode.deck.offset = chartClipped && chartIsWider ? (this.chart.self.offsetWidth - (deckClipped ? this.activeNode.deck.self.offsetWidth : vw)) / 2 : 0;
 
-                print(`offset: chart(${this.chart.offset}), deck(${this.activeNode.deck.offset})`);
+                // print(`offset: chart(${this.chart.offset}), deck(${this.activeNode.deck.offset})`);
             },
         };
 
@@ -423,6 +423,7 @@ class Pipeline {
                 };
 
                 removeIcon.onclick = () => {
+                    if (chartEditor.querySelectorAll('.nodeEditor').length == 1) return alert('Your pipeline must have at least one node.');
                     delete this.decksData[camelise(removeIcon.previousElementSibling.textContent)];
                     chartEditor.removeChild(removeIcon.parentNode);
                 };
@@ -451,6 +452,11 @@ class Pipeline {
                 cardEditGroup.appendChild(removeIcon);
                 cardEditGroup.appendChild(dragIcon);
 
+                removeIcon.onclick = () => {
+                    if (removeIcon.parentNode.parentNode.querySelectorAll('.cardEditGroup').length == 1) return alert('Each deck must have at least one card.');
+                    removeIcon.parentNode.parentNode.removeChild(removeIcon.parentNode);
+                };
+
                 card.sections.forEach(sec => addSectionGroup(cardEditGroup, sec));
 
                 //  attach the button to add new item
@@ -470,11 +476,10 @@ class Pipeline {
                     newParagraphButton = newElement('i', { className: 'newContentButton newParagraphButton fa fa-plus-square fa-lg' }),
                     newImageButton = newElement('i', { className: 'newContentButton newImageButton fa fa-plus-square fa-lg' }),
                     newCodeButton = newElement('i', { className: 'newContentButton newCodeButton fa fa-plus-square fa-lg' }),
+                    removeIcon = newElement('i', { className: 'fa fa-remove' }),
+                    dragIcon = newElement('i', { className: 'fa fa-reorder' }),
                     newContent = (type, key) => {
-                        addContentInput(sectionEditGroup, {
-                            type: type,
-                            [key]: '',
-                        });
+                        addContentInput(sectionEditGroup, { type: type, [key]: '' });
                         appendButtons();
                     },
                     appendButtons = () => {
@@ -490,11 +495,18 @@ class Pipeline {
                     placeholder: 'Untitled Section',
                     className: 'editor sectionTitle',
                 }));
+                sectionEditGroup.appendChild(removeIcon);
+                sectionEditGroup.appendChild(dragIcon);
 
                 //  attach all items to a section
                 section.content.forEach(item => addContentInput(sectionEditGroup, item));
 
                 appendButtons();
+
+                removeIcon.onclick = () => {
+                    if (removeIcon.parentNode.parentNode.querySelectorAll('.sectionEditGroup').length == 1) return alert('Each card must have at least one section.');
+                    removeIcon.parentNode.parentNode.removeChild(removeIcon.parentNode);
+                };
 
                 newParagraphButton.onclick = () => newContent('p', 'html');
                 newImageButton.onclick = () => newContent('img', 'src');
@@ -524,6 +536,11 @@ class Pipeline {
 
                     typeToggle.classList.remove(isP ? 'fa-file-text-o' : isImg ? 'fa-file-image-o' : 'fa-code');
                     typeToggle.classList.add(isP ? 'fa-file-image-o' : isImg ? 'fa-code' : 'fa-file-text-o');
+                };
+
+                removeIcon.onclick = () => {
+                    if (removeIcon.parentNode.parentNode.querySelectorAll('.itemEditGroup').length == 1) return alert('Each section must have at least one item.');
+                    removeIcon.parentNode.parentNode.removeChild(removeIcon.parentNode);
                 };
 
                 dragIcon.onmousedown = () => deckEditor.active = dragIcon.parentNode;
