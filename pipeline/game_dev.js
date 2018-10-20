@@ -180,6 +180,8 @@ function init() {
             }],
         };
 
-    pl = new Pipeline(Root, 'game_dev');
+    pl = new Pipeline(Root);
     pl.render(nodesData, decksData);
+
+    pl.creatorAccess();
 }

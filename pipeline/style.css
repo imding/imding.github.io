@@ -147,11 +147,11 @@ code::-webkit-scrollbar-thumb {
     background-color: #545c6d;
 }
 
-#admin::-webkit-scrollbar {
+#editor::-webkit-scrollbar {
     width: 8px;
 }
 
-#admin::-webkit-scrollbar-thumb {
+#editor::-webkit-scrollbar-thumb {
     border-width: 20px 5px 20px 0;
     background-color: slategray;
 }
@@ -314,11 +314,11 @@ input, textarea {
     cursor: not-allowed;
 }
 
-#admin, .deckEditGroup {
+#editor, .deckEditGroup {
     border-radius: 10px;
 }
 
-#admin {
+#editor {
     position: absolute;
     width: 50px;
     height: 50px;
@@ -330,7 +330,7 @@ input, textarea {
     overflow: hidden auto;
 }
 
-#admin.expanded {
+#editor.expanded {
     width: 650px;
     height: calc(100vh - 100px);
     top: 50px;

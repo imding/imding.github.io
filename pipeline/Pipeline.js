@@ -1,7 +1,7 @@
 class Pipeline {
     constructor(root, name) {
         this.self = root;
-        this.name = name;
+        this.creatorMode = false;
         this.chart = {
             updateOffset: () => {
                 // the offset value is necessary for the chart when
@@ -57,9 +57,10 @@ class Pipeline {
         window.onkeydown = () => {
             if (event.code == 'Escape') {
                 event.preventDefault();
-
-                if (document.querySelector('#doneButton') && doneButton.textContent == 'GO BACK') doneButton.click();
-                else this.hideEditPanel();
+                if (document.querySelector('#doneButton')) {
+                    document.activeElement.blur();
+                    doneButton.click();
+                }
             }
         };
     }
@@ -75,6 +76,8 @@ class Pipeline {
     }
 
     autoScroll(ref, focus) {
+        if (this.creatorMode && editor.expanded) return;
+
         const
             vw = window.innerWidth,
             clipSize = Math.max(0, focus.self.offsetWidth - vw);
@@ -295,29 +298,34 @@ class Pipeline {
 
     creatorAccess() {
         const
-            admin = newElement('div', { id: 'admin' }),
+            editor = newElement('div', { id: 'editor' }),
             editIcon = newElement('i', { id: 'editIcon', className: 'fa fa-gear fa-lg' });
 
-        document.body.appendChild(admin);
-        admin.appendChild(editIcon);
+        document.body.appendChild(editor);
+        editor.appendChild(editIcon);
+        editIcon.onclick = () => this.expandEditPanel();
 
-        editIcon.onclick = () => this.showEditPanel();
+        this.creatorMode = true;
     }
 
-    hideEditPanel() {
-        Array.from(admin.children).forEach(el => el != editIcon ? admin.removeChild(el) : null);
+    shrinkEditPanel() {
+        Array.from(editor.children).forEach(el => el != editIcon ? editor.removeChild(el) : null);
 
         sCss(this.self, { filter: 'blur(0)', opacity: '1' });
         sCss(editIcon, { display: 'inline-block' });
 
-        admin.classList.remove('expanded');
+        editor.classList.remove('expanded');
+        editor.expanded = false;
     }
 
-    showEditPanel() {
+    expandEditPanel() {
         sCss(this.self, { filter: 'blur(5px)', opacity: '0.5' });
         sCss(editIcon, { display: 'none' });
+        
+        this.autoScroll(0, this.chart);
 
-        admin.classList.add('expanded');
+        editor.classList.add('expanded');
+        editor.expanded = true;
 
         const
             chartEditor = newElement('div', { id: 'chartEditor' }),
@@ -385,7 +393,7 @@ class Pipeline {
                 nodeEditor.appendChild(removeIcon);
                 nodeEditor.appendChild(dragIcon);
 
-                //  define icon events & handlers
+                //  define events & handlers
                 deckIcon.onclick = () => {
                     if (!isNode) return;
 
@@ -550,7 +558,7 @@ class Pipeline {
         //  attach the 'done' button
         const doneButton = newElement('div', { id: 'doneButton', textContent: 'SAVE & CLOSE' });
 
-        admin.appendChild(doneButton);
+        editor.appendChild(doneButton);
 
         doneButton.onclick = () => {
             let error;
@@ -581,7 +589,7 @@ class Pipeline {
                 checkDecks = () => {
                     const
                         thisDeck = [],
-                        cards = Array.from(deckEditor.activeDeck.el.querySelectorAll('.cardEditGroup')),
+                        cards = deckEditor.activeDeck.el.querySelectorAll('.cardEditGroup'),
                         objFrom = inputGroup => {
                             const
                                 ttcl = inputGroup.querySelector('.typeToggle').classList,
@@ -600,7 +608,7 @@ class Pipeline {
                             sections: [],
                         });
 
-                        const sections = Array.from(card.querySelectorAll('.sectionEditGroup'));
+                        const sections = card.querySelectorAll('.sectionEditGroup');
 
                         sections.forEach(section => {
                             thisDeck[0].sections.unshift({
@@ -615,9 +623,7 @@ class Pipeline {
                         thisDeck[0].sections.reverse();
                     });
 
-                    thisDeck.reverse();
-
-                    this.decksData = Object.assign(this.decksData, { [deckEditor.activeDeck.name]: thisDeck });
+                    this.decksData = Object.assign(this.decksData, { [deckEditor.activeDeck.name]: thisDeck.reverse() });
                 };
 
             if (doneButton.textContent == 'SAVE & CLOSE') {
@@ -629,7 +635,7 @@ class Pipeline {
                     this.self.removeChild(this.self.firstElementChild);
                 }
 
-                if (this.render(nodesData, this.decksData)) this.hideEditPanel();
+                if (this.render(nodesData, this.decksData)) this.shrinkEditPanel();
             }
             else {
                 checkDecks();
@@ -643,16 +649,16 @@ class Pipeline {
             }
         };
 
-        //  attach container for node editor
-        admin.appendChild(chartEditor);
+        //  attach container for chart editor
+        editor.appendChild(chartEditor);
 
-        admin.onmousemove = () => {
+        editor.onmousemove = () => {
             const
                 et = event.target,
                 can = chartEditor.active,
                 dan = deckEditor.active;
 
-            //  applicable to the chart edtor only
+            //  applicable to the chart editor only
             if (can) {
                 //  valid target
                 const vt = et.className.includes('nodeEditor') ? et : et.parentNode.className.includes('nodeEditor') ? et.parentNode : null;
@@ -677,7 +683,7 @@ class Pipeline {
             }
         };
 
-        admin.onmouseup = () => {
+        editor.onmouseup = () => {
             const
                 can = chartEditor.active,
                 ct = chartEditor.target,
@@ -695,7 +701,7 @@ class Pipeline {
             }
         };
 
-        //  add all data found in chart to the edit panel
+        //  parse and add node data to the chart editor
         this.nodesData.forEach(nd => {
             if (Array.isArray(nd)) {
                 addNodeInput(nd[0], false, false);
@@ -704,7 +710,7 @@ class Pipeline {
             else addNodeInput(nd, false, true);
         });
 
-        //  attach button to add new node
+        //  attach new node button to chart editor
         chartEditor.appendChild(newNodeButton);
 
         newNodeButton.onclick = () => {
@@ -713,7 +719,7 @@ class Pipeline {
         };
 
         //  attach container for deck editor
-        admin.appendChild(deckEditor);
+        editor.appendChild(deckEditor);
 
         Object.entries(this.decksData).forEach(entry => {
             const
@@ -731,7 +737,7 @@ class Pipeline {
             cards.forEach(card => addCardGroup(deckEditGroup, card));
         });
 
-        //  attach new card button
+        //  attach new card button for deck editor
         deckEditor.appendChild(newCardButton);
 
         newCardButton.onclick = () => {
@@ -747,28 +753,29 @@ class Pipeline {
     }
 
     pushToCloud(name) {
-        if (!name && !this.name) return alert('Give this pipeline a name before pushing to cloud.');
+        if (!name) return alert('Specify a name for the pipeline before pushing to cloud, e.g. pushToCloud("project_one").');
+        if (/[^a-z0-9_]/i.test(name)) return alert('Invalid character in name.');
 
         const batch = this.fire.batch();
 
         batch.set(
-            this.fire.collection(name || this.name).doc('nodesData'),
+            this.fire.collection(name).doc('nodesData'),
             ato(this.nodesData)
         );
 
         batch.set(
-            this.fire.collection(name || this.name).doc('decksData'),
-            (this.decksData)
+            this.fire.collection(name).doc('decksData'),
+            this.decksData
         );
 
         batch.commit().then(() => alert('Pipeline stored in the cloud.'));
     }
 
-    readFromCloud() {
-        if (!this.name) return alert('Give this pipeline a name before reading from cloud.');
+    readFromCloud(name) {
+        if (!name) return alert('Specify the name for the pipeline to retrieve, e.g. pushToCloud("project_one").');
 
         //  read nodes data from firebase
-        this.fire.collection(this.name).doc('nodesData').get().then(qs => {
+        this.fire.collection(name).doc('nodesData').get().then(qs => {
             const nd = [];
 
             //  build nodes array from cloud data object
@@ -776,7 +783,7 @@ class Pipeline {
             print('Nodes loaded.');
 
             //  read decks data from firebase
-            this.fire.collection(this.name).doc('decksData').get().then(qs => {
+            this.fire.collection(name).doc('decksData').get().then(qs => {
                 print('Decks loaded.');
 
                 while (this.self.children.length) {
