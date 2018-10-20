@@ -94,7 +94,7 @@ function init() {
                     title: '',
                     content: [
                         { type: 'p', html: 'Follow [guided project::#][sup::wip] to build a physics based game.' },
-                        { type: 'p', html: '[u:Extension]: customisation' },
+                        { type: 'p', html: '[u::Extension]: customisation' },
                     ],
                 }, {
                     title: 'Internal',
