@@ -70,7 +70,7 @@ function init() {
             ]],
 
             ['>> Conclusion', [
-                'Design Your Own Game',
+                'Plan Your Next Game',
 
                 '>> Presentation'
             ]],
@@ -157,7 +157,7 @@ function init() {
                         { type: 'p', html: 'Introduction to the program.' },
                         { type: 'p', html: 'Get a deeper understanding of video games and how they are built using this [slide::#][sup::wip].' },
                         { type: 'p', html: 'Analyse classic games and break them down into 2 components: [em::assets] & [em::mechanics].' },
-                        { type: 'p', html: '[u::Activity]: identify game genres with [worksheet::#][sup::wip].' },
+                        { type: 'p', html: '[u::Activity]: identify & describe game genres with [worksheet::#][sup::wip].' },
                     ],
                 }],
             }],
