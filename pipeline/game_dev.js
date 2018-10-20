@@ -17,69 +17,51 @@ function init() {
         nodesData = [
             ['Introduction', [
                 'Game Dev 101',
-                //  analyse classic games and break them down into 2 components: assets & mechanics
-                //  typical workflow of game development using case studies
-                //  activity: define the workflow of an existing/hypothetical game
 
                 '>> Game Asset',
-                //  revise HTML & CSS
-                //  sandbox & guide: create various game assets using HTML & CSS
-                //  guided project: character selection
 
                 '>> Game Mechanic',
-                //  focus on revising JS
-                //  guided project: enhance the character selection project into character creation
-                //  extension: customisation
             ]],
 
             ['>> Actors', [
                 'Describing Actors',
-                //  demo the football game and identify the actors
-                //  activity: describe an actor using variables
-                //  challenge: describe the actor in terms of variables ( worksheet with 3 column: actors, variables, functions )
 
                 '>> Controlling Actors',
-                //  sandbox & guide: learn how the .style syntax works
-                //  guided project: create the football game UI & add the controlling mechanism
 
                 '>> Actor Interactions',
-                //  activity: 
             ]],
 
             '>> Videogame History',
-            //  slides and quizes
 
             ['>> Spritesheet', [
-                'Using Spritesheets',
-                //  
-                
+                'The Workflow',
+
+                '>> CSS Techniques',
+
                 '>> Dino Jump',
             ]],
 
             ['>> Collision', [
 
                 'Collision Detection',
-                //  
 
                 '>> Pong',
-                //  
 
-                '>> Playability'
+                '>> Playability',
+
+                '>> Two Players',
             ]],
 
             ['>> Frame Update', [
                 'Recursive Function',
-                //  
 
                 '>> Keyframes',
-                //  create a bouncing ball using CSS animation
 
                 '>> Animation'
             ]],
 
             ['>> Physics', [
                 'The Real Physics',
-                //   
 
                 '>> Simulation',
 
@@ -89,75 +71,19 @@ function init() {
 
             ['>> Conclusion', [
                 'Design Your Own Game',
-                //  apply everything 
 
                 '>> Presentation'
-                //  
             ]],
-            //  
         ],
         decksData = {
-            gameDev101: [{
-                title: 'Outline',
-                sections: [{
-                    title: '',
-                    content: [
-                        { type: 'p', html: 'Introduction to the program. Get a deeper understanding of video games and how they are built using this [slide::#][sup::wip].' },
-                        { type: 'p', html: 'Analyse classic games and break them down into 2 components: [em::assets] & [em::mechanics].' },
-                        { type: 'p', html: '[u::Activity]: identify game genres with [worksheet::#][sup::wip].' },
-                    ],
-                }],
-            }],
-            gameAsset: [{
-                title: 'Outline',
-                sections: [{
-                    title: '',
-                    content: [
-                        { type: 'p', html: 'Focus on revising HTML & CSS.' },
-                        { type: 'p', html: 'Follow [guided project::#][sup::wip] to create a character selection screen (as in this [sandbox::https://app.bsd.education/sandbox/Remtq4TL]) using HTML & CSS [i::without] JS.' },
-                    ],
-                }],
-            }],
-            gameMechanic: [{
-                title: 'Outline',
-                sections: [{
-                    title: '',
-                    content: [
-                        { type: 'p', html: 'Introduce and/or revise JS using [slide 1::https://drive.google.com/open?id=1A1rw5PJHd1YqtWfsCeuxSF2H4m3rJDc7OiTTVOPTpSw] & [slide 2::https://drive.google.com/open?id=1v3T4rwSqCf8atT7GTuiUB-b2-Fo9Uc4JNfRjlKT9xHk].' },
-                        { type: 'p', html: 'Follow [guided project::#][sup::wip] to turn the previous character selection project include aspects of [em::character creation].' },
-                        { type: 'p', html: '[u::Extension]: customisation.' },
-                    ],
-                }],
-            }],
-            describingActors: [{
-                title: 'Outline',
-                sections: [{
-                    title: '',
-                    content: [
-                        { type: 'p', html: 'Provide definition of an actor in videogames and identify them in case studies.' },
-                        { type: 'p', html: 'Learn to describe actors using variables & functions.' },
-                        { type: 'p', html: 'Demo & play the [football game::https://app.bsd.education/sandbox/35Y4HYmt], identify the variables & functions required to fully describe them in [worksheet::#][sup::wip].' },
-                    ],
-                }],
-            }],
-            controllingActors: [{
-                title: 'Outline',
-                sections: [{
-                    title: '',
-                    content: [
-                        { type: 'p', html: 'In [sandbox::#][sup::wip] with [guide::#][sup::wip], learn and apply the [samp::position] & [samp::.style] syntax to move an HTML element.' },
-                        { type: 'p', html: 'Follow the [guided project::#][sup::wip] to build the UI and controlling mechanism for the football game.' },
-                    ],
-                }],
-            }],
             actorInteractions: [{
                 title: 'Outline',
                 sections: [{
                     title: '',
                     content: [
-                        { type: 'p', html: 'Guide the teacher, step by step, to win/lose the game.' },
+                        { type: 'p', html: 'Students guide the teacher, step by step, to win/lose the game.' },
                         { type: 'p', html: 'Summarise the steps using a [em::flow chart].' },
-                        { type: 'p', html: 'Follow the [guided project::#][sup::wip] to add winning/losing conditions to the football game.' },
+                        { type: 'p', html: 'Follow the [guided project::#][sup::wip] to add winning/losing conditions for the football game.' },
                         { type: 'p', html: '[u::Extension]: add a score system to the football game.' },
                     ],
                 }],
@@ -178,10 +104,108 @@ function init() {
                     ],
                 }],
             }],
+            controllingActors: [{
+                title: 'Outline',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'In [sandbox::#][sup::wip] with [guide::#][sup::wip], learn and apply the CSS [samp::position] property & JS [samp::.style] syntax to move an HTML element.' },
+                        { type: 'p', html: 'Follow the [guided project::#][sup::wip] to build the UI and controlling mechanism for the football game.' },
+                    ],
+                }],
+            }],
+            describingActors: [{
+                title: 'Outline',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'Provide [em::definition] of an actor in videogames and identify them in case studies.' },
+                        { type: 'p', html: 'Learn to [em::describe] actors using variables & functions.' },
+                        { type: 'p', html: 'Demo & play the [football game::https://app.bsd.education/sandbox/35Y4HYmt], identify the variables & functions required to fully describe them in [worksheet::#][sup::wip].' },
+                    ],
+                }],
+            }],
+            dinoJump: [{
+                title: 'Card Title',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'Follow the [guided project::#][sup::wip] to build the "Dino Jump" game.' },
+                    ],
+                }, {
+                    title: 'Internal',
+                    content: [
+                        { type: 'p', html: 'We need to strip canvas from the game.' },
+                    ],
+                }],
+            }],
+            gameAsset: [{
+                title: 'Outline',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'Focus on revising HTML & CSS.' },
+                        { type: 'p', html: 'Follow [guided project::#][sup::wip] to create a character selection screen (as in this [sandbox::https://app.bsd.education/sandbox/Remtq4TL]) using HTML & CSS [i::without] JS.' },
+                    ],
+                }],
+            }],
+            gameDev101: [{
+                title: 'Outline',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'Introduction to the program.' },
+                        { type: 'p', html: 'Get a deeper understanding of video games and how they are built using this [slide::#][sup::wip].' },
+                        { type: 'p', html: 'Analyse classic games and break them down into 2 components: [em::assets] & [em::mechanics].' },
+                        { type: 'p', html: '[u::Activity]: identify game genres with [worksheet::#][sup::wip].' },
+                    ],
+                }],
+            }],
+            gameMechanic: [{
+                title: 'Outline',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'Introduce and/or revise JS using the [part 1::https://drive.google.com/open?id=1A1rw5PJHd1YqtWfsCeuxSF2H4m3rJDc7OiTTVOPTpSw] & [part 2::https://drive.google.com/open?id=1v3T4rwSqCf8atT7GTuiUB-b2-Fo9Uc4JNfRjlKT9xHk] of the [b::Intro to JavaScript] slides.' },
+                        { type: 'p', html: 'Follow [guided project::#][sup::wip] to make the previous character selection project include aspects of [em::character creation].' },
+                        { type: 'p', html: '[u::Extension]: customisation.' },
+                    ],
+                }],
+            }],
+            theWorkflow: [{
+                title: 'Outline',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'Dissect an animated character into [em::individual frames], explain the advantages of putting all the frames into one image.' },
+                        { type: 'p', html: 'Use the [interactive project::#][sup::wip] to get a deeper understanding of how the spritesheet system works.' },
+                    ],
+                }, {
+                    title: 'Internal',
+                    content: [
+                        { type: 'p', html: 'The interactive project should have a spritesheet on the left and an animated character on the right.' },
+                        { type: 'p', html: 'The visible frame in the animation is highlighted in the spritesheet.' },
+                        { type: 'p', html: 'Students are able to define the order in which the frames are displayed, thus changing the resulting animation.' },
+                        { type: 'p', html: 'Challenge students to discover the correct sequence so that the character is correctly animated.' },
+                    ],
+                }],
+            }],
+            videogameHistory: [{
+                title: 'Card Title',
+                sections: [{
+                    title: '',
+                    content: [
+                        { type: 'p', html: 'Use [slides::#][sup::wip] and [quizes::#][sup::wip] to teach the history of videogames.' },
+                    ],
+                }, {
+                    title: 'Internal',
+                    content: [
+                        { type: 'p', html: 'Perhaps we can play parts of a documentary in class?' },
+                    ],
+                }],
+            }],
         };
 
     pl = new Pipeline(Root);
     pl.render(nodesData, decksData);
-
-    pl.creatorAccess();
 }

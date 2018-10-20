@@ -37,11 +37,11 @@ function init() {
         ['>> Day 2', [
             'Game UI',
             //  guided project: build the UI of the game without any functionality
-            
+
             '>> Logic Flow',
             //  unplugged: how to build it
             //  make flowchart for the burger game
-            
+
             '>> JS Basics',
             //  variables & functions
             //  arithmetic operators
@@ -55,7 +55,7 @@ function init() {
         ['>> Day 3', [
             'The DOM',
             //  sandbox: the querySelector & querySelectorAll functions
-            
+
             '>> JS Styling',
             //  sandbox: .style syntax
             //  guided project: pacman controller
@@ -70,10 +70,10 @@ function init() {
         ['>> Day 4', [
             'JS Intermediate',
             //  scope
-            
+
             '>> Game Mechanics',
             //  guided project to 
-            
+
             '>> CSS Animation',
             //  animation property in CSS
             //  animation events in JS
@@ -86,9 +86,8 @@ function init() {
         ]],
     ];
 
-    const cardsData = [{
-        deck: 'introduction',
-        cards: [{
+    const cardsData = {
+        introduction: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -100,9 +99,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'htmlBasics',
-        cards: [{
+        htmlBasics: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -114,9 +111,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'cssBasics',
-        cards: [{
+        cssBasics: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -155,9 +150,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'cssIntermediate',
-        cards: [{
+        cssIntermediate: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -167,9 +160,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'gameUi',
-        cards: [{
+        gameUi: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -177,9 +168,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'logicFlow',
-        cards: [{
+        logicFlow: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -188,9 +177,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'jsBasics',
-        cards: [{
+        jsBasics: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -200,9 +187,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'handlingEvents',
-        cards: [{
+        handlingEvents: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -213,9 +198,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'theDom',
-        cards: [{
+        theDom: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -225,9 +208,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'jsStyling',
-        cards: [{
+        jsStyling: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -240,9 +221,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'theArray',
-        cards: [{
+        theArray: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -255,9 +234,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'usingLoops',
-        cards: [{
+        usingLoops: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -266,9 +243,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'jsIntermediate',
-        cards: [{
+        jsIntermediate: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -277,9 +252,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'cssAnimation',
-        cards: [{
+        cssAnimation: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -289,9 +262,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'customisation',
-        cards: [{
+        customisation: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -300,9 +271,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'testDebug',
-        cards: [{
+        testDebug: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -311,9 +280,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'tournament',
-        cards: [{
+        tournament: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -322,9 +289,7 @@ function init() {
                 ],
             }],
         }],
-    }, {
-        deck: 'presentation',
-        cards: [{
+        presentation: [{
             title: 'Lesson Outline',
             sections: [{
                 content: [
@@ -333,7 +298,7 @@ function init() {
                 ],
             }],
         }],
-    }];
+    };
 
     pl = new Pipeline(Root);
     pl.render(nodesData, cardsData);

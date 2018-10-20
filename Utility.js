@@ -5,14 +5,14 @@ class Utility {
         };
 
         // unique id with or without a prefix
-        this.uid = prefix => {
+        this.uid = (prefix, connector = '-') => {
             // non-zero random scalar
             const nzrs = () => Math.random() || this.nzrs();
 
             // random string
-            const rs = `${prefix ? `${prefix}-` : ''}${nzrs().toString(36).slice(-3)}`;
+            const rs = `${prefix ? `${prefix}${connector}` : ''}${nzrs().toString(36).slice(-3)}`;
 
-            if (Array.from(document.documentElement.getElementsByTagName('*')).some(el => prefix ? el.id == rs : el.id.endsWith(`-${rs}`))) return this.uid(prefix);
+            if (Array.from(document.documentElement.getElementsByTagName('*')).some(el => prefix ? el.id == rs : el.id.endsWith(`${connector}${rs}`))) return this.uid(prefix);
             return rs;
         };
 

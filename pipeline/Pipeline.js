@@ -1,5 +1,5 @@
 class Pipeline {
-    constructor(root, name) {
+    constructor(root) {
         this.self = root;
         this.creatorMode = false;
         this.chart = {
@@ -29,7 +29,7 @@ class Pipeline {
             tags: /<(b|i|u|em|del|sub|sup|samp)>([^<>]+)<\/\1>/g,
         };
 
-        if (firebase) {
+        if (window.firebase) {
             const config = {
                 apiKey: 'AIzaSyBsuGNus_E4va5nZbPQ5ITlvaFHhI99XpA',
                 authDomain: 'd-pipeline.firebaseapp.com',
@@ -45,6 +45,21 @@ class Pipeline {
 
             this.fire.settings({ timestampsInSnapshots: true });
         }
+
+        window.ruler = newElement('div', { id: 'ruler' });
+        window.ruler.matchStyle = target => {
+            const targetStyle = gCss(target);
+
+            sCss(window.ruler, {
+                boxSizing: targetStyle.boxSizing,
+                whiteSpace: targetStyle.whiteSpace,
+                fontFamily: targetStyle.fontFamily,
+                fontSize: `${targetStyle.fontSize}px`,
+                width: `${targetStyle.width}px`,
+                padding: `${targetStyle.paddingTop}px ${targetStyle.paddingRight}px ${targetStyle.paddingBottom}px ${targetStyle.paddingLeft}px`,
+            });
+        };
+        document.body.appendChild(window.ruler);
 
         window.onresize = () => {
             if (this.activeNode) {
@@ -216,7 +231,7 @@ class Pipeline {
         };
 
         if (this.chart.nodes.hasOwnProperty(node.deck.self.id)) {
-            alert(`the ${name} node already exists`);
+            alert(`the ${name} node already exists.`);
             return false;
         }
 
@@ -321,7 +336,7 @@ class Pipeline {
     expandEditPanel() {
         sCss(this.self, { filter: 'blur(5px)', opacity: '0.5' });
         sCss(editIcon, { display: 'none' });
-        
+
         this.autoScroll(0, this.chart);
 
         editor.classList.add('expanded');
@@ -334,7 +349,7 @@ class Pipeline {
             newCardButton = newElement('i', { id: 'newCardButton', className: 'fa fa-plus-circle fa-2x' }),
             addNodeInput = (val, indent, isNode) => {
                 const
-                    nodeEditor = newElement('div', { className: 'nodeEditor' }),
+                    nodeEditGroup = newElement('div', { className: 'nodeEditGroup' }),
                     dirToggle = newElement('div', { className: 'dirToggle' }),
                     nodeNameInput = newElement('input', { className: 'nodeNameInput' }),
                     deckIcon = newElement('i', { className: 'fa fa-edit' }),
@@ -344,12 +359,12 @@ class Pipeline {
                     dragIcon = newElement('i', { className: 'fa fa-reorder' });
 
                 //  attach node input container
-                chartEditor.appendChild(nodeEditor);
+                chartEditor.appendChild(nodeEditGroup);
 
                 //  attach arrows before input box
-                const dir = val.match(/^[<>]+/);
+                nodeEditGroup.appendChild(dirToggle);
 
-                nodeEditor.appendChild(dirToggle);
+                const dir = val.match(/^[<>]+/);
 
                 if (dir) {
                     if (/</.test(dir[0])) dirToggle.appendChild(newElement('i', { className: 'fa fa-caret-left' }));
@@ -363,11 +378,13 @@ class Pipeline {
                 };
 
                 //  attach input box
-                nodeEditor.appendChild(nodeNameInput);
+                nodeEditGroup.appendChild(nodeNameInput);
                 nodeNameInput.value = val.replace(/^[<>]+\s*/, '');
                 nodeNameInput.targetDeck = camelise(nodeNameInput.value);
 
                 nodeNameInput.onblur = () => {
+                    if (!nodeNameInput.value.trim().length) nodeNameInput.value = uid('Node');
+
                     if (nodeNameInput.parentNode.classList.contains('shellInput')) return;
 
                     const newKey = camelise(nodeNameInput.value.trim());
@@ -387,11 +404,11 @@ class Pipeline {
                 };
 
                 //  attach icons
-                nodeEditor.appendChild(deckIcon);
-                nodeEditor.appendChild(shellIcon);
-                nodeEditor.appendChild(indentIcon);
-                nodeEditor.appendChild(removeIcon);
-                nodeEditor.appendChild(dragIcon);
+                nodeEditGroup.appendChild(deckIcon);
+                nodeEditGroup.appendChild(shellIcon);
+                nodeEditGroup.appendChild(indentIcon);
+                nodeEditGroup.appendChild(removeIcon);
+                nodeEditGroup.appendChild(dragIcon);
 
                 //  define events & handlers
                 deckIcon.onclick = () => {
@@ -404,42 +421,66 @@ class Pipeline {
                     };
                     deckEditor.classList.remove('hidden');
                     deckEditor.activeDeck.el.classList.remove('hidden');
+                    deckEditor.activeDeck.el.querySelectorAll('.contentInput').forEach(ci => {
+                        window.ruler.matchStyle(ci);
+                        ci.resize();
+                    });
 
                     doneButton.textContent = 'GO BACK';
                 };
 
                 shellIcon.onclick = () => {
                     if (gCss(shellIcon).opacity > 0.1) {
-                        if (nodeEditor.className.includes('shellInput')) {
-                            nodeEditor.classList.remove('shellInput');
-                            nodeEditor.classList.add('nodeInput');
+                        if (nodeEditGroup.className.includes('shellInput')) {
+                            nodeEditGroup.classList.remove('shellInput');
+                            nodeEditGroup.classList.add('nodeInput');
                         }
                         else {
-                            nodeEditor.classList.remove('nodeInput');
-                            nodeEditor.classList.add('shellInput');
+                            nodeEditGroup.classList.remove('nodeInput');
+                            nodeEditGroup.classList.add('shellInput');
                         }
                     }
                 };
 
                 indentIcon.onclick = () => {
                     if (gCss(indentIcon).opacity > 0.1) {
-                        if (nodeEditor.className.includes('indented')) {
-                            nodeEditor.classList.remove('indented');
+                        if (nodeEditGroup.className.includes('indented')) {
+                            nodeEditGroup.classList.remove('indented');
                         }
-                        else nodeEditor.classList.add('indented');
+                        else nodeEditGroup.classList.add('indented');
                     }
                 };
 
                 removeIcon.onclick = () => {
-                    if (chartEditor.querySelectorAll('.nodeEditor').length == 1) return alert('Your pipeline must have at least one node.');
+                    if (chartEditor.querySelectorAll('.nodeEditGroup').length == 1) return alert('Your pipeline must have at least one node.');
+                    if (!confirm('You are about to delete a node from the flowchart.\nThis action can not be undone. Are you sure?')) return;
                     delete this.decksData[camelise(removeIcon.previousElementSibling.textContent)];
                     chartEditor.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => chartEditor.active = dragIcon.parentNode;
+                dragIcon.onmousedown = () => {
+                    chartEditor.active = dragIcon.parentNode;
+                    sCss(chartEditor.active, {
+                        opacity: '0.6',
+                        filter: 'blur(0.6px)',
+                    });
+                };
 
-                nodeEditor.classList.add(isNode ? 'nodeInput' : 'shellInput');
-                if (indent) nodeEditor.classList.add('indented');
+                nodeEditGroup.classList.add(isNode ? 'nodeInput' : 'shellInput');
+                if (indent) nodeEditGroup.classList.add('indented');
+            },
+            addDeck = (name, cards) => {
+                const
+                    deckEditGroup = newElement('div', { className: 'hidden deckEditGroup' }),
+                    deckHeading = newElement('div', { className: 'deckHeading', textContent: decamelise(name) });
+
+                deckEditor.appendChild(deckEditGroup);
+                deckEditGroup.appendChild(deckHeading);
+
+                deckEditor[name] = deckEditGroup;
+                deckEditor[name].heading = deckHeading;
+
+                (cards || [{ title: '', sections: [{ content: [{ type: 'p', html: '' }] }] }]).forEach(card => addCardGroup(deckEditGroup, card));
             },
             addCardGroup = (deck, card) => {
                 const
@@ -462,6 +503,7 @@ class Pipeline {
 
                 removeIcon.onclick = () => {
                     if (removeIcon.parentNode.parentNode.querySelectorAll('.cardEditGroup').length == 1) return alert('Each deck must have at least one card.');
+                    if (!confirm('You are about to delete a card.\nThis action can not be undone. Are you sure?')) return;
                     removeIcon.parentNode.parentNode.removeChild(removeIcon.parentNode);
                 };
 
@@ -513,6 +555,7 @@ class Pipeline {
 
                 removeIcon.onclick = () => {
                     if (removeIcon.parentNode.parentNode.querySelectorAll('.sectionEditGroup').length == 1) return alert('Each card must have at least one section.');
+                    if (!confirm('You are about to delete a section.\nThis action can not be undone. Are you sure?')) return;
                     removeIcon.parentNode.parentNode.removeChild(removeIcon.parentNode);
                 };
 
@@ -529,13 +572,17 @@ class Pipeline {
                     dragIcon = newElement('i', { className: 'fa fa-reorder' }),
                     type = item.type == 'p' ? 'html' : item.type == 'img' ? 'src' : 'code';
 
+                //  resize function for every <textarea>
+                contentInput.resize = () => {
+                    window.ruler.textContent = `${contentInput.value} `;
+                    sCss(contentInput, { height: `${gCss(window.ruler).height}px` });
+                };
+
                 section.appendChild(itemEditGroup);
                 itemEditGroup.appendChild(typeToggle);
                 itemEditGroup.appendChild(contentInput);
                 itemEditGroup.appendChild(removeIcon);
                 itemEditGroup.appendChild(dragIcon);
-
-                contentInput.value = item[type];
 
                 typeToggle.onclick = () => {
                     const
@@ -546,8 +593,13 @@ class Pipeline {
                     typeToggle.classList.add(isP ? 'fa-file-image-o' : isImg ? 'fa-code' : 'fa-file-text-o');
                 };
 
+                contentInput.value = item[type];
+                contentInput.onfocus = () => window.ruler.matchStyle(contentInput);
+                contentInput.oninput = contentInput.resize;
+
                 removeIcon.onclick = () => {
                     if (removeIcon.parentNode.parentNode.querySelectorAll('.itemEditGroup').length == 1) return alert('Each section must have at least one item.');
+                    if (!confirm('You are about to delete an item.\nThis action can not be undone. Are you sure?')) return;
                     removeIcon.parentNode.parentNode.removeChild(removeIcon.parentNode);
                 };
 
@@ -563,7 +615,7 @@ class Pipeline {
         doneButton.onclick = () => {
             let error;
             const
-                nodes = Array.from(document.querySelectorAll('.nodeEditor')),
+                nodes = Array.from(document.querySelectorAll('.nodeEditGroup')),
                 nodesData = [],
                 checkChart = () => nodes.some((node, i) => {
                     //  nic: get the value of input element inside a given node input container
@@ -661,7 +713,7 @@ class Pipeline {
             //  applicable to the chart editor only
             if (can) {
                 //  valid target
-                const vt = et.className.includes('nodeEditor') ? et : et.parentNode.className.includes('nodeEditor') ? et.parentNode : null;
+                const vt = et.className.includes('nodeEditGroup') ? et : et.parentNode.className.includes('nodeEditGroup') ? et.parentNode : null;
 
                 if (!vt) return;
 
@@ -678,6 +730,7 @@ class Pipeline {
 
                 vt.addEventListener('mouseout', vt.restorePadding);
             }
+            //  applicable to the deck editor only
             else if (dan) {
                 console.log('move');
             }
@@ -694,6 +747,10 @@ class Pipeline {
                     chartEditor.insertBefore(can, ct);
                     ct.restorePadding();
                 }
+                sCss(can, {
+                    opacity: 'initial',
+                    filter: 'none',
+                });
                 chartEditor.active = null;
             }
             else if (dan) {
@@ -714,28 +771,19 @@ class Pipeline {
         chartEditor.appendChild(newNodeButton);
 
         newNodeButton.onclick = () => {
-            addNodeInput(uid('Node'), false, true);
+            const name = uid('Node', '_');
+
+            addNodeInput(name, false, true);
             chartEditor.appendChild(newNodeButton);
+
+            addDeck(camelise(name));
+            deckEditor.appendChild(newCardButton);
         };
 
         //  attach container for deck editor
         editor.appendChild(deckEditor);
 
-        Object.entries(this.decksData).forEach(entry => {
-            const
-                deckName = entry[0],
-                cards = entry[1],
-                deckHeading = newElement('div', { className: 'deckHeading', textContent: decamelise(deckName) }),
-                deckEditGroup = newElement('div', { className: 'hidden deckEditGroup' });
-
-            deckEditor.appendChild(deckEditGroup);
-            deckEditGroup.appendChild(deckHeading);
-
-            deckEditor[deckName] = deckEditGroup;
-            deckEditor[deckName].heading = deckHeading;
-
-            cards.forEach(card => addCardGroup(deckEditGroup, card));
-        });
+        Object.entries(this.decksData).forEach(entry => addDeck(entry[0], entry[1]));
 
         //  attach new card button for deck editor
         deckEditor.appendChild(newCardButton);
@@ -743,18 +791,18 @@ class Pipeline {
         newCardButton.onclick = () => {
             addCardGroup(deckEditor.activeDeck.el, {
                 title: '',
-                sections: [{
-                    title: '',
-                    content: [{ type: 'p', html: '' }],
-                }],
+                sections: [{ title: '', content: [{ type: 'p', html: '' }] }],
             });
             deckEditor.activeDeck.el.appendChild(newCardButton);
         };
     }
 
     pushToCloud(name) {
+        if (!window.firebase) return alert('Firebase is not set up.');
         if (!name) return alert('Specify a name for the pipeline before pushing to cloud, e.g. pushToCloud("project_one").');
         if (/[^a-z0-9_]/i.test(name)) return alert('Invalid character in name.');
+        if (!this.creatorMode) return alert('Eable creator mode before pushing to cloud.');
+        if (editor.classList.contains('expanded')) return alert('Close the editor before pushing to cloud.');
 
         const batch = this.fire.batch();
 
@@ -772,7 +820,10 @@ class Pipeline {
     }
 
     readFromCloud(name) {
+        if (!window.firebase) return alert('Firebase is not set up.');
         if (!name) return alert('Specify the name for the pipeline to retrieve, e.g. pushToCloud("project_one").');
+        if (!this.creatorMode) return alert('Eable creator mode before reading from cloud.');
+        if (editor.classList.contains('expanded')) return alert('Close the editor before reading from cloud.');
 
         //  read nodes data from firebase
         this.fire.collection(name).doc('nodesData').get().then(qs => {
@@ -800,39 +851,28 @@ class Pipeline {
     printDeck() {
         let deckObj = '';
 
+        //  parse this.decksData and build deckObj
         Object.entries(this.decksData).forEach(entry => {
             deckObj += `${entry[0]}: [{\n`;
             entry[1].forEach((card, j) => {
-                const
-                    cardTitle = Object.values(card)[0],
-                    cardSections = Object.values(card)[1];
+                deckObj += `\ttitle: '${card.title}',\n\tsections: [{\n`;
 
-                deckObj += `\ttitle: '${cardTitle}',\n\tsections: [{\n`;
+                card.sections.forEach((sec, k) => {
+                    if (!sec.hasOwnProperty('title')) sec = { title: '', content: sec.content };
 
-                cardSections.forEach((sec, k) => {
-                    if (!sec.hasOwnProperty('title')) sec = {
-                        title: '',
-                        content: sec.content,
-                    };
+                    deckObj += `\t\ttitle: '${sec.title}',\n\t\tcontent: [\n`;
 
-                    const
-                        secTitle = Object.values(sec)[0],
-                        secContent = Object.values(sec)[1];
-
-                    deckObj += `\t\ttitle: '${secTitle}',\n\t\tcontent: [\n`;
-
-                    secContent.forEach(content => {
+                    sec.content.forEach(content => {
                         const
-                            contentType = Object.values(content)[0],
                             key = Object.keys(content)[1],
                             value = Object.values(content)[1];
 
-                        deckObj += `\t\t\t{ type: '${contentType}', ${key}: '${value}' },\n`;
+                        deckObj += `\t\t\t{ type: '${content.type}', ${key}: '${value}' },\n`;
                     });
 
                     deckObj += '\t\t],\n';
 
-                    if (k == cardSections.length - 1) deckObj += '\t}],\n';
+                    if (k == card.sections.length - 1) deckObj += '\t}],\n';
                     else deckObj += '\t}, {\n';
                 });
 
