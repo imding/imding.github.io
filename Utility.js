@@ -4,7 +4,7 @@ class Utility {
             showDebug: true,
         };
 
-        // unique id
+        // unique id with or without a prefix
         this.uid = prefix => {
             // non-zero random scalar
             const nzrs = () => Math.random() || this.nzrs();

@@ -182,6 +182,4 @@ function init() {
 
     pl = new Pipeline(Root, 'game_dev');
     pl.render(nodesData, decksData);
-    
-    pl.adminAccess();
 }

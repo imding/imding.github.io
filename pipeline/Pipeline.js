@@ -293,7 +293,7 @@ class Pipeline {
         }
     }
 
-    adminAccess() {
+    creatorAccess() {
         const
             admin = newElement('div', { id: 'admin' }),
             editIcon = newElement('i', { id: 'editIcon', className: 'fa fa-gear fa-lg' });
@@ -708,7 +708,7 @@ class Pipeline {
         chartEditor.appendChild(newNodeButton);
 
         newNodeButton.onclick = () => {
-            addNodeInput('Outline', false, true);
+            addNodeInput(uid('Node'), false, true);
             chartEditor.appendChild(newNodeButton);
         };
 
@@ -746,18 +746,18 @@ class Pipeline {
         };
     }
 
-    pushToCloud() {
-        if (!this.name) return alert('Give this pipeline a name before pushing to cloud.');
+    pushToCloud(name) {
+        if (!name && !this.name) return alert('Give this pipeline a name before pushing to cloud.');
 
         const batch = this.fire.batch();
 
         batch.set(
-            this.fire.collection(this.name).doc('nodesData'),
+            this.fire.collection(name || this.name).doc('nodesData'),
             ato(this.nodesData)
         );
 
         batch.set(
-            this.fire.collection(this.name).doc('decksData'),
+            this.fire.collection(name || this.name).doc('decksData'),
             (this.decksData)
         );
 
