@@ -3,7 +3,7 @@ class Pipeline {
         this.self = root;
         this.creatorMode = false;
         this.chart = {
-            updateOffset() {
+            updateOffset: () => {
                 // the offset value is necessary for the chart when
                 //  1) the active deck is wider than the window & the chart is not
                 //  2) the chart is wider than the window & the active deck is wider than both
