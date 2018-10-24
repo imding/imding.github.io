@@ -44,6 +44,8 @@ class Pipeline {
             this.fire = firebase.firestore();
 
             this.fire.settings({ timestampsInSnapshots: true });
+
+            // this.fire.getCollection();
         }
 
         window.ruler = newElement('div', { id: 'ruler' });
