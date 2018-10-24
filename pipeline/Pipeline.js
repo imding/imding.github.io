@@ -185,7 +185,7 @@ class Pipeline {
                                 escHTML = escHTML.replace(m[0], _p ? `<${m[1]}>${m[2]}</${m[1]}>` : `<a href='${m[2]}' target='_blank'>${m[1]}</a>`);
                             }
 
-                            item.innerHTML = `${content.bullet ? '<i class=\'fa fa-info-circle\'></i>' : ''} ${escHTML}`;
+                            item.innerHTML = `${content.bullet ? `<i class='fa fa-${section.title ? 'exclamation-circle' : 'info-circle'}'></i>` : ''} ${escHTML}`;
                         }
 
                         else if (content.type === 'img') {
@@ -220,6 +220,11 @@ class Pipeline {
                     card.sections.push(_section);
 
                     if (!_section.title) return;
+
+                    // const sectionFooter = newElement('div', { className: 'sectionFooter' });
+
+                    // card.self.appendChild(sectionFooter);
+                    // _section.content.push(sectionFooter);
 
                     _section.title.onclick = () => _section.content.forEach(content => {
                         sCss(content, { display: gCss(content).display == 'none' ? 'inherit' : 'none' });
@@ -454,7 +459,7 @@ class Pipeline {
                 removeIcon.onclick = () => {
                     if (chartEditor.querySelectorAll('.nodeEditGroup').length == 1) return alert('Your pipeline must have at least one node.');
                     if (!confirm('You are about to delete a node from the flowchart.\nThis action can not be undone. Are you sure?')) return;
-                    delete this.decksData[camelise(removeIcon.previousElementSibling.textContent)];
+                    delete this.decksData[camelise(removeIcon.parentNode.querySelector('.nodeNameInput').value.trim())];
                     chartEditor.removeChild(removeIcon.parentNode);
                 };
 
@@ -502,9 +507,9 @@ class Pipeline {
                 cardEditGroup.appendChild(dragIcon);
 
                 removeIcon.onclick = () => {
-                    if (removeIcon.parentNode.parentNode.querySelectorAll('.cardEditGroup').length == 1) return alert('Each deck must have at least one card.');
+                    if (deck.querySelectorAll('.cardEditGroup').length == 1) return alert('Each deck must have at least one card.');
                     if (!confirm('You are about to delete a card.\nThis action can not be undone. Are you sure?')) return;
-                    removeIcon.parentNode.parentNode.removeChild(removeIcon.parentNode);
+                    deck.removeChild(removeIcon.parentNode);
                 };
 
                 card.sections.forEach(sec => addSectionGroup(cardEditGroup, sec));
@@ -554,9 +559,9 @@ class Pipeline {
                 appendButtons();
 
                 removeIcon.onclick = () => {
-                    if (removeIcon.parentNode.parentNode.querySelectorAll('.sectionEditGroup').length == 1) return alert('Each card must have at least one section.');
+                    if (card.querySelectorAll('.sectionEditGroup').length == 1) return alert('Each card must have at least one section.');
                     if (!confirm('You are about to delete a section.\nThis action can not be undone. Are you sure?')) return;
-                    removeIcon.parentNode.parentNode.removeChild(removeIcon.parentNode);
+                    card.removeChild(removeIcon.parentNode);
                 };
 
                 newParagraphButton.onclick = () => newContent('p', 'html');
@@ -598,9 +603,9 @@ class Pipeline {
                 contentInput.oninput = contentInput.resize;
 
                 removeIcon.onclick = () => {
-                    if (removeIcon.parentNode.parentNode.querySelectorAll('.itemEditGroup').length == 1) return alert('Each section must have at least one item.');
+                    if (section.querySelectorAll('.itemEditGroup').length == 1) return alert('Each section must have at least one item.');
                     if (!confirm('You are about to delete an item.\nThis action can not be undone. Are you sure?')) return;
-                    removeIcon.parentNode.parentNode.removeChild(removeIcon.parentNode);
+                    section.removeChild(removeIcon.parentNode);
                 };
 
                 dragIcon.onmousedown = () => deckEditor.active = dragIcon.parentNode;
@@ -650,7 +655,7 @@ class Pipeline {
 
                             return {
                                 type: type,
-                                [key]: htmlDecode(this.toMarkup(inputGroup.querySelector('.contentInput').value)),
+                                [key]: this.toMarkup(inputGroup.querySelector('.contentInput').value),
                             };
                         };
 

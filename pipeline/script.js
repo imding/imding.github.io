@@ -529,4 +529,6 @@ function init() {
 
     pl = new Pipeline(Root);
     pl.render(nodesData, cardsData);
+
+    pl.creatorAccess();
 }

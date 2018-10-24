@@ -158,12 +158,17 @@ code::-webkit-scrollbar-thumb {
 }
 
 /* card content styles */
-.fa-info-circle {
+.fa-info-circle, .fa-exclamation-circle {
     margin-right: 5px;
 }
 
 .fa-caret-right, .fa-caret-left, .fa-caret-up, .fa-caret-down {
     color: palegreen;
+}
+
+.fa-exclamation-circle {
+    transform: scale(0.8);
+    color: whitesmoke;
 }
 
 h4 {
