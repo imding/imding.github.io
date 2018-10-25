@@ -328,7 +328,7 @@ function updateStyledInstruction() {
 
         // BEGINNING OF A LIST
         isList = /^\[(-|=)/.test(e) ? true : isList;
-            // BEGINNING OF SNIPPET
+        // BEGINNING OF SNIPPET
         isPre = /^\((html|css|js)\)/.test(e) ? true : isPre;
 
         // - EXAMPLE -
@@ -451,22 +451,23 @@ function updatePreview() {
     storeActiveCode();
 
     const
-        // regExp is not sufficient, to be improved later ( using html parser )
         redundant = [
-            /<link\s*rel\s*=\s*(['"])stylesheet\1\s*href\s*=\s*(['"])style.css\2\s*\/?>/,
-            /<script\s*src\s*=\s*(['"])script.js\1\s*>\s*<\/script\s*>/,
+            /<link\s+[^>]*href\s*=\s*('|")\s*style.css\s*\1(\s*|\s+[^>]+)>/,
+            /<script\s+[^>]*src\s*=\s*('|")\s*script.js\s*\1(\s*|\s+[^>]+)>\s*<\/script\s*>/,
         ],
-        m = noMarkup(html).match(/<head\s*>([\s\S]*)<\/head\s*>/);
+        mHead = noMarkup(html).match(/<head\s*>([\s\S]*)<\/head\s*>/),
+        mBody = noMarkup(html).match(/<body\s*>([\s\S]*)<\/body\s*>/);
 
-    let headContent = m ? (m[1].trim().length ? m[1] : '') : '';
+    let headContent = mHead ? (mHead[1].trim().length ? mHead[1] : '') : '',
+        bodyContent = mBody ? (mBody[1].trim().length ? mBody[1] : '') : '<!-- NO HTML -->';
 
     headContent = headContent
         .split('\n')
+        .filter(l => l.trim().length)
         .map(l => {
             redundant.forEach(r => { if (r.test(l)) l = l.replace(r, ''); });
-            return l.trim().length ? `\t${l.trim()}` : '';
-        })
-        .filter(l => l.length);
+            return `\t${l}`;
+        });
 
     headContent.unshift(
         '\t<meta charset="UTF-8">',
@@ -476,9 +477,14 @@ function updatePreview() {
 
     headContent.push(
         '\t<style>\n',
-        noMarkup(css).trim().length > 0 ? `\t\t${noMarkup(css).split(/\r?\n/).join('\n\t\t')}` : '\t\t/* NO STYLE */',
-        '\n\t</style>'
+        noMarkup(css).trim().length > 0 ? noMarkup(css) : '/* NO STYLE */',
+        '\n</style>'
     );
+
+    bodyContent = bodyContent
+        .split('\n')
+        .filter(l => l.length)
+        .map(l => { if (!redundant[1].test(l)) return `\t${l}`; });
 
     const pCode = [
         '<!DOCTYPE html>',
@@ -487,8 +493,8 @@ function updatePreview() {
         headContent.join('\n'),
         '</head>\n',
         '<body>',
-        noMarkup(html).trim().length > 0 ? noMarkup(html).replace(/[\s\S]+<body>/, '').replace(/<\/body>[\s\S]+/, '') : '<!-- NO HTML -->',
-        '<script type="text/javascript">\n',
+        bodyContent.join('\n'),
+        '\n\n<script type="text/javascript">\n',
         noMarkup(js).trim().length > 0 ? noMarkup(js) : '// NO SCRIPT',
         '\n</script>\n',
         '</body>',
@@ -910,7 +916,7 @@ function adaptToView() {
     [btnPrev, btnAdd, btnDel, btnNext].forEach((e, i, arr) => {
         // POSITION EACH BUTTON
         e.style.left = i * (get(e, 'width') + margin) +
-        // OFFSET TO CENTRE
+            // OFFSET TO CENTRE
             (get(vDiv, 'left') - pagePadding - arr.length * get(e, 'width') - margin * (arr.length - 1)) / 2 + pagePadding + 'px';
     });
     taInstruction.style.left = pagePadding + 'px';
@@ -928,7 +934,7 @@ function adaptToView() {
     [btnHTML, btnCSS, btnJS, btnRun].forEach((e, i, arr) => {
         // POSITION EACH BUTTON
         e.style.left = i * (get(e, 'width') + margin / 2) + get(vDiv, 'left') + get(vDiv, 'width') +
-        // OFFSET TO CENTRE
+            // OFFSET TO CENTRE
             (get(hDiv, 'width') - get(vDiv, 'width') - arr.length * get(e, 'width') - margin / 2 * (arr.length - 1) - pagePadding) / 2 + 'px';
     });
     srcCode.style.top = get(btnRun, 'top') + get(btnRun, 'height') + margin + 'px';
@@ -1019,7 +1025,7 @@ function highlightButton() {
 function testLogic() {
     // ===== HELPER FUNCTIONS ===== //
     const
-    // c = CODE; k = KEY; options = { str, int }
+        // c = CODE; k = KEY; options = { str, int }
         insertLine = (c, k, options) => {
             const m = c.match(new RegExp(k, 'g'));
 
