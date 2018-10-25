@@ -369,7 +369,7 @@ function updateStyledInstruction() {
     // taInstruction.value = source;
     styledInstruction.innerHTML = source;// + '<link rel="stylesheet" href="css/instructions.css">';
     selectAndCopy(styledInstruction);
-    alignElement(styledInstruction);
+    alignWithInstruction(styledInstruction);
     convertLineNumber();
 }
 
@@ -505,7 +505,7 @@ function updatePreview() {
         storeActiveCode();
         preview = document.createElement('iframe');
         preview.id = 'preview';
-        alignElement(preview);
+        alignWithInstruction(preview);
         app.appendChild(preview);
     }
     preview.srcdoc = pCode;
@@ -925,8 +925,8 @@ function adaptToView() {
     taInstruction.style.height = get(btnPrev, 'top') - margin - get(taInstruction, 'top') + 'px';
     btnConvert.style.left = get(taInstruction, 'width') / 2 - get(btnConvert, 'width') / 2 + pagePadding + 'px';
 
-    preview ? alignElement(preview) : null;
-    styledInstruction ? alignElement(styledInstruction) : null;
+    preview ? alignWithInstruction(preview) : null;
+    styledInstruction ? alignWithInstruction(styledInstruction) : null;
 
     // ===== RIGHT SIDE ===== //
     btnDupPrev.style.left = get(vDiv, 'left') + get(vDiv, 'width') + pagePadding + 'px';
@@ -973,7 +973,7 @@ function flexDivider() {
     hDiv.style.width = window.innerWidth - vDivMin + 'px';
 }
 
-function alignElement(e, target = taInstruction) {
+function alignWithInstruction(e, target = taInstruction) {
     e.style.left = get(target, 'left') + 'px';
     e.style.top = get(target, 'top') + 'px';
     e.style.width = get(target, 'width') + 'px';
