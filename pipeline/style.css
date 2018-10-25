@@ -18,6 +18,10 @@
     unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 html, body {
     height: 100%;
     margin: 0;
@@ -148,16 +152,17 @@ code::-webkit-scrollbar-thumb {
     background-color: #545c6d;
 }
 
-#editor::-webkit-scrollbar {
+#cPanel::-webkit-scrollbar {
     width: 8px;
 }
 
-#editor::-webkit-scrollbar-thumb {
+#cPanel::-webkit-scrollbar-thumb {
     border-width: 20px 5px 20px 0;
     background-color: slategray;
 }
 
 /* card content styles */
+
 .fa-info-circle, .fa-exclamation-circle {
     margin-right: 5px;
 }
@@ -268,8 +273,8 @@ sup, sub {
 }
 
 /* admin styles */
-#editIcon, .deckToggle, .dirToggle, .fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent, #newNodeButton, #doneButton,
-.typeToggle, .newSectionButton, .newContentButton, #newCardButton {
+
+#editIcon, #pushIcon, #pullIcon, .deckToggle, .dirToggle, .fa-edit, .fa-remove, .fa-reorder, .fa-object-group, .fa-indent, #newNodeButton, #doneButton, .typeToggle, .newSectionButton, .newContentButton, #newCardButton {
     cursor: pointer;
 }
 
@@ -320,32 +325,56 @@ input, textarea {
     cursor: not-allowed;
 }
 
-#editor, .deckEditGroup {
-    border-radius: 10px;
-}
-
-#editor {
+#cPanel {
     position: absolute;
-    width: 50px;
+    width: 160px;
     height: 50px;
+    padding-top: 10px;
     left: 50vw;
-    top: -10px;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.6);
+    top: 50vh;
+    transform: translate(-50%, -50%);
     text-align: center;
     overflow: hidden auto;
+    opacity: 0.1;
+    transition: opacity 0.1s ease-in-out;
 }
 
-#editor.expanded {
+#cPanel.expanded, #cPanel:hover {
+    opacity: 1;
+}
+
+#cPanel.expanded {
     width: 650px;
     height: calc(100vh - 100px);
-    top: 50px;
     border-radius: 20px;
     box-shadow: 0 0 10px #111;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+#editIcon, #pushIcon, #pullIcon {
+    transition: transform 0.2s ease-in-out;
 }
 
 #editIcon {
-    margin-top: 22px;
+    font-size: 25px;
+    margin: 0 40px;
+    color: whitesmoke;
+}
+
+#pushIcon, #pullIcon {
+    font-size: 20px;
+}
+
+#editIcon:hover {
+    transform: scale(1.2) rotateZ(30deg);
+}
+
+#pushIcon:hover {
+    transform: translateY(-10%);
+}
+
+#pullIcon:hover {
+    transform: translateY(10%);
 }
 
 .nodeNameInput, .dirToggle {
@@ -358,8 +387,7 @@ input, textarea {
     transition: padding 0.06s ease-in-out;
 }
 
-.dirToggle, .nodeNameInput, .fa-edit, .fa-object-group, .fa-indent, .fa-remove, .fa-reorder,
-.typeToggle, .editor {
+.dirToggle, .nodeNameInput, .fa-edit, .fa-object-group, .fa-indent, .fa-remove, .fa-reorder, .typeToggle, .editor, #editIcon, #pushIcon, #pullIcon {
     vertical-align: middle;
 }
 
@@ -407,6 +435,7 @@ input, textarea {
 
 .deckEditGroup {
     width: 85%;
+    border-radius: 10px;
     margin: auto;
 }
 

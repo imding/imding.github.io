@@ -93,7 +93,7 @@ class Pipeline {
     }
 
     autoScroll(ref, focus) {
-        if (this.creatorMode && editor.expanded) return;
+        if (this.creatorMode && cPanel.expanded) return;
 
         const
             vw = window.innerWidth,
@@ -320,34 +320,56 @@ class Pipeline {
 
     creatorAccess() {
         const
-            editor = newElement('div', { id: 'editor' }),
-            editIcon = newElement('i', { id: 'editIcon', className: 'fa fa-gear fa-lg' });
+            cPanel = newElement('div', { id: 'cPanel' }),
+            editIcon = newElement('i', { id: 'editIcon', className: 'fa fa-gear fa-lg' }),
+            pushIcon = newElement('i', { id: 'pushIcon', className: 'fa fa-cloud-upload' }),
+            pullIcon = newElement('i', { id: 'pullIcon', className: 'fa fa-cloud-download' });
 
-        document.body.appendChild(editor);
-        editor.appendChild(editIcon);
-        editIcon.onclick = () => this.expandEditPanel();
+        document.body.appendChild(cPanel);
+
+        cPanel.appendChild(pullIcon);
+        cPanel.appendChild(editIcon);
+        cPanel.appendChild(pushIcon);
+
+        editIcon.onclick = () => this.expandAnd('Edit');
+        pullIcon.onclick = () => this.pullData();
+        pushIcon.onclick = () => {
+            if (prompt('Password:') == 'letmein420') this.pushData();
+        };
 
         this.creatorMode = true;
     }
 
-    shrinkEditPanel() {
-        Array.from(editor.children).forEach(el => el != editIcon ? editor.removeChild(el) : null);
-
-        sCss(this.self, { filter: 'blur(0)', opacity: '1' });
-        sCss(editIcon, { display: 'inline-block' });
-
-        editor.classList.remove('expanded');
-        editor.expanded = false;
-    }
-
-    expandEditPanel() {
+    expandAnd(action) {
         sCss(this.self, { filter: 'blur(5px)', opacity: '0.5' });
         sCss(editIcon, { display: 'none' });
+        sCss(pushIcon, { display: 'none' });
+        sCss(pullIcon, { display: 'none' });
 
         this.autoScroll(0, this.chart);
 
-        editor.classList.add('expanded');
-        editor.expanded = true;
+        cPanel.classList.add('expanded');
+        cPanel.expanded = true;
+
+        if (action == 'Edit') this.showEditorUI();
+    }
+
+    hideCreatorPanel() {
+        while (cPanel.children.length > 3) {
+            cPanel.removeChild(cPanel.lastElementChild);
+        }
+
+        sCss(this.self, { filter: 'blur(0)', opacity: '1' });
+        sCss(editIcon, { display: 'inline-block' });
+        sCss(pushIcon, { display: 'inline-block' });
+        sCss(pullIcon, { display: 'inline-block' });
+
+        cPanel.removeAttribute('class');
+        cPanel.expanded = false;
+    }
+
+    showEditorUI() {
+        cPanel.classList.add('lg');
 
         const
             chartEditor = newElement('div', { id: 'chartEditor' }),
@@ -617,7 +639,7 @@ class Pipeline {
         //  attach the 'done' button
         const doneButton = newElement('div', { id: 'doneButton', textContent: 'SAVE & CLOSE' });
 
-        editor.appendChild(doneButton);
+        cPanel.appendChild(doneButton);
 
         doneButton.onclick = () => {
             let error;
@@ -694,7 +716,7 @@ class Pipeline {
                     this.self.removeChild(this.self.firstElementChild);
                 }
 
-                if (this.render(nodesData, this.decksData)) this.shrinkEditPanel();
+                if (this.render(nodesData, this.decksData)) this.hideCreatorPanel();
             }
             else {
                 checkDecks();
@@ -709,9 +731,9 @@ class Pipeline {
         };
 
         //  attach container for chart editor
-        editor.appendChild(chartEditor);
+        cPanel.appendChild(chartEditor);
 
-        editor.onmousemove = () => {
+        cPanel.onmousemove = () => {
             const
                 et = event.target,
                 can = chartEditor.active,
@@ -743,7 +765,7 @@ class Pipeline {
             }
         };
 
-        editor.onmouseup = () => {
+        cPanel.onmouseup = () => {
             const
                 can = chartEditor.active,
                 ct = chartEditor.target,
@@ -788,7 +810,7 @@ class Pipeline {
         };
 
         //  attach container for deck editor
-        editor.appendChild(deckEditor);
+        cPanel.appendChild(deckEditor);
 
         Object.entries(this.decksData).forEach(entry => addDeck(entry[0], entry[1]));
 
@@ -804,92 +826,106 @@ class Pipeline {
         };
     }
 
-    pushToCloud(name) {
+    pushData() {
         if (!window.firebase) return alert('Firebase is not set up.');
-        if (!name) return alert('Specify a name for the pipeline before pushing to cloud, e.g. pushToCloud("project_one").');
-        if (/(^[^a-z])|[^a-z0-9_]/i.test(name)) return alert('Invalid character in name.');
         if (!this.creatorMode) return alert('Eable creator mode before pushing to cloud.');
-        if (editor.classList.contains('expanded')) return alert('Close the editor before pushing to cloud.');
+        if (cPanel.classList.contains('expanded')) return alert('Close the editor before pushing to cloud.');
+        
+        const name = prompt('Give this pipeline a name.').trim();
 
-        const batch = this.fire.batch();
+        if (/(^[^a-z])|[^a-z0-9_]/i.test(name)) return alert('Invalid character in name.');
 
-        batch.set(
-            this.fire.collection(name).doc('nodesData'),
-            ato(this.nodesData)
-        );
+        this.fire.collection('Root').doc(name).get().then(qs => {
+            if (qs.exists) {
+                if (!confirm(`"${name}" already exists in the cloud, do you wish to overwrite it?`)) return alert('Push cancelled');
+                if (!confirm(`The current "${name}" data will be lost, are you sure?`)) return alert('Push cancelled');
+                if (!confirm('This action can not be undone. Please confirm.')) return alert('Push cancelled');
+            }
 
-        batch.set(
-            this.fire.collection(name).doc('decksData'),
-            this.decksData
-        );
+            const
+                batch = this.fire.batch(),
+                data = {
+                    nodesData: ato(this.nodesData),
+                    decksData: this.decksData,
+                };
 
-        batch.commit().then(() => alert('Pipeline stored in the cloud.'));
+            batch.set(this.fire.collection('Root').doc(name), data);
+
+            batch.commit().then(() => alert('Pipeline stored in the cloud.'));
+        });
     }
 
-    readFromCloud(name) {
+    pullData() {
         if (!window.firebase) return alert('Firebase is not set up.');
-        if (!name) return alert('Specify the name for the pipeline to retrieve, e.g. pushToCloud("project_one").');
         if (!this.creatorMode) return alert('Eable creator mode before reading from cloud.');
-        if (editor.classList.contains('expanded')) return alert('Close the editor before reading from cloud.');
+        if (cPanel.classList.contains('expanded')) return alert('Close the editor before reading from cloud.');
 
-        //  read nodes data from firebase
-        this.fire.collection(name).doc('nodesData').get().then(qs => {
-            const nd = [];
+        this.fire.collection('Root').get().then(qs => {
+            if (qs.docs.length) {
+                let
+                    msg = 'Enter a number to load:\n',
+                    docs = qs.docs.sort();
 
-            //  build nodes array from cloud data object
-            Object.values(qs.data()).forEach(field => nd.push(typeof (field) == 'object' ? Object.values(field) : field));
-            print('Nodes loaded.');
+                docs.forEach((doc, i) => msg += `${i + 1}. ${doc.id}\n`);
 
-            //  read decks data from firebase
-            this.fire.collection(name).doc('decksData').get().then(qs => {
-                print('Decks loaded.');
+                const r = prompt(msg).trim();
 
-                while (this.self.children.length) {
-                    this.self.removeChild(this.self.firstElementChild);
+                if (/^\d+$/.test(r)) {
+                    //  remove everything from this.self
+                    while (this.self.children.length) {
+                        this.self.removeChild(this.self.firstElementChild);
+                    }
+
+                    const nd = [], index = Number(r) - 1;
+
+                    //  build nodes array from cloud data object
+                    Object.values(docs[index].data().nodesData).forEach(field => nd.push(typeof (field) == 'object' ? Object.values(field) : field));
+
+                    this.render(nd, docs[index].data().decksData);
+
+                    alert('Pipeline updated.');
                 }
-
-                this.render(nd, qs.data());
-
-                alert('Pipeline updated.');
-            });
+                else return alert('Invalid input.');
+            }
+            else return alert('Nothing is in the cloud.');
         });
     }
 
-    printDeck() {
-        let deckObj = '';
+    // printDeck() {
+    //     let deckObj = '';
 
-        //  parse this.decksData and build deckObj
-        Object.entries(this.decksData).forEach(entry => {
-            deckObj += `${entry[0]}: [{\n`;
-            entry[1].forEach((card, j) => {
-                deckObj += `\ttitle: '${card.title}',\n\tsections: [{\n`;
+    //     //  parse this.decksData and build deckObj
+    //     Object.entries(this.decksData).forEach(entry => {
+    //         deckObj += `${entry[0]}: [{\n`;
+    //         entry[1].forEach((card, j) => {
+    //             deckObj += `\ttitle: '${card.title}',\n\tsections: [{\n`;
 
-                card.sections.forEach((sec, k) => {
-                    if (!sec.hasOwnProperty('title')) sec = { title: '', content: sec.content };
+    //             card.sections.forEach((sec, k) => {
+    //                 if (!sec.hasOwnProperty('title')) sec = { title: '', content: sec.content };
 
-                    deckObj += `\t\ttitle: '${sec.title}',\n\t\tcontent: [\n`;
+    //                 deckObj += `\t\ttitle: '${sec.title}',\n\t\tcontent: [\n`;
 
-                    sec.content.forEach(content => {
-                        const
-                            key = Object.keys(content)[1],
-                            value = Object.values(content)[1];
+    //                 sec.content.forEach(content => {
+    //                     const
+    //                         key = Object.keys(content)[1],
+    //                         value = Object.values(content)[1];
 
-                        deckObj += `\t\t\t{ type: '${content.type}', ${key}: '${value}' },\n`;
-                    });
+    //                     deckObj += `\t\t\t{ type: '${content.type}', ${key}: '${value}' },\n`;
+    //                 });
 
-                    deckObj += '\t\t],\n';
+    //                 deckObj += '\t\t],\n';
 
-                    if (k == card.sections.length - 1) deckObj += '\t}],\n';
-                    else deckObj += '\t}, {\n';
-                });
+    //                 if (k == card.sections.length - 1) deckObj += '\t}],\n';
+    //                 else deckObj += '\t}, {\n';
+    //             });
 
-                if (j == entry[1].length - 1) deckObj += '}],\n';
-                else deckObj += '}, {\n';
-            });
-        });
+    //             if (j == entry[1].length - 1) deckObj += '}],\n';
+    //             else deckObj += '}, {\n';
+    //         });
+    //     });
 
-        return `\n${deckObj}\n`;
-    }
+    //     return `\n${deckObj}\n`;
+    // }
 
     toMarkup(string) {
         return string

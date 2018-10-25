@@ -307,7 +307,8 @@ function updateStyledInstruction() {
         glossary = /gls#([^#\n]+)#(html|css|js|javascript)#([-a-z0-9]+)/;
     let source = inst[cStep].replace(/</g, '&lt;').split(/\r?\n/).slice(2),
         isList = false,
-        isPre = false;
+        isPre = false,
+        objNum = 0;
 
     source.forEach((e, i) => {
         // replace markup for code location link
@@ -339,7 +340,7 @@ function updateStyledInstruction() {
             source[i] = '<center><p><b>- OBJECTIVES -</b></p></center>';
             // OBJECTIVE HIGHLIGHT
         } else if (highlight.test(e)) {
-            source[i] = e.replace(highlight, '$1<p class="highlight">$2</p>');
+            source[i] = e.replace(highlight, '$1<p class="highlight">##' + (++objNum) + '##. $2</p>');
             // NOTES HIGHLIGHT
         } else if (notes.test(e)) {
             const center = /^\t?\(\*\*\)/.test(e);
@@ -357,17 +358,25 @@ function updateStyledInstruction() {
         isPre = /\(#\)/.test(e) ? false : isPre;
     });
 
-    // LISTS
-    source = source.join('\n').replace(/\[-/g, '<ul>').replace(/-\]/g, '</ul>').replace(/\[=/g, '<ol>').replace(/=\]/g, '</ol>');
-    // CODE SNIPPETS
-    source = source.replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>');
-    source = source.replace(bold, '<b>$1</b>').replace(code, '<code class="syntax">$1</code>').replace(link, '<a href="$2" target="_blank">$1</a>');
+    source = source.join('\n')
+        // LISTS
+        .replace(/\[-/g, '<ul>').replace(/-\]/g, '</ul>').replace(/\[=/g, '<ol>').replace(/=\]/g, '</ol>')
+        // OBJECTIVE NUMBERS
+        .replace(/##(\d+)##\.\s/g, objNum > 1 ? '$1. ' : '')
+        // CODE SNIPPETS
+        .replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>')
+        // BOLD STYLE
+        .replace(bold, '<b>$1</b>')
+        // CODE STYLE
+        .replace(code, '<code class="syntax">$1</code>')
+        // LINK STYLE
+        .replace(link, '<a href="$2" target="_blank">$1</a>');
+
     source += (cStep > 1 && cStep < tSteps ? '\n<hr>\n<p class="highlight">Click on <b>Check all objectives</b> to continue</p>' :
         cStep == 1 ? '\n<hr>\n<p class="highlight">Click on <b>Next step</b> to get started</p>' :
             cStep > 10 ? '\n<hr>\n<p class="highlight"><b>Export to Sandbox</b> to continue working on it</p>' : '');
 
-    // taInstruction.value = source;
-    styledInstruction.innerHTML = source;// + '<link rel="stylesheet" href="css/instructions.css">';
+    styledInstruction.innerHTML = source;
     selectAndCopy(styledInstruction);
     alignWithInstruction(styledInstruction);
     convertLineNumber();
@@ -396,6 +405,7 @@ function convertLineNumber() {
         n = markup[3] ? eval(`n${markup[3]}`) : n;
         siClone = siClone.replace(markup[0], n ? n : `'${markup[2]}' NOT FOUND`);
     }
+
     styledInstruction.innerHTML = siClone;
 }
 
@@ -777,6 +787,7 @@ function keyHandler() {
 
     // handle right alt key
     else if (event.code == 'AltRight' && !altKey) {
+        console.log(event.code);
         altKey = true;
         returnFocus = document.activeElement;
         returnFocus.blur();
