@@ -221,7 +221,8 @@ window.onload = () => {
     codeEditor.setOptions(aceOptions);
     logicEditor.setOptions(aceOptions);
 
-    codeEditor.$blockScrolling = Infinity; logicEditor.$blockScrolling = Infinity;              // FIX FOR UNKNOWN ACE EDITOR ISSUE
+    // FIX FOR UNKNOWN ACE EDITOR ISSUE
+    codeEditor.$blockScrolling = Infinity; logicEditor.$blockScrolling = Infinity;
 
     setValue(codeEditor, [
         '<!DOCTYPE html>',
@@ -325,16 +326,22 @@ function updateStyledInstruction() {
             e = e.replace(glossary, `<a href='#glossary/${query[2].replace(/^js$/i, 'javascript')}/${query[3]}'>${query[1]}</a>`);
         }
 
-        isList = /^\[(-|=)/.test(e) ? true : isList;                    // BEGINNING OF A LIST
-        isPre = /^\((html|css|js)\)/.test(e) ? true : isPre;            // BEGINNING OF SNIPPET
+        // BEGINNING OF A LIST
+        isList = /^\[(-|=)/.test(e) ? true : isList;
+            // BEGINNING OF SNIPPET
+        isPre = /^\((html|css|js)\)/.test(e) ? true : isPre;
 
-        if (/^\(-{3}\)/.test(e)) {                                      // - EXAMPLE -
+        // - EXAMPLE -
+        if (/^\(-{3}\)/.test(e)) {
             source[i] = '<center><p><b>- EXAMPLE -</b></p></center>';
-        } else if (/^\(\*{3}\)/.test(e)) {                              // - OBJECTIVES -
+            // - OBJECTIVES -
+        } else if (/^\(\*{3}\)/.test(e)) {
             source[i] = '<center><p><b>- OBJECTIVES -</b></p></center>';
-        } else if (highlight.test(e)) {                                 // OBJECTIVE HIGHLIGHT
+            // OBJECTIVE HIGHLIGHT
+        } else if (highlight.test(e)) {
             source[i] = e.replace(highlight, '$1<p class="highlight">$2</p>');
-        } else if (notes.test(e)) {                                     // NOTES HIGHLIGHT
+            // NOTES HIGHLIGHT
+        } else if (notes.test(e)) {
             const center = /^\t?\(\*\*\)/.test(e);
             source[i] = `${center ? '<center>' : ''}${e.replace(notes, '$1<p class="notes">$2</p>')}${center ? '</center>' : ''}`;
         } else if (image.test(e)) {
@@ -344,12 +351,16 @@ function updateStyledInstruction() {
         }
 
         source[i] = isList ? source[i].replace(/^\t(.+)/, '\t<li>$1</li>') : source[i];
-        isList = /(-|=)\]$/.test(e) ? false : isList;   // END OF A LIST
-        isPre = /\(#\)/.test(e) ? false : isPre;        // END OF SNIPPET
+        // END OF A LIST
+        isList = /(-|=)\]$/.test(e) ? false : isList;
+        // END OF SNIPPET
+        isPre = /\(#\)/.test(e) ? false : isPre;
     });
 
-    source = source.join('\n').replace(/\[-/g, '<ul>').replace(/-\]/g, '</ul>').replace(/\[=/g, '<ol>').replace(/=\]/g, '</ol>');                           // LISTS
-    source = source.replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>');     // CODE SNIPPETS
+    // LISTS
+    source = source.join('\n').replace(/\[-/g, '<ul>').replace(/-\]/g, '</ul>').replace(/\[=/g, '<ol>').replace(/=\]/g, '</ol>');
+    // CODE SNIPPETS
+    source = source.replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>');
     source = source.replace(bold, '<b>$1</b>').replace(code, '<code class="syntax">$1</code>').replace(link, '<a href="$2" target="_blank">$1</a>');
     source += (cStep > 1 && cStep < tSteps ? '\n<hr>\n<p class="highlight">Click on <b>Check all objectives</b> to continue</p>' :
         cStep == 1 ? '\n<hr>\n<p class="highlight">Click on <b>Next step</b> to get started</p>' :
@@ -381,7 +392,8 @@ function convertLineNumber() {
                 else n = `'${markup[2]}' NOT UNIQUE`;
             }
         });
-        n = markup[3] ? eval(`n${markup[3]}`) : n;      // markup[3] is offset
+        // markup[3] is offset
+        n = markup[3] ? eval(`n${markup[3]}`) : n;
         siClone = siClone.replace(markup[0], n ? n : `'${markup[2]}' NOT FOUND`);
     }
     styledInstruction.innerHTML = siClone;
@@ -419,7 +431,8 @@ function toggleCodePanel(targetBtn) {
 }
 
 function updateCodeButtons() {
-    [btnHTML, btnCSS, btnJS].forEach((btn, i) => {    // COLOUR CODING BUTTONS
+    // COLOUR CODING BUTTONS
+    [btnHTML, btnCSS, btnJS].forEach((btn, i) => {
         btn.style.background = btn != activeCodeBtn ? ([html, css, js][i].trim().length > 0 ? 'forestgreen' : 'darkseagreen') : 'indianred';
     });
 }
@@ -612,7 +625,8 @@ function setValue(editor, value, cursor = {}) {
     editor.gotoLine(cursor.row + 1, cursor.column, false);
 }
 
-function updateContent(i) {                                                  // STORE CURRENT CONTENT AND DISPLAY NEW CONTENT
+// STORE CURRENT CONTENT AND DISPLAY NEW CONTENT
+function updateContent(i) {
     inst[cStep] = taInstruction.value;
     taInstruction.value = inst[i];
     storeActiveCode();
@@ -622,13 +636,18 @@ function updateContent(i) {                                                  // 
 }
 
 function storeActiveCode(step = cStep) {
-    btnHTML.disabled ? html = codeEditor.getValue() : (btnCSS.disabled ? css = codeEditor.getValue() : js = codeEditor.getValue());                     // STORE CONTENT OF ACTIVE CODE PANEL
-    code[step] = htmlToken[0] + html + htmlToken[1] + cssToken[0] + css + cssToken[1] + jsToken[0] + js + jsToken[1];                                  // STORE CODE FOR CURRENT STEP
-    btnHTML.disabled ? htmlLogic = logicEditor.getValue() : (btnCSS.disabled ? cssLogic = logicEditor.getValue() : jsLogic = logicEditor.getValue());   // STORE CONTENT OF ACTIVE LOGIC PANEL
-    logic[step] = htmlToken[0] + htmlLogic + htmlToken[1] + cssToken[0] + cssLogic + cssToken[1] + jsToken[0] + jsLogic + jsToken[1];                  // STORE CODE FOR CURRENT STEP
+    // STORE CONTENT OF ACTIVE CODE PANEL
+    btnHTML.disabled ? html = codeEditor.getValue() : (btnCSS.disabled ? css = codeEditor.getValue() : js = codeEditor.getValue());
+    // STORE CODE FOR CURRENT STEP
+    code[step] = htmlToken[0] + html + htmlToken[1] + cssToken[0] + css + cssToken[1] + jsToken[0] + js + jsToken[1];
+    // STORE CONTENT OF ACTIVE LOGIC PANEL
+    btnHTML.disabled ? htmlLogic = logicEditor.getValue() : (btnCSS.disabled ? cssLogic = logicEditor.getValue() : jsLogic = logicEditor.getValue());
+    // STORE CODE FOR CURRENT STEP
+    logic[step] = htmlToken[0] + htmlLogic + htmlToken[1] + cssToken[0] + cssLogic + cssToken[1] + jsToken[0] + jsLogic + jsToken[1];
 }
 
-function getActiveCode(type, step = cStep) {     // RETURN LOGIC OR SOURCE CODE CURRENTLY VISIBLE
+// RETURN LOGIC OR SOURCE CODE CURRENTLY VISIBLE
+function getActiveCode(type, step = cStep) {
     const token = activeCodeBtn == btnHTML ? htmlToken : (activeCodeBtn == btnCSS ? cssToken : jsToken);
     if (encodeURI(eval(type)[step]).match(token[2])) {
         const activeCode = decodeURI(encodeURI(eval(type)[step]).match(token[2])[0].replace(token[0], '').replace(token[1], ''));
@@ -639,7 +658,8 @@ function getActiveCode(type, step = cStep) {     // RETURN LOGIC OR SOURCE CODE 
 }
 
 function loadToMemory(str) {
-    inst = ['']; code = ['']; logic = ['']; step = [''];         // RESET ARRAYS
+    // RESET ARRAYS
+    inst = ['']; code = ['']; logic = ['']; step = [''];
     tSteps = str.match(/^\d+/)[0]; cStep = 1;
     for (i = 1; i <= tSteps; i++) {
         instBlock = `##INST_${i}##.*##INST_${i}E##`; instExp = new RegExp(instBlock, 'g');
@@ -808,7 +828,8 @@ function keyHandler() {
                 break;
         }
 
-        pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal|Backslash/, '');       // LIST OF KEYS TO ALLOW REPEATED PRESS
+        // LIST OF KEYS TO ALLOW REPEATED PRESS
+        pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal|Backslash/, '');
     }
 
     // shift + alt + f auto formats the code in the code editor
@@ -887,8 +908,10 @@ function adaptToView() {
     btnSave.style.left = get(vDiv, 'left') - get(btnSave, 'width') - pagePadding * 2 + 'px';
     btnTips.style.left = get(vDiv, 'left') - get(btnTips, 'width') + 'px';
     [btnPrev, btnAdd, btnDel, btnNext].forEach((e, i, arr) => {
-        e.style.left = i * (get(e, 'width') + margin) +                                                                                 // POSITION EACH BUTTON
-            (get(vDiv, 'left') - pagePadding - arr.length * get(e, 'width') - margin * (arr.length - 1)) / 2 + pagePadding + 'px';      // OFFSET TO CENTRE
+        // POSITION EACH BUTTON
+        e.style.left = i * (get(e, 'width') + margin) +
+        // OFFSET TO CENTRE
+            (get(vDiv, 'left') - pagePadding - arr.length * get(e, 'width') - margin * (arr.length - 1)) / 2 + pagePadding + 'px';
     });
     taInstruction.style.left = pagePadding + 'px';
     taInstruction.style.top = get(btnLoad, 'top') + get(btnLoad, 'height') + margin + 'px';
@@ -903,8 +926,10 @@ function adaptToView() {
     btnDupPrev.style.left = get(vDiv, 'left') + get(vDiv, 'width') + pagePadding + 'px';
     btnDupNext.style.right = pagePadding * 2 + 'px';
     [btnHTML, btnCSS, btnJS, btnRun].forEach((e, i, arr) => {
-        e.style.left = i * (get(e, 'width') + margin / 2) + get(vDiv, 'left') + get(vDiv, 'width') +                                                // POSITION EACH BUTTON
-            (get(hDiv, 'width') - get(vDiv, 'width') - arr.length * get(e, 'width') - margin / 2 * (arr.length - 1) - pagePadding) / 2 + 'px';      // OFFSET TO CENTRE
+        // POSITION EACH BUTTON
+        e.style.left = i * (get(e, 'width') + margin / 2) + get(vDiv, 'left') + get(vDiv, 'width') +
+        // OFFSET TO CENTRE
+            (get(hDiv, 'width') - get(vDiv, 'width') - arr.length * get(e, 'width') - margin / 2 * (arr.length - 1) - pagePadding) / 2 + 'px';
     });
     srcCode.style.top = get(btnRun, 'top') + get(btnRun, 'height') + margin + 'px';
     srcCode.style.height = get(hDiv, 'top') - get(srcCode, 'top') + 'px';
@@ -994,7 +1019,8 @@ function highlightButton() {
 function testLogic() {
     // ===== HELPER FUNCTIONS ===== //
     const
-        insertLine = (c, k, options) => {        // c = CODE; k = KEY; options = { str, int }
+    // c = CODE; k = KEY; options = { str, int }
+        insertLine = (c, k, options) => {
             const m = c.match(new RegExp(k, 'g'));
 
             if (!m) log(`step logic failed: '${k}' can not be found.`);
@@ -1124,7 +1150,8 @@ function get(e, p) {
     }
 }
 
-function spaceBetween(e1, e2, axis = 0) {       // axis: 0 is horizontal, 1 is vertical
+// axis: 0 is horizontal, 1 is vertical
+function spaceBetween(e1, e2, axis = 0) {
     const pos1 = [get(e1, 'left'), get(e1, 'top')],
         pos2 = [get(e2, 'left'), get(e2, 'top')],
         size1 = [get(e1, 'width'), get(e1, 'height')],
