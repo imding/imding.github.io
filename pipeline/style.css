@@ -331,8 +331,7 @@ input, textarea {
     height: 50px;
     padding-top: 10px;
     left: 50vw;
-    top: 50vh;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     text-align: center;
     overflow: hidden auto;
     opacity: 0.1;
@@ -343,9 +342,10 @@ input, textarea {
     opacity: 1;
 }
 
-#cPanel.expanded {
+#cPanel.expanded.lg {
     width: 650px;
     height: calc(100vh - 100px);
+    transform: translate(-50%, -50%);
     border-radius: 20px;
     box-shadow: 0 0 10px #111;
     background-color: rgba(0, 0, 0, 0.6);

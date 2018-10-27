@@ -44,8 +44,6 @@ class Pipeline {
             this.fire = firebase.firestore();
 
             this.fire.settings({ timestampsInSnapshots: true });
-
-            // this.fire.getCollection();
         }
 
         window.ruler = newElement('div', { id: 'ruler' });
@@ -67,8 +65,13 @@ class Pipeline {
             if (this.activeNode) {
                 this.chart.updateOffset();
                 this.autoScroll(this.activeNode.deck.scroll, this.activeNode.deck);
+                sCss(this.activeNode.deck.self, { height: `${window.innerHeight - gCss(this.self).rowGap - this.chart.self.offsetHeight}px` });
             }
             this.autoScroll(this.chart.scroll, this.chart);
+
+            if (this.creatorMode && !cPanel.classList.contains('expanded')) {
+                sCss(cPanel, { top: `${gCss(Chart).height}px` });
+            }
         };
 
         window.onkeydown = () => {
@@ -118,7 +121,7 @@ class Pipeline {
         this.nodesData = nodesData;
         this.decksData = decksData;
 
-        const renderStatus = nodesData.every(nd => {
+        const status = nodesData.every(nd => {
             if (Array.isArray(nd)) {
                 const shell = this.newShell(nd[0]);
                 return nd[1].every(title => {
@@ -132,12 +135,12 @@ class Pipeline {
             }
         });
 
-        Object.entries(decksData).forEach(entry => {
+        if (status) Object.entries(decksData).forEach(entry => {
             const deckName = entry[0], cards = entry[1];
             cards.forEach(card => this.chart.nodes[deckName].addCard(card));
         });
 
-        return renderStatus;
+        return status;
     }
 
     newNode(name, parent) {
@@ -222,11 +225,6 @@ class Pipeline {
                     card.sections.push(_section);
 
                     if (!_section.title) return;
-
-                    // const sectionFooter = newElement('div', { className: 'sectionFooter' });
-
-                    // card.self.appendChild(sectionFooter);
-                    // _section.content.push(sectionFooter);
 
                     _section.title.onclick = () => _section.content.forEach(content => {
                         sCss(content, { display: gCss(content).display == 'none' ? 'inherit' : 'none' });
@@ -331,6 +329,8 @@ class Pipeline {
         cPanel.appendChild(editIcon);
         cPanel.appendChild(pushIcon);
 
+        sCss(cPanel, { top: `${gCss(Chart).height}px` });
+
         editIcon.onclick = () => this.expandAnd('Edit');
         pullIcon.onclick = () => this.pullData();
         pushIcon.onclick = () => {
@@ -342,6 +342,7 @@ class Pipeline {
 
     expandAnd(action) {
         sCss(this.self, { filter: 'blur(5px)', opacity: '0.5' });
+        sCss(cPanel, { top: '50vh' });
         sCss(editIcon, { display: 'none' });
         sCss(pushIcon, { display: 'none' });
         sCss(pullIcon, { display: 'none' });
@@ -360,6 +361,7 @@ class Pipeline {
         }
 
         sCss(this.self, { filter: 'blur(0)', opacity: '1' });
+        sCss(cPanel, { top: `${gCss(Chart).height}px` });
         sCss(editIcon, { display: 'inline-block' });
         sCss(pushIcon, { display: 'inline-block' });
         sCss(pullIcon, { display: 'inline-block' });
@@ -868,7 +870,7 @@ class Pipeline {
 
                 docs.forEach((doc, i) => msg += `${i + 1}. ${doc.id}\n`);
 
-                const r = prompt(msg).trim();
+                const r = (prompt(msg) || '').trim();
 
                 if (/^\d+$/.test(r)) {
                     //  remove everything from this.self
@@ -882,6 +884,8 @@ class Pipeline {
                     Object.values(docs[index].data().nodesData).forEach(field => nd.push(typeof (field) == 'object' ? Object.values(field) : field));
 
                     this.render(nd, docs[index].data().decksData);
+
+                    sCss(cPanel, { top: `${gCss(Chart).height}px` });
 
                     alert('Pipeline updated.');
                 }
