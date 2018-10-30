@@ -104,7 +104,7 @@ class Pipeline {
 
         focus.scroll = ref;
 
-        // normalised scroll range
+        //  normalised scroll range
         ref = (clamp(ref, vw * 0.2, vw * 0.8) - vw * 0.2) / (vw * 0.6);
 
         sCss(focus.self, { left: `-${ref * clipSize + focus.offset}px` });
@@ -147,7 +147,7 @@ class Pipeline {
         if (!(name || '').trim().length) throw new Error('the newNode() method expects a name');
 
         const node = {
-            // index: Object.keys(this.chart.nodes).length,
+            //  index: Object.keys(this.chart.nodes).length,
             self: newElement('div', { className: `Node ${parent ? 'Inner' : ''} Active`, textContent: name.replace(/^[^\w]+|[^\w]+$/, '') }),
             deck: {
                 self: newElement('div', { id: `${camelise(name)}`, className: 'Deck' }),
@@ -266,7 +266,7 @@ class Pipeline {
             this.activeNode = node;
             this.chart.updateOffset();
 
-            // snap adjust everything after new deck is displayed
+            //  snap adjust everything after new deck is displayed
             sCss(this.chart.self, { transition: 'none' });
             sCss(this.activeNode.deck.self, { transition: 'none' });
             this.autoScroll(event.clientX, this.chart);
@@ -428,7 +428,6 @@ class Pipeline {
                     delete this.decksData[nodeNameInput.targetDeck];
 
                     deckEditor[newKey] = deckEditor[nodeNameInput.targetDeck];
-                    deckEditor[newKey].heading.textContent = decamelise(nodeNameInput.value.trim());
                     delete deckEditor[nodeNameInput.targetDeck];
 
                     nodeNameInput.targetDeck = newKey;
@@ -452,6 +451,9 @@ class Pipeline {
                     };
                     deckEditor.classList.remove('hidden');
                     deckEditor.activeDeck.el.classList.remove('hidden');
+                    //  update deck heading text content
+                    deckEditor.activeDeck.el.heading.textContent = nodeNameInput.value;
+                    //  resize all <textarea> elements in the deck
                     deckEditor.activeDeck.el.querySelectorAll('.contentInput').forEach(ci => {
                         window.ruler.matchStyle(ci);
                         ci.resize();
@@ -503,7 +505,7 @@ class Pipeline {
             addDeck = (name, cards) => {
                 const
                     deckEditGroup = newElement('div', { className: 'hidden deckEditGroup' }),
-                    deckHeading = newElement('div', { className: 'deckHeading', textContent: decamelise(name) });
+                    deckHeading = newElement('div', { className: 'deckHeading' });
 
                 deckEditor.appendChild(deckEditGroup);
                 deckEditGroup.appendChild(deckHeading);
@@ -589,6 +591,9 @@ class Pipeline {
                     if (!confirm('You are about to delete a section.\nThis action can not be undone. Are you sure?')) return;
                     card.removeChild(removeIcon.parentNode);
                 };
+
+                dragIcon.onmousedown = () => deckEditor.active = dragIcon.parentNode;
+                dragIcon.onmouseup = () => deckEditor.active = null;
 
                 newParagraphButton.onclick = () => newContent('p', 'html');
                 newImageButton.onclick = () => newContent('img', 'src');
@@ -763,7 +768,13 @@ class Pipeline {
             }
             //  applicable to the deck editor only
             else if (dan) {
-                console.log('move');
+                //  different element
+                if (et != dan && et.parentNode != dan) {
+                    //  same class name
+                    if (et.className == dan.className || et.parentNode.className == dan.className) {
+
+                    }
+                }
             }
         };
 
@@ -785,7 +796,7 @@ class Pipeline {
                 chartEditor.active = null;
             }
             else if (dan) {
-                console.log('drop');
+                console.log(dan);
             }
         };
 
