@@ -22,7 +22,7 @@ body {
 	resize: none;
 }
 
-#btnParse, #btnCompare {
+#btnParse, #btnCompare, #btnObjectiveText {
 	padding: 5px 20px;
 }
 

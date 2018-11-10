@@ -1,5 +1,5 @@
 const
-    ti = ' <img src = ##LINK## alt=##LINK##> ',
+    ti = ' <span class="red"></span> ',
     li = ' <a href="google.com"> Click</a> ';
 
 let ctrl;
@@ -1132,4 +1132,8 @@ window.onkeydown = (evt) => {
 window.onkeyup = (evt) => {
     if (ctrl && evt.keyCode == 17) ctrl = false;
     if (evt.keyCode == 13 && ctrl) btnCompare.click();
+};
+
+btnObjectiveText.onclick = () => {
+    
 };
