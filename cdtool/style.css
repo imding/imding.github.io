@@ -104,6 +104,7 @@ button {
 	border: none;
 	outline: none;
 	resize: none;
+	overflow-x: hidden;
 }
 
 #preview, #styledInstruction {
