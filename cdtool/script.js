@@ -275,6 +275,45 @@ function updateProjectInfo() {
 // ==================== INSTRUCTION ==================== //
 // ===================================================== //
 
+function autoObjectiveText() {
+    const editables = codeEditor.getValue().match(/#BEGIN_EDITABLE#.+#END_EDITABLE#/g);
+
+    if (editables) {
+        if (activeCodeBtn === btnHTML) editables.forEach(editable => {
+            const tree = new HTMLTree(editable.replace(/#BEGIN_EDITABLE#(.+)#END_EDITABLE#/, '$1'));
+            let ot;
+
+            if (tree.length === 1) {
+                const el = tree[0];
+
+                ot = '\n(!)On +html#key#, create a';
+
+                if (/^([aeiou]|h[1-6]|html)/.test(el.openingTag.tagName)) ot += 'n';
+
+                ot += ` \`<${el.openingTag.tagName}>\` element`;
+
+                const attrs = el.openingTag.attrs;
+
+                attrs.forEach((attr, i) => {
+                    ot += ((i === attrs.length - 1 || attrs.length === 1) && !el.content.length) ? ' and ' : ', ';
+                    ot += i === 0 ? 'set ' : '';
+                    ot += `the \`${attr.name}\` attribute to *${attr.value}*`;
+                });
+
+                el.content.forEach(content => {
+                    if (content.type === 'text') {
+                        ot += `, and add the text content *${content.raw}* between the tags`;
+                    }
+                });
+            }
+
+            console.log(tree);
+
+            taInstruction.value += `${ot}.`;
+        });
+    }
+}
+
 function convertInstruction() {
     if (!styledInstruction) {
         inst[cStep] = taInstruction.value;
@@ -821,6 +860,7 @@ function keyHandler() {
             case 'KeyL': if (cStep > 1) { testLogic(); break; } else { break; }
             case 'KeyK': generateTest(); break;
             case 'KeyI': btnConvert.click(); break;
+            case 'KeyO': autoObjectiveText(); break;
             case 'Backspace': closePreview(); break;
             case 'BracketLeft': btnPrev.click(); break;
             case 'BracketRight': btnNext.click(); break;
@@ -1135,7 +1175,16 @@ function generateTest() {
             const r2 = codeEditor.find(markup[1], { caseSensitive: true });
             if (r2) {
                 codeEditor.insert('');
-                codeEditor.selection.setRange({ 'start': { 'row': r1.start.row, 'column': r1.start.column }, 'end': { 'row': r2.start.row, 'column': r2.start.column } });
+                codeEditor.selection.setRange({
+                    'start': {
+                        'row': r1.start.row,
+                        'column': r1.start.column,
+                    },
+                    'end': {
+                        'row': r2.start.row,
+                        'column': r2.start.column,
+                    }
+                });
 
                 if (codeEditor.getSelectedText().trim().length) {
                     logicEditor.setValue(`${logicEditor.getValue()}\npass.if.${activeCodeBtn.innerHTML.toLowerCase()}.editable(${n++}).equivalent(\`${codeEditor.getSelectedText().trim().replace(/[\s\n\r]+/g, ' ')}\`);`);

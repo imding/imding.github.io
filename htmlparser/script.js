@@ -1,5 +1,5 @@
 const
-    ti = ' <span class="red"></span> ',
+    ti = ' <span class="red">hello</span> ',
     li = ' <a href="google.com"> Click</a> ';
 
 let ctrl;
@@ -182,7 +182,7 @@ function HtmlAst(strHTML, origin, exception = null) {
         }
     }
 
-    console.log(`${origin}:`, tree);
+    // console.log(`${origin}:`, tree);
     verdict = verdict ? `${origin}: ${verdict}` : verdict;
     return tree;
 
@@ -1135,5 +1135,19 @@ window.onkeyup = (evt) => {
 };
 
 btnObjectiveText.onclick = () => {
-    
+    const tree = HtmlAst(teacher.value);
+
+    if (tree.length === 1) {
+        const el = tree[0];
+        let ot = 'Create a';
+
+        if (/^[aeiou]/.test(el.openingTag.tagName)) ot += 'n';
+
+        ot += ` <${el.openingTag.tagName}> element`;
+
+        if ()
+
+        console.log(el);
+        info.textContent = ot;
+    }
 };
