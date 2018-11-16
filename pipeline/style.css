@@ -433,6 +433,11 @@ input, textarea {
     margin: 20px 0 25vh 0;
 }
 
+.cardEditGroup, .sectionEditGroup {
+    margin: 0px;
+    transition: margin, 0.6s, ease-out
+}
+
 .deckEditGroup {
     width: 85%;
     border-radius: 10px;
@@ -474,8 +479,10 @@ input, textarea {
 }
 
 .itemEditGroup {
+    padding: 0px;
     margin-top: 10px;
     text-align: center;
+    transition: padding 0.06s ease-out;
 }
 
 .itemEditGroup>textarea {

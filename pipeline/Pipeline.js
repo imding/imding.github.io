@@ -1,5 +1,6 @@
 class Pipeline {
     constructor(root) {
+        this.name = '';
         this.self = root;
         this.creatorMode = false;
         this.chart = {
@@ -540,6 +541,14 @@ class Pipeline {
                     deck.removeChild(removeIcon.parentNode);
                 };
 
+                dragIcon.onmousedown = () => {
+                    deckEditor.active = dragIcon.parentNode;
+                    sCss(deckEditor.active, {
+                        opacity: '0.6',
+                        filter: 'blur(0.6px)',
+                    });
+                };
+
                 card.sections.forEach(sec => addSectionGroup(cardEditGroup, sec));
 
                 //  attach the button to add new item
@@ -592,8 +601,13 @@ class Pipeline {
                     card.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => deckEditor.active = dragIcon.parentNode;
-                dragIcon.onmouseup = () => deckEditor.active = null;
+                dragIcon.onmousedown = () => {
+                    deckEditor.active = dragIcon.parentNode;
+                    sCss(deckEditor.active, {
+                        opacity: '0.6',
+                        filter: 'blur(0.6px)',
+                    });
+                };
 
                 newParagraphButton.onclick = () => newContent('p', 'html');
                 newImageButton.onclick = () => newContent('img', 'src');
@@ -639,8 +653,13 @@ class Pipeline {
                     section.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => deckEditor.active = dragIcon.parentNode;
-                dragIcon.onmouseup = () => deckEditor.active = null;
+                dragIcon.onmousedown = () => {
+                    deckEditor.active = dragIcon.parentNode;
+                    sCss(deckEditor.active, {
+                        opacity: '0.6',
+                        filter: 'blur(0.6px)',
+                    });
+                };
             };
 
         //  attach the 'done' button
@@ -741,15 +760,12 @@ class Pipeline {
         cPanel.appendChild(chartEditor);
 
         cPanel.onmousemove = () => {
-            const
-                et = event.target,
-                can = chartEditor.active,
-                dan = deckEditor.active;
-
             //  applicable to the chart editor only
-            if (can) {
-                //  valid target
-                const vt = et.className.includes('nodeEditGroup') ? et : et.parentNode.className.includes('nodeEditGroup') ? et.parentNode : null;
+            if (chartEditor.active) {
+                const
+                    et = event.target,
+                    //  valid target
+                    vt = et.className.includes('nodeEditGroup') ? et : et.parentNode.className.includes('nodeEditGroup') ? et.parentNode : null;
 
                 if (!vt) return;
 
@@ -758,7 +774,7 @@ class Pipeline {
                     vt.removeEventListener('mouseout', vt.restorePadding);
                 };
 
-                if (vt != can && vt != can.nextElementSibling) {
+                if (vt != chartEditor.active && vt != chartEditor.active.nextElementSibling) {
                     sCss(vt, { paddingTop: '20px' });
                     chartEditor.target = vt;
                 }
@@ -767,36 +783,73 @@ class Pipeline {
                 vt.addEventListener('mouseout', vt.restorePadding);
             }
             //  applicable to the deck editor only
-            else if (dan) {
-                //  different element
-                if (et != dan && et.parentNode != dan) {
-                    //  same class name
-                    if (et.className == dan.className || et.parentNode.className == dan.className) {
+            else if (deckEditor.active) {
+                const
+                    et = event.target,
+                    dac = deckEditor.active.className,
+                    etp = et.parentNode,
+                    etgp = etp.parentNode,
+                    etggp = etgp.parentNode,
+                    //  valid target
+                    vt = et.className === dac ? et : etp.className === dac ? etp : etgp.className === dac ? etgp : etggp.className === dac ? etggp : null;
 
+                if (!vt) return;
+
+                if (dac === 'itemEditGroup') {
+                    vt.restorePadding = () => {
+                        sCss(vt, { paddingTop: '0' });
+                        vt.removeEventListener('mouseout', vt.restorePadding);
+                    };
+
+                    if (vt != deckEditor.active && vt != deckEditor.active.nextElementSibling) {
+                        sCss(vt, { paddingTop: '10px' });
+                        deckEditor.target = vt;
                     }
+                    else deckEditor.target = null;
                 }
+                else {
+                    vt.restoreMargin = () => {
+                        sCss(vt, { marginTop: vt.className === 'sectionEditGroup' ? '15px' : '25px' });
+                        vt.removeEventListener('mouseout', vt.restoreMargin);
+                    };
+
+                    if (vt != deckEditor.active && vt != deckEditor.active.nextElementSibling) {
+                        sCss(vt, { marginTop: vt.className === 'sectionEditGroup' ? '25px' : '35px' });
+                        deckEditor.target = vt;
+                    }
+                    else deckEditor.target = null;
+                }
+                
+                vt.addEventListener('mouseout', vt.restorePadding || vt.restoreMargin);
             }
         };
 
         cPanel.onmouseup = () => {
-            const
-                can = chartEditor.active,
-                ct = chartEditor.target,
-                dan = deckEditor.active;
-
-            if (can) {
-                if (ct) {
-                    chartEditor.insertBefore(can, ct);
-                    ct.restorePadding();
+            if (chartEditor.active) {
+                if (chartEditor.target) {
+                    chartEditor.insertBefore(chartEditor.active, chartEditor.target);
+                    chartEditor.target.restorePadding();
                 }
-                sCss(can, {
-                    opacity: 'initial',
+
+                sCss(chartEditor.active, {
+                    opacity: '1',
                     filter: 'none',
                 });
+
                 chartEditor.active = null;
             }
-            else if (dan) {
-                console.log(dan);
+            else if (deckEditor.active) {
+                if (deckEditor.target) {
+                    deckEditor.active.parentNode.insertBefore(deckEditor.active, deckEditor.target);
+                    (deckEditor.target.restorePadding || deckEditor.target.restoreMargin)();
+                }
+
+                sCss(deckEditor.active, {
+                    opacity: '1',
+                    filter: 'none',
+                });
+
+                deckEditor.active = null;
             }
         };
 
@@ -840,11 +893,13 @@ class Pipeline {
     }
 
     pushData() {
-        if (!window.firebase) return alert('Firebase is not set up.');
-        if (!this.creatorMode) return alert('Eable creator mode before pushing to cloud.');
+        if (!window.firebase) return alert('Make sure Firebase is set up and you are connected to the Internet.');
         if (cPanel.classList.contains('expanded')) return alert('Close the editor before pushing to cloud.');
-        
-        const name = prompt('Give this pipeline a name.').trim();
+
+        let name = prompt('Give this pipeline a name.', this.name);
+
+        if (name) name = name.trim();
+        else return alert('Please give theis pipeline a name before pushing to cloud.');
 
         if (/(^[^a-z])|[^a-z0-9_]/i.test(name)) return alert('Invalid character in name.');
 
@@ -869,8 +924,7 @@ class Pipeline {
     }
 
     pullData() {
-        if (!window.firebase) return alert('Firebase is not set up.');
-        if (!this.creatorMode) return alert('Eable creator mode before reading from cloud.');
+        if (!window.firebase) return alert('Make sure Firebase is set up and you are connected to the Internet.');
         if (cPanel.classList.contains('expanded')) return alert('Close the editor before reading from cloud.');
 
         this.fire.collection('Root').get().then(qs => {
@@ -899,6 +953,8 @@ class Pipeline {
                     sCss(cPanel, { top: `${gCss(Chart).height}px` });
 
                     alert('Pipeline updated.');
+
+                    this.name = docs[r - 1].id;
                 }
                 else return alert('Invalid input.');
             }
