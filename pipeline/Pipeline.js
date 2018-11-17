@@ -379,7 +379,7 @@ class Pipeline {
             newNodeButton = newElement('i', { id: 'newNodeButton', className: 'fa fa-plus-square fa-2x' }),
             deckEditor = newElement('div', { id: 'deckEditor', className: 'hidden' }),
             newCardButton = newElement('i', { id: 'newCardButton', className: 'fa fa-plus-circle fa-2x' }),
-            addNodeInput = (val, indent, isNode) => {
+            addNodeInput = (val, indent, isNode, focused) => {
                 const
                     nodeEditGroup = newElement('div', { className: 'nodeEditGroup' }),
                     dirToggle = newElement('div', { className: 'dirToggle' }),
@@ -465,14 +465,10 @@ class Pipeline {
 
                 shellIcon.onclick = () => {
                     if (gCss(shellIcon).opacity > 0.1) {
-                        if (nodeEditGroup.className.includes('shellInput')) {
-                            nodeEditGroup.classList.remove('shellInput');
-                            nodeEditGroup.classList.add('nodeInput');
-                        }
-                        else {
-                            nodeEditGroup.classList.remove('nodeInput');
-                            nodeEditGroup.classList.add('shellInput');
-                        }
+                        const isShell = nodeEditGroup.className.includes('shellInput');
+
+                        nodeEditGroup.classList.remove(isShell ? 'shellInput' : 'nodeInput');
+                        nodeEditGroup.classList.add(isShell ? 'nodeInput' : 'shellInput');
                     }
                 };
 
@@ -502,6 +498,7 @@ class Pipeline {
 
                 nodeEditGroup.classList.add(isNode ? 'nodeInput' : 'shellInput');
                 if (indent) nodeEditGroup.classList.add('indented');
+                if (focused) nodeNameInput.select();
             },
             addDeck = (name, cards) => {
                 const
@@ -660,6 +657,8 @@ class Pipeline {
                         filter: 'blur(0.6px)',
                     });
                 };
+
+                contentInput.focus();
             };
 
         //  attach the 'done' button
@@ -819,7 +818,7 @@ class Pipeline {
                     }
                     else deckEditor.target = null;
                 }
-                
+
                 vt.addEventListener('mouseout', vt.restorePadding || vt.restoreMargin);
             }
         };
@@ -866,9 +865,13 @@ class Pipeline {
         chartEditor.appendChild(newNodeButton);
 
         newNodeButton.onclick = () => {
-            const name = uid('Node', '_');
+            const
+                noIndent = false,
+                isNode = true,
+                isFocused = true,
+                name = uid('Node', '_');
 
-            addNodeInput(name, false, true);
+            addNodeInput(name, noIndent, isNode, isFocused);
             chartEditor.appendChild(newNodeButton);
 
             addDeck(camelise(name));

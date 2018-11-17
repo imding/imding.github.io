@@ -13,11 +13,11 @@ function init() {
     sCss(document.body, { visibility: 'visible' });
 
     const nodesData = [
-        'Node 1',
+        'Pipeline',
     ];
 
     const cardsData = {
-        node1: [{
+        pipeline: [{
             title: 'Card Title',
             sections: [{
                 content: [
