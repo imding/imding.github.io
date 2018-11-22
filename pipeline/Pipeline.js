@@ -839,7 +839,7 @@ class Pipeline {
             }
             else if (deckEditor.active) {
                 if (deckEditor.target) {
-                    deckEditor.active.parentNode.insertBefore(deckEditor.active, deckEditor.target);
+                    deckEditor.target.parentNode.insertBefore(deckEditor.active, deckEditor.target);
                     (deckEditor.target.restorePadding || deckEditor.target.restoreMargin)();
                 }
 
