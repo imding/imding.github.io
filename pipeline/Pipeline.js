@@ -467,6 +467,14 @@ class Pipeline {
                     if (gCss(shellIcon).opacity > 0.1) {
                         const isShell = nodeEditGroup.className.includes('shellInput');
 
+                        if (!isShell) {
+                            const key = camelise(nodeNameInput.value.trim());
+
+                            if (this.chart.nodes.hasOwnProperty(key)) {
+                                return alert('A group can only be converted from a newly created node.');
+                            }
+                        }
+
                         nodeEditGroup.classList.remove(isShell ? 'shellInput' : 'nodeInput');
                         nodeEditGroup.classList.add(isShell ? 'nodeInput' : 'shellInput');
                     }
@@ -511,7 +519,8 @@ class Pipeline {
                 deckEditor[name] = deckEditGroup;
                 deckEditor[name].heading = deckHeading;
 
-                (cards || [{ title: '', sections: [{ content: [{ type: 'p', html: '' }] }] }]).forEach(card => addCardGroup(deckEditGroup, card));
+                (cards || [{ title: '', sections: [{ content: [{ type: 'p', html: '' }] }] }])
+                    .forEach(card => addCardGroup(deckEditGroup, card));
             },
             addCardGroup = (deck, card) => {
                 const
