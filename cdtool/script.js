@@ -67,20 +67,32 @@ const
     },
 
     template = [
-        'Generic\n\nWhy do it?\n\nHow to do it?\n\n(***)\n\n(!)On +type#key#, objective',
-        'Syntax\n\nDescribe the purpose of the syntax\n\n(type)(#)\n\n[-\n\t(*)`syntax`\n\t(*)`syntax`\n\t(*)*Example:* \n-]\n\n(***)\n\n(!)On +type#key#, focus on reproducing the syntax\n(!)On +type#key#, focus on reproducing the syntax',
-        'Exercise\n\n[The Problem] Help to understand the problem\n\n[The Question] No answer giveaway\n\n(***)\n\n(!)On +type#key#, focus on applying the syntax',
-        'Summary\n\nGreat job!\n\nYou have completed this sprint, here is a recap:\n[-\n\t(*)item 1\n\t(*)item 2\n-]'
+        'Formatting\n\n*bold text*\n\n[link::URL]\n\n[img::URL]\n\n`code`\n\n(*)note highlight\n\n(!)object highlight\n\n(html)<!-- code snippet -->(#)\n\n[-\n\t(*)unordered\n\t(*)list\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]',
+        'Generic step\n\nWhy do it?\n\nHow to do it?\n\n(***)\n\n(!)On +type#key#, objective',
+        'Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n\t(*)item 1\n\t(*)item 2\n-]\n\nYou can now export this project to sandbox and customise or extend it further.',
     ],
 
     tipsData = [
+        'divider',
         {
-            entry: 'alt + [0-3]',
-            description: 'insert instruction preset',
+            entry: 'alt + 0',
+            description: 'Instruction formatting glossary',
+        },
+        {
+            entry: 'alt + 1',
+            description: 'insert generic instruction',
+        },
+        {
+            entry: 'alt + 1',
+            description: 'insert summery step instruction',
         },
         {
             entry: 'alt + i',
             description: 'preview & copy instruction',
+        },
+        {
+            entry: 'alt + o',
+            description: 'generate and append objective description ( HTML only )',
         },
         'divider',
         {
@@ -122,7 +134,7 @@ const
         },
         'divider',
         {
-            entry: 'shift + alt + f',
+            entry: 'L shift + L alt + f',
             description: 'tidy code',
         },
         {
@@ -904,6 +916,16 @@ function showTips() {
 
     tipContainer = document.createElement('div');
     tipContainer.id = 'tipContainer';
+
+    tipContainer.appendChild(newElement('p', {
+        innerHTML: '<b>Tip</b>: "alt" refers to the <u>right</u> alt key unless specified otherwise',
+        style: `
+            text-align: right;
+            color: dimgrey;
+            width: 50%;
+            margin: 5px 0 10px 50%;
+        `,
+    }));
 
     tipsData.forEach(data => {
         if (data == 'divider') {
