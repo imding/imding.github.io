@@ -178,6 +178,10 @@ class Utility {
             }).replace(/\s+/g, '');
         };
 
+        this.kababCase = str => {
+            return str.trim().replace(/\s+/, '-').toLowerCase();
+        };
+
         this.decamelise = str => str.replace(/^[a-z]|([A-Z]|\d+)/g, (v, i) => i ? ' ' + v.toUpperCase() : v.toUpperCase());
 
         // make width & height integer

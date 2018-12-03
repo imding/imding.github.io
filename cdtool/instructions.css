@@ -35,6 +35,10 @@ span.glsJS {
     color: rgb(111, 0, 139);
 }
 
+span.warning {
+    color: firebrick;
+}
+
 code.glsHTML {
     border-color: rgba(135, 206, 235, 0.5);
     background-color: rgba(135, 206, 235, 0.3);

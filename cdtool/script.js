@@ -348,7 +348,15 @@ function convertInstruction() {
 }
 
 function updateStyledInstruction() {
-    const highlight = /^(\t?)\(!\)\s*(.+[^\s]).*/,
+    styledInstruction.innerHTML = instructionHTML(inst[cStep]);
+    selectAndCopy(styledInstruction);
+    alignWithInstruction(styledInstruction);
+    convertLineNumber();
+}
+
+function instructionHTML(source) {
+    const
+        highlight = /^(\t?)\(!\)\s*(.+[^\s]).*/,
         notes = /^(\t?)\(\*\*?\)\s*(.+[^\s]).*/,
         loc = /(?:(\w+)\.)?(html|css|js)#([^#\n]+)#([-+]\d+)?/,
         image = /\[IMG::(https?:\/\/[^'"\s]+\.(jpg|gif|jpeg|bmp|png|svg))\]/gi,
@@ -356,10 +364,13 @@ function updateStyledInstruction() {
         bold = /\*([^\s*]+|[^\s][^*]+[^\s])\*/g,
         code = /`([^\s`]+|[^\s][^`]+[^\s])`/g,
         glossary = /gls#([^#\n]+)#(html|css|js|javascript)#([-a-z0-9]+)/;
-    let source = inst[cStep].replace(/</g, '&lt;').split(/\r?\n/).slice(2),
+
+    let
         isList = false,
         isPre = false,
         objNum = 0;
+
+    source = source.replace(/</g, '&lt;').split(/\r?\n/).slice(2);
 
     source.forEach((e, i) => {
         // replace markup for code location link
@@ -368,8 +379,8 @@ function updateStyledInstruction() {
                 query = e.match(loc),
                 name = query[1] || (query[2] == 'html' ? 'index' : query[2] == 'css' ? 'style' : 'script');
 
-            e = e.replace(loc, `<b>##LINE('${name}.${query[2]}','${query[3]}')${query[4] || ''}##</b>`);
-            if (query.input[query.index - 1] == '+') e = e.splice(query.index - 1, 1, `<b>${query[2].toUpperCase()} line</b> `);
+            e = e.replace(loc, `<strong>##LINE('${name}.${query[2]}','${query[3]}')${query[4] || ''}##</strong>`);
+            if (query.input[query.index - 1] == '+') e = e.splice(query.index - 1, 1, `<strong>${query[2].toUpperCase()} line</strong> `);
         }
 
         // replace markup for glossary link
@@ -385,10 +396,10 @@ function updateStyledInstruction() {
 
         // - EXAMPLE -
         if (/^\(-{3}\)/.test(e)) {
-            source[i] = '<center><p><b>- EXAMPLE -</b></p></center>';
+            source[i] = '<center><p><strong>- EXAMPLE -</strong></p></center>';
             // - OBJECTIVES -
         } else if (/^\(\*{3}\)/.test(e)) {
-            source[i] = '<center><p><b>- OBJECTIVES -</b></p></center>';
+            source[i] = '<center><p><strong>- OBJECTIVES -</strong></p></center>';
             // OBJECTIVE HIGHLIGHT
         } else if (highlight.test(e)) {
             source[i] = e.replace(highlight, '$1<p class="highlight">##' + (++objNum) + '##. $2</p>');
@@ -417,20 +428,17 @@ function updateStyledInstruction() {
         // CODE SNIPPETS
         .replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>')
         // BOLD STYLE
-        .replace(bold, '<b>$1</b>')
+        .replace(bold, '<strong>$1</strong>')
         // CODE STYLE
         .replace(code, '<code class="syntax">$1</code>')
         // LINK STYLE
         .replace(link, '<a href="$2" target="_blank">$1</a>');
 
-    source += (cStep > 1 && cStep < tSteps ? '\n<hr>\n<p class="highlight">Click on <b>Check all objectives</b> to continue</p>' :
-        cStep == 1 ? '\n<hr>\n<p class="highlight">Click on <b>Next step</b> to get started</p>' :
-            cStep > 10 ? '\n<hr>\n<p class="highlight"><b>Export to Sandbox</b> to continue working on it</p>' : '');
+    source += (cStep > 1 && cStep < tSteps ? '\n<hr>\n<p class="highlight">Click on <strong>Check all objectives</strong> to continue</p>' :
+        cStep == 1 ? '\n<hr>\n<p class="highlight">Click on <strong>Next step</strong> to get started</p>' :
+            cStep > 10 ? '\n<hr>\n<p class="highlight"><strong>Export to Sandbox</strong> to continue working on it</p>' : '');
 
-    styledInstruction.innerHTML = source;
-    selectAndCopy(styledInstruction);
-    alignWithInstruction(styledInstruction);
-    convertLineNumber();
+    return source;
 }
 
 function convertLineNumber() {
@@ -443,18 +451,20 @@ function convertLineNumber() {
         const markup = siClone.match(markupReg);
         let n, target = noMarkup(eval(markup[1].split(/\./)[1])).split(/\r?\n/);
 
+        markup[2] = markup[2].replace(/&lt;/g, '<');
+
         target.forEach((line, i) => {
             if (line.includes(markup[2])) {
                 if (!n) {
                     line = line.replace(markup[2], '');
-                    n = line.includes(markup[2]) ? `'${markup[2]}' NOT UNIQUE` : i + 1;
+                    n = line.includes(markup[2]) ? `<span class='warning'>'${markup[2]}' NOT UNIQUE</span>` : i + 1;
                 }
-                else n = `'${markup[2]}' NOT UNIQUE`;
+                else n = `<span class='warning'>'${markup[2]}' NOT UNIQUE</span>`;
             }
         });
         // markup[3] is offset
-        n = markup[3] ? eval(`n${markup[3]}`) : n;
-        siClone = siClone.replace(markup[0], n ? n : `'${markup[2]}' NOT FOUND`);
+        n = markup[3] && Number.isFinite(n) ? eval(`n${markup[3]}`) : n;
+        siClone = siClone.replace(markup[0], n ? n : `<span class='warning'>'${markup[2].replace(/</g, '&lt;')}' NOT FOUND</span>`);
     }
 
     styledInstruction.innerHTML = siClone;
@@ -624,10 +634,17 @@ function updateStepLogic() {
 
 function addStep() {
     updateContent(0);
+
     tSteps++;
     cStep++;
-    inst.splice(cStep, 0, ''); logic.splice(cStep, 0, ''); code.splice(cStep, 0, htmlToken[0] + htmlToken[1] + cssToken[0] + cssToken[1] + jsToken[0] + jsToken[1]);
+
+    step.splice(cStep, 0, '');
+    inst.splice(cStep, 0, '');
+    logic.splice(cStep, 0, '');
+    code.splice(cStep, 0, htmlToken[0] + htmlToken[1] + cssToken[0] + cssToken[1] + jsToken[0] + jsToken[1]);
+
     updateCodeButtons();
+
     taInstruction.value = template[0];
     preview ? updatePreview() : null;
     styledInstruction ? btnConvert.click() : null;
@@ -650,14 +667,22 @@ function confirmDel() {
 }
 
 function delStep() {
-    inst.splice(cStep, 1); code.splice(cStep, 1); logic.splice(cStep, 1);
+    step.splice(cStep, 1);
+    inst.splice(cStep, 1);
+    code.splice(cStep, 1);
+    logic.splice(cStep, 1);
+
     tSteps--;
     cStep = cStep > tSteps ? tSteps : cStep;
     taInstruction.value = inst[cStep];
+
     loadCodeInStep(cStep);
+
     setValue(codeEditor, getActiveCode('code', cStep));
     setValue(logicEditor, getActiveCode('logic', cStep));
+
     updateCodeButtons();
+
     preview ? updatePreview() : null;
     styledInstruction ? updateStyledInstruction() : null;
 }
@@ -726,8 +751,13 @@ function getActiveCode(type, step = cStep) {
 
 function loadToMemory(str) {
     // RESET ARRAYS
-    inst = ['']; code = ['']; logic = ['']; step = [''];
+    inst = [''];
+    code = [''];
+    logic = [''];
+    step = [''];
+
     tSteps = str.match(/^\d+/)[0]; cStep = 1;
+
     for (i = 1; i <= tSteps; i++) {
         instBlock = `##INST_${i}##.*##INST_${i}E##`; instExp = new RegExp(instBlock, 'g');
         codeBlock = `##CODE_${i}##.*##CODE_${i}E##`; codeExp = new RegExp(codeBlock, 'g');
@@ -736,10 +766,14 @@ function loadToMemory(str) {
         code[i] = decodeURI(str.match(codeExp)[0].replace(`##CODE_${i}##`, '').replace(`##CODE_${i}E##`, ''));
         logic[i] = decodeURI(str.match(logicExp)[0].replace(`##LOGIC_${i}##`, '').replace(`##LOGIC_${i}E##`, ''));
     }
+
     taInstruction.value = inst[cStep];
+
     loadCodeInStep(cStep);
+
     setValue(codeEditor, getActiveCode('code', cStep));
     setValue(logicEditor, getActiveCode('logic', cStep));
+
     updateStepLogic();
     updateCodeButtons();
 }
@@ -775,11 +809,270 @@ function commitToMaster() {
 // ==================== FILE I/O ==================== //
 // ================================================== //
 
+function generateJSON() {
+    commitToMaster();
+
+    const
+        mission = {
+            content: {
+                settings: {
+                    revision: '(1,0)',
+                    level: 1,
+                    title: cProj,
+                    description: '',
+                    duration: null,
+                    type: 'project',
+                    status: 'private',
+                    core: 'game',
+                    resources: [],
+                    searchable: true,
+                    recommended: false,
+                    tags: [],
+                    missionName: kababCase(cProj),
+                    majorRevision: 1,
+                    minorRevision: 0,
+                    changeInfo: '',
+                    objectivesVersion: 2,
+                    authorName: 'Siuling Ding',
+                    contentType: 'code',
+                    authorId: '1315b022-3715-4e54-aa31-e917c53fb0be',
+                    ownerId: '1315b022-3715-4e54-aa31-e917c53fb0be',
+                    ownerName: 'Siuling Ding',
+                    ownerEmail: 'sd@bsd.education',
+                    mediaPdf: '',
+                    cardImage: '',
+                    cardLinks: [],
+                    jsConsole: false,
+                    webOutput: true,
+                    mobileView: {
+                        mobileViewEnabled: false
+                    },
+                    totalPages: null,
+                    bodyLocking: false,
+                    codeUnlocked: false,
+                    missionVideo: '',
+                    sandboxDefault: false,
+                    serialControls: false,
+                    finalProductImage: '',
+                    imageUploadOnHtml: false
+                },
+                steps: [],
+            },
+            host: 'https://app.bsd.education'
+        },
+        stepIds = [];
+
+    step.forEach((stepString, i) => {
+        if (!i) return;
+
+        let
+            stepCode = {},
+            stepExpectations = {};
+
+        const
+            stepObj = {
+                title: '',
+                type: 'code',
+                content: {
+                    instructions: ''
+                },
+                stepId: '',
+                orderNo: 0,
+                files: {},
+                tests: {},
+                stepNo: 0
+            },
+            editables = {
+                html: [],
+                css: [],
+                js: []
+            },
+            testIds = [];
+
+        stepObj.title = inst[i].split(/(\r+)?\n+/)[0];
+        stepObj.content.instructions = instructionHTML(inst[i]);//.replace(/(\r+)?\n+/g, '\\n');
+        stepObj.stepNo = i;
+        stepObj.orderNo = i * 1000;
+
+        //  generate 16-digit unique step id numbers
+        do {
+            stepObj.stepId = (Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)) + 1).toString();
+        } while (stepIds.includes(stepObj.stepId));
+
+        stepIds.push(stepObj.stepId);
+
+        //  extract answers for each file type
+        ['index.html', 'style.css', 'script.js'].forEach((file, j) => {
+            const
+                type = file.split('.')[1],
+                token = j ? j === 1 ? /##CSS##([\s\S]*)##CSS_E##/ : /##JS##([\s\S]*)##JS_E##/ : /##HTML##([\s\S]*)##HTML_E##/,
+                codeString = code[i].match(token)[1],
+                editableContents = codeString.match(/#BEGIN_EDITABLE#.+?#END_EDITABLE#/g),
+                prevCodeString = i > 1 ? code[i - 1].match(token)[1] : null,
+                logicString = logic[i].match(token)[1],
+                hasTransition = logicString.includes('// Transition:'),
+                testFunctions = logicString.split('\n').filter(line => /equivalent(?:\.to)?\s*\(/.test(line)).sort();
+
+            stepCode[type] = codeString;
+
+            //  set leave unchanged and go to next file
+            if (codeString === prevCodeString) {
+                stepObj.files[file] = { contentsWithAnswers: prevCodeString };
+                return;
+            }
+
+            //  define standard step file object
+            stepObj.files[file] = {
+                contents: codeString,
+                mode: 'new_contents'
+            };
+
+            //  populate answers array
+            testFunctions.forEach((test, q) => {
+                const answer = test.match(/equivalent(?:\.to)?\s*\(\s*('|"|`)(.*)\1\s*\)/);
+
+                if (answer) {
+                    if (stepObj.files[file].answers) stepObj.files[file].answers.push(answer[2]);
+                    else stepObj.files[file].answers = [answer[2]];
+
+                    if (editableContents[q].replace(markup[0], '').replace(markup[1], '').trim() == answer[2]) {
+                        stepObj.files[file].contents = stepObj.files[file].contents.replace(editableContents[q], '#BEGIN_EDITABLE#    #END_EDITABLE#');
+                    }
+                }
+                else {
+                    alert(`Failed to generate the answers array for step ${stepObj.stepNo}.`);
+                    throw new Error(`Check expectation function: ${test}`);
+                }
+            });
+
+            //  handle transition step
+            if (hasTransition) {
+                stepObj.files[file].contents = logicString.split('// Expectation:')[0].trim();
+                stepObj.files[file].mode = 'modify';
+                stepObj.files[file].contentsWithAnswers = '';
+
+                stepObj.files[file].answers.forEach((answer, idx) => {
+                    stepObj.files[file].contentsWithAnswers += `${codeString.split(/#BEGIN_EDITABLE#.+?#END_EDITABLE#/)[idx]}#BEGIN_EDITABLE#${answer}#END_EDITABLE#`;
+                });
+
+                stepObj.files[file].contentsWithAnswers += gifa(codeString.split(/#BEGIN_EDITABLE#.+?#END_EDITABLE#/), -1);
+            }
+
+            //  store editable locations for each file (not optimised for editable lines)
+            codeString.split(/\n/).forEach((line, k) => {
+                if (line.includes(markup[0])) {
+                    editables[type].push(k + 1);
+                }
+            });
+
+            //  store expectation code
+            stepExpectations[type] = logicString.split('// Expectation:');
+
+            if (stepExpectations[type].length > 1) {
+                stepExpectations[type] = stepExpectations[type][1].split(/\n/).filter(line => line.trim().length);
+
+                //  reduce expectation code to test function blocks
+                stepExpectations[type] = stepExpectations[type].reduce((acc, cur, idx) => {
+                    acc[acc.length - 1] += cur;
+
+                    if (/equivalent(?:\.to)?\s*\(/.test(cur) && idx < stepExpectations[type].length - 1) {
+                        acc.push('');
+                    }
+
+                    return acc;
+                }, ['']);
+
+                //  handle error when last step contains objective
+                if (stepObj.stepNo == tSteps && stepExpectations[type].length) {
+                    const error = 'The last step of a project can not contain objectives.';
+                    alert(error);
+                    throw new Error(error);
+                }
+            }
+        });
+
+        //  create tests array
+        let objectives = inst[i].split('(***)');
+        const locationToken = /(?:(\w+)\.)?(html|css|js)#([^#\n]+)#([-+]\d+)?/g;
+
+        objectives = objectives.length > 1 ? objectives.pop().trim().split(/(\r+)?\n+/).filter(line => locationToken.test(line)) : [];
+
+        objectives.forEach((objective, k) => {
+            //  generate 16-digit unique test id
+            let testId;
+
+            do {
+                testId = (Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)) + 1).toString();
+            } while (testIds.includes(testId));
+
+            testIds.push(testId);
+
+            //  formulate description for each objective
+            const objectiveDescription =
+                //  remove type#key#offset and any preceding string before passing to the instructionHTML function
+                //  which will convert markup such as *bold* or `code` to HTML code
+                instructionHTML(`\n\n${objective.replace(/[^\n]*(html|css|js)#[^#]+#([+-]\d+)?,\s*/, '')
+                    //  capitalise first letter
+                    .replace(/\b\w/, l => l.toUpperCase())}`)
+                    //  remove <hr> and following string
+                    .split('<hr>')[0]
+                    .trim()
+                    //  remove parent <p> element
+                    .replace(/^<p>/, '').replace(/<\/p>$/, '');
+
+            //  define default test object
+            stepObj.tests[testId] = {
+                orderNo: (k + 1) * 1000,
+                stepId: stepObj.stepId,
+                title: objectiveDescription,
+                testFunction: '// Expectation:',
+                testId: testId,
+                failureMessage: ''
+            };
+
+            //  find line locations markups per objective
+            const locationMarkup = objective.match(locationToken);
+
+            locationMarkup.forEach(markup => {
+                markup = markup.split('#');
+
+                const
+                    //  find the editable location defined by the instruction markup
+                    editableLocation = stepCode[markup[0]].split(/\n/).findIndex(line => line.includes(markup[1])) + 1 + Number(markup[2]),
+                    //  find the location in the list of editables and return its index
+                    editableIndex = editables[markup[0]].findIndex(_editableLocation => _editableLocation === editableLocation);
+
+                //  handle line location error
+                if (editableIndex < 0) {
+                    const error = `No editable region is found at line ${editableLocation}, please fix "${markup.join('#')}" in step ${stepObj.stepNo}.`;
+                    alert(error);
+                    throw new Error(error);
+                }
+
+                //  use the index to access the corresponding test function for that editable
+                stepObj.tests[testId].testFunction += `\n${stepExpectations[markup[0]][editableIndex]}`;
+
+                //  set start tab
+                if (stepObj.content.startTab) return;
+                stepObj.content.startTab = `${markup[0] === 'html' ? 'index' : markup[0] === 'css' ? 'style' : 'script'}.${markup[0]}`;
+            });
+        });
+
+        mission.content.steps.push(stepObj);
+        // console.log(stepObj);
+    });
+
+    console.clear();
+    console.log(JSON.stringify(mission));
+}
+
 function saveTextFile(txt) {
-    const textToSaveBlob = new Blob([txt], { type: 'text/plain' }),
+    let downloadLink = document.createElement('a');
+    const
+        textToSaveBlob = new Blob([txt], { type: 'text/plain' }),
         textToSaveURL = window.URL.createObjectURL(textToSaveBlob),
         fileNameToSave = `${cProj}.txt`;
-    let downloadLink = document.createElement('a');
+
     downloadLink.download = fileNameToSave;
     downloadLink.href = textToSaveURL;
     downloadLink.style.display = 'none';
@@ -1139,7 +1432,7 @@ function testLogic() {
                 '\n// output = makeEditableBlock(output, \'key\');' +
                 '\nreturn output;';
 
-            setValue(logicEditor, `${logic}${logicEditor.getValue()}`);
+            setValue(logicEditor, `// Transition:\n${logic}${logicEditor.getValue()}`);
         }
 
         const type = activeCodeBtn == btnHTML ? 'html' : activeCodeBtn == btnCSS ? 'css' : 'js';
