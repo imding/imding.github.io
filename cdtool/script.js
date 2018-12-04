@@ -314,7 +314,7 @@ function autoObjectiveText() {
 
                 el.content.forEach(content => {
                     if (content.type === 'text') {
-                        ot += `, and add the text content *${content.raw}* between the tags`;
+                        ot += `, and add the text *${content.raw}* between the tags`;
                     }
                 });
             }
@@ -645,7 +645,7 @@ function addStep() {
 
     updateCodeButtons();
 
-    taInstruction.value = template[0];
+    taInstruction.value = template[1];
     preview ? updatePreview() : null;
     styledInstruction ? btnConvert.click() : null;
     if (logicEditor.getReadOnly) logicEditor.setReadOnly(false);
@@ -951,11 +951,13 @@ function generateJSON() {
                 stepObj.files[file].mode = 'modify';
                 stepObj.files[file].contentsWithAnswers = '';
 
-                stepObj.files[file].answers.forEach((answer, idx) => {
-                    stepObj.files[file].contentsWithAnswers += `${codeString.split(/#BEGIN_EDITABLE#.+?#END_EDITABLE#/)[idx]}#BEGIN_EDITABLE#${answer}#END_EDITABLE#`;
-                });
+                if (stepObj.files[file].answers) {
+                    stepObj.files[file].answers.forEach((answer, idx) => {
+                        stepObj.files[file].contentsWithAnswers += `${codeString.split(/#BEGIN_EDITABLE#.+?#END_EDITABLE#/)[idx]}#BEGIN_EDITABLE#${answer}#END_EDITABLE#`;
+                    });
 
-                stepObj.files[file].contentsWithAnswers += gifa(codeString.split(/#BEGIN_EDITABLE#.+?#END_EDITABLE#/), -1);
+                    stepObj.files[file].contentsWithAnswers += gifa(codeString.split(/#BEGIN_EDITABLE#.+?#END_EDITABLE#/), -1);
+                }
             }
 
             //  store editable locations for each file (not optimised for editable lines)
@@ -1423,7 +1425,7 @@ function testLogic() {
         };
 
     if (cStep > 1 && get(gutter, 'background') == '246, 246, 246') {
-        let logic = logicEditor.getValue().replace(/[\s\n\r]*\/\/ Expectation:[\s\S]*/, '').trim();
+        let logic = logicEditor.getValue().split('// Expectation:')[0].trim();
 
         if (!logic.length) {
             logic = 'let output = codeWithoutMarkup; //.replace(/' +
@@ -1432,7 +1434,7 @@ function testLogic() {
                 '\n// output = makeEditableBlock(output, \'key\');' +
                 '\nreturn output;';
 
-            setValue(logicEditor, `// Transition:\n${logic}${logicEditor.getValue()}`);
+            setValue(logicEditor, `// Transition:\n${logic}\n\n${logicEditor.getValue()}`.trim());
         }
 
         const type = activeCodeBtn == btnHTML ? 'html' : activeCodeBtn == btnCSS ? 'css' : 'js';
@@ -1469,7 +1471,7 @@ function testLogic() {
         highlightButton();
     }
 
-    generateTest();
+    // generateTest();
 }
 
 // ===================================================== //
@@ -1478,9 +1480,12 @@ function testLogic() {
 
 function generateTest() {
     const src = codeEditor.getValue(), cursor = codeEditor.selection.getCursor();
-    let n = 0 /* editable(n) */;
+    let
+        // editable(n)
+        n = 0,
+        testFunctions = '';
 
-    logicEditor.setValue(`${logicEditor.getValue().replace(/[\s\n\r]*\/\/ Expectation:[\s\S]*/, '')}\n\n// Expectation:`);
+    logicEditor.setValue(`${logicEditor.getValue().split('// Expectation:')[0]}`.trim());
     codeEditor.gotoLine(0, 0, false);
 
     while (/#(BEGIN|END)_EDITABLE#/.test(codeEditor.getValue())) {
@@ -1502,21 +1507,34 @@ function generateTest() {
                 });
 
                 if (codeEditor.getSelectedText().trim().length) {
-                    logicEditor.setValue(`${logicEditor.getValue()}\npass.if.${activeCodeBtn.innerHTML.toLowerCase()}.editable(${n++}).equivalent(\`${codeEditor.getSelectedText().trim().replace(/[\s\n\r]+/g, ' ')}\`);`);
+                    testFunctions += `\npass.if.${activeCodeBtn.innerHTML.toLowerCase()}.editable(${n++}).equivalent(\`${codeEditor.getSelectedText().trim().replace(/[\s\n\r]+/g, ' ')}\`);`;
                 }
             }
             else {
-                log('Missing #END_EDITABLE#.', 'warn');
+                const warning = 'Missing #END_EDITABLE#.';
+                alert(warning);
+                log(warning, 'warn');
                 break;
             }
         }
         else {
-            log('Missing #BEGIN_EDITABLE#.', 'warn');
+            const warning = 'Missing #BEGIN_EDITABLE#.';
+            alert(warning);
+            log(warning, 'warn');
             break;
         }
     }
+
+    if (testFunctions.length) {
+        testFunctions = `// Expectation:${testFunctions}`;
+
+        if (logicEditor.getValue().trim().length) {
+            testFunctions = `\n\n${testFunctions}`;
+        }
+    }
+
     setValue(codeEditor, src, cursor);
-    setValue(logicEditor, logicEditor.getValue().trim());
+    setValue(logicEditor, `${logicEditor.getValue().split('// Expectation:')[0].trim()}${testFunctions}`);
 }
 
 // ============================================== //

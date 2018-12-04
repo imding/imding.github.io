@@ -179,7 +179,7 @@ class Utility {
         };
 
         this.kababCase = str => {
-            return str.trim().replace(/\s+/, '-').toLowerCase();
+            return str.trim().replace(/\s+/g, '-').toLowerCase();
         };
 
         this.decamelise = str => str.replace(/^[a-z]|([A-Z]|\d+)/g, (v, i) => i ? ' ' + v.toUpperCase() : v.toUpperCase());
