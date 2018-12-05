@@ -915,8 +915,8 @@ function generateJSON() {
 
             stepCode[type] = codeString;
 
-            //  set leave unchanged and go to next file
-            if (codeString === prevCodeString) {
+            //  set leave unchanged and skip this forEach iteration
+            if (codeString === prevCodeString || `${codeString}${markup[0]}${markup[1]}` === prevCodeString) {
                 stepObj.files[file] = { contentsWithAnswers: prevCodeString };
                 return;
             }
@@ -929,7 +929,7 @@ function generateJSON() {
 
             //  populate answers array
             testFunctions.forEach((test, q) => {
-                const answer = test.match(/equivalent(?:\.to)?\s*\(\s*('|"|`)(.*)\1\s*\)/);
+                const answer = test.split('.or')[0].match(/equivalent(?:\.to)?\s*\(\s*('|"|`)(.*)\1\s*\)/);
 
                 if (answer) {
                     if (stepObj.files[file].answers) stepObj.files[file].answers.push(answer[2]);
@@ -1066,6 +1066,7 @@ function generateJSON() {
 
     console.clear();
     console.log(JSON.stringify(mission));
+    return 'Mission JSON generated successfully';
 }
 
 function saveTextFile(txt) {
@@ -1428,11 +1429,13 @@ function testLogic() {
         let logic = logicEditor.getValue().split('// Expectation:')[0].trim();
 
         if (!logic.length) {
-            logic = 'let output = codeWithoutMarkup; //.replace(/' +
+            logic =
+                'return `${codeWithoutMarkup}#BEGIN_EDITABLE##END_EDITABLE#`;' +
+                '\n// let output = codeWithoutMarkup; //.replace(/' +
                 (activeCodeBtn == btnHTML ? '\\s*<!--.*-->/g,\'' : activeCodeBtn == btnCSS ? '\\s*\\/\\*.*\\*\\//g,\'' : ';\\s*\\/\\/.*/g,\';') +
                 '\');\n// output = insertLine(output, \'key\', { line: \'\', offset: 0 });' +
                 '\n// output = makeEditableBlock(output, \'key\');' +
-                '\nreturn output;';
+                '\n// return output;';
 
             setValue(logicEditor, `// Transition:\n${logic}\n\n${logicEditor.getValue()}`.trim());
         }
@@ -1441,7 +1444,7 @@ function testLogic() {
         let input = decodeURI(encodeURI(code[cStep - 1]).match(eval(type + 'Token')[2])[0].replace(eval(type + 'Token')[0], '').replace(eval(type + 'Token')[1], '')),
             output = [];
 
-        if (/return/.test(logic)) {
+        if (/^\s*return/m.test(logic)) {
             /codeWithoutMarkup/.test(logic) ? input = noMarkup(input) : null;
             // APPLY CODE IN LOGIC EDITOR TO INPUT
             output = eval(`(function(){ ${decodeURI(logic).replace(/codeWithoutMarkup/g, 'input').replace(/let\s+output/, 'output').replace(/(;[^;]+)$/, '')} }())`);
