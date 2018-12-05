@@ -135,6 +135,12 @@ img {
     border: 1px solid rgb(204, 204, 204);
     border-radius: 4px;
     background-color: rgb(245, 245, 245);
+    overflow-x: scroll;
+    white-space: nowrap;
+}
+
+.notes::-webkit-scrollbar {
+    height: 2px;
 }
 
 li > .notes {
