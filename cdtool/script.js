@@ -69,7 +69,7 @@ const
     template = [
         'Formatting\n\n*bold text*\n\n[link::URL]\n\n[img::URL]\n\n`code`\n\n(*)note highlight\n\n(!)object highlight\n\n(html)<!-- code snippet -->(#)\n\n[-\n\t(*)unordered\n\t(*)list\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]',
         'Generic step\n\nWhy do it?\n\nHow to do it?\n\n(***)\n\n(!)On +type#key#, objective',
-        'Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n\t(*)item 1\n\t(*)item 2\n-]\n\nYou can now export this project to sandbox and customise or extend it further.',
+        'Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n\t(*)item 1\n\t(*)item 2\n-]',
     ],
 
     tipsData = [
@@ -225,7 +225,6 @@ window.onload = () => {
     logicEditor.setTheme('ace/theme/tomorrow');
     logicEditor.setHighlightGutterLine(false);
     logicEditor.session.setMode('ace/mode/javascript');
-    logicEditor.on('focus', () => logicEditor.setReadOnly(cStep < 2));
     logicEditor.on('blur', highlightButton);
 
     gutter = Array.from(document.getElementsByClassName('ace_gutter'))[1];
@@ -354,7 +353,7 @@ function updateStyledInstruction() {
     convertLineNumber();
 }
 
-function instructionHTML(source) {
+function instructionHTML(source, n = cStep) {
     const
         highlight = /^(\t?)\(!\)\s*(.+[^\s]).*/,
         notes = /^(\t?)\(\*\*?\)\s*(.+[^\s]).*/,
@@ -408,7 +407,7 @@ function instructionHTML(source) {
             const center = /^\t?\(\*\*\)/.test(e);
             source[i] = `${center ? '<center>' : ''}${e.replace(notes, '$1<p class="notes">$2</p>')}${center ? '</center>' : ''}`;
         } else if (image.test(e)) {
-            source[i] = e.replace(image, '<center><p class="notes"><a href="$1" target="_blank"><img src="$1"></a>Click the image to open it in a new tab</p></center>');
+            source[i] = e.replace(image, '<center><p class="notes"><a href="$1" target="_blank"><img src="$1"></a><br>Click the image to open it in a new tab</p></center>');
         } else {
             source[i] = (e.trim().length && !isPre && !isList) ? `<p>${e}</p>` : e;
         }
@@ -434,9 +433,9 @@ function instructionHTML(source) {
         // LINK STYLE
         .replace(link, '<a href="$2" target="_blank">$1</a>');
 
-    source += (cStep > 1 && cStep < tSteps ? '\n<hr>\n<p class="highlight">Click on <strong>Check all objectives</strong> to continue</p>' :
-        cStep == 1 ? '\n<hr>\n<p class="highlight">Click on <strong>Next step</strong> to get started</p>' :
-            cStep > 10 ? '\n<hr>\n<p class="highlight"><strong>Export to Sandbox</strong> to continue working on it</p>' : '');
+    source += (n > 1 && n < tSteps ? '\n<hr>\n<p class="highlight">Click on <strong>Check all objectives</strong> to continue</p>' :
+        n == 1 ? '\n<hr>\n<p class="highlight">Click on <strong>Next step</strong> to get started</p>' :
+        '\n<hr>\n<p class="highlight"><strong>Export to Sandbox</strong> is now available for this project</p>');
 
     return source;
 }
@@ -813,6 +812,8 @@ function generateJSON() {
     commitToMaster();
 
     const
+        codeObjectivePattern = /equivalent(?:\.to)?\s*\(/,
+        liveObjectivePattern = /^\s*pass\.on\s*\(/,
         mission = {
             content: {
                 settings: {
@@ -867,7 +868,10 @@ function generateJSON() {
 
         let
             stepCode = {},
-            stepExpectations = {};
+            stepExpectations = {
+                live: []
+            },
+            hasCodeObjective = false;
 
         const
             stepObj = {
@@ -890,7 +894,7 @@ function generateJSON() {
             testIds = [];
 
         stepObj.title = inst[i].split(/(\r+)?\n+/)[0];
-        stepObj.content.instructions = instructionHTML(inst[i]);//.replace(/(\r+)?\n+/g, '\\n');
+        stepObj.content.instructions = instructionHTML(inst[i], i);
         stepObj.stepNo = i;
         stepObj.orderNo = i * 1000;
 
@@ -911,7 +915,8 @@ function generateJSON() {
                 prevCodeString = i > 1 ? code[i - 1].match(token)[1] : null,
                 logicString = logic[i].match(token)[1],
                 hasTransition = logicString.includes('// Transition:'),
-                testFunctions = logicString.split('\n').filter(line => /equivalent(?:\.to)?\s*\(/.test(line)).sort();
+                codeObjectives = [],
+                liveObjectives = [];
 
             stepCode[type] = codeString;
 
@@ -927,8 +932,19 @@ function generateJSON() {
                 mode: 'new_contents'
             };
 
+            //  build objectives arrays
+            logicString.split(/\n/).forEach(line => {
+                if (codeObjectivePattern.test(line)) {
+                    codeObjectives.push(line);
+                    hasCodeObjective = true;
+                }
+                else if (liveObjectivePattern.test(line)) {
+                    liveObjectives.push(line);
+                }
+            });
+
             //  populate answers array
-            testFunctions.forEach((test, q) => {
+            codeObjectives.sort().forEach((test, q) => {
                 const answer = test.split('.or')[0].match(/equivalent(?:\.to)?\s*\(\s*('|"|`)(.*)\1\s*\)/);
 
                 if (answer) {
@@ -968,10 +984,16 @@ function generateJSON() {
             });
 
             //  store expectation code
+            liveObjectives.forEach(lo => stepExpectations.live.push(lo));
             stepExpectations[type] = logicString.split('// Expectation:');
 
             if (stepExpectations[type].length > 1) {
-                stepExpectations[type] = stepExpectations[type][1].split(/\n/).filter(line => line.trim().length);
+                //  mutate 2nd item from string to array
+                stepExpectations[type] =
+                    stepExpectations[type][1]
+                        .split(/\n/)
+                        .filter(line => line.trim().length)
+                        .filter(line => !liveObjectivePattern.test(line));
 
                 //  reduce expectation code to test function blocks
                 stepExpectations[type] = stepExpectations[type].reduce((acc, cur, idx) => {
@@ -983,21 +1005,19 @@ function generateJSON() {
 
                     return acc;
                 }, ['']);
-
-                //  handle error when last step contains objective
-                if (stepObj.stepNo == tSteps && stepExpectations[type].length) {
-                    const error = 'The last step of a project can not contain objectives.';
-                    alert(error);
-                    throw new Error(error);
-                }
             }
         });
 
-        //  create tests array
+        //  set step type to 'interactive' if only live expectation is found
+        if (!hasCodeObjective && stepExpectations.live.length) {
+            stepObj.type = 'interactive';
+        }
+
+        //  create stepObj.tests array
         let objectives = inst[i].split('(***)');
         const locationToken = /(?:(\w+)\.)?(html|css|js)#([^#\n]+)#([-+]\d+)?/g;
 
-        objectives = objectives.length > 1 ? objectives.pop().trim().split(/(\r+)?\n+/).filter(line => locationToken.test(line)) : [];
+        objectives = objectives.length > 1 ? objectives.pop().trim().split(/(\r?\n)+/).filter(line => /^\(!\)/.test(line)) : [];
 
         objectives.forEach((objective, k) => {
             //  generate 16-digit unique test id
@@ -1013,7 +1033,7 @@ function generateJSON() {
             const objectiveDescription =
                 //  remove type#key#offset and any preceding string before passing to the instructionHTML function
                 //  which will convert markup such as *bold* or `code` to HTML code
-                instructionHTML(`\n\n${objective.replace(/[^\n]*(html|css|js)#[^#]+#([+-]\d+)?,\s*/, '')
+                instructionHTML(`\n\n${objective.replace(/^(.*(html|css|js)#[^#]+#([+-]\d+)?,|\(!\))\s*/, '')
                     //  capitalise first letter
                     .replace(/\b\w/, l => l.toUpperCase())}`)
                     //  remove <hr> and following string
@@ -1035,33 +1055,51 @@ function generateJSON() {
             //  find line locations markups per objective
             const locationMarkup = objective.match(locationToken);
 
-            locationMarkup.forEach(markup => {
-                markup = markup.split('#');
+            if (locationMarkup) {
+                locationMarkup.forEach(markup => {
+                    markup = markup.split('#');
 
-                const
-                    //  find the editable location defined by the instruction markup
-                    editableLocation = stepCode[markup[0]].split(/\n/).findIndex(line => line.includes(markup[1])) + 1 + Number(markup[2]),
-                    //  find the location in the list of editables and return its index
-                    editableIndex = editables[markup[0]].findIndex(_editableLocation => _editableLocation === editableLocation);
+                    const
+                        //  find the editable location defined by the instruction markup
+                        editableLocation = stepCode[markup[0]].split(/\n/).findIndex(line => line.includes(markup[1])) + 1 + Number(markup[2]),
+                        //  find the location in the list of editables and return its index
+                        editableIndex = editables[markup[0]].findIndex(_editableLocation => _editableLocation === editableLocation);
 
-                //  handle line location error
-                if (editableIndex < 0) {
-                    const error = `No editable region is found at line ${editableLocation}, please fix "${markup.join('#')}" in step ${stepObj.stepNo}.`;
-                    alert(error);
-                    throw new Error(error);
-                }
+                    //  handle line location error
+                    if (editableIndex < 0) {
+                        const error = `No editable region is found at line ${editableLocation}, please fix "${markup.join('#')}" in step ${stepObj.stepNo}.`;
+                        alert(error);
+                        throw new Error(error);
+                    }
 
-                //  use the index to access the corresponding test function for that editable
-                stepObj.tests[testId].testFunction += `\n${stepExpectations[markup[0]][editableIndex]}`;
+                    //  use the index to access the corresponding test function for that editable
+                    stepObj.tests[testId].testFunction += `\n${stepExpectations[markup[0]][editableIndex]}`;
 
-                //  set start tab
-                if (stepObj.content.startTab) return;
-                stepObj.content.startTab = `${markup[0] === 'html' ? 'index' : markup[0] === 'css' ? 'style' : 'script'}.${markup[0]}`;
-            });
+                    //  set start tab
+                    if (stepObj.content.startTab) return;
+                    stepObj.content.startTab = `${markup[0] === 'html' ? 'index' : markup[0] === 'css' ? 'style' : 'script'}.${markup[0]}`;
+                });
+            }
+            else if (stepExpectations.live.length) {
+                stepObj.tests[testId].testFunction += `\n${stepExpectations.live.shift()}`;
+            }
         });
 
+        //  handle error when objective has no description
+        if (stepExpectations.live.length) {
+            const error = `Live objective "${stepExpectations.live[0]}" has no instructional description in step ${i}.`;
+            alert(error);
+            throw new Error(error);
+        }
+
+        //  handle error when last step contains objective
+        if (i == tSteps && Object.keys(stepObj.tests).length) {
+            const error = 'The last step of a project can not contain objectives.';
+            alert(error);
+            throw new Error(error);
+        }
+
         mission.content.steps.push(stepObj);
-        // console.log(stepObj);
     });
 
     console.clear();
@@ -1527,6 +1565,8 @@ function generateTest() {
             break;
         }
     }
+
+
 
     if (testFunctions.length) {
         testFunctions = `// Expectation:${testFunctions}`;

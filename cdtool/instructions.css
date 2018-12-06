@@ -136,7 +136,7 @@ img {
     border-radius: 4px;
     background-color: rgb(245, 245, 245);
     overflow-x: scroll;
-    white-space: nowrap;
+    white-space: pre-line;
 }
 
 .notes::-webkit-scrollbar {
