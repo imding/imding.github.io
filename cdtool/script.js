@@ -369,7 +369,7 @@ function instructionHTML(source, n = cStep) {
         isPre = false,
         objNum = 0;
 
-    source = source.replace(/</g, '&lt;').split(/\r?\n/).slice(2);
+        source = source.replace(/\\(.)/g, (m, p1) => encodeURIComponent(p1)).replace(/</g, '&lt;').split(/\r?\n/).slice(2);
 
     source.forEach((e, i) => {
         // replace markup for code location link
@@ -419,7 +419,7 @@ function instructionHTML(source, n = cStep) {
         isPre = /\(#\)/.test(e) ? false : isPre;
     });
 
-    source = source.join('\n')
+    source = decodeURIComponent(source.join('\n'))
         // LISTS
         .replace(/\[-/g, '<ul>').replace(/-\]/g, '</ul>').replace(/\[=/g, '<ol>').replace(/=\]/g, '</ol>')
         // OBJECTIVE NUMBERS
