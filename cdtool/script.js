@@ -150,6 +150,16 @@ const
             entry: 'alt + l',
             description: 'apply step logic & regenerate expectation',
         },
+        'divider',
+        'Call generateJSON() in console to obtain the project JSON object.',
+        'Transition code must be preceded by exactly "// Transition:".',
+        'Expectation code must be preceded by exactly "// Expectation:".',
+        'Code inside editable region that mathces the equivalent() argument will be removed.',
+        'All editables mentioned by the expectation must be found in the instruction.',
+        'All steps are "code step" by default.',
+        'Steps that contain only "pass.on()" expectation will be set to "interactive step".',
+        'Code files that are identical in the previous step will be set to "leave unchanged".',
+        'Code files that contain transition logic will be set to "modify content".'
     ];
 
 let gutter,
@@ -329,8 +339,7 @@ function convertInstruction() {
     if (!styledInstruction) {
         inst[cStep] = taInstruction.value;
         btnConvert.className = 'fa fa-clipboard';
-        styledInstruction = document.createElement('div');
-        styledInstruction.id = 'styledInstruction';
+        styledInstruction = newElement('div', { id: 'styledInstruction' });
         app.appendChild(styledInstruction);
         updateStyledInstruction();
     }
@@ -369,7 +378,7 @@ function instructionHTML(source, n = cStep) {
         isPre = false,
         objNum = 0;
 
-        source = source.replace(/\\(.)/g, (m, p1) => encodeURIComponent(p1)).replace(/</g, '&lt;').split(/\r?\n/).slice(2);
+    source = source.replace(/\\(.)/g, (m, p1) => encodeURIComponent(p1)).replace(/</g, '&lt;').split(/\r?\n/).slice(2);
 
     source.forEach((e, i) => {
         // replace markup for code location link
@@ -435,7 +444,7 @@ function instructionHTML(source, n = cStep) {
 
     source += (n > 1 && n < tSteps ? '\n<hr>\n<p class="highlight">Click on <strong>Check all objectives</strong> to continue</p>' :
         n == 1 ? '\n<hr>\n<p class="highlight">Click on <strong>Next step</strong> to get started</p>' :
-        '\n<hr>\n<p class="highlight"><strong>Export to Sandbox</strong> is now available for this project</p>');
+            '\n<hr>\n<p class="highlight"><strong>Export to Sandbox</strong> is now available for this project</p>');
 
     return source;
 }
@@ -573,8 +582,7 @@ function updatePreview() {
 
     if (!document.getElementById('preview')) {
         storeActiveCode();
-        preview = document.createElement('iframe');
-        preview.id = 'preview';
+        preview = newElement('iframe', { id: 'preview' });
         alignWithInstruction(preview);
         app.appendChild(preview);
     }
@@ -1020,6 +1028,9 @@ function generateJSON() {
         objectives = objectives.length > 1 ? objectives.pop().trim().split(/(\r?\n)+/).filter(line => /^\(!\)/.test(line)) : [];
 
         objectives.forEach((objective, k) => {
+            //  encode escaped characters
+            objective = objective.replace(/\\(.)/g, (m, p1) => encodeURIComponent(p1));
+
             //  generate 16-digit unique test id
             let testId;
 
@@ -1058,6 +1069,7 @@ function generateJSON() {
             if (locationMarkup) {
                 locationMarkup.forEach(markup => {
                     markup = markup.split('#');
+                    markup[1] = decodeURIComponent(markup[1]);
 
                     const
                         //  find the editable location defined by the instruction markup
@@ -1108,7 +1120,7 @@ function generateJSON() {
 }
 
 function saveTextFile(txt) {
-    let downloadLink = document.createElement('a');
+    let downloadLink = newElement('a');
     const
         textToSaveBlob = new Blob([txt], { type: 'text/plain' }),
         textToSaveURL = window.URL.createObjectURL(textToSaveBlob),
@@ -1121,9 +1133,7 @@ function saveTextFile(txt) {
 }
 
 function loadTextFile() {
-    let fileToLoad = document.createElement('input');
-    fileToLoad.type = 'file';
-    fileToLoad.accept = '.txt';
+    let fileToLoad = newElement('input', { type: 'file', accept: '.txt' });
     fileToLoad.style.display = 'none';
     fileToLoad.click();
     fileToLoad.onchange = () => {
@@ -1248,8 +1258,7 @@ function keyHandler() {
 function showTips() {
     if (tipContainer) return;
 
-    tipContainer = document.createElement('div');
-    tipContainer.id = 'tipContainer';
+    tipContainer = newElement('div', { id: 'tipContainer' });
 
     tipContainer.appendChild(newElement('p', {
         innerHTML: '<b>Tip</b>: "alt" refers to the <u>right</u> alt key unless specified otherwise',
@@ -1263,26 +1272,25 @@ function showTips() {
 
     tipsData.forEach(data => {
         if (data == 'divider') {
-            const hr = document.createElement('hr');
-            hr.noShade = true;
-            hr.size = 1;
-            hr.color = 'silver';
+            const hr = newElement('hr', { noShade: true, size: 1, color: 'silver' });
             tipContainer.appendChild(hr);
-            return;
         }
+        else {
+            const tip = newElement('p', { style: 'margin: 10px 0' });
 
-        const
-            tip = document.createElement('p'),
-            entry = document.createElement('span'),
-            description = document.createTextNode(` ${data.description}`);
+            if (typeof (data) == 'string') {
+                tip.textContent = data;
+            }
+            else {
+                const
+                    entry = newElement('span', { className: 'hotkey', textContent: data.entry }),
+                    description = document.createTextNode(` ${data.description}`);
 
-        tip.style.margin = '10px 0';
-        entry.className = 'hotkey';
-        entry.textContent = data.entry;
-
-        tip.appendChild(entry);
-        tip.appendChild(description);
-        tipContainer.appendChild(tip);
+                tip.appendChild(entry);
+                tip.appendChild(description);
+            }
+            tipContainer.appendChild(tip);
+        }
     });
 
     document.body.appendChild(tipContainer);
