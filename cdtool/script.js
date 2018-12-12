@@ -68,7 +68,7 @@ const
 
     template = [
         'Formatting\n\n*bold text*\n\n[link::URL]\n\n[img::URL]\n\n`code`\n\n(*)note highlight\n\n(!)object highlight\n\n(html)<!-- code snippet -->(#)\n\n[-\n\t(*)unordered\n\t(*)list\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]',
-        'Generic step\n\nWhy do it?\n\nHow to do it?\n\n(***)\n\n(!)On +type#key#, objective',
+        'Generic step\n\nWhy do it?\n\nHow to do it?\n\n(***)\n\n(!)On +type#key#, \n(!)On +type#key#, \n(!)On +type#key#, ',
         'Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n\t(*)item 1\n\t(*)item 2\n-]',
     ],
 
@@ -459,7 +459,7 @@ function convertLineNumber() {
         const markup = siClone.match(markupReg);
         let n, target = noMarkup(eval(markup[1].split(/\./)[1])).split(/\r?\n/);
 
-        markup[2] = markup[2].replace(/&lt;/g, '<');
+        markup[2] = markup[2].replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 
         target.forEach((line, i) => {
             if (line.includes(markup[2])) {
@@ -950,6 +950,13 @@ function generateJSON() {
                     liveObjectives.push(line);
                 }
             });
+
+            //  handle mismatch between number of expectations and editables
+            if (codeObjectives.length !== (editableContents || []).length) {
+                const error = `Expectation code refers to ${codeObjectives.length} editable region${codeObjectives.length > 1 ? 's' : ''} while ${editableContents.length} ${editableContents.length > 1 ? 'are' : 'is'} found in step ${stepObj.stepNo}.`;
+                alert(error);
+                throw new Error(error);
+            }
 
             //  populate answers array
             codeObjectives.sort().forEach((test, q) => {
