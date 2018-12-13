@@ -83,7 +83,7 @@ const
             description: 'insert generic instruction',
         },
         {
-            entry: 'alt + 1',
+            entry: 'alt + 2',
             description: 'insert summery step instruction',
         },
         {
@@ -97,7 +97,7 @@ const
         'divider',
         {
             entry: 'alt + n',
-            description: 'creat a new step',
+            description: 'create a new step',
         },
         {
             entry: 'alt + [',
@@ -134,8 +134,8 @@ const
         },
         'divider',
         {
-            entry: 'L shift + L alt + f',
-            description: 'tidy code',
+            entry: 'shift + alt + f',
+            description: 'tidy code ( only valid for left shift and alt keys )',
         },
         {
             entry: 'alt + /',
@@ -148,17 +148,18 @@ const
         },
         {
             entry: 'alt + l',
-            description: 'apply step logic & regenerate expectation',
+            description: 'apply step logic & update code file',
         },
         'divider',
         'Call generateJSON() in console to obtain the project JSON object.',
         'Transition code must be preceded by exactly "// Transition:".',
         'Expectation code must be preceded by exactly "// Expectation:".',
         'Code inside editable region that mathces the equivalent() argument will be removed.',
-        'All editables mentioned by the expectation must be found in the instruction.',
+        'Number of editable regions mentioned in a step must be consistent between the instruction and test functions.',
+        'Objective description for live expectations must be found in the instruction.',
         'All steps are "code step" by default.',
         'Steps that contain only "pass.on()" expectation will be set to "interactive step".',
-        'Code files that are identical in the previous step will be set to "leave unchanged".',
+        'Code files that are identical ( minus trailing editable markups ) in the previous step will be set to "leave unchanged".',
         'Code files that contain transition logic will be set to "modify content".'
     ];
 
@@ -1262,7 +1263,10 @@ function keyHandler() {
 function showTips() {
     if (tipContainer) return;
 
-    tipContainer = newElement('div', { id: 'tipContainer' });
+    tipContainer = newElement('div', {
+        id: 'tipContainer',
+        style: `max-height: ${gCss(srcCode).height * 0.9}px`,
+    });
 
     tipContainer.appendChild(newElement('p', {
         innerHTML: '<b>Tip</b>: "alt" refers to the <u>right</u> alt key unless specified otherwise',
