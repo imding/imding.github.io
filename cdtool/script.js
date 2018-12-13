@@ -823,51 +823,49 @@ function generateJSON() {
         codeObjectivePattern = /equivalent(?:\.to)?\s*\(/,
         liveObjectivePattern = /^\s*pass\.on\s*\(/,
         mission = {
-            content: {
-                settings: {
-                    revision: '(1,0)',
-                    level: 1,
-                    title: cProj,
-                    description: '',
-                    duration: null,
-                    type: 'project',
-                    status: 'private',
-                    core: 'game',
-                    resources: [],
-                    searchable: true,
-                    recommended: false,
-                    tags: [],
-                    missionName: kababCase(cProj),
-                    majorRevision: 1,
-                    minorRevision: 0,
-                    changeInfo: '',
-                    objectivesVersion: 2,
-                    authorName: 'Siuling Ding',
-                    contentType: 'code',
-                    authorId: '1315b022-3715-4e54-aa31-e917c53fb0be',
-                    ownerId: '1315b022-3715-4e54-aa31-e917c53fb0be',
-                    ownerName: 'Siuling Ding',
-                    ownerEmail: 'sd@bsd.education',
-                    mediaPdf: '',
-                    cardImage: '',
-                    cardLinks: [],
-                    jsConsole: false,
-                    webOutput: true,
-                    mobileView: {
-                        mobileViewEnabled: false
-                    },
-                    totalPages: null,
-                    bodyLocking: false,
-                    codeUnlocked: false,
-                    missionVideo: '',
-                    sandboxDefault: false,
-                    serialControls: false,
-                    finalProductImage: '',
-                    imageUploadOnHtml: false
+            missionUuid: uuidv4(),
+            settings: {
+                revision: '(1,0)',
+                level: 1,
+                title: cProj,
+                description: '',
+                duration: null,
+                type: 'project',
+                status: 'private',
+                core: 'game',
+                resources: [],
+                searchable: true,
+                recommended: false,
+                tags: [],
+                missionName: kababCase(cProj),
+                majorRevision: 1,
+                minorRevision: 0,
+                changeInfo: '',
+                objectivesVersion: 2,
+                authorName: 'Siuling Ding',
+                contentType: 'code',
+                authorId: '1315b022-3715-4e54-aa31-e917c53fb0be',
+                ownerId: '1315b022-3715-4e54-aa31-e917c53fb0be',
+                ownerName: 'Siuling Ding',
+                ownerEmail: 'sd@bsd.education',
+                mediaPdf: '',
+                cardImage: '',
+                cardLinks: [],
+                jsConsole: false,
+                webOutput: true,
+                mobileView: {
+                    mobileViewEnabled: false
                 },
-                steps: [],
+                totalPages: null,
+                bodyLocking: false,
+                codeUnlocked: false,
+                missionVideo: '',
+                sandboxDefault: false,
+                serialControls: false,
+                finalProductImage: '',
+                imageUploadOnHtml: false
             },
-            host: 'https://app.bsd.education'
+            steps: {},
         },
         stepIds = [];
 
@@ -883,13 +881,13 @@ function generateJSON() {
 
         const
             stepObj = {
-                title: '',
+                stepId: '',
                 type: 'code',
+                orderNo: 0,
+                title: '',
                 content: {
                     instructions: ''
                 },
-                stepId: '',
-                orderNo: 0,
                 files: {},
                 tests: {},
                 stepNo: 0
@@ -1063,7 +1061,6 @@ function generateJSON() {
             //  define default test object
             stepObj.tests[testId] = {
                 orderNo: (k + 1) * 1000,
-                stepId: stepObj.stepId,
                 title: objectiveDescription,
                 testFunction: '// Expectation:',
                 testId: testId,
@@ -1118,7 +1115,7 @@ function generateJSON() {
             throw new Error(error);
         }
 
-        mission.content.steps.push(stepObj);
+        mission.steps[stepObj.stepId] = stepObj;
     });
 
     console.clear();

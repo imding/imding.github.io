@@ -4,7 +4,18 @@ class Utility {
             showDebug: true,
         };
 
-        // unique id with or without a prefix
+        //  generate uuidv4
+        this.uuidv4 = () => {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                let
+                    r = Math.random() * 16 | 0,
+                    v = c == 'x' ? r : (r & 0x3 | 0x8);
+
+                return v.toString(16);
+            });
+        };
+
+        //  unique id with or without a prefix
         this.uid = (prefix, connector = '-') => {
             // non-zero random scalar
             const nzrs = () => Math.random() || this.nzrs();
@@ -16,12 +27,12 @@ class Utility {
             return rs;
         };
 
-        // clamp number within range
+        //  clamp number within range
         this.clamp = (val, min, max) => {
             return Math.min(Math.max(val, min), max);
         };
 
-        // element array queries
+        //  element array queries
         this.elarr = arr => {
             arr = Array.from(arr);
             if (!Array.isArray(arr)) throw new Error('the elarr method expects and array like object');
@@ -33,7 +44,7 @@ class Utility {
             };
         };
 
-        // flatten array
+        //  flatten array
         this.flarr = arr => {
             return {
                 get shallow() { return arr.reduce((acc, val) => acc.concat(val), []); },
@@ -41,13 +52,13 @@ class Utility {
             };
         };
 
-        // get item from array
+        //  get item from array
         this.gifa = (arr, i) => i < 0 ? arr[arr.length + i] : arr[i];
 
-        // remove item from array
+        //  remove item from array
         this.rifa = (item, arr) => arr.splice(arr.indexOf(item), 1);
 
-        // turn array into object
+        //  turn array into object
         this.ato = (array, dimension = 2) => {
             const obj = {};
 
@@ -65,7 +76,7 @@ class Utility {
             return obj;
         };
 
-        // set & get attribute
+        //  set & get attribute
         this.sAttr = (el, details) => Object.entries(details).forEach(entry => el.setAttribute(entry[0].replace(/([A-Z])/g, '-$1').toLowerCase(), entry[1].toString()));
         this.gAttr = el => {
             return new Proxy(
@@ -80,7 +91,7 @@ class Utility {
             );
         };
 
-        // set & get css style
+        //  set & get css style
         this.sCss = (el, details) => Object.entries(details).forEach(entry => el.style[entry[0]] = entry[1]);
         this.gCss = el => {
             if (!el) throw new Error('the gCss method expects a valid HTML element');
@@ -110,7 +121,7 @@ class Utility {
             );
         };
 
-        // relative cursor position
+        //  relative cursor position
         this.relCursor = (ref, cf) => {
             if (ref && ref.nodeType != 1) throw new Error('the relCursor method expects an HTML element as argument');
 
@@ -124,7 +135,7 @@ class Utility {
             return this.applyConfig(pos, cf, refBox);
         };
 
-        // relative element position
+        //  relative element position
         this.relPos = (el, ref, cf) => {
             const
                 elBox = el.getBoundingClientRect(),
@@ -138,7 +149,7 @@ class Utility {
             return this.applyConfig(pos, cf, elBox);
         };
 
-        // apply general configurations for 2D vector
+        //  apply general configurations for 2D vector
         this.applyConfig = (v2, cf, ref) => {
             if (/cog/.test(cf)) {
                 if (!ref) throw new Error('a reference bounding box is required to calculate centre of gravity.');
@@ -159,17 +170,17 @@ class Utility {
             return v2;
         };
 
-        // new svg element
+        //  new svg element
         this.newSVG = type => document.createElementNS('http://www.w3.org/2000/svg', type);
 
-        // new element
+        //  new element
         this.newElement = (type, attr) => {
             const el = document.createElement(type);
             Object.assign(el, attr);
             return el;
         };
 
-        // convert string to camel case
+        //  convert string to camel case
         this.camelise = str => {
             str = str.replace(/^[^\w]+|[^\w]+$/, '').replace(/[^\w\s]/g, '').toLowerCase();
             if (!/\s/.test(str)) return str;
@@ -184,7 +195,7 @@ class Utility {
 
         this.decamelise = str => str.replace(/^[a-z]|([A-Z]|\d+)/g, (v, i) => i ? ' ' + v.toUpperCase() : v.toUpperCase());
 
-        // make width & height integer
+        //  make width & height integer
         this.trimScale = (...o) => {
             if (o.length === 1) o = o[0];
             Object.values(o).forEach(el => {
@@ -195,7 +206,7 @@ class Utility {
             });
         };
 
-        // convert string to be HTML safe
+        //  convert string to be HTML safe
         this.htmlEscape = unsafe => {
             return unsafe
                 .replace(/&/g, '&amp;')
