@@ -52,7 +52,6 @@ button {
 	box-sizing: border-box;
 	outline: none;
 	cursor: pointer;
-	transition: background-color 0.2s;
 }
 
 .fa-chevron-circle-right, .fa-chevron-circle-left {
