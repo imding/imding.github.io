@@ -379,7 +379,17 @@ function instructionHTML(source, n = cStep) {
         isPre = false,
         objNum = 0;
 
-    source = source.replace(/\\(.)/g, (m, p1) => encodeURIComponent(p1)).replace(/</g, '&lt;').split(/\r?\n/).slice(2);
+    source = source.
+        //  encode escaped character
+        replace(/\\(.)/g, (m, p1) => encodeURIComponent(p1)).
+        //  replace opening bracket
+        replace(/</g, '&lt;').
+        //  replace percentage symbol
+        replace(/%/g, '%25').
+        //  split into array
+        split(/\r?\n/).
+        //  remove first two items ( step title and empty new line )
+        slice(2);
 
     source.forEach((e, i) => {
         // replace markup for code location link
