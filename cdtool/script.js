@@ -197,6 +197,13 @@ let gutter,
 // ==================== EVENT LISTENER ==================== //
 // ======================================================== //
 
+window.onbeforeunload = () => {
+    // Cancel the event as stated by the standard.
+    event.preventDefault();
+    // Chrome requires returnValue to be set.
+    event.returnValue = '';
+};
+
 window.onload = () => {
     Object.assign(window, new Utility());
 
@@ -264,9 +271,7 @@ window.onload = () => {
     setInterval(saveToLocal, 100000);
 };
 
-window.onkeydown = keyHandler;
-
-window.onresize = updateUI;
+window.onmouseup = () => window.removeEventListener('mousemove', moveDivider, true);
 
 window.onkeyup = () => {
     if (event.code == 'AltRight') {
@@ -275,7 +280,9 @@ window.onkeyup = () => {
     }
 };
 
-window.onmouseup = () => window.removeEventListener('mousemove', moveDivider, true);
+window.onkeydown = keyHandler;
+
+window.onresize = updateUI;
 
 // ====================================================== //
 // ==================== PROJECT INFO ==================== //
@@ -328,8 +335,6 @@ function autoObjectiveText() {
                     }
                 });
             }
-
-            console.log(tree);
 
             taInstruction.value += `${ot}.`;
         });
@@ -490,8 +495,10 @@ function convertLineNumber() {
 }
 
 function selectAndCopy(elem) {
-    const selection = window.getSelection(),
+    const
+        selection = window.getSelection(),
         rangeObj = document.createRange();
+
     let currentFocus;
 
     if (selection.baseNode && selection.baseNode.id && selection.baseNode.id.endsWith('Editor')) {
@@ -620,19 +627,6 @@ function closePreview() {
     if (preview) {
         app.removeChild(preview);
         preview = null;
-    }
-}
-
-function saveToLocal() {
-    if (document.visibilityState === 'visible' && tSteps > 1) {
-        const codeScrollTop = codeEditor.session.getScrollTop();
-        const logicScroolTop = logicEditor.session.getScrollTop();
-
-        commitToMaster();
-        localStorage.lbcontent = master;
-        codeEditor.session.setScrollTop(codeScrollTop);
-        logicEditor.session.setScrollTop(logicScroolTop);
-        print('file saved to local');
     }
 }
 
@@ -1163,6 +1157,26 @@ function readValue(value, title) {
     cProj = title;
     getStepName(cStep);
     info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`;
+}
+
+function saveToLocal() {
+    if (document.visibilityState === 'visible' && tSteps > 1) {
+        try {
+            const codeScrollTop = codeEditor.session.getScrollTop();
+            const logicScroolTop = logicEditor.session.getScrollTop();
+
+            commitToMaster();
+            localStorage.lbcontent = master;
+            codeEditor.session.setScrollTop(codeScrollTop);
+            logicEditor.session.setScrollTop(logicScroolTop);
+            print('file saved to local');
+
+            return true;
+        }
+        catch (err) {
+            return false;
+        }
+    }
 }
 
 function recoverFromLocal() {

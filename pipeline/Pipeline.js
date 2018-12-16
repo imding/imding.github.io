@@ -335,10 +335,39 @@ class Pipeline {
         editIcon.onclick = () => this.expandAnd('Edit');
         pullIcon.onclick = () => this.pullData();
         pushIcon.onclick = () => {
-            if (prompt('Password:') == 'letmein420') this.pushData();
+            if (this.authFn(prompt('Password:'), 1) == 'mfunfjo531') this.pushData();
         };
-
+        this.parseAddressLineParameters();
         this.creatorMode = true;
+    }
+
+    parseAddressLineParameters() {
+        const
+            regex = /[?&]([^=#]+)=([^&#]*)/g,
+            url = window.location.href,
+            params = {};
+
+        let match;
+
+        while (match = regex.exec(url)) {
+            params[match[1]] = match[2];
+        }
+
+        const pipelineName = params['pipeline'];
+
+        if (pipelineName) {
+            this.pullData(pipelineName);
+        }
+    }
+
+    authFn(str, offset) {
+        let result = '';
+        let charcode = 0;
+        for (let i = 0; i < str.length; i++) {
+            charcode = (str[i].charCodeAt()) + offset;
+            result += String.fromCharCode(charcode);
+        }
+        return result;
     }
 
     expandAnd(action) {
@@ -935,7 +964,7 @@ class Pipeline {
         });
     }
 
-    pullData() {
+    pullData(pipelineNameOptional) {
         if (!window.firebase) return alert('Make sure Firebase is set up and you are connected to the Internet.');
         if (cPanel.classList.contains('expanded')) return alert('Close the editor before reading from cloud.');
 
@@ -947,7 +976,23 @@ class Pipeline {
 
                 docs.forEach((doc, i) => msg += `${i + 1}. ${doc.id}\n`);
 
-                const r = (prompt(msg) || '').trim();
+                let r = -1;
+
+                if (pipelineNameOptional) {
+                    for (var i = 0; i < docs.length; i++) {
+                        if (docs[i].id == pipelineNameOptional) {
+                            r = i + 1;
+                            editIcon.style.display = 'none';
+                            pullIcon.style.display = 'none';
+                            pushIcon.style.display = 'none';
+                            break;
+                        }
+                    }
+                }
+
+                if (r < 0) {
+                    r = (prompt(msg) || '').trim();
+                }
 
                 if (/^\d+$/.test(r)) {
                     //  remove everything from this.self
