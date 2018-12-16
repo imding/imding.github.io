@@ -380,12 +380,12 @@ function instructionHTML(source, n = cStep) {
         objNum = 0;
 
     source = source.
-        //  encode escaped character
-        replace(/\\(.)/g, (m, p1) => encodeURIComponent(p1)).
         //  replace opening bracket
         replace(/</g, '&lt;').
         //  replace percentage symbol
         replace(/%/g, '%25').
+        //  encode escaped character
+        replace(/\\(.)/g, (m, p1) => encodeURIComponent(p1)).
         //  split into array
         split(/\r?\n/).
         //  remove first two items ( step title and empty new line )
@@ -950,7 +950,7 @@ function generateJSON() {
             };
 
             //  build objectives arrays
-            logicString.split(/\n/).forEach(line => {
+            jsWithoutComments(logicString).split(/\n/).forEach(line => {
                 if (codeObjectivePattern.test(line)) {
                     codeObjectives.push(line);
                     hasCodeObjective = true;
