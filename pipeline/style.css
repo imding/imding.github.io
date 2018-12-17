@@ -153,12 +153,16 @@ code::-webkit-scrollbar-thumb {
 }
 
 #cPanel::-webkit-scrollbar {
-    width: 8px;
+    width: 10px;
 }
 
 #cPanel::-webkit-scrollbar-thumb {
-    border-width: 20px 5px 20px 0;
+    border-radius: 5px;
     background-color: slategray;
+}
+
+#cPanel::-webkit-scrollbar-track {
+	margin: 25px 0;
 }
 
 /* card content styles */
