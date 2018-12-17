@@ -420,7 +420,7 @@ function instructionHTML(source, n = cStep) {
 
         // - EXAMPLE -
         if (/^\(-{3}\)/.test(e)) {
-            source[i] = '<center><p><strong>- EXAMPLE -</strong></p></center>';
+            source[i] = '<p><strong>Required Syntax:</strong></p>';
             // - OBJECTIVES -
         } else if (/^\(\*{3}\)/.test(e)) {
             source[i] = '<center><p><strong>- OBJECTIVES -</strong></p></center>';
@@ -828,7 +828,7 @@ function generateJSON() {
         codeObjectivePattern = /equivalent(?:\.to)?\s*\(/,
         liveObjectivePattern = /^\s*pass\.on\s*\(/,
         mission = {
-            missionUuid: uuidv4(),
+            missionUuid: '',
             settings: {
                 revision: '(1,0)',
                 level: 1,
@@ -873,6 +873,10 @@ function generateJSON() {
             steps: {},
         },
         stepIds = [];
+
+    const mid = prompt('Please provide mission uuid. Leave blank to generate a new one.');
+
+    mission.missionUuid = (mid && mid.trim().length) ? mid.trim() : uuidv4();
 
     step.forEach((stepString, i) => {
         if (!i) return;
