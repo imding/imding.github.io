@@ -874,9 +874,24 @@ function generateJSON() {
         },
         stepIds = [];
 
-    const mid = prompt('Please provide mission uuid. Leave blank to generate a new one.');
+    const
+        mid = prompt('Please provide mission uuid. Leave blank to generate a new one.'),
+        version = prompt('Please provide a revision ( e.g. 2.13 ).', '1.0'),
+        status = prompt('Please choose a publish status:\n1. author only\n2. internal', 1);
 
     mission.missionUuid = (mid && mid.trim().length) ? mid.trim() : uuidv4();
+
+    if (/^\d+\.\d+$/.test(version)) {
+        const v = version.split(/\./);
+        mission.settings.revision = `(${v[0]},${v[1]})`;
+        mission.settings.majorRevision = v[0].toString();
+        mission.settings.minorRevision = v[1].toString();
+    }
+    else {
+        alert('Invalid revision format, the default will be used.');
+    }
+
+    if (status == 2) mission.settings.status =  'internal';
 
     step.forEach((stepString, i) => {
         if (!i) return;
@@ -1013,6 +1028,8 @@ function generateJSON() {
                 //  mutate 2nd item from string to array
                 stepExpectations[type] =
                     stepExpectations[type][1]
+                        //  concatenate comments
+                        .replace(/\n\s*(\/\/.*)/g, '//$1')
                         .split(/\n/)
                         .filter(line => line.trim().length)
                         .filter(line => !liveObjectivePattern.test(line));
@@ -1098,7 +1115,7 @@ function generateJSON() {
                     }
 
                     //  use the index to access the corresponding test function for that editable
-                    stepObj.tests[testId].testFunction += `\n${stepExpectations[markup[0]][editableIndex]}`;
+                    stepObj.tests[testId].testFunction += `\n${stepExpectations[markup[0]][editableIndex].replace(/\/\/\/\//g, '\n//')}`;
 
                     //  set start tab
                     if (stepObj.content.startTab) return;
@@ -1649,10 +1666,6 @@ function log(msg, opt) {
     if (!opt) { opt = 'log'; }
     const time = new Date();
     console[opt](`[${this.pad(time.getHours())}:${this.pad(time.getMinutes())}:${this.pad(time.getSeconds())}] ${msg}`);
-}
-
-function pad(n) {
-    return n.toString().length == 2 ? n : '0' + n.toString();
 }
 
 function clamp(v, min, max) {
