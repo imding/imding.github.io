@@ -67,8 +67,8 @@ const
     },
 
     template = [
-        'Formatting\n\n*bold text*\n\n[link::URL]\n\n[img::URL]\n\n`code`\n\n(*)note highlight\n\n(!)object highlight\n\n(html)<!-- code snippet -->(#)\n\n[-\n\t(*)unordered\n\t(*)list\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]',
-        'Generic step\n\nWhy do it?\n\nHow to do it?\n\n(***)\n\n(!)On +type#key#, \n(!)On +type#key#, \n(!)On +type#key#, ',
+        'Formatting\n\n`code`\n\n*bold text*\n\n(html)<!-- code snippet -->(#)\n\n[link::URL]\n\n[img::https://app.bsd.education/resources/bsdlogo.png]\n\n(---)\n\n[-\n\tunordered\n\tlist\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]\n\n(*)note highlight\n\n(**)centred note highlight\n\n(***)\n\n(!)object highlight\n\n(>>style.css)',
+        'Generic step\n\nStep context.\n\n(---)\n\n[-\n\t(*)\n\t(*)\n-]\n\n(***)\n\n(!)On +type#key#, \n(!)On +type#key#, \n(!)On +type#key#, ',
         'Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n\t(*)item 1\n\t(*)item 2\n-]',
     ],
 
@@ -372,6 +372,7 @@ function instructionHTML(source, n = cStep) {
     const
         highlight = /^(\t?)\(!\)\s*(.+[^\s]).*/,
         notes = /^(\t?)\(\*\*?\)\s*(.+[^\s]).*/,
+        tab = /^\(>>(.+)\)/,
         loc = /(?:(\w+)\.)?(html|css|js)#([^#\n]+)#([-+]\d+)?/,
         image = /\[IMG::(https?:\/\/[^'"\s]+\.(jpg|gif|jpeg|bmp|png|svg))\]/gi,
         link = /\[([^\]:]+)::([^\s]+)\]/g,
@@ -418,22 +419,31 @@ function instructionHTML(source, n = cStep) {
         // BEGINNING OF SNIPPET
         isPre = /^\((html|css|js)\)/.test(e) ? true : isPre;
 
-        // - EXAMPLE -
+        // List of glossaries
         if (/^\(-{3}\)/.test(e)) {
             source[i] = '<p><strong>Required Syntax:</strong></p>';
-            // - OBJECTIVES -
-        } else if (/^\(\*{3}\)/.test(e)) {
+        }
+        // - OBJECTIVES -
+        else if (/^\(\*{3}\)/.test(e)) {
             source[i] = '<center><p><strong>- OBJECTIVES -</strong></p></center>';
-            // OBJECTIVE HIGHLIGHT
-        } else if (highlight.test(e)) {
+        }
+        //  Switch tab
+        else if (tab.test(e)) {
+            source[i] = `<center><p class="notes">Switch over to the <strong>${e.replace(tab, '$1')}</strong> tab</p></center>`;
+        }
+        // OBJECTIVE HIGHLIGHT
+        else if (highlight.test(e)) {
             source[i] = e.replace(highlight, '$1<p class="highlight">##' + (++objNum) + '##. $2</p>');
-            // NOTES HIGHLIGHT
-        } else if (notes.test(e)) {
+        }
+        // NOTES HIGHLIGHT
+        else if (notes.test(e)) {
             const center = /^\t?\(\*\*\)/.test(e);
             source[i] = `${center ? '<center>' : ''}${e.replace(notes, '$1<p class="notes">$2</p>')}${center ? '</center>' : ''}`;
-        } else if (image.test(e)) {
+        }
+        else if (image.test(e)) {
             source[i] = e.replace(image, '<center><p class="notes"><a href="$1" target="_blank"><img src="$1"></a><br>Click the image to open it in a new tab</p></center>');
-        } else {
+        }
+        else {
             source[i] = (e.trim().length && !isPre && !isList) ? `<p>${e}</p>` : e;
         }
 
@@ -891,7 +901,7 @@ function generateJSON() {
         alert('Invalid revision format, the default will be used.');
     }
 
-    if (status == 2) mission.settings.status =  'internal';
+    if (status == 2) mission.settings.status = 'internal';
 
     step.forEach((stepString, i) => {
         if (!i) return;
