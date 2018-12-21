@@ -67,7 +67,7 @@ const
     },
 
     template = [
-        'Formatting\n\n`code`\n\n*bold text*\n\n(html)<!-- code snippet -->(#)\n\n[link::URL]\n\n[img::https://app.bsd.education/resources/bsdlogo.png]\n\n(---)\n\n[-\n\tunordered\n\tlist\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]\n\n(*)note highlight\n\n(**)centred note highlight\n\n(***)\n\n(!)object highlight\n\n(>>style.css)',
+        'Formatting\n\n`code`\n\n*bold text*\n\n(html)<!-- code snippet -->(#)\n\n[link::URL]\n\n[img::https://app.bsd.education/resources/bsdlogo.png]\n\n(---)\n\n[-\n\tunordered\n\tlist\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]\n\n(*)note highlight\n\n(**)centred note highlight\n\n(***)\n\n(!)On +html#<body>#+1, objective description\n\n(>>style.css)',
         'Generic step\n\nStep context.\n\n(---)\n\n[-\n\t(*)\n\t(*)\n-]\n\n(***)\n\n(!)On +type#key#, \n(!)On +type#key#, \n(!)On +type#key#, ',
         'Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n\t(*)item 1\n\t(*)item 2\n-]',
     ],
