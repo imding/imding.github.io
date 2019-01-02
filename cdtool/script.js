@@ -67,7 +67,7 @@ const
     },
 
     template = [
-        'Formatting\n\n`code`\n\n*bold text*\n\n(html)<!-- code snippet -->(#)\n\n[link::URL]\n\n[img::https://app.bsd.education/resources/bsdlogo.png]\n\n(---)\n\n[-\n\tunordered\n\tlist\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]\n\n(*)note highlight\n\n(**)centred note highlight\n\n(***)\n\n(!)On +html#<body>#+1, objective description\n\n(>>style.css)',
+        'Formatting\n\n`code`\n\n*bold text*\n\n(html)<!-- code snippet -->(#)\n\n[link::URL]\n\n[glossary#html#<div>]\n\n[img::https://app.bsd.education/resources/bsdlogo.png]\n\n(---)\n\n[-\n\tunordered\n\tlist\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]\n\n(*)note highlight\n\n(**)centred note highlight\n\n(***)\n\n(!)On +html#<body>#+1, objective description\n\n(>>style.css)',
         'Generic step\n\nStep context.\n\n(---)\n\n[-\n\t(*)\n\t(*)\n-]\n\n(***)\n\n(!)On +type#key#, \n(!)On +type#key#, \n(!)On +type#key#, ',
         'Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n\t(*)item 1\n\t(*)item 2\n-]',
     ],
@@ -84,7 +84,7 @@ const
         },
         {
             entry: 'alt + 2',
-            description: 'insert summery step instruction',
+            description: 'insert summary step instruction',
         },
         {
             entry: 'alt + i',
@@ -151,17 +151,83 @@ const
             description: 'apply step logic & update code file',
         },
         'divider',
-        'Call generateJSON() in console to obtain the project JSON object.',
-        'Transition code must be preceded by exactly "// Transition:".',
-        'Expectation code must be preceded by exactly "// Expectation:".',
-        'Code inside editable region that mathces the equivalent() argument will be removed.',
-        'Number of editable regions mentioned in a step must be consistent between the instruction and test functions.',
-        'Objective description for live expectations must be found in the instruction.',
-        'All steps are "code step" by default.',
-        'Steps that contain only "pass.on()" expectation will be set to "interactive step".',
-        'Code files that are identical ( minus trailing editable markups ) in the previous step will be set to "leave unchanged".',
-        'Code files that contain transition logic will be set to "modify content".'
-    ];
+        {
+            entry: 'generateJSON()',
+            description: 'call in console to obtain project JSON object',
+        },
+        `<ul>
+            <li>Transition code must be preceded by exactly "// Transition:".</li>
+            <li>Expectation code must be preceded by exactly "// Expectation:".</li>
+            <li>Code inside an editable region will be replaced by 4 empty spaces if it matches with the corresponding equivalent() argument.</li>
+            <li>The argument for the equivalent() method will be stored as model answer.</li>
+            <li>Objective descriptoin and test functions must agree on the number of editable regions in a step.</li>
+            <li>Editable region must be found as indicated by the objective descriptions.</li>
+            <li>Objective description for live expectations must be found in the instruction.</li>
+            <li>All steps are "code step" by default.</li>
+            <li>Steps that contain only "pass.on()" expectation will be set to "interactive step" automatically.</li>
+            <li>Code files that are identical ( minus trailing editable markups ) in the previous step will be set to "leave unchanged" automatically.</li>
+            <li>Code files that contain transition logic will be set to "modify content" automatically.</li>
+        </ul>`,
+    ],
+
+    //  A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+    //  a b c d e f g h i j k l m n o p q r s t u v w x y z
+
+    glossaryLink = {
+        html: {
+            'HTML': '53fa2693-c653-411c-9a7d-f1df47d36432',
+            '<a>': 'de2005f1-d7e4-424b-8f4a-624783079e7c',
+            '<b>': '31bdb056-c63b-4a71-bf50-ba798aaec9f4',
+            '<body>': 'd694e726-ee2b-4b81-9ca4-21302387ef43',
+            '<br>': 'beef4a5f-f32f-4266-baf2-f297ce1e7ca3',
+            '<button>': 'aef3c0f8-e182-41f8-9f56-5df2f7f0c814',
+            '<canvas>': '35dc2e11-8f4b-49a5-942c-7b10d1561de3',
+            '<div>': '6f45e8ff-64d2-4528-827a-9d2722b8449d',
+            '<h1>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<h2>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<h3>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<h4>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<h5>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<h6>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<head>': '35287bae-ead4-4b8e-b2ca-1d990ea555ca',
+            '<iframe>': 'c7d8cbbd-b5e4-4212-baaa-7ee5253c86ed',
+            '<img>': '1eff844a-cc1d-4e36-b5dc-8b29d9b7ce7d',
+            '<script>': '72e6a24d-eb8d-4000-bee8-859baffda976',
+            'id': '05c870d4-8500-4dbd-98ef-92fd1f6d84a1',
+            'onclick': 'c8b0c517-cdbb-44b4-a79f-0e9ee70d9a87',
+        },
+        css: {
+            'CSS': 'da14e3f5-4197-46ee-9006-b858b1214b67',
+            'animation': '18055ae9-47d6-47b9-9146-4fecac4c0c8b',
+            'background-color': 'c0ed8259-70af-4c0c-abdc-56be713f6cdf',
+            'border': '927c1e89-ccfb-47d4-b25f-85238c30e1f7',
+            'border-radius': 'b10d6311-78b5-4604-b30e-6d6ce2fbe2e9',
+            'cursor': '65c42136-afe9-492d-9569-4a57639dc5e4',
+            'font-size': 'd81da100-c237-4606-8687-9eabf717e1e6',
+            'height': '7fe3e114-0f5f-4851-b3aa-97232d4d4b6c',
+            'margin': '3a2f0a2d-1c4c-4882-ab43-37386ef16a67',
+            'max-width': '0709c8c8-da93-4b63-8bea-bd5154babee1',
+            'outline': '56565ef1-8786-4aa2-b959-1cf066dd8cd1',
+            'selector': '010c68a7-e6cc-46e9-b9af-99c6708110e8',
+            'text-align': 'e8f7c7af-74e5-4bd2-b322-7e3a40594ece',
+            'width': 'a1ca4408-3396-4d15-878e-dc003503fe0f',
+        },
+        javascript: {
+            'JavaScript': '051f20b9-73df-49fd-905f-7e438e0c7a61',
+            'alert': 'f840417f-4006-4436-9cc1-f8d40da50808',
+            'array': 'f6b7d0fc-700b-4202-861a-b5900a6fd922',
+            'arithmetic operator': '6bc23e90-67a4-4ba5-a27c-35d5f3add4a1',
+            'charCodeAt': '537e811a-4aba-4702-9484-7080b3dc6eb4',
+            'else if': '2ed56671-86c8-4799-a423-5d7f549ec659',
+            'else': '2ed56671-86c8-4799-a423-5d7f549ec659',
+            'forEach': 'f17d20df-0558-4e71-9453-241850c24347',
+            'fromCharCode': 'f98f0fe0-53b6-47b9-8f80-f5c439acacdb',
+            'function': '37322df6-fd28-4a7e-992f-05f0e06ecfe1',
+            'if': '2ed56671-86c8-4799-a423-5d7f549ec659',
+            'prompt': 'f5359b15-9a4d-48d3-acb5-3d1a60db49a2',
+            'variable': 'ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52',
+        },
+    };
 
 let gutter,
     activeCodeBtn,                  // CURRENT CODE BUTTON
@@ -182,6 +248,8 @@ let gutter,
     step = [''],                                    // COMBINATION OF THE ABOVE
     master,                                         // SINGLE STRING FOR ENTIRE PROJECT
 
+    liveGlossaryLink = { html: {}, css: {}, javascript: {} },
+
     instToken, instTokenEnd, instBlock, instExp,
     codeToken, codeTokenEnd, codeBlock, codeExp,
     logicToken, logicTokenEnd, logicBlock, logicExp,
@@ -192,6 +260,17 @@ let gutter,
     tipContainer,
 
     xOffset, yOffset;
+
+// ======================================================== //
+// ==================== ASYNC FUNCTION ==================== //
+// ======================================================== //
+
+async function pullGLossaryList() {
+    const res = await fetch('https://glossary-api-r1.bsd.education/api/glossary/');
+    const json = await res.json();
+
+    json.data.forEach(g => liveGlossaryLink[g.category][g.term] = g.glossaryUuid);
+}
 
 // ======================================================== //
 // ==================== EVENT LISTENER ==================== //
@@ -269,6 +348,8 @@ window.onload = () => {
     updateStepLogic();
 
     setInterval(saveToLocal, 100000);
+
+    pullGLossaryList();
 };
 
 window.onmouseup = () => window.removeEventListener('mousemove', moveDivider, true);
@@ -378,7 +459,8 @@ function instructionHTML(source, n = cStep) {
         link = /\[([^\]:]+)::([^\s]+)\]/g,
         bold = /\*([^\s*]+|[^\s][^*]+[^\s])\*/g,
         code = /`([^\s`]+|[^\s][^`]+[^\s])`/g,
-        glossary = /gls#([^#\n]+)#(html|css|js|javascript)#([-a-z0-9]+)/;
+        glossary = /\[([^#]*)#(html|css|js)#([^\]]+)\]/;
+    // glossary = /gls#([^#\n]+)#(html|css|js|javascript)#([-a-z0-9]+)/;
 
     let
         isList = false,
@@ -398,6 +480,35 @@ function instructionHTML(source, n = cStep) {
         slice(2);
 
     source.forEach((e, i) => {
+        // replace markup for glossary link
+        while (glossary.test(e)) {
+            const
+                query = e.match(glossary),
+                match = query[0].replace(/&lt;/g, '<'),
+                type = query[2].replace(/^js$/, 'javascript'),
+                key = query[3].replace(/&lt;/g, '<'),
+                text = query[1].trim().length ? query[1] : query[3];
+
+            if (glossaryLink.hasOwnProperty(type)) {
+                if (glossaryLink[type].hasOwnProperty(key)) {
+                    e = e.replace(glossary, `<a href='#glossary/${type}/${glossaryLink[type][key]}'>${text}</a>`);
+                }
+                else if (liveGlossaryLink[type].hasOwnProperty(key)) {
+                    e = e.replace(glossary, `<a href='#glossary/${type}/${liveGlossaryLink[type][key]}'>${text}</a>`);
+                }
+                else {
+                    const error = `"${key}" is not found in glossaryLink["${type}"], please fix ${match} or use link markup [string::link] insteand in step ${n}.`;
+                    alert(error);
+                    throw new Error(error);
+                }
+            }
+            else {
+                const error = `"${type}" is not found in glossaryLink object, please fix ${match} in step ${n}.`;
+                alert(error);
+                throw new Error(error);
+            }
+        }
+
         // replace markup for code location link
         while (loc.test(e)) {
             const
@@ -405,13 +516,10 @@ function instructionHTML(source, n = cStep) {
                 name = query[1] || (query[2] == 'html' ? 'index' : query[2] == 'css' ? 'style' : 'script');
 
             e = e.replace(loc, `<strong>##LINE('${name}.${query[2]}','${query[3]}')${query[4] || ''}##</strong>`);
-            if (query.input[query.index - 1] == '+') e = e.splice(query.index - 1, 1, `<strong>${query[2].toUpperCase()} line</strong> `);
-        }
 
-        // replace markup for glossary link
-        while (glossary.test(e)) {
-            const query = e.match(glossary);
-            e = e.replace(glossary, `<a href='#glossary/${query[2].replace(/^js$/i, 'javascript')}/${query[3]}'>${query[1]}</a>`);
+            if (query.input[query.index - 1] == '+') {
+                e = e.splice(query.index - 1, 1, `<strong>${query[2].toUpperCase()} line</strong> `);
+            }
         }
 
         // BEGINNING OF A LIST
@@ -847,7 +955,7 @@ function generateJSON() {
                 duration: null,
                 type: 'project',
                 status: 'private',
-                core: 'game',
+                core: 'web',
                 resources: [],
                 searchable: true,
                 recommended: false,
@@ -884,10 +992,13 @@ function generateJSON() {
         },
         stepIds = [];
 
+    //  collect project settings
     const
         mid = prompt('Please provide mission uuid. Leave blank to generate a new one.'),
         version = prompt('Please provide a revision ( e.g. 2.13 ).', '1.0'),
-        status = prompt('Please choose a publish status:\n1. author only\n2. internal', 1);
+        status = prompt('Please choose a publish status:\n1. author only\n2. internal', 1),
+        core = prompt('Please choose a core for this project:\n1. Web Development\n2. App Development\n3. Robotics and Hardware\n4. Video Game Development', 1),
+        dsp = prompt('Project description:');
 
     mission.missionUuid = (mid && mid.trim().length) ? mid.trim() : uuidv4();
 
@@ -897,12 +1008,15 @@ function generateJSON() {
         mission.settings.majorRevision = v[0].toString();
         mission.settings.minorRevision = v[1].toString();
     }
-    else {
-        alert('Invalid revision format, the default will be used.');
-    }
+    else alert('Invalid revision format, the default will be used.');
 
     if (status == 2) mission.settings.status = 'internal';
 
+    if (core && core > 1) mission.settings.core = core == 2 ? 'app' : core == 3 ? 'robo' : 'game';
+
+    if (dsp.trim().length) mission.settings.description = dsp.trim();
+
+    //  generate data structure for each step
     step.forEach((stepString, i) => {
         if (!i) return;
 
@@ -1083,8 +1197,8 @@ function generateJSON() {
 
             //  formulate description for each objective
             const objectiveDescription =
-                //  remove type#key#offset and any preceding string before passing to the instructionHTML function
-                //  which will convert markup such as *bold* or `code` to HTML code
+                //  remove type#key#offset and any preceding string before passing to instructionHTML()
+                //  instructionHTML() converts markup such as *bold* or `code` to HTML code
                 instructionHTML(`\n\n${objective.replace(/^(.*(html|css|js)#[^#]+#([+-]\d+)?,|\(!\))\s*/, '')
                     //  capitalise first letter
                     .replace(/\b\w/, l => l.toUpperCase())}`)
@@ -1092,7 +1206,11 @@ function generateJSON() {
                     .split('<hr>')[0]
                     .trim()
                     //  remove parent <p> element
-                    .replace(/^<p>/, '').replace(/<\/p>$/, '');
+                    .replace(/^<p>/, '').replace(/<\/p>$/, '')
+                    //  convert phrases such as "following image" or "following link" to "provided image" or "provided link"
+                    .replace(/following\s+(image|link)/, 'provided $1')
+                    //  convert trailing ":" to "."
+                    .replace(/:\s*$/, '.');
 
             //  define default test object
             stepObj.tests[testId] = {
@@ -1200,6 +1318,7 @@ function saveToLocal() {
             localStorage.lbcontent = master;
             codeEditor.session.setScrollTop(codeScrollTop);
             logicEditor.session.setScrollTop(logicScroolTop);
+            console.clear();
             print('file saved to local');
 
             return true;
@@ -1242,7 +1361,7 @@ function keyHandler() {
 
     // handle right alt key
     else if (event.code == 'AltRight' && !altKey) {
-        console.log(event.code);
+        // console.log(event.code);
         altKey = true;
         returnFocus = document.activeElement;
         returnFocus.blur();
@@ -1342,7 +1461,7 @@ function showTips() {
             const tip = newElement('p', { style: 'margin: 10px 0' });
 
             if (typeof (data) == 'string') {
-                tip.textContent = data;
+                tip.innerHTML = data;
             }
             else {
                 const
