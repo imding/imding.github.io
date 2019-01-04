@@ -1174,6 +1174,7 @@ function generateJSON() {
         //  set step type to 'interactive' if only live expectation is found
         if (!hasCodeObjective && stepExpectations.live.length) {
             stepObj.type = 'interactive';
+            stepObj.content.instructions = stepObj.content.instructions.split('\n').slice(0, -2).join('\n');
         }
 
         //  create stepObj.tests array
@@ -1272,8 +1273,8 @@ function generateJSON() {
         mission.steps[stepObj.stepId] = stepObj;
     });
 
-    console.clear();
-    console.log(JSON.stringify(mission));
+    // console.clear();
+    // console.log(JSON.stringify(mission));
     return 'Mission JSON generated successfully';
 }
 
@@ -1385,10 +1386,10 @@ function keyHandler() {
         event.preventDefault();
 
         switch (event.code) {
-            case 'Digit0': taInstruction.value = template[0]; break;
-            case 'Digit1': taInstruction.value = template[1]; break;
-            case 'Digit2': taInstruction.value = template[2]; break;
-            case 'Digit3': taInstruction.value = template[3]; break;
+            case 'Digit0': confirm('Overwrite existing instructions?') ? taInstruction.value = template[0] : null; break;
+            case 'Digit1': confirm('Overwrite existing instructions?') ? taInstruction.value = template[1] : null; break;
+            case 'Digit2': confirm('Overwrite existing instructions?') ? taInstruction.value = template[2] : null; break;
+            // case 'Digit3': taInstruction.value = template[3]; break;
             case 'Slash': convertEditable(); break;
             case 'KeyN': btnAdd.click(); break;
             case 'KeyP': btnRun.click(); break;
@@ -1668,21 +1669,24 @@ function testLogic() {
             setValue(logicEditor, `// Transition:\n${logic}\n\n${logicEditor.getValue()}`.trim());
         }
 
+        logic = jsWithoutComments(logic);
+
         const type = activeCodeBtn == btnHTML ? 'html' : activeCodeBtn == btnCSS ? 'css' : 'js';
-        let input = decodeURI(encodeURI(code[cStep - 1]).match(eval(type + 'Token')[2])[0].replace(eval(type + 'Token')[0], '').replace(eval(type + 'Token')[1], '')),
+        const token = activeCodeBtn == btnHTML ? htmlToken : activeCodeBtn == btnCSS ? cssToken : jsToken;
+        let input = decodeURI(encodeURI(code[cStep - 1]).match(token[2])[0].replace(token[0], '').replace(token[1], '')),
             output = [];
 
         if (/^\s*return/m.test(logic)) {
             /codeWithoutMarkup/.test(logic) ? input = noMarkup(input) : null;
             // APPLY CODE IN LOGIC EDITOR TO INPUT
-            output = eval(`(function(){ ${decodeURI(logic).replace(/codeWithoutMarkup/g, 'input').replace(/let\s+output/, 'output').replace(/(;[^;]+)$/, '')} }())`);
-
+            output = eval(`(function(){ ${decodeURI(logic).replace(/codeWithoutMarkup/g, 'input').replace(/let\s+output/, 'output')} }())`);
+            
             if (typeof (output) == 'string') {
                 setValue(codeEditor, output);
                 gutter.style.background = 'lightgreen';
             }
             else {
-                // log(`Output type is "${typeof (output)}", should be a string.`, 'warn');
+                log(`Output type is "${typeof (output)}", should be a string.`, 'warn');
                 gutter.style.background = 'lightcoral';
             }
         }
