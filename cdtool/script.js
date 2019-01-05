@@ -1106,7 +1106,7 @@ function generateJSON() {
 
             //  populate answers array
             codeObjectives.sort().forEach((test, q) => {
-                const answer = test.split('.or')[0].match(/equivalent(?:\.to)?\s*\(\s*('|"|`)(.*)\1\s*\)/);
+                const answer = test.split('.or(')[0].match(/equivalent(?:\.to)?\s*\(\s*('|"|`)(.*)\1\s*\)/);
 
                 if (answer) {
                     if (stepObj.files[file].answers) stepObj.files[file].answers.push(answer[2]);
@@ -1273,8 +1273,8 @@ function generateJSON() {
         mission.steps[stepObj.stepId] = stepObj;
     });
 
-    // console.clear();
-    // console.log(JSON.stringify(mission));
+    console.clear();
+    console.log(JSON.stringify(mission));
     return 'Mission JSON generated successfully';
 }
 
