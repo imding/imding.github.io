@@ -1075,7 +1075,13 @@ function generateJSON() {
             stepCode[type] = codeString;
 
             //  set leave unchanged and skip this forEach iteration
-            if (codeString === prevCodeString || `${codeString}${markup[0]}${markup[1]}` === prevCodeString) {
+            const
+                //  determine whether previous step is an interactive step
+                prevInteractiveStep = i > 1 ? mission.steps[stepIds[i - 2]].type == 'interactive' : false,
+                //  determine whether code is unchanged from the previous step
+                codeUnchanged = noMarkup(codeString.replace(prevCodeString, '')).trim() == '';
+
+            if (!prevInteractiveStep && codeUnchanged) {
                 stepObj.files[file] = { contentsWithAnswers: prevCodeString };
                 return;
             }
@@ -1127,6 +1133,13 @@ function generateJSON() {
 
             //  handle transition step
             if (hasTransition) {
+                //  handle step transition error
+                if (i == 1 && prevInteractiveStep) {
+                    const error = 'Step 1 is an interactive step, all files in step 2 must not have transition logic.';
+                    alert(error);
+                    throw new Error(error);
+                }
+
                 stepObj.files[file].contents = logicString.split('// Expectation:')[0].trim();
                 stepObj.files[file].mode = 'modify';
                 stepObj.files[file].contentsWithAnswers = '';
@@ -1628,6 +1641,8 @@ function testLogic() {
     const
         // c = CODE; k = KEY; options = { str, int }
         insertLine = (c, k, options) => {
+            k = k.replace(/\+/, '\\+');
+
             const m = c.match(new RegExp(k, 'g'));
 
             if (!m) log(`step logic failed: '${k}' can not be found.`);
