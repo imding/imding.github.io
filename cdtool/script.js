@@ -1087,8 +1087,11 @@ function generateJSON() {
             };
 
             //  build objectives arrays
-            jsWithoutComments(logicString).split(/\n/).forEach(line => {
-                if (codeObjectivePattern.test(line)) {
+            logicString.split(/\n/).forEach(line => {
+                //  remove comment from line
+                line = jsWithoutComments(line).trim();
+
+                if (line.length && codeObjectivePattern.test(line)) {
                     codeObjectives.push(line);
                     hasCodeObjective = true;
                 }
@@ -1209,7 +1212,7 @@ function generateJSON() {
                     //  remove parent <p> element
                     .replace(/^<p>/, '').replace(/<\/p>$/, '')
                     //  convert phrases such as "following image" or "following link" to "provided image" or "provided link"
-                    .replace(/following\s+(image|link)/, 'provided $1')
+                    .replace(/following\s+(image|link|text|)/, 'provided $1')
                     //  convert trailing ":" to "."
                     .replace(/:\s*$/, '.');
 
@@ -1671,7 +1674,7 @@ function testLogic() {
 
         logic = jsWithoutComments(logic);
 
-        const type = activeCodeBtn == btnHTML ? 'html' : activeCodeBtn == btnCSS ? 'css' : 'js';
+        // const type = activeCodeBtn == btnHTML ? 'html' : activeCodeBtn == btnCSS ? 'css' : 'js';
         const token = activeCodeBtn == btnHTML ? htmlToken : activeCodeBtn == btnCSS ? cssToken : jsToken;
         let input = decodeURI(encodeURI(code[cStep - 1]).match(token[2])[0].replace(token[0], '').replace(token[1], '')),
             output = [];
