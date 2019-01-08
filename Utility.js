@@ -235,6 +235,18 @@ class Utility {
             else console[opt](tStamp, msg);
         };
 
+        this.halt = (message, cb = () => {}) => {
+            if (typeof(cb) == 'function') {
+                cb.call();
+            }
+            else {
+                alert('Type mismatch: 2nd argument of halt() must be a function.');
+            }
+        
+            alert(message);
+            throw new Error(message);
+        };
+
         this.pad = n => {
             return n.toString().length == 2 ? n : '0' + n.toString();
         };

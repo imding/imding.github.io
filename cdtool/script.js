@@ -91,6 +91,10 @@ const
             description: 'preview & copy instruction',
         },
         {
+            entry: 'alt + g',
+            description: 'update glossary list',
+        },
+        {
             entry: 'alt + o',
             description: 'generate and append objective description ( HTML only )',
         },
@@ -266,10 +270,16 @@ let gutter,
 // ======================================================== //
 
 async function pullGLossaryList() {
-    const res = await fetch('https://glossary-api-r1.bsd.education/api/glossary/');
-    const json = await res.json();
-
-    json.data.forEach(g => liveGlossaryLink[g.category][g.term] = g.glossaryUuid);
+    try {
+        const res = await fetch('https://glossary-api-r1.bsd.education/api/glossary/');
+        const json = await res.json();
+    
+        json.data.forEach(g => liveGlossaryLink[g.category][g.term] = g.glossaryUuid);
+        alert('Glossary list successfully updated.');
+    }
+    catch (err) {
+        alert(err);
+    }
 }
 
 // ======================================================== //
@@ -348,8 +358,6 @@ window.onload = () => {
     updateStepLogic();
 
     setInterval(saveToLocal, 100000);
-
-    pullGLossaryList();
 };
 
 window.onmouseup = () => window.removeEventListener('mousemove', moveDivider, true);
@@ -497,15 +505,15 @@ function instructionHTML(source, n = cStep) {
                     e = e.replace(glossary, `<a href='#glossary/${type}/${liveGlossaryLink[type][key]}'>${text}</a>`);
                 }
                 else {
-                    const error = `"${key}" is not found in glossaryLink["${type}"], please fix ${match} or use link markup [string::link] insteand in step ${n}.`;
-                    alert(error);
-                    throw new Error(error);
+                    if (styledInstruction) btnConvert.click();
+                    goToStep(n);
+                    halt(`"${key}" is not found in glossaryLink["${type}"], please fix ${match} or use link markup [string::link] instead in step ${n}.`);
                 }
             }
             else {
-                const error = `"${type}" is not found in glossaryLink object, please fix ${match} in step ${n}.`;
-                alert(error);
-                throw new Error(error);
+                if (styledInstruction) btnConvert.click();
+                goToStep(n);
+                halt(`"${type}" is not found in glossaryLink object, please fix ${match} in step ${n}.`);
             }
         }
 
@@ -833,6 +841,12 @@ function nextStep() {
     styledInstruction ? updateStyledInstruction() : null;
 }
 
+function goToStep(n) {
+    while (cStep != n) {
+        cStep > n ? btnPrev.click() : btnNext.click();
+    }
+}
+
 function getStepName() {
     return (btnConvert.className == 'fa fa-pencil' ? (taInstruction.value.trim().length > 0 ? taInstruction.value : `Step ${cStep}`) : inst[cStep]).split(/\r?\n/)[0].trim();
 }
@@ -992,30 +1006,6 @@ function generateJSON() {
         },
         stepIds = [];
 
-    //  collect project settings
-    const
-        mid = prompt('Please provide mission uuid. Leave blank to generate a new one.'),
-        version = prompt('Please provide a revision ( e.g. 2.13 ).', '1.0'),
-        status = prompt('Please choose a publish status:\n1. author only\n2. internal', 1),
-        core = prompt('Please choose a core for this project:\n1. Web Development\n2. App Development\n3. Robotics and Hardware\n4. Video Game Development', 1),
-        dsp = prompt('Project description:');
-
-    mission.missionUuid = (mid && mid.trim().length) ? mid.trim() : uuidv4();
-
-    if (/^\d+\.\d+$/.test(version)) {
-        const v = version.split(/\./);
-        mission.settings.revision = `(${v[0]},${v[1]})`;
-        mission.settings.majorRevision = v[0].toString();
-        mission.settings.minorRevision = v[1].toString();
-    }
-    else alert('Invalid revision format, the default will be used.');
-
-    if (status == 2) mission.settings.status = 'internal';
-
-    if (core && core > 1) mission.settings.core = core == 2 ? 'app' : core == 3 ? 'robo' : 'game';
-
-    if (dsp.trim().length) mission.settings.description = dsp.trim();
-
     //  generate data structure for each step
     step.forEach((stepString, i) => {
         if (!i) return;
@@ -1108,9 +1098,7 @@ function generateJSON() {
 
             //  handle mismatch between number of expectations and editables
             if (codeObjectives.length !== (editableContents || []).length) {
-                const error = `Expectation code refers to ${codeObjectives.length} editable region${codeObjectives.length > 1 ? 's' : ''} while ${editableContents.length} ${editableContents.length > 1 ? 'are' : 'is'} found in step ${stepObj.stepNo}.`;
-                alert(error);
-                throw new Error(error);
+                halt(`Expectation code refers to ${codeObjectives.length} editable region${codeObjectives.length > 1 ? 's' : ''} while ${editableContents.length} ${editableContents.length > 1 ? 'are' : 'is'} found in step ${stepObj.stepNo}.`);
             }
 
             //  populate answers array
@@ -1126,8 +1114,7 @@ function generateJSON() {
                     }
                 }
                 else {
-                    alert(`Failed to generate the answers array for step ${stepObj.stepNo}.`);
-                    throw new Error(`Check expectation function: ${test}`);
+                    halt(`Failed to generate the answers array for step ${stepObj.stepNo}, please check expectation function: ${test}`);
                 }
             });
 
@@ -1135,9 +1122,7 @@ function generateJSON() {
             if (hasTransition) {
                 //  handle step transition error
                 if (i == 1 && prevInteractiveStep) {
-                    const error = 'Step 1 is an interactive step, all files in step 2 must not have transition logic.';
-                    alert(error);
-                    throw new Error(error);
+                    halt('Step 1 is an interactive step, all files in step 2 must not have transition logic.');
                 }
 
                 stepObj.files[file].contents = logicString.split('// Expectation:')[0].trim();
@@ -1254,9 +1239,7 @@ function generateJSON() {
 
                     //  handle line location error
                     if (editableIndex < 0) {
-                        const error = `No editable region is found at line ${editableLocation}, please fix "${markup.join('#')}" in step ${stepObj.stepNo}.`;
-                        alert(error);
-                        throw new Error(error);
+                        halt(`No editable region is found at line ${editableLocation}, please fix "${markup.join('#')}" in step ${stepObj.stepNo}.`);
                     }
 
                     //  use the index to access the corresponding test function for that editable
@@ -1274,20 +1257,40 @@ function generateJSON() {
 
         //  handle error when objective has no description
         if (stepExpectations.live.length) {
-            const error = `Live objective "${stepExpectations.live[0]}" has no instructional description in step ${i}.`;
-            alert(error);
-            throw new Error(error);
+            halt(`Live objective "${stepExpectations.live[0]}" has no instructional description in step ${i}.`);
         }
 
         //  handle error when last step contains objective
         if (i == tSteps && Object.keys(stepObj.tests).length) {
-            const error = 'The last step of a project can not contain objectives.';
-            alert(error);
-            throw new Error(error);
+            halt('The last step of a project can not contain objectives.');
         }
 
         mission.steps[stepObj.stepId] = stepObj;
     });
+
+    //  collect project settings
+    const
+        mid = prompt('Please provide mission uuid. Leave blank to generate a new one.'),
+        version = prompt('Please provide a revision ( e.g. 2.13 ).', '1.0'),
+        status = prompt('Please choose a publish status:\n1. author only\n2. internal', 1),
+        core = prompt('Please choose a core for this project:\n1. Web Development\n2. App Development\n3. Robotics and Hardware\n4. Video Game Development', 1),
+        dsp = prompt('Project description:');
+
+    mission.missionUuid = (mid && mid.trim().length) ? mid.trim() : uuidv4();
+
+    if (/^\d+\.\d+$/.test(version)) {
+        const v = version.split(/\./);
+        mission.settings.revision = `(${v[0]},${v[1]})`;
+        mission.settings.majorRevision = v[0].toString();
+        mission.settings.minorRevision = v[1].toString();
+    }
+    else alert('Invalid revision format, the default will be used.');
+
+    if (status == 2) mission.settings.status = 'internal';
+
+    if (core && core > 1) mission.settings.core = core == 2 ? 'app' : core == 3 ? 'robo' : 'game';
+
+    if (dsp.trim().length) mission.settings.description = dsp.trim();
 
     console.clear();
     console.log(JSON.stringify(mission));
@@ -1413,6 +1416,7 @@ function keyHandler() {
             case 'KeyK': generateTest(); break;
             case 'KeyI': btnConvert.click(); break;
             case 'KeyO': autoObjectiveText(); break;
+            case 'KeyG': pullGLossaryList(); break;
             case 'Backspace': closePreview(); break;
             case 'BracketLeft': btnPrev.click(); break;
             case 'BracketRight': btnNext.click(); break;
@@ -1834,10 +1838,10 @@ function remap(v, iMin, iMax, oMin, oMax) {
 
 function round(v, decimal = 0, op = Math.round) {
     if (op !== Math.round && op !== Math.ceil && op !== Math.floor) {
-        throw new Error(`Invalid operation parametre: ${op}.`);
+        halt(`Invalid operation parametre: ${op}.`);
     }
     else if (!Number.isInteger(decimal) || decimal < 0) {
-        throw new Error(`Invalid decimal parametre: ${decimal}.`);
+        halt(`Invalid decimal parametre: ${decimal}.`);
     }
 
     if (decimal) {
