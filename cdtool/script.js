@@ -463,7 +463,8 @@ function instructionHTML(source, n = cStep) {
         notes = /^(\t?)\(\*\*?\)\s*(.+[^\s]).*/,
         tab = /^\(>>(.+)\)/,
         loc = /(?:(\w+)\.)?(html|css|js)#([^#\n]+)#([-+]\d+)?/,
-        image = /\[IMG::(https?:\/\/[^'"\s]+\.(jpg|gif|jpeg|bmp|png|svg))\]/gi,
+        // image = /\[IMG::(https?:\/\/[^'"\s]+\.(jpg|gif|jpeg|bmp|png|svg))\]/gi,
+        image = /\[IMG::([^\s]+)\]/gi,
         link = /\[([^\]:]+)::([^\s]+)\]/g,
         bold = /\*([^\s*]+|[^\s][^*]+[^\s])\*/g,
         code = /`([^\s`]+|[^\s][^`]+[^\s])`/g,
@@ -557,7 +558,7 @@ function instructionHTML(source, n = cStep) {
             source[i] = `${center ? '<center>' : ''}${e.replace(notes, '$1<p class="notes">$2</p>')}${center ? '</center>' : ''}`;
         }
         else if (image.test(e)) {
-            source[i] = e.replace(image, '<center><p class="notes"><a href="$1" target="_blank"><img src="$1"></a><br>Click the image to open it in a new tab</p></center>');
+            source[i] = e.replace(image, '<center><p class="notes"><a href="$1" target="_blank"><img src="$1" style="width: auto; max-height: 15vh"></a><br>Click the image to open it in a new tab</p></center>');
         }
         else {
             source[i] = (e.trim().length && !isPre && !isList) ? `<p>${e}</p>` : e;

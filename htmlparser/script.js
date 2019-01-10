@@ -1,3 +1,5 @@
+//  fix dash symbol in ##LINK##
+
 const
     ti = ' <span class="red">hello</span> ',
     li = ' <a href="google.com"> Click</a> ';
@@ -1079,7 +1081,7 @@ function replaceStrings(str, replacement = '.') {
     return str;
 }
 
-// ===== LB IRRELEVANT ===== //
+// ===== LOCAL ONLY ===== //
 // function reset() {
 //     console.clear();
 //     result = { teacher: {}, learner: {} };
