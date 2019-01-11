@@ -358,6 +358,8 @@ window.onload = () => {
     updateStepLogic();
 
     setInterval(saveToLocal, 100000);
+
+    pullGLossaryList();
 };
 
 window.onmouseup = () => window.removeEventListener('mousemove', moveDivider, true);
@@ -506,13 +508,13 @@ function instructionHTML(source, n = cStep) {
                     e = e.replace(glossary, `<a href='#glossary/${type}/${liveGlossaryLink[type][key]}'>${text}</a>`);
                 }
                 else {
-                    if (styledInstruction) btnConvert.click();
+                    if (styledInstruction) convertInstruction();
                     goToStep(n);
                     halt(`"${key}" is not found in glossaryLink["${type}"], please fix ${match} or use link markup [string::link] instead in step ${n}.`);
                 }
             }
             else {
-                if (styledInstruction) btnConvert.click();
+                if (styledInstruction) convertInstruction();
                 goToStep(n);
                 halt(`"${type}" is not found in glossaryLink object, please fix ${match} in step ${n}.`);
             }
@@ -558,7 +560,7 @@ function instructionHTML(source, n = cStep) {
             source[i] = `${center ? '<center>' : ''}${e.replace(notes, '$1<p class="notes">$2</p>')}${center ? '</center>' : ''}`;
         }
         else if (image.test(e)) {
-            source[i] = e.replace(image, '<center><p class="notes"><a href="$1" target="_blank"><img src="$1" style="width: auto; max-height: 15vh"></a><br>Click the image to open it in a new tab</p></center>');
+            source[i] = e.replace(image, '<center><p class="notes"><a href="$1" target="_blank"><img src="$1" style="width: auto; max-width: 100%25; max-height: 15vh"></a><br>Click the image to open it in a new tab</p></center>');
         }
         else {
             source[i] = (e.trim().length && !isPre && !isList) ? `<p>${e}</p>` : e;
@@ -786,7 +788,7 @@ function addStep() {
 
     taInstruction.value = template[1];
     preview ? updatePreview() : null;
-    styledInstruction ? btnConvert.click() : null;
+    styledInstruction ? convertInstruction() : null;
     if (logicEditor.getReadOnly) logicEditor.setReadOnly(false);
 }
 
@@ -1102,8 +1104,14 @@ function generateJSON() {
                 halt(`Expectation code refers to ${codeObjectives.length} editable region${codeObjectives.length > 1 ? 's' : ''} while ${editableContents.length} ${editableContents.length > 1 ? 'are' : 'is'} found in step ${stepObj.stepNo}.`);
             }
 
+            //  sort codeObjective by increasing n in editable(n)
+            codeObjectives.sort((a, b) => {
+                a = Number(a.match(/editable\((\d+)\)/)[1]);
+                b = Number(b.match(/editable\((\d+)\)/)[1]);
+
+                return a < b ? -1 : 1;
             //  populate answers array
-            codeObjectives.sort().forEach((test, q) => {
+            }).forEach((test, q) => {
                 const answer = test.split('.or(')[0].match(/equivalent(?:\.to)?\s*\(\s*('|"|`)(.*)\1\s*\)/);
 
                 if (answer) {
@@ -1415,7 +1423,7 @@ function keyHandler() {
             case 'KeyP': btnRun.click(); break;
             case 'KeyL': if (cStep > 1) { testLogic(); break; } else { break; }
             case 'KeyK': generateTest(); break;
-            case 'KeyI': btnConvert.click(); break;
+            case 'KeyI': convertInstruction(); break;
             case 'KeyO': autoObjectiveText(); break;
             case 'KeyG': pullGLossaryList(); break;
             case 'Backspace': closePreview(); break;
