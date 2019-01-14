@@ -354,7 +354,7 @@ window.onload = () => {
         '</html>',
     ].join('\n'));
 
-    taInstruction.value = 'Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the learner will do.\n\n[Result]';
+    taInstruction.value = 'Introduction\n\n[Scenario] Why is this useful?\n\n[Learning Outcome] Exactly what the learner will do.\n\n(***)\n\n(!)pass the step.';
     updateStepLogic();
 
     setInterval(saveToLocal, 100000);
@@ -1686,10 +1686,10 @@ function testLogic() {
         };
 
     if (cStep > 1 && get(gutter, 'background') == '246, 246, 246') {
-        let logic = logicEditor.getValue().split('// Expectation:')[0].trim();
+        let _logic = logicEditor.getValue().split('// Expectation:')[0].trim();
 
-        if (!logic.length) {
-            logic =
+        if (!_logic.length) {
+            _logic =
                 'return `${codeWithoutMarkup}#BEGIN_EDITABLE##END_EDITABLE#`;' +
                 '\n// let output = codeWithoutMarkup; //.replace(/' +
                 (activeCodeBtn == btnHTML ? '\\s*<!--.*-->/g,\'' : activeCodeBtn == btnCSS ? '\\s*\\/\\*.*\\*\\//g,\'' : ';\\s*\\/\\/.*/g,\';') +
@@ -1697,20 +1697,55 @@ function testLogic() {
                 '\n// output = makeEditableBlock(output, \'key\');' +
                 '\n// return output;';
 
-            setValue(logicEditor, `// Transition:\n${logic}\n\n${logicEditor.getValue()}`.trim());
+            setValue(logicEditor, `// Transition:\n${_logic}\n\n${logicEditor.getValue()}`.trim());
         }
 
-        logic = jsWithoutComments(logic);
+        _logic = jsWithoutComments(_logic);
 
-        // const type = activeCodeBtn == btnHTML ? 'html' : activeCodeBtn == btnCSS ? 'css' : 'js';
+        //  token will be used to select the correct code file ( html, css or js )
         const token = activeCodeBtn == btnHTML ? htmlToken : activeCodeBtn == btnCSS ? cssToken : jsToken;
         let input = decodeURI(encodeURI(code[cStep - 1]).match(token[2])[0].replace(token[0], '').replace(token[1], '')),
             output = [];
 
-        if (/^\s*return/m.test(logic)) {
-            /codeWithoutMarkup/.test(logic) ? input = noMarkup(input) : null;
+        const prevAnswers =
+            //  remove comments
+            jsWithoutComments(
+                //  get logic code from previous step
+                logic[cStep - 1]
+                    //  select the correct code file
+                    .match(token[2])[0]
+                    //  remove code type markup
+                    .replace(token[0], '').replace(token[1], '')
+                    //  remove transition code
+                    .split('// Transition:')[0]
+            )
+            //  split into array
+            .split('\n')
+            //  sort array by ascending n - as in editable(n)
+            .sort((a, b) => {
+                a = Number(a.match(/editable\((\d+)\)/)[1]);
+                b = Number(b.match(/editable\((\d+)\)/)[1]);
+                return a < b ? -1 : 1;
+            })
+            //  extract arg from equivalent(arg) and produce new array
+            .map(a => {
+                const answer = a.split('.or(')[0].match(/equivalent(?:\.to)?\s*\(\s*('|"|`)(.*)\1\s*\)/);
+
+                if (answer) {
+                    return answer[2];
+                }
+                else {
+                    halt(`Failed to generate the answers array for step ${cStep - 1}, please check expectation function: ${a}`);
+                }
+            });
+
+        console.log(prevAnswers);
+        console.log(logic[cStep - 1]);
+
+        if (/^\s*return/m.test(_logic)) {
+            /codeWithoutMarkup/.test(_logic) ? input = noMarkup(input) : null;
             // APPLY CODE IN LOGIC EDITOR TO INPUT
-            output = eval(`(function(){ ${decodeURI(logic).replace(/codeWithoutMarkup/g, 'input').replace(/let\s+output/, 'output')} }())`);
+            output = eval(`(function(){ ${decodeURI(_logic).replace(/codeWithoutMarkup/g, 'input').replace(/let\s+output/, 'output')} }())`);
             
             if (typeof (output) == 'string') {
                 setValue(codeEditor, output);
