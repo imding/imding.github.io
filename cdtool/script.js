@@ -1281,7 +1281,7 @@ function generateJSON() {
     const
         mid = prompt('Please provide mission uuid. Leave blank to generate a new one.'),
         version = prompt('Please provide a revision ( e.g. 2.13 ).', '1.0'),
-        status = prompt('Please choose a publish status:\n1. author only\n2. internal', 1),
+        status = prompt('Please choose a publish status:\n1. author only\n2. internal\n3. Exclusive', 1),
         core = prompt('Please choose a core for this project:\n1. Web Development\n2. App Development\n3. Robotics and Hardware\n4. Video Game Development', 1),
         dsp = prompt('Project description:');
 
@@ -1295,7 +1295,7 @@ function generateJSON() {
     }
     else alert('Invalid revision format, the default will be used.');
 
-    if (status == 2) mission.settings.status = 'internal';
+    mission.settings.status = status == 2 ? 'internal' : status == 3 ? 'exclusive' : 'private';
 
     if (core && core > 1) mission.settings.core = core == 2 ? 'app' : core == 3 ? 'robo' : 'game';
 
