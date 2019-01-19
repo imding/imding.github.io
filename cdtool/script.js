@@ -1,24 +1,24 @@
 const
-    app = document.getElementById('app'),
-    taInstruction = document.getElementById('instruction'),
-    btnRecover = document.getElementById('recover'),
-    btnLoad = document.getElementById('load'),
-    btnConvert = document.getElementById('convert'),
-    btnSave = document.getElementById('save'),
-    btnTips = document.getElementById('tips'),
-    btnPrev = document.getElementById('prev'),
-    btnNext = document.getElementById('next'),
-    btnAdd = document.getElementById('add'),
-    btnDel = document.getElementById('delete'),
-    btnDupPrev = document.getElementById('dupPrev'),
-    btnHTML = document.getElementById('html'),
-    btnCSS = document.getElementById('css'),
-    btnJS = document.getElementById('js'),
-    btnRun = document.getElementById('run'),
-    btnDupNext = document.getElementById('dupNext'),
-    srcCode = document.getElementById('srcCode'),
-    stepLogic = document.getElementById('stepLogic'),
-    info = document.getElementById('info'),
+    app = document.querySelector('#app'),
+    taInstruction = document.querySelector('#instruction'),
+    btnRecover = document.querySelector('#recover'),
+    btnLoad = document.querySelector('#load'),
+    btnConvert = document.querySelector('#convert'),
+    btnSave = document.querySelector('#save'),
+    btnTips = document.querySelector('#tips'),
+    btnPrev = document.querySelector('#prev'),
+    btnNext = document.querySelector('#next'),
+    btnAdd = document.querySelector('#add'),
+    btnDel = document.querySelector('#delete'),
+    btnDupPrev = document.querySelector('#dupPrev'),
+    btnHTML = document.querySelector('#html'),
+    btnCSS = document.querySelector('#css'),
+    btnJS = document.querySelector('#js'),
+    btnRun = document.querySelector('#run'),
+    btnDupNext = document.querySelector('#dupNext'),
+    srcCode = document.querySelector('#srcCode'),
+    stepLogic = document.querySelector('#stepLogic'),
+    info = document.querySelector('#info'),
 
     htmlToken = ['##HTML##', '##HTML_E##', /##HTML##.*##HTML_E##/],
     cssToken = ['##CSS##', '##CSS_E##', /##CSS##.*##CSS_E##/],
@@ -67,7 +67,7 @@ const
     },
 
     template = [
-        'Formatting\n\n`code`\n\n*bold text*\n\n(html)<!-- code snippet -->(#)\n\n[link::URL]\n\n[glossary#html#<div>]\n\n[img::https://app.bsd.education/resources/bsdlogo.png]\n\n(---)\n\n[-\n\tunordered\n\tlist\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]\n\n(*)note highlight\n\n(**)centred note highlight\n\n(***)\n\n(!)On +html#<body>#+1, objective description\n\n(>>style.css)',
+        'Formatting\n\n`code`\n\n*bold text*\n\n_underlined text_\n\n~italic text~\n\n*_~bold underlined and italic~_*\n\n(html)<!-- code snippet -->(#)\n\n[link::URL]\n\n[glossary#html#<div>]\n\n[img::https://app.bsd.education/resources/bsdlogo.png]\n\n(---)\n\n[-\n\tunordered\n\tlist\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]\n\n(*)note highlight\n\n(**)centred note highlight\n\n(***)\n\n(!)On +html#<body>#+1, objective description\n\n(>>style.css)',
         'Generic step\n\nStep context.\n\n(---)\n\n[-\n\t(*)\n\t(*)\n-]\n\n(***)\n\n(!)On +type#key#, \n(!)On +type#key#, \n(!)On +type#key#, ',
         'Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n\t(*)item 1\n\t(*)item 2\n-]',
     ],
@@ -467,11 +467,21 @@ function instructionHTML(source, n = cStep) {
         loc = /(?:(\w+)\.)?(html|css|js)#([^#\n]+)#([-+]\d+)?/,
         // image = /\[IMG::(https?:\/\/[^'"\s]+\.(jpg|gif|jpeg|bmp|png|svg))\]/gi,
         image = /\[IMG::([^\s]+)\]/gi,
-        link = /\[([^\]:]+)::([^\s]+)\]/g,
-        bold = /\*([^\s*]+|[^\s][^*]+[^\s])\*/g,
-        code = /`([^\s`]+|[^\s][^`]+[^\s])`/g,
-        glossary = /\[([^#]*)#(html|css|js)#([^\]]+)\]/;
-    // glossary = /gls#([^#\n]+)#(html|css|js|javascript)#([-a-z0-9]+)/;
+        glossary = /\[([^#]*)#(html|css|js)#([^\]]+)\]/,
+        
+        //  the following styles are allowed to oocur multiple times per line
+        styleText = string =>
+            string
+                // BOLD STYLE
+                .replace(/\*([^\s*]+|[^\s][^*]+[^\s])\*/g, '<strong>$1</strong>')
+                // UNDERLINE STYLE
+                .replace(/_([^\s*]+|[^\s][^_]+[^\s])_/g, '<u>$1</u>')
+                // ITALIC STYLE
+                .replace(/~([^\s*]+|[^\s][^~]+[^\s])~/g, '<i>$1</i>')
+                // CODE STYLE
+                .replace(/`([^\s`]+|[^\s][^`]+[^\s])`/g, '<code class="syntax">$1</code>')
+                // LINK STYLE
+                .replace(/\[([^\]:]+)::([^\s]+)\]/g, '<a href="$2" target="_blank">$1</a>');
 
     let
         isList = false,
@@ -552,17 +562,21 @@ function instructionHTML(source, n = cStep) {
         }
         // OBJECTIVE HIGHLIGHT
         else if (highlight.test(e)) {
-            source[i] = e.replace(highlight, '$1<p class="highlight">##' + (++objNum) + '##. $2</p>');
+            source[i] = styleText(e).replace(highlight, '$1<p class="highlight">##' + (++objNum) + '##. $2</p>');
         }
         // NOTES HIGHLIGHT
         else if (notes.test(e)) {
             const center = /^\t?\(\*\*\)/.test(e);
-            source[i] = `${center ? '<center>' : ''}${e.replace(notes, '$1<p class="notes">$2</p>')}${center ? '</center>' : ''}`;
+            source[i] = `${center ? '<center>' : ''}${styleText(e).replace(notes, '$1<p class="notes">$2</p>')}${center ? '</center>' : ''}`;
         }
         else if (image.test(e)) {
             source[i] = e.replace(image, '<center><p class="notes"><a href="$1" target="_blank"><img src="$1" style="width: auto; max-width: 100%25; max-height: 15vh"></a><br>Click the image to open it in a new tab</p></center>');
         }
+        // else if (inlineImage.test(e)) {
+        //     source[i] = e.replace(inlineImage, '<img src="$1" style="width: 20px; display: inline">');
+        // }
         else {
+            e = styleText(e);
             source[i] = (e.trim().length && !isPre && !isList) ? `<p>${e}</p>` : e;
         }
 
@@ -579,13 +593,7 @@ function instructionHTML(source, n = cStep) {
         // OBJECTIVE NUMBERS
         .replace(/##(\d+)##\.\s/g, objNum > 1 ? '$1. ' : '')
         // CODE SNIPPETS
-        .replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>')
-        // BOLD STYLE
-        .replace(bold, '<strong>$1</strong>')
-        // CODE STYLE
-        .replace(code, '<code class="syntax">$1</code>')
-        // LINK STYLE
-        .replace(link, '<a href="$2" target="_blank">$1</a>');
+        .replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>');
 
     source += (n > 1 && n < tSteps ? '\n<hr>\n<p class="highlight">Click on <strong>Check all objectives</strong> to continue</p>' :
         n == 1 ? '\n<hr>\n<p class="highlight">Click on <strong>Next step</strong> to get started</p>' :
@@ -727,7 +735,7 @@ function updatePreview() {
         '</html>',
     ].join('\n');
 
-    if (!document.getElementById('preview')) {
+    if (!document.querySelector('#preview')) {
         storeActiveCode();
         preview = newElement('iframe', { id: 'preview' });
         alignWithInstruction(preview);
@@ -1707,40 +1715,40 @@ function testLogic() {
         let input = decodeURI(encodeURI(code[cStep - 1]).match(token[2])[0].replace(token[0], '').replace(token[1], '')),
             output = [];
 
-        const prevAnswers =
-            //  remove comments
-            jsWithoutComments(
-                //  get logic code from previous step
-                logic[cStep - 1]
-                    //  select the correct code file
-                    .match(token[2])[0]
-                    //  remove code type markup
-                    .replace(token[0], '').replace(token[1], '')
-                    //  remove transition code
-                    .split('// Transition:')[0]
-            )
-            //  split into array
-            .split('\n')
-            //  sort array by ascending n - as in editable(n)
-            .sort((a, b) => {
-                a = Number(a.match(/editable\((\d+)\)/)[1]);
-                b = Number(b.match(/editable\((\d+)\)/)[1]);
-                return a < b ? -1 : 1;
-            })
-            //  extract arg from equivalent(arg) and produce new array
-            .map(a => {
-                const answer = a.split('.or(')[0].match(/equivalent(?:\.to)?\s*\(\s*('|"|`)(.*)\1\s*\)/);
+        // const prevAnswers =
+        //     //  remove comments
+        //     jsWithoutComments(
+        //         //  get logic code from previous step
+        //         logic[cStep - 1]
+        //             //  select the correct code file
+        //             .match(token[2])[0]
+        //             //  remove code type markup
+        //             .replace(token[0], '').replace(token[1], '')
+        //             //  remove transition code
+        //             .split('// Transition:')[0]
+        //     )
+        //     //  split into array
+        //     .split('\n')
+        //     //  sort array by ascending n - as in editable(n)
+        //     .sort((a, b) => {
+        //         a = Number(a.match(/editable\((\d+)\)/)[1]);
+        //         b = Number(b.match(/editable\((\d+)\)/)[1]);
+        //         return a < b ? -1 : 1;
+        //     })
+        //     //  extract arg from equivalent(arg) and produce new array
+        //     .map(a => {
+        //         const answer = a.split('.or(')[0].match(/equivalent(?:\.to)?\s*\(\s*('|"|`)(.*)\1\s*\)/);
 
-                if (answer) {
-                    return answer[2];
-                }
-                else {
-                    halt(`Failed to generate the answers array for step ${cStep - 1}, please check expectation function: ${a}`);
-                }
-            });
+        //         if (answer) {
+        //             return answer[2];
+        //         }
+        //         else {
+        //             halt(`Failed to generate the answers array for step ${cStep - 1}, please check expectation function: ${a}`);
+        //         }
+        //     });
 
-        console.log(prevAnswers);
-        console.log(logic[cStep - 1]);
+        // console.log(prevAnswers);
+        // console.log(logic[cStep - 1]);
 
         if (/^\s*return/m.test(_logic)) {
             /codeWithoutMarkup/.test(_logic) ? input = noMarkup(input) : null;
