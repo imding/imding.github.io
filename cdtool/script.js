@@ -68,7 +68,7 @@ const
 
     template = [
         'Formatting\n\n`code`\n\n*bold text*\n\n_underlined text_\n\n~italic text~\n\n*_~bold underlined and italic~_*\n\n(html)<!-- code snippet -->(#)\n\n[link::URL]\n\n[glossary#html#<div>]\n\n[img::https://app.bsd.education/resources/bsdlogo.png]\n\n(---)\n\n[-\n\tunordered\n\tlist\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]\n\n(*)note highlight\n\n(**)centred note highlight\n\n(***)\n\n(!)On +html#<body>#+1, objective description\n\n(>>style.css)',
-        'Generic step\n\nStep context.\n\n(---)\n\n[-\n\t(*)\n\t(*)\n-]\n\n(***)\n\n(!)On +type#key#, \n(!)On +type#key#, \n(!)On +type#key#, ',
+        'Generic step\n\nStep context.\n\n(---)\n\n[-\n\t(*)\n\t(*)\n-]\n\n(***)\n\n(!)On +type#key#, \n\n(!)On +type#key#, \n\n(!)On +type#key#, ',
         'Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n\t(*)item 1\n\t(*)item 2\n-]',
     ],
 
@@ -562,12 +562,16 @@ function instructionHTML(source, n = cStep) {
         }
         // OBJECTIVE HIGHLIGHT
         else if (highlight.test(e)) {
-            source[i] = styleText(e).replace(highlight, '$1<p class="highlight">##' + (++objNum) + '##. $2</p>');
+            const text = e.replace(highlight, '$1<p class="highlight">##' + (++objNum) + '##. $2</p>');
+            source[i] = styleText(text);
         }
         // NOTES HIGHLIGHT
         else if (notes.test(e)) {
-            const center = /^\t?\(\*\*\)/.test(e);
-            source[i] = `${center ? '<center>' : ''}${styleText(e).replace(notes, '$1<p class="notes">$2</p>')}${center ? '</center>' : ''}`;
+            const
+                center = /^\t?\(\*\*\)/.test(e),
+                text = e.replace(notes, '$1<p class="notes">$2</p>');
+
+            source[i] = `${center ? '<center>' : ''}${styleText(text)}${center ? '</center>' : ''}`;
         }
         else if (image.test(e)) {
             source[i] = e.replace(image, '<center><p class="notes"><a href="$1" target="_blank"><img src="$1" style="width: auto; max-width: 100%25; max-height: 15vh"></a><br>Click the image to open it in a new tab</p></center>');
@@ -1109,6 +1113,7 @@ function generateJSON() {
 
             //  handle mismatch between number of expectations and editables
             if (codeObjectives.length !== (editableContents || []).length) {
+                goToStep(stepObj.stepNo);
                 halt(`Expectation code refers to ${codeObjectives.length} editable region${codeObjectives.length > 1 ? 's' : ''} while ${editableContents.length} ${editableContents.length > 1 ? 'are' : 'is'} found in step ${stepObj.stepNo}.`);
             }
 
@@ -1131,6 +1136,7 @@ function generateJSON() {
                     }
                 }
                 else {
+                    goToStep(stepObj.stepNo);
                     halt(`Failed to generate the answers array for step ${stepObj.stepNo}, please check expectation function: ${test}`);
                 }
             });
@@ -1139,6 +1145,7 @@ function generateJSON() {
             if (hasTransition) {
                 //  handle step transition error
                 if (i == 1 && prevInteractiveStep) {
+                    goToStep(2);
                     halt('Step 1 is an interactive step, all files in step 2 must not have transition logic.');
                 }
 
@@ -1256,6 +1263,7 @@ function generateJSON() {
 
                     //  handle line location error
                     if (editableIndex < 0) {
+                        goToStep(stepObj.stepNo);
                         halt(`No editable region is found at line ${editableLocation}, please fix "${markup.join('#')}" in step ${stepObj.stepNo}.`);
                     }
 
@@ -1274,11 +1282,13 @@ function generateJSON() {
 
         //  handle error when objective has no description
         if (stepExpectations.live.length) {
+            goToStep(i);
             halt(`Live objective "${stepExpectations.live[0]}" has no instructional description in step ${i}.`);
         }
 
         //  handle error when last step contains objective
         if (i == tSteps && Object.keys(stepObj.tests).length) {
+            goToStep(i);
             halt('The last step of a project can not contain objectives.');
         }
 
@@ -1291,7 +1301,8 @@ function generateJSON() {
         version = prompt('Please provide a revision ( e.g. 2.13 ).', '1.0'),
         status = prompt('Please choose a publish status:\n1. author only\n2. internal\n3. Exclusive', 1),
         core = prompt('Please choose a core for this project:\n1. Web Development\n2. App Development\n3. Robotics and Hardware\n4. Video Game Development', 1),
-        dsp = prompt('Project description:');
+        dsp = prompt('Project description:'),
+        img = prompt('Card image link', '/resources/bsdlogo.png');
 
     mission.missionUuid = (mid && mid.trim().length) ? mid.trim() : uuidv4();
 
@@ -1308,6 +1319,8 @@ function generateJSON() {
     if (core && core > 1) mission.settings.core = core == 2 ? 'app' : core == 3 ? 'robo' : 'game';
 
     if (dsp.trim().length) mission.settings.description = dsp.trim();
+
+    mission.settings.cardImage = img;
 
     console.clear();
     console.log(JSON.stringify(mission));
