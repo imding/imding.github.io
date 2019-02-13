@@ -1,0 +1,84 @@
+@import url("https://fonts.googleapis.com/css?family=VT323");
+
+body {
+    background-color: black;
+    text-align: center;
+    font-family: "VT323";
+    font-size: 36px;
+    user-select: none;
+}
+
+#game,
+#playerPad,
+#aiPad,
+#ball {
+    position: absolute;
+}
+
+#pong {
+    position: relative;
+    width: 500px;
+    height: 300px;
+    background-color: rgb(9, 27, 54);
+    overflow: hidden;
+    cursor: none;
+}
+
+#playerPad {
+    width: 10px;
+    height: 80px;
+    top: 110px;
+    left: 10px;
+    background-color: limegreen;
+    transition: top 0.1s ease-in-out;
+}
+
+#aiPad {
+    width: 10px;
+    height: 80px;
+    top: 110px;
+    right: 10px;
+    background-color: slateblue;
+    transition: top 0.2s ease-in-out;
+}
+
+#playerPad,
+#aiPad {
+    border-radius: 10px;
+}
+
+#ball {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    top: 140px;
+    left: 240px;
+    background-color: skyblue;
+}
+
+#playerScore,
+#aiScore {
+    top: 30px;
+    color: limegreen;
+}
+
+#aiScore {
+    color: slateblue;
+}
+
+#playPause {
+    width: 150px;
+    top: 5%;
+    background-color: black;
+    color: skyblue;
+    font-family: "VT323";
+    font-size: 30px;
+    cursor: pointer;
+}
+
+#instruction {
+    width: 100%;
+    color: darkgray;
+    top: 10%;
+    font-size: 24px;
+}

@@ -562,7 +562,8 @@ function instructionHTML(source, n = cStep) {
         }
         // OBJECTIVE HIGHLIGHT
         else if (highlight.test(e)) {
-            const text = e.replace(highlight, '$1<p class="highlight">##' + (++objNum) + '##. $2</p>');
+            const text = e.replace(highlight, `$1<p class="highlight">${isList ? '' : `##${++objNum}##. `}$2</p>`);
+            // const text = e.replace(highlight, '$1<p class="highlight">##' + (++objNum) + '##. $2</p>');
             source[i] = styleText(text);
         }
         // NOTES HIGHLIGHT
@@ -1084,7 +1085,12 @@ function generateJSON() {
                 //  determine whether previous step is an interactive step
                 prevInteractiveStep = i > 1 ? mission.steps[stepIds[i - 2]].type == 'interactive' : false,
                 //  determine whether code is unchanged from the previous step
-                codeUnchanged = noMarkup(codeString.replace(prevCodeString, '')).trim() == '';
+                codeUnchanged =
+                    prevCodeString ?
+                        `${codeString.trim()}${markup[0].concat(markup[1])}` == 
+                        prevCodeString.trim().replace(/\s*#BEGIN_EDITABLE##END_EDITABLE#$/, markup[0].concat(markup[1]))
+                        :
+                        false;
 
             if (!prevInteractiveStep && codeUnchanged) {
                 stepObj.files[file] = { contentsWithAnswers: prevCodeString };
