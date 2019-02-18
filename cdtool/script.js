@@ -475,9 +475,9 @@ function instructionHTML(source, n = cStep) {
                 // BOLD STYLE
                 .replace(/\*([^\s*]+|[^\s][^*]+[^\s])\*/g, '<strong>$1</strong>')
                 // UNDERLINE STYLE
-                .replace(/_([^\s*]+|[^\s][^_]+[^\s])_/g, '<u>$1</u>')
+                // .replace(/_([^\s*]+|[^\s][^_]+[^\s])_/g, '<u>$1</u>')
                 // ITALIC STYLE
-                .replace(/~([^\s*]+|[^\s][^~]+[^\s])~/g, '<i>$1</i>')
+                // .replace(/~([^\s*]+|[^\s][^~]+[^\s])~/g, '<i>$1</i>')
                 // CODE STYLE
                 .replace(/`([^\s`]+|[^\s][^`]+[^\s])`/g, '<code class="syntax">$1</code>')
                 // LINK STYLE
@@ -1087,8 +1087,7 @@ function generateJSON() {
                 //  determine whether code is unchanged from the previous step
                 codeUnchanged =
                     prevCodeString ?
-                        `${codeString.trim()}${markup[0].concat(markup[1])}` == 
-                        prevCodeString.trim().replace(/\s*#BEGIN_EDITABLE##END_EDITABLE#$/, markup[0].concat(markup[1]))
+                        codeString.trim() == prevCodeString.replace(/#BEGIN_EDITABLE##END_EDITABLE#\s*$/, '').trim()
                         :
                         false;
 
@@ -1315,8 +1314,8 @@ function generateJSON() {
     if (/^\d+\.\d+$/.test(version)) {
         const v = version.split(/\./);
         mission.settings.revision = `(${v[0]},${v[1]})`;
-        mission.settings.majorRevision = v[0].toString();
-        mission.settings.minorRevision = v[1].toString();
+        mission.settings.majorRevision = v[0];
+        mission.settings.minorRevision = v[1];
     }
     else alert('Invalid revision format, the default will be used.');
 

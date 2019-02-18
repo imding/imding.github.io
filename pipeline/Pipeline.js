@@ -499,8 +499,8 @@ class Pipeline {
                         if (!isShell) {
                             const key = camelise(nodeNameInput.value.trim());
 
-                            if (this.chart.nodes.hasOwnProperty(key)) {
-                                return alert('A group can only be converted from a newly created node.');
+                            if (this.decksData.hasOwnProperty(key)) {
+                                delete this.decksData[key];
                             }
                         }
 
