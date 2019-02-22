@@ -177,20 +177,25 @@ class Pipeline {
                         let item;
 
                         if (content.type === 'p') {
-                            let escHTML = htmlEscape(content.html);
-                            item = newElement('p');
-
+                            let escHTML = htmlEscape(content.html)
+                                            .replace(/(\n\*\s[^\n]+)+/g, '\n<ul>$&\n</ul>')     //  wrap "* string" lines with <ul></ul>
+                                            .replace(/\n\*\s([^\n]+)/g, '\n\t<li>$1</li>');     //  wrap each "* string" line with <li></li>
+                            
+                            item = newElement('div');
+                            
+                            sCss(item, { marginTop: '10px' });
+                            
                             if (!content.hasOwnProperty('bullet')) content.bullet = true;
-
+                            
                             while (this.markup.deco.test(escHTML)) {
                                 const
-                                    m = escHTML.match(this.markup.deco),
+                                m = escHTML.match(this.markup.deco),
                                     // patterns to turn into tags
                                     _p = /^(b|i|u|em|del|sub|sup|samp)$/g.test(m[1]);
-
+                                    
                                 escHTML = escHTML.replace(m[0], _p ? `<${m[1]}>${m[2]}</${m[1]}>` : `<a href='${m[2]}' target='_blank'>${m[1]}</a>`);
                             }
-
+                            
                             item.innerHTML = `${content.bullet ? `<i class='fa fa-${section.title ? 'exclamation-circle' : 'info-circle'}'></i>` : ''} ${escHTML}`;
                         }
 

@@ -35,6 +35,10 @@ body {
     overflow: hidden;
 }
 
+ul {
+    margin: 0;
+}
+
 /* grids */
 
 #Root, #Chart {
