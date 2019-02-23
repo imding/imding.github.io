@@ -35,7 +35,7 @@ body {
     overflow: hidden;
 }
 
-ul {
+ul, ol {
     margin: 0;
 }
 

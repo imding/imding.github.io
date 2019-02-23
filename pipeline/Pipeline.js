@@ -179,7 +179,8 @@ class Pipeline {
                         if (content.type === 'p') {
                             let escHTML = htmlEscape(content.html)
                                             .replace(/(\n\*\s[^\n]+)+/g, '\n<ul>$&\n</ul>')     //  wrap "* string" lines with <ul></ul>
-                                            .replace(/\n\*\s([^\n]+)/g, '\n\t<li>$1</li>');     //  wrap each "* string" line with <li></li>
+                                            .replace(/(\n\*\*\s[^\n]+)+/g, '\n<ol>$&\n</ol>')     //  wrap "** string" lines with <ol></ol>
+                                            .replace(/\n\**\s([^\n]+)/g, '\n\t<li>$1</li>');     //  wrap each "* string" line with <li></li>
                             
                             item = newElement('div');
                             
