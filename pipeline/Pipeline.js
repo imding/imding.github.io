@@ -1,6 +1,6 @@
 class Pipeline {
     constructor(root) {
-        this.winOS = window.clientInformation.platform == 'Win32';
+        // this.winOS = window.clientInformation.platform == 'Win32';
         this.name = '';
         this.self = root;
         this.creatorMode = false;
@@ -164,9 +164,7 @@ class Pipeline {
                 };
 
                 //  determine platform and set card title sticky position
-                sCss(card.title, {
-                    top: `-${this.winOS ? '18' : '3'}px`,
-                });
+                // sCss(card.title, { top: `-${this.winOS ? '18' : '3'}px` });
 
                 card.self.appendChild(card.title);
                 node.deck.self.appendChild(card.self);
@@ -185,8 +183,8 @@ class Pipeline {
                         if (content.type === 'p') {
                             let escHTML = htmlEscape(content.html)
                                             .replace(/(\n\*\s[^\n]+)+/g, '\n<ul>$&\n</ul>')     //  wrap "* string" lines with <ul></ul>
-                                            .replace(/(\n\*\*\s[^\n]+)+/g, '\n<ol>$&\n</ol>')     //  wrap "** string" lines with <ol></ol>
-                                            .replace(/\n\**\s([^\n]+)/g, '\n\t<li>$1</li>');     //  wrap each "* string" line with <li></li>
+                                            .replace(/(\n\*\*\s[^\n]+)+/g, '\n<ol>$&\n</ol>')   //  wrap "** string" lines with <ol></ol>
+                                            .replace(/\n\**\s([^\n]+)/g, '\n\t<li>$1</li>');    //  wrap each "* string" line with <li></li>
                             
                             item = newElement('div');
                             
@@ -441,7 +439,7 @@ class Pipeline {
                     dirIcon = newElement('i', { className: 'fa' }),
                     dir = (val.match(/^[<>]+/) || [''])[0];
 
-                sCss(dirIcon, { marginTop: '3px' });
+                sCss(dirIcon, { marginTop: '3.5px' });
 
                 if (/<>/.test(dir)) {
                     dirIcon.classList.add('fa-caret-right');
