@@ -1,5 +1,6 @@
 class Pipeline {
     constructor(root) {
+        this.winOS = window.clientInformation.platform == 'Win32';
         this.name = '';
         this.self = root;
         this.creatorMode = false;
@@ -161,6 +162,11 @@ class Pipeline {
                     title: newElement('h4', { textContent: cf.title || 'Card Title' }),
                     sections: [],
                 };
+
+                //  determine platform and set card title sticky position
+                sCss(card.title, {
+                    top: `-${this.winOS ? '18' : '3'}px`,
+                });
 
                 card.self.appendChild(card.title);
                 node.deck.self.appendChild(card.self);
@@ -428,20 +434,42 @@ class Pipeline {
                 //  attach node input container
                 chartEditor.appendChild(nodeEditGroup);
 
-                //  attach arrows before input box
+                //  attach direction icon before input box
                 nodeEditGroup.appendChild(dirToggle);
 
-                const dir = val.match(/^[<>]+/);
+                const
+                    dirIcon = newElement('i', { className: 'fa' }),
+                    dir = (val.match(/^[<>]+/) || [''])[0];
 
-                if (dir) {
-                    if (/</.test(dir[0])) dirToggle.appendChild(newElement('i', { className: 'fa fa-caret-left' }));
-                    if (/>/.test(dir[0])) dirToggle.appendChild(newElement('i', { className: 'fa fa-caret-right' }));
+                sCss(dirIcon, { marginTop: '3px' });
+
+                if (/<>/.test(dir)) {
+                    dirIcon.classList.add('fa-caret-right');
+                    dirToggle.appendChild(newElement('i', { className: 'fa fa-caret-left' }));
+                }
+                else if (/>>/.test(dir)) {
+                    dirIcon.classList.add('fa-caret-right');
+                }
+                else {
+                    dirIcon.classList.add('fa-map-marker');
                 }
 
+                dirToggle.appendChild(dirIcon);
+
                 dirToggle.onclick = () => {
-                    if (dirToggle.children.length == 0) dirToggle.appendChild(newElement('i', { className: 'fa fa-caret-right' }));
-                    else if (dirToggle.children.length == 1) dirToggle.insertBefore(newElement('i', { className: 'fa fa-caret-left' }), dirToggle.firstElementChild);
-                    else dirToggle.innerHTML = null;
+                    //  change direction icon to map marker
+                    if (dirToggle.children.length == 2) {
+                        dirToggle.removeChild(dirToggle.firstElementChild);
+                        dirIcon.className = 'fa fa-map-marker';
+                    }
+                    //  change direction icon to right arrow
+                    else if (dirIcon.classList.contains('fa-map-marker')) {
+                        dirIcon.className = 'fa fa-caret-right';
+                    }
+                    //  add left direction icon to toggle container
+                    else {
+                        dirToggle.insertBefore(newElement('i', { className: 'fa fa-caret-left' }), dirIcon);
+                    }
                 };
 
                 //  attach input box
@@ -675,6 +703,8 @@ class Pipeline {
                 itemEditGroup.appendChild(removeIcon);
                 itemEditGroup.appendChild(dragIcon);
 
+                sCss(typeToggle, { color: item.type == 'p' ? 'skyblue' : item.type == 'img' ? 'goldenrod' : 'plum' });
+
                 typeToggle.onclick = () => {
                     const
                         isP = typeToggle.classList.contains('fa-file-text-o'),
@@ -682,6 +712,7 @@ class Pipeline {
 
                     typeToggle.classList.remove(isP ? 'fa-file-text-o' : isImg ? 'fa-file-image-o' : 'fa-code');
                     typeToggle.classList.add(isP ? 'fa-file-image-o' : isImg ? 'fa-code' : 'fa-file-text-o');
+                    sCss(typeToggle, { color: isP ? 'goldenrod' : isImg ? 'plum' : 'skyblue' });
                 };
 
                 contentInput.value = item[type];
@@ -718,8 +749,8 @@ class Pipeline {
                 checkChart = () => nodes.some((node, i) => {
                     //  nic: get the value of input element inside a given node input container
                     const getValue = nic => {
-                        const dir = nic.querySelector('.dirToggle').children.length;
-                        return `${dir ? (dir == 1 ? '>>' : '<>') : ''}${nic.querySelector('input').value.trim()}`;
+                        const dir = nic.querySelector('.dirToggle').children;
+                        return `${dir.length == 1 ? (dir[0].classList.contains('fa-caret-right') ? '>>' : '') : '<>'}${nic.querySelector('input').value.trim()}`;
                     };
 
                     if (node.classList.contains('shellInput')) {
@@ -910,12 +941,14 @@ class Pipeline {
 
         newNodeButton.onclick = () => {
             const
-                noIndent = false,
+                prevNode = newNodeButton.previousElementSibling.classList,
                 isNode = true,
                 isFocused = true,
-                name = uid('Node', '_');
-
-            addNodeInput(name, noIndent, isNode, isFocused);
+                name = uid('Node', '_'),
+                prevIndent = prevNode.contains('indented'),
+                dir = prevNode.contains('shellInput') ? '' : '>> ';
+            
+            addNodeInput(`${dir}${name}`, !dir || prevIndent, isNode, isFocused);
             chartEditor.appendChild(newNodeButton);
 
             addDeck(camelise(name));

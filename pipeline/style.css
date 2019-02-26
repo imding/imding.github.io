@@ -179,6 +179,10 @@ code::-webkit-scrollbar-thumb {
     color: palegreen;
 }
 
+.fa-map-marker {
+    color: indianred;
+}
+
 .fa-exclamation-circle {
     transform: scale(0.8);
     color: whitesmoke;
@@ -186,7 +190,7 @@ code::-webkit-scrollbar-thumb {
 
 h4 {
     position: sticky;
-    top: -3px;
+    /* top: -3px; */
     color: #1D2533;
     border-style: solid;
     border-width: 0 10px 0 10px;
@@ -447,7 +451,7 @@ input, textarea {
 }
 
 .deckEditGroup {
-    width: 85%;
+    width: 90%;
     border-radius: 10px;
     margin: auto;
 }
@@ -461,7 +465,7 @@ input, textarea {
 }
 
 .cardEditGroup, .sectionEditGroup {
-    padding: 15px;
+    padding: 10px;
     border-radius: 5px;
     background-color: rgba(255, 255, 255, 0.05);
 }
@@ -477,7 +481,7 @@ input, textarea {
 }
 
 .sectionEditGroup {
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
 .sectionTitle {
