@@ -430,6 +430,24 @@ input, textarea {
     transform: scale(0.9);
 }
 
+.fa-window-minimize, .fa-window-maximize {
+    position: absolute;
+    right: -5px;
+    top: -5px;
+    color: white;
+    font-size: 7px;
+    border-radius: 5px;
+    padding: 10px 10px 5px 5px;
+    background-color: tomato;
+    cursor: pointer;
+    filter: grayscale(0.5);
+    transition: filter 0.2s ease-in-out;
+}
+
+.fa-window-minimize:hover, .fa-window-maximize:hover {
+    filter: grayscale(0);
+}
+
 #doneButton {
     margin: 30px auto 10px auto;
     width: 180px;
@@ -471,7 +489,10 @@ input, textarea {
 }
 
 .cardEditGroup {
+    position: relative;
     margin-top: 25px;
+    transition: height 0.2s ease-out;
+    overflow: hidden;
 }
 
 .cardEditGroup>input {

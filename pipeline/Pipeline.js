@@ -327,89 +327,6 @@ class Pipeline {
         }
     }
 
-    creatorAccess() {
-        const
-            cPanel = newElement('div', { id: 'cPanel' }),
-            editIcon = newElement('i', { id: 'editIcon', className: 'fa fa-gear fa-lg' }),
-            pushIcon = newElement('i', { id: 'pushIcon', className: 'fa fa-cloud-upload' }),
-            pullIcon = newElement('i', { id: 'pullIcon', className: 'fa fa-cloud-download' });
-
-        document.body.appendChild(cPanel);
-
-        cPanel.appendChild(pullIcon);
-        cPanel.appendChild(editIcon);
-        cPanel.appendChild(pushIcon);
-
-        sCss(cPanel, { top: `${gCss(Chart).height}px` });
-
-        editIcon.onclick = () => this.expandAnd('Edit');
-        pullIcon.onclick = () => this.pullData();
-        pushIcon.onclick = () => {
-            if (this.authFn(prompt('Password:'), 1) == 'mfunfjo531') this.pushData();
-        };
-        this.parseAddressLineParameters();
-        this.creatorMode = true;
-    }
-
-    parseAddressLineParameters() {
-        const
-            regex = /[?&]([^=#]+)=([^&#]*)/g,
-            url = window.location.href,
-            params = {};
-
-        let match;
-
-        while (match = regex.exec(url)) {
-            params[match[1]] = match[2];
-        }
-
-        const pipelineName = params['pipeline'];
-
-        if (pipelineName) {
-            this.pullData(pipelineName);
-        }
-    }
-
-    authFn(str, offset) {
-        let result = '';
-        let charcode = 0;
-        for (let i = 0; i < str.length; i++) {
-            charcode = (str[i].charCodeAt()) + offset;
-            result += String.fromCharCode(charcode);
-        }
-        return result;
-    }
-
-    expandAnd(action) {
-        sCss(this.self, { filter: 'blur(5px)', opacity: '0.5' });
-        sCss(cPanel, { top: '50vh' });
-        sCss(editIcon, { display: 'none' });
-        sCss(pushIcon, { display: 'none' });
-        sCss(pullIcon, { display: 'none' });
-
-        this.autoScroll(0, this.chart);
-
-        cPanel.classList.add('expanded');
-        cPanel.expanded = true;
-
-        if (action == 'Edit') this.showEditorUI();
-    }
-
-    hideCreatorPanel() {
-        while (cPanel.children.length > 3) {
-            cPanel.removeChild(cPanel.lastElementChild);
-        }
-
-        sCss(this.self, { filter: 'blur(0)', opacity: '1' });
-        sCss(cPanel, { top: `${gCss(Chart).height}px` });
-        sCss(editIcon, { display: 'inline-block' });
-        sCss(pushIcon, { display: 'inline-block' });
-        sCss(pullIcon, { display: 'inline-block' });
-
-        cPanel.removeAttribute('class');
-        cPanel.expanded = false;
-    }
-
     showEditorUI() {
         cPanel.classList.add('lg');
 
@@ -586,8 +503,10 @@ class Pipeline {
             addCardGroup = (deck, card) => {
                 const
                     cardEditGroup = newElement('div', { className: 'cardEditGroup' }),
+                    cardTitleInput = newElement('input', { value: card.title || 'Card Title', className: 'editor cardTitle' }),
                     removeIcon = newElement('i', { className: 'fa fa-remove' }),
                     dragIcon = newElement('i', { className: 'fa fa-reorder' }),
+                    minMaxIcon = newElement('div'),
                     newSectionButton = newElement('i', { className: 'newSectionButton fa fa-plus-circle fa-lg' });
 
                 deck.appendChild(cardEditGroup);
@@ -595,13 +514,18 @@ class Pipeline {
                 cardEditGroup.onmouseenter = () => deckEditor.activeCard = cardEditGroup;
                 cardEditGroup.onmouseleave = () => deckEditor.activeCard = null;
 
-                cardEditGroup.appendChild(newElement('input', {
-                    value: card.title || 'Card Title',
-                    className: 'editor cardTitle',
-                }));
+                //  attach elements to the card editor group
+                cardEditGroup.appendChild(cardTitleInput);
                 cardEditGroup.appendChild(removeIcon);
                 cardEditGroup.appendChild(dragIcon);
+                cardEditGroup.appendChild(minMaxIcon);
+                card.sections.forEach(sec => addSectionGroup(cardEditGroup, sec));
+                cardEditGroup.appendChild(newSectionButton);
 
+                //  attach icon to the minimise/maximise container
+                minMaxIcon.appendChild(newElement('i', { className: 'fa fa-window-minimize' }));
+
+                //  handle events
                 removeIcon.onclick = () => {
                     if (deck.querySelectorAll('.cardEditGroup').length == 1) return alert('Each deck must have at least one card.');
                     if (!confirm('You are about to delete a card.\nThis action can not be undone. Are you sure?')) return;
@@ -616,10 +540,22 @@ class Pipeline {
                     });
                 };
 
-                card.sections.forEach(sec => addSectionGroup(cardEditGroup, sec));
+                minMaxIcon.onclick = () => {
+                    if (!cardEditGroup.hasOwnProperty('defaultHeight')) {
+                        cardEditGroup.defaultHeight = gCss(cardEditGroup).height;
+                    }
 
-                //  attach the button to add new item
-                cardEditGroup.appendChild(newSectionButton);
+                    sCss(cardEditGroup, { height: `${gCss(cardEditGroup).height}px` });
+
+                    if (cardEditGroup.collapsed = !cardEditGroup.collapsed) {
+                        minMaxIcon.firstElementChild.className = 'fa fa-window-maximize';
+                        sCss(cardEditGroup, { height: `${gCss(cardTitleInput).height + 20}px` });
+                    }
+                    else {
+                        minMaxIcon.firstElementChild.className = 'fa fa-window-minimize';
+                        sCss(cardEditGroup, { height: `${cardEditGroup.defaultHeight}px` });
+                    }
+                };
 
                 newSectionButton.onclick = () => {
                     addSectionGroup(cardEditGroup, {
@@ -1092,9 +1028,92 @@ class Pipeline {
     //     return `\n${deckObj}\n`;
     // }
 
+    creatorAccess() {
+        const
+            cPanel = newElement('div', { id: 'cPanel' }),
+            editIcon = newElement('i', { id: 'editIcon', className: 'fa fa-gear fa-lg' }),
+            pushIcon = newElement('i', { id: 'pushIcon', className: 'fa fa-cloud-upload' }),
+            pullIcon = newElement('i', { id: 'pullIcon', className: 'fa fa-cloud-download' });
+
+        document.body.appendChild(cPanel);
+
+        cPanel.appendChild(pullIcon);
+        cPanel.appendChild(editIcon);
+        cPanel.appendChild(pushIcon);
+
+        sCss(cPanel, { top: `${gCss(Chart).height}px` });
+
+        editIcon.onclick = () => this.expandAnd('Edit');
+        pullIcon.onclick = () => this.pullData();
+        pushIcon.onclick = () => {
+            if (this.authFn(prompt('Password:'), 1) == 'mfunfjo531') this.pushData();
+        };
+        this.parseAddressLineParameters();
+        this.creatorMode = true;
+    }
+
+    expandAnd(action) {
+        sCss(this.self, { filter: 'blur(5px)', opacity: '0.5' });
+        sCss(cPanel, { top: '50vh' });
+        sCss(editIcon, { display: 'none' });
+        sCss(pushIcon, { display: 'none' });
+        sCss(pullIcon, { display: 'none' });
+
+        this.autoScroll(0, this.chart);
+
+        cPanel.classList.add('expanded');
+        cPanel.expanded = true;
+
+        if (action == 'Edit') this.showEditorUI();
+    }
+
+    hideCreatorPanel() {
+        while (cPanel.children.length > 3) {
+            cPanel.removeChild(cPanel.lastElementChild);
+        }
+
+        sCss(this.self, { filter: 'blur(0)', opacity: '1' });
+        sCss(cPanel, { top: `${gCss(Chart).height}px` });
+        sCss(editIcon, { display: 'inline-block' });
+        sCss(pushIcon, { display: 'inline-block' });
+        sCss(pullIcon, { display: 'inline-block' });
+
+        cPanel.removeAttribute('class');
+        cPanel.expanded = false;
+    }
+
+    authFn(str, offset) {
+        let result = '';
+        let charcode = 0;
+        for (let i = 0; i < str.length; i++) {
+            charcode = (str[i].charCodeAt()) + offset;
+            result += String.fromCharCode(charcode);
+        }
+        return result;
+    }
+
     toMarkup(string) {
         return string
             .replace(this.markup.tags, '[$1::$2]')
             .replace(/<a href='([^']+)' target='_blank'>([^<>]+)<\/a>/, '[$2::$1]');
+    }
+
+    parseAddressLineParameters() {
+        const
+            regex = /[?&]([^=#]+)=([^&#]*)/g,
+            url = window.location.href,
+            params = {};
+
+        let match;
+
+        while (match = regex.exec(url)) {
+            params[match[1]] = match[2];
+        }
+
+        const pipelineName = params['pipeline'];
+
+        if (pipelineName) {
+            this.pullData(pipelineName);
+        }
     }
 }
