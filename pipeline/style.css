@@ -32,7 +32,6 @@ body {
     color: #C8CACC;
     font-family: 'Abel', sans-serif;
     user-select: none;
-    overflow: hidden;
 }
 
 ul, ol {
@@ -47,6 +46,10 @@ ul, ol {
     position: relative;
 }
 
+body, #Root, .sectionContainer, .cardEditGroup, .itemEditGroup>textarea {
+    overflow: hidden;
+}
+
 /* grids */
 
 #Root, #Chart {
@@ -59,7 +62,6 @@ ul, ol {
     grid-template-rows: 1fr 1fr;
     row-gap: 50px;
     justify-items: center;
-    overflow: hidden;
 }
 
 #Chart {
@@ -218,7 +220,7 @@ h4 {
 
 h5 {
     font-size: 1em;
-    margin: 10px 0;
+    margin: 10px 0 0;
     padding: 6px 3px;
     border-radius: 5px;
     color: white;
@@ -236,6 +238,10 @@ h5 > .fa-window-maximize, h5 > .fa-window-minimize {
     border-radius: 6px;
     font-size: 10px;
     opacity: 0.2;
+}
+
+.sectionContainer {
+    transition: height 0.3s ease-out;
 }
 
 em {
@@ -492,7 +498,6 @@ input, textarea {
 .cardEditGroup {
     margin-top: 25px;
     transition: height 0.2s ease-out;
-    overflow: hidden;
 }
 
 .cardEditGroup>input {
@@ -541,7 +546,6 @@ input, textarea {
     padding: 5px 10px;
     box-shadow: inset 0 0 10px 2px white;
     box-sizing: border-box;
-    overflow: hidden;
     resize: none;
 }
 

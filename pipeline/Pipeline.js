@@ -1,6 +1,5 @@
 class Pipeline {
     constructor(root) {
-        // this.winOS = window.clientInformation.platform == 'Win32';
         this.name = '';
         this.self = root;
         this.creatorMode = false;
@@ -163,17 +162,15 @@ class Pipeline {
                     sections: [],
                 };
 
-                //  determine platform and set card title sticky position
-                // sCss(card.title, { top: `-${this.winOS ? '18' : '3'}px` });
-
                 card.self.appendChild(card.title);
                 node.deck.self.appendChild(card.self);
 
                 cf.sections.forEach(section => {
                     const _section = { title: null, content: [] };
+                    let sectionContainer;
 
                     if (section.title) {
-                        const clickIndicator = newElement('i', { className: 'fa fa-window-minimize' });
+                        const clickIndicator = newElement('i', { className: 'fa fa-window-maximize' });
 
                         _section.title = newElement('h5', { textContent: section.title });
                         _section.title.appendChild(clickIndicator);
@@ -182,12 +179,20 @@ class Pipeline {
                         _section.title.onmouseenter = () => sCss(clickIndicator, { opacity: 0.4 });
                         _section.title.onmouseleave = () => sCss(clickIndicator, { opacity: 0.2 });
                         _section.title.onclick = () => {
-                            _section.content.forEach(content => sCss(content, { display: gCss(content).display == 'none' ? 'inherit' : 'none' }));
                             if (clickIndicator.classList.contains('fa-window-maximize')) {
                                 clickIndicator.className = 'fa fa-window-minimize';
+                                sCss(sectionContainer, { height: sectionContainer.fullHeight });
                             }
-                            else clickIndicator.className = 'fa fa-window-maximize';
+                            else {
+                                clickIndicator.className = 'fa fa-window-maximize';
+                                sCss(sectionContainer, { height: 0 });
+                            }
                         };
+
+                        sectionContainer = newElement('div', { className: 'sectionContainer' });
+                        
+                        if (node.deck.hasOwnProperty('toBeCollapsed')) node.deck.toBeCollapsed.push(sectionContainer);
+                        else node.deck.toBeCollapsed = [sectionContainer];
                     }
 
                     section.content.forEach(content => {
@@ -242,13 +247,15 @@ class Pipeline {
                             };
                         }
 
-                        card.self.appendChild(item);
+                        if (sectionContainer) sectionContainer.appendChild(item);
+                        else card.self.appendChild(item);
+
                         _section.content.push(item);
                     });
 
                     card.sections.push(_section);
 
-                    if (_section.title) _section.title.click();
+                    if (sectionContainer) card.self.appendChild(sectionContainer);
                 });
             },
         };
@@ -271,11 +278,15 @@ class Pipeline {
             if (this.activeNode === node) return;
 
             if (this.activeNode) {
+                //  de-highlight current active node, if any
                 sCss(this.activeNode.self, { borderColor: '#1D2533' });
+                //  hide current active deck
                 sCss(this.activeNode.deck.self, { display: 'none' });
             }
 
+            //  highlight clicked node
             sCss(node.self, { borderColor: '#B8D3FC' });
+            //  show and scale corresponding deck
             sCss(node.deck.self, {
                 display: 'grid',
                 height: `${window.innerHeight - gCss(this.self).rowGap - this.chart.self.offsetHeight}px`,
@@ -283,6 +294,17 @@ class Pipeline {
 
             this.activeNode = node;
             this.chart.updateOffset();
+
+            //  collapse all titled sections within a deck
+            if (node.deck.hasOwnProperty('toBeCollapsed')) {
+                node.deck.toBeCollapsed.forEach(sc => {
+                    const fh = `${gCss(sc).height}px`;
+                    sCss(sc, { height: 0 });
+                    sc.fullHeight = fh;
+                });
+
+                delete node.deck.toBeCollapsed;
+            }
 
             //  snap adjust everything after new deck is displayed
             sCss(this.chart.self, { transition: 'none' });
