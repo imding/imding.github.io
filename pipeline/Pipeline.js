@@ -1052,7 +1052,8 @@ class Pipeline {
         editIcon.onclick = () => this.expandAnd('Edit');
         pullIcon.onclick = () => this.pullData();
         pushIcon.onclick = () => {
-            if (this.authFn(prompt('Password:'), 1) == 'mfunfjo531') this.pushData();
+            const pw = prompt('Password:') || '';
+            if (this.authFn(pw, 1) == 'mfunfjo531') this.pushData();
         };
         this.parseAddressLineParameters();
         this.creatorMode = true;
