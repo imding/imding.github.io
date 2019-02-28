@@ -39,6 +39,14 @@ ul, ol {
     margin: 0;
 }
 
+#cPanel, .fa-window-minimize, .fa-window-maximize {
+    position: absolute;
+}
+
+#Chart, .Deck, .cardEditGroup, h5 {
+    position: relative;
+}
+
 /* grids */
 
 #Root, #Chart {
@@ -67,7 +75,6 @@ ul, ol {
 
 #Chart, .Deck {
     left: 0;
-    position: relative;
     grid-gap: 14px;
     grid-auto-flow: column;
     transition: left 0.2s ease-out;
@@ -166,7 +173,7 @@ code::-webkit-scrollbar-thumb {
 }
 
 #cPanel::-webkit-scrollbar-track {
-	margin: 25px 0;
+    margin: 25px 0;
 }
 
 /* card content styles */
@@ -219,6 +226,16 @@ h5 {
     font-weight: 600;
     cursor: pointer;
     background-image: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+h5 > .fa-window-maximize, h5 > .fa-window-minimize {
+    top: 6px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 10px;
+    opacity: 0.2;
 }
 
 em {
@@ -341,7 +358,6 @@ input, textarea {
 }
 
 #cPanel {
-    position: absolute;
     width: 160px;
     height: 50px;
     padding-top: 10px;
@@ -433,24 +449,6 @@ input, textarea {
     transform: scale(0.9);
 }
 
-.fa-window-minimize, .fa-window-maximize {
-    position: absolute;
-    right: -5px;
-    top: -5px;
-    color: white;
-    font-size: 7px;
-    border-radius: 5px;
-    padding: 10px 10px 5px 5px;
-    background-color: indianred;
-    cursor: pointer;
-    filter: grayscale(0.5);
-    transition: filter 0.2s ease-in-out;
-}
-
-.fa-window-minimize:hover, .fa-window-maximize:hover {
-    filter: grayscale(0);
-}
-
 #doneButton {
     margin: 30px auto 10px auto;
     width: 180px;
@@ -492,7 +490,6 @@ input, textarea {
 }
 
 .cardEditGroup {
-    position: relative;
     margin-top: 25px;
     transition: height 0.2s ease-out;
     overflow: hidden;
@@ -502,6 +499,22 @@ input, textarea {
     width: 60%;
     font-size: 120%;
     text-align: center;
+}
+
+.cardEditGroup>.fa-window-minimize, .cardEditGroup>.fa-window-maximize {
+    right: -5px;
+    top: -5px;
+    color: white;
+    font-size: 7px;
+    border-radius: 5px;
+    padding: 10px 10px 5px 5px;
+    background-color: indianred;
+    cursor: pointer;
+    filter: grayscale(0.5);
+}
+
+.cardEditGroup>.fa-window-minimize:hover, .cardEditGroup>.fa-window-maximize:hover {
+    filter: grayscale(0);
 }
 
 .sectionEditGroup {

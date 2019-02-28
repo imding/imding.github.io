@@ -173,8 +173,21 @@ class Pipeline {
                     const _section = { title: null, content: [] };
 
                     if (section.title) {
+                        const clickIndicator = newElement('i', { className: 'fa fa-window-minimize' });
+
                         _section.title = newElement('h5', { textContent: section.title });
+                        _section.title.appendChild(clickIndicator);
                         card.self.appendChild(_section.title);
+
+                        _section.title.onmouseenter = () => sCss(clickIndicator, { opacity: 0.4 });
+                        _section.title.onmouseleave = () => sCss(clickIndicator, { opacity: 0.2 });
+                        _section.title.onclick = () => {
+                            _section.content.forEach(content => sCss(content, { display: gCss(content).display == 'none' ? 'inherit' : 'none' }));
+                            if (clickIndicator.classList.contains('fa-window-maximize')) {
+                                clickIndicator.className = 'fa fa-window-minimize';
+                            }
+                            else clickIndicator.className = 'fa fa-window-maximize';
+                        };
                     }
 
                     section.content.forEach(content => {
@@ -235,13 +248,7 @@ class Pipeline {
 
                     card.sections.push(_section);
 
-                    if (!_section.title) return;
-
-                    _section.title.onclick = () => _section.content.forEach(content => {
-                        sCss(content, { display: gCss(content).display == 'none' ? 'inherit' : 'none' });
-                    });
-
-                    _section.title.click();
+                    if (_section.title) _section.title.click();
                 });
             },
         };
