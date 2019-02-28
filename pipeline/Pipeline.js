@@ -506,7 +506,7 @@ class Pipeline {
                     cardTitleInput = newElement('input', { value: card.title || 'Card Title', className: 'editor cardTitle' }),
                     removeIcon = newElement('i', { className: 'fa fa-remove' }),
                     dragIcon = newElement('i', { className: 'fa fa-reorder' }),
-                    minMaxIcon = newElement('div'),
+                    minMaxIcon = newElement('i', { className: 'fa fa-window-minimize' }),
                     newSectionButton = newElement('i', { className: 'newSectionButton fa fa-plus-circle fa-lg' });
 
                 deck.appendChild(cardEditGroup);
@@ -518,12 +518,9 @@ class Pipeline {
                 cardEditGroup.appendChild(cardTitleInput);
                 cardEditGroup.appendChild(removeIcon);
                 cardEditGroup.appendChild(dragIcon);
-                cardEditGroup.appendChild(minMaxIcon);
                 card.sections.forEach(sec => addSectionGroup(cardEditGroup, sec));
                 cardEditGroup.appendChild(newSectionButton);
-
-                //  attach icon to the minimise/maximise container
-                minMaxIcon.appendChild(newElement('i', { className: 'fa fa-window-minimize' }));
+                cardEditGroup.appendChild(minMaxIcon);
 
                 //  handle events
                 removeIcon.onclick = () => {
@@ -541,19 +538,20 @@ class Pipeline {
                 };
 
                 minMaxIcon.onclick = () => {
-                    if (!cardEditGroup.hasOwnProperty('defaultHeight')) {
-                        cardEditGroup.defaultHeight = gCss(cardEditGroup).height;
+                    //  get and store the fully expanded height of the card edit group
+                    if (!cardEditGroup.hasOwnProperty('fullHeight')) {
+                        cardEditGroup.fullHeight = `${gCss(cardEditGroup).height}px`;
+                        //  convert 'auto' height to '0px' format ( prep for transition )
+                        sCss(cardEditGroup, { height: cardEditGroup.fullHeight });
                     }
 
-                    sCss(cardEditGroup, { height: `${gCss(cardEditGroup).height}px` });
-
                     if (cardEditGroup.collapsed = !cardEditGroup.collapsed) {
-                        minMaxIcon.firstElementChild.className = 'fa fa-window-maximize';
+                        minMaxIcon.className = 'fa fa-window-maximize';
                         sCss(cardEditGroup, { height: `${gCss(cardTitleInput).height + 20}px` });
                     }
                     else {
-                        minMaxIcon.firstElementChild.className = 'fa fa-window-minimize';
-                        sCss(cardEditGroup, { height: `${cardEditGroup.defaultHeight}px` });
+                        minMaxIcon.className = 'fa fa-window-minimize';
+                        sCss(cardEditGroup, { height: cardEditGroup.fullHeight });
                     }
                 };
 
@@ -564,6 +562,14 @@ class Pipeline {
                     });
                     cardEditGroup.appendChild(newSectionButton);
                 };
+
+                //  reset card edit group height to 'auto' after fully expanded
+                cardEditGroup.addEventListener('transitionend', () => {
+                    if (event.target == cardEditGroup && cardEditGroup.style.height == cardEditGroup.fullHeight) {
+                        sCss(cardEditGroup, { height: 'auto' });
+                        delete cardEditGroup.fullHeight;
+                    }
+                });
             },
             addSectionGroup = (card, section) => {
                 const

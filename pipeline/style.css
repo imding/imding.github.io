@@ -438,7 +438,7 @@ input, textarea {
     font-size: 7px;
     border-radius: 5px;
     padding: 10px 10px 5px 5px;
-    background-color: tomato;
+    background-color: indianred;
     cursor: pointer;
     filter: grayscale(0.5);
     transition: filter 0.2s ease-in-out;
