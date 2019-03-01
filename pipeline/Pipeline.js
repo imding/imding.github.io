@@ -368,16 +368,28 @@ class Pipeline {
             newNodeButton = newElement('i', { id: 'newNodeButton', className: 'fa fa-plus-square fa-2x' }),
             deckEditor = newElement('div', { id: 'deckEditor', className: 'hidden' }),
             newCardButton = newElement('i', { id: 'newCardButton', className: 'fa fa-plus-circle fa-2x' }),
-            dragTargetWithin = editor => {
+            followCursor = editor => sCss(editor.active, { top: `${event.clientY - editor.active.offset}px` }),
+            activateDragWithin = editor => {
+                //  must be left click
                 if (event.button) return;
                     
                 editor.active = event.target.parentNode;
-                sCss(editor.active, {
-                    opacity: '0.6',
-                    filter: 'blur(0.6px)',
-                });
+                //  store offset value for use in chartEditor.startDrag()
+                editor.active.offset = event.clientY - editor.active.offsetTop;
 
+                editor.active.shadowNode = editor.active.cloneNode(true);
+                editor.active.shadowNode.classList.add('shadow');
+                editor.insertBefore(editor.active.shadowNode, editor.active);
+                
+                sCss(editor.active.shadowNode, { opacity: 0.2 });
+                sCss(editor.active, {
+                    position: 'absolute',
+                    pointerEvents: 'none',
+                });
+                // sCss(editor.active, { opacity: '0.6' });
                 sCss(cPanel, { cursor: 'grabbing' });
+
+                editor.startDrag();
             },
             addNodeInput = (val, indent, isNode, focused) => {
                 const
@@ -518,7 +530,7 @@ class Pipeline {
                     chartEditor.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => dragTargetWithin(chartEditor);
+                dragIcon.onmousedown = () => activateDragWithin(chartEditor);
 
                 nodeEditGroup.classList.add(isNode ? 'nodeInput' : 'shellInput');
                 if (indent) nodeEditGroup.classList.add('indented');
@@ -567,7 +579,7 @@ class Pipeline {
                     deck.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => dragTargetWithin(deckEditor);
+                dragIcon.onmousedown = () => activateDragWithin(deckEditor);
 
                 minMaxIcon.onclick = () => {
                     //  get and store the fully expanded height of the card edit group
@@ -642,7 +654,7 @@ class Pipeline {
                     card.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => dragTargetWithin(deckEditor);
+                dragIcon.onmousedown = () => activateDragWithin(deckEditor);
 
                 newParagraphButton.onclick = () => newContent('p', 'html');
                 newImageButton.onclick = () => newContent('img', 'src');
@@ -691,7 +703,7 @@ class Pipeline {
                     section.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => dragTargetWithin(deckEditor);
+                dragIcon.onmousedown = () => activateDragWithin(deckEditor);
 
                 contentInput.focus();
             };
@@ -793,76 +805,19 @@ class Pipeline {
         //  attach container for chart editor
         cPanel.appendChild(chartEditor);
 
-        cPanel.onmousemove = () => {
-            //  applicable to the chart editor only
-            if (chartEditor.active) {
-                const
-                    et = event.target,
-                    //  valid target
-                    vt = et.className.includes('nodeEditGroup') ? et : et.parentNode.className.includes('nodeEditGroup') ? et.parentNode : null;
-
-                if (!vt) return;
-
-                vt.restorePadding = () => {
-                    sCss(vt, { paddingTop: '10px' });
-                    vt.removeEventListener('mouseout', vt.restorePadding);
-                };
-
-                if (vt != chartEditor.active && vt != chartEditor.active.nextElementSibling) {
-                    sCss(vt, { paddingTop: '20px' });
-                    chartEditor.target = vt;
-                }
-                else chartEditor.target = null;
-
-                vt.addEventListener('mouseout', vt.restorePadding);
-            }
-            //  applicable to the deck editor only
-            else if (deckEditor.active) {
-                const
-                    et = event.target,
-                    dac = deckEditor.active.className,
-                    etp = et.parentNode,
-                    etgp = etp.parentNode,
-                    etggp = etgp.parentNode,
-                    //  valid target
-                    vt = et.className === dac ? et : etp.className === dac ? etp : etgp.className === dac ? etgp : etggp.className === dac ? etggp : null;
-
-                if (!vt) return;
-
-                if (dac === 'itemEditGroup') {
-                    vt.restorePadding = () => {
-                        sCss(vt, { paddingTop: '0' });
-                        vt.removeEventListener('mouseout', vt.restorePadding);
-                    };
-
-                    if (vt != deckEditor.active && vt != deckEditor.active.nextElementSibling) {
-                        sCss(vt, { paddingTop: '10px' });
-                        deckEditor.target = vt;
-                    }
-                    else deckEditor.target = null;
-                }
-                else {
-                    vt.restoreMargin = () => {
-                        sCss(vt, { marginTop: vt.className === 'sectionEditGroup' ? '10px' : '25px' });
-                        vt.removeEventListener('mouseout', vt.restoreMargin);
-                    };
-
-                    if (vt != deckEditor.active && vt != deckEditor.active.nextElementSibling) {
-                        sCss(vt, { marginTop: vt.className === 'sectionEditGroup' ? '25px' : '35px' });
-                        deckEditor.target = vt;
-                    }
-                    else deckEditor.target = null;
-                }
-
-                vt.addEventListener('mouseout', vt.restorePadding || vt.restoreMargin);
-            }
-        };
-
         cPanel.onmouseup = () => {
             const endDragWithin = editor => {
-                sCss(editor.active, { opacity: '1', filter: 'none' });
+                sCss(editor.active, { position: 'static', top: 'auto', pointerEvents: 'auto' });
+                // sCss(editor.active, { opacity: '1' });
                 sCss(cPanel, { cursor: 'default' });
+
+                if (editor.active.shadowNode) {
+                    editor.removeChild(editor.active.shadowNode);
+                    delete editor.active.shadowNode;
+                }
+                
                 editor.active = null;
+                cPanel.onmousemove = null;
             };
 
             if (chartEditor.active) {
@@ -928,6 +883,86 @@ class Pipeline {
                 sections: [{ title: '', content: [{ type: 'p', html: '' }] }],
             });
             deckEditor.activeDeck.el.appendChild(newCardButton);
+        };
+
+        chartEditor.startDrag = () => {
+            followCursor(chartEditor);
+
+            cPanel.onmousemove = () => {
+                const target = event.path.filter(e => {
+                    return e.classList && e.classList.contains('nodeEditGroup') && !e.classList.contains('shadow');
+                })[0];
+
+                followCursor(chartEditor);
+
+
+                console.clear();
+                console.log(target);
+
+
+
+                // const
+                //     et = event.target,
+                //     //  valid target
+                //     vt = et.className.includes('nodeEditGroup') ? et : et.parentNode.className.includes('nodeEditGroup') ? et.parentNode : null;
+    
+                // if (!vt) return;
+    
+                // vt.restorePadding = () => {
+                //     sCss(vt, { paddingTop: '10px' });
+                //     vt.removeEventListener('mouseout', vt.restorePadding);
+                // };
+    
+                // if (vt != chartEditor.active && vt != chartEditor.active.nextElementSibling) {
+                //     sCss(vt, { paddingTop: '20px' });
+                //     chartEditor.target = vt;
+                // }
+                // else chartEditor.target = null;
+    
+                // vt.addEventListener('mouseout', vt.restorePadding);
+            };
+        };
+
+        deckEditor.startDrag = () => {
+            cPanel.onmousemove = () => {
+                const
+                    et = event.target,
+                    dac = deckEditor.active.className,
+                    etp = et.parentNode,
+                    etgp = etp.parentNode,
+                    etggp = etgp.parentNode,
+                    //  valid target
+                    vt = et.className === dac ? et : etp.className === dac ? etp : etgp.className === dac ? etgp : etggp.className === dac ? etggp : null;
+
+                if (!vt) return;
+
+                if (dac === 'itemEditGroup') {
+                    vt.restorePadding = () => {
+                        sCss(vt, { paddingTop: '0' });
+                        vt.removeEventListener('mouseout', vt.restorePadding);
+                    };
+
+                    if (vt != deckEditor.active && vt != deckEditor.active.nextElementSibling) {
+                        sCss(vt, { paddingTop: '10px' });
+                        deckEditor.target = vt;
+                    }
+                    else deckEditor.target = null;
+                }
+                else {
+                    vt.restoreMargin = () => {
+                        sCss(vt, { marginTop: vt.className === 'sectionEditGroup' ? '10px' : '25px' });
+                        vt.removeEventListener('mouseout', vt.restoreMargin);
+                    };
+
+                    if (vt != deckEditor.active && vt != deckEditor.active.nextElementSibling) {
+                        sCss(vt, { marginTop: vt.className === 'sectionEditGroup' ? '25px' : '35px' });
+                        deckEditor.target = vt;
+                    }
+                    else deckEditor.target = null;
+                }
+
+                vt.addEventListener('mouseout', vt.restorePadding || vt.restoreMargin);
+            };
         };
     }
 
