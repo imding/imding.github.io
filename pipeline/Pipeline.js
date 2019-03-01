@@ -96,19 +96,23 @@ class Pipeline {
         this.chart.self.onmousemove = () => this.autoScroll(event.clientX, this.chart);
     }
 
-    autoScroll(ref, focus) {
+    autoScroll(targetPosition, focusElement) {
         if (this.creatorMode && cPanel.expanded) return;
 
         const
             vw = window.innerWidth,
-            clipSize = Math.max(0, focus.self.offsetWidth - vw);
+            lowerLimit = 200,
+            upperLimit = vw - 200,
+            scrollSpace = upperLimit - lowerLimit,
+            //  number of pixels the focus element is wider than the window width
+            clipSize = Math.max(0, focusElement.self.offsetWidth - vw);
 
-        focus.scroll = ref;
+        focusElement.scroll = targetPosition;
 
-        //  normalised scroll range
-        ref = (clamp(ref, vw * 0.2, vw * 0.8) - vw * 0.2) / (vw * 0.6);
+        //  normalised scroll range ( from pixel to percentage value )
+        targetPosition = (clamp(targetPosition, lowerLimit, upperLimit) - lowerLimit) / scrollSpace;
 
-        sCss(focus.self, { left: `-${ref * clipSize + focus.offset}px` });
+        sCss(focusElement.self, { left: `-${Math.round(targetPosition * clipSize + focusElement.offset)}px` });
     }
 
     render(nodesData, decksData) {
@@ -364,16 +368,27 @@ class Pipeline {
             newNodeButton = newElement('i', { id: 'newNodeButton', className: 'fa fa-plus-square fa-2x' }),
             deckEditor = newElement('div', { id: 'deckEditor', className: 'hidden' }),
             newCardButton = newElement('i', { id: 'newCardButton', className: 'fa fa-plus-circle fa-2x' }),
+            dragTargetWithin = editor => {
+                if (event.button) return;
+                    
+                editor.active = event.target.parentNode;
+                sCss(editor.active, {
+                    opacity: '0.6',
+                    filter: 'blur(0.6px)',
+                });
+
+                sCss(cPanel, { cursor: 'grabbing' });
+            },
             addNodeInput = (val, indent, isNode, focused) => {
                 const
                     nodeEditGroup = newElement('div', { className: 'nodeEditGroup' }),
                     dirToggle = newElement('div', { className: 'dirToggle' }),
                     nodeNameInput = newElement('input', { className: 'nodeNameInput' }),
-                    deckIcon = newElement('i', { className: 'fa fa-edit' }),
-                    shellIcon = newElement('i', { className: 'fa fa-object-group' }),
-                    indentIcon = newElement('i', { className: 'fa fa-indent' }),
-                    removeIcon = newElement('i', { className: 'fa fa-remove' }),
-                    dragIcon = newElement('i', { className: 'fa fa-reorder' });
+                    deckIcon = newElement('i', { className: 'fa fa-edit fa-fw' }),
+                    shellIcon = newElement('i', { className: 'fa fa-folder fa-fw' }),
+                    indentIcon = newElement('i', { className: 'fa fa-compress fa-fw' }),
+                    removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
+                    dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' });
 
                 //  attach node input container
                 chartEditor.appendChild(nodeEditGroup);
@@ -503,13 +518,7 @@ class Pipeline {
                     chartEditor.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => {
-                    chartEditor.active = dragIcon.parentNode;
-                    sCss(chartEditor.active, {
-                        opacity: '0.6',
-                        filter: 'blur(0.6px)',
-                    });
-                };
+                dragIcon.onmousedown = () => dragTargetWithin(chartEditor);
 
                 nodeEditGroup.classList.add(isNode ? 'nodeInput' : 'shellInput');
                 if (indent) nodeEditGroup.classList.add('indented');
@@ -533,8 +542,8 @@ class Pipeline {
                 const
                     cardEditGroup = newElement('div', { className: 'cardEditGroup' }),
                     cardTitleInput = newElement('input', { value: card.title || 'Card Title', className: 'editor cardTitle' }),
-                    removeIcon = newElement('i', { className: 'fa fa-remove' }),
-                    dragIcon = newElement('i', { className: 'fa fa-reorder' }),
+                    removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
+                    dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
                     minMaxIcon = newElement('i', { className: 'fa fa-window-minimize' }),
                     newSectionButton = newElement('i', { className: 'newSectionButton fa fa-plus-circle fa-lg' });
 
@@ -558,13 +567,7 @@ class Pipeline {
                     deck.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => {
-                    deckEditor.active = dragIcon.parentNode;
-                    sCss(deckEditor.active, {
-                        opacity: '0.6',
-                        filter: 'blur(0.6px)',
-                    });
-                };
+                dragIcon.onmousedown = () => dragTargetWithin(deckEditor);
 
                 minMaxIcon.onclick = () => {
                     //  get and store the fully expanded height of the card edit group
@@ -606,8 +609,8 @@ class Pipeline {
                     newParagraphButton = newElement('i', { className: 'newContentButton newParagraphButton fa fa-plus-square fa-lg' }),
                     newImageButton = newElement('i', { className: 'newContentButton newImageButton fa fa-plus-square fa-lg' }),
                     newCodeButton = newElement('i', { className: 'newContentButton newCodeButton fa fa-plus-square fa-lg' }),
-                    removeIcon = newElement('i', { className: 'fa fa-remove' }),
-                    dragIcon = newElement('i', { className: 'fa fa-reorder' }),
+                    removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
+                    dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
                     newContent = (type, key) => {
                         addContentInput(sectionEditGroup, { type: type, [key]: '' });
                         appendButtons();
@@ -639,13 +642,7 @@ class Pipeline {
                     card.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => {
-                    deckEditor.active = dragIcon.parentNode;
-                    sCss(deckEditor.active, {
-                        opacity: '0.6',
-                        filter: 'blur(0.6px)',
-                    });
-                };
+                dragIcon.onmousedown = () => dragTargetWithin(deckEditor);
 
                 newParagraphButton.onclick = () => newContent('p', 'html');
                 newImageButton.onclick = () => newContent('img', 'src');
@@ -656,8 +653,8 @@ class Pipeline {
                     itemEditGroup = newElement('div', { className: 'itemEditGroup' }),
                     typeToggle = newElement('i', { className: `typeToggle fa fa-fw fa-${item.type == 'p' ? 'file-text-o' : item.type == 'img' ? 'file-image-o' : 'code'}` }),
                     contentInput = newElement('textarea', { placeholder: 'Content', className: 'editor contentInput' }),
-                    removeIcon = newElement('i', { className: 'fa fa-remove' }),
-                    dragIcon = newElement('i', { className: 'fa fa-reorder' }),
+                    removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
+                    dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
                     type = item.type == 'p' ? 'html' : item.type == 'img' ? 'src' : 'code';
 
                 //  resize function for every <textarea>
@@ -694,13 +691,7 @@ class Pipeline {
                     section.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => {
-                    deckEditor.active = dragIcon.parentNode;
-                    sCss(deckEditor.active, {
-                        opacity: '0.6',
-                        filter: 'blur(0.6px)',
-                    });
-                };
+                dragIcon.onmousedown = () => dragTargetWithin(deckEditor);
 
                 contentInput.focus();
             };
@@ -852,7 +843,7 @@ class Pipeline {
                 }
                 else {
                     vt.restoreMargin = () => {
-                        sCss(vt, { marginTop: vt.className === 'sectionEditGroup' ? '15px' : '25px' });
+                        sCss(vt, { marginTop: vt.className === 'sectionEditGroup' ? '10px' : '25px' });
                         vt.removeEventListener('mouseout', vt.restoreMargin);
                     };
 
@@ -868,31 +859,30 @@ class Pipeline {
         };
 
         cPanel.onmouseup = () => {
+            const endDragWithin = editor => {
+                sCss(editor.active, { opacity: '1', filter: 'none' });
+                sCss(cPanel, { cursor: 'default' });
+                editor.active = null;
+            };
+
             if (chartEditor.active) {
                 if (chartEditor.target) {
                     chartEditor.insertBefore(chartEditor.active, chartEditor.target);
                     chartEditor.target.restorePadding();
                 }
-
-                sCss(chartEditor.active, {
-                    opacity: '1',
-                    filter: 'none',
-                });
-
-                chartEditor.active = null;
+                endDragWithin(chartEditor);
             }
             else if (deckEditor.active) {
                 if (deckEditor.target) {
-                    deckEditor.target.parentNode.insertBefore(deckEditor.active, deckEditor.target);
+                    //  determine whether the target's parent contains more than 1 child edit group
+                    if (deckEditor.active.parentNode.querySelectorAll(`.${deckEditor.active.className}`).length > 1) {
+                        deckEditor.target.parentNode.insertBefore(deckEditor.active, deckEditor.target);
+                    }
+                    else alert('Target is the only edit group of its parent therefore can not be moved.');
+
                     (deckEditor.target.restorePadding || deckEditor.target.restoreMargin)();
                 }
-
-                sCss(deckEditor.active, {
-                    opacity: '1',
-                    filter: 'none',
-                });
-
-                deckEditor.active = null;
+                endDragWithin(deckEditor);
             }
         };
 
