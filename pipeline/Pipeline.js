@@ -369,12 +369,10 @@ class Pipeline {
             deckEditor = newElement('div', { id: 'deckEditor', className: 'hidden' }),
             newCardButton = newElement('i', { id: 'newCardButton', className: 'fa fa-plus-circle fa-2x' }),
             setActiveNodeIn = editor => {
-                console.clear();
+                if (event.button) return;
 
                 editor.active = event.target.parentNode;
                 editor.active.classList.add('dim');
-
-                console.log();
 
                 const lastNode = (
                     !editor.active.previousElementSibling ||
@@ -386,37 +384,31 @@ class Pipeline {
 
                 if (lastNode) {
                     dropActiveNodeIn(editor);
-                    return alert('last node');
+                    return alert('The only element in an edit group cannot be moved.');
                 }
 
                 sCss(cPanel, { cursor: 'grabbing' });
 
-                console.log('active:', editor.active);
-
                 editor.startDrag();
             },
             moveActiveNodeIn = editor => {
-                
-
                 let target;
                     
                 event.path.some(e => {
                     if (e.tagName != 'DIV') return;
-                    if (`${e.className} dim` == editor.active.className) {
+
+                    if (e.classList[0] == editor.active.classList[0]) {
                         return target = e;
                     }
                 });
 
-                if (!target) return;
-
+                if (!target || !event.movementY) return;
 
                 if (event.movementY > 0) {
                     target.parentNode.insertBefore(editor.active, target.nextElementSibling);
-                    console.log('added below target');
                 }
-                else if (event.movementY < 0) {
+                else {
                     target.parentNode.insertBefore(editor.active, target);
-                    console.log('added above target');
                 }
             },
             dropActiveNodeIn = editor => {
@@ -588,7 +580,7 @@ class Pipeline {
             addCardGroup = (deck, card) => {
                 const
                     cardEditGroup = newElement('div', { className: 'cardEditGroup' }),
-                    cardTitleInput = newElement('input', { value: card.title || 'Card Title', className: 'editor cardTitle' }),
+                    cardTitleInput = newElement('input', { placeholder: 'card title is required', value: card.title || 'Card Title', className: 'editor cardTitle' }),
                     removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
                     dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
                     minMaxIcon = newElement('i', { className: 'fa fa-window-minimize' }),
@@ -841,14 +833,8 @@ class Pipeline {
         cPanel.appendChild(chartEditor);
 
         cPanel.onmouseup = () => {
-            console.log(`cursor: ${event.clientY} |`, `target: ${event.target.classList[0]} ${event.target.offsetTop}`);
-
-            if (chartEditor.active) {
-                dropActiveNodeIn(chartEditor);
-            }
-            else if (deckEditor.active) {
-                dropActiveNodeIn(deckEditor);
-            }
+            if (chartEditor.active) dropActiveNodeIn(chartEditor);
+            else if (deckEditor.active) dropActiveNodeIn(deckEditor);
         };
 
         //  parse and add node data to the chart editor

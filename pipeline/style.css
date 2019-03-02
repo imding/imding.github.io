@@ -42,15 +42,15 @@ ul, ol {
     position: absolute;
 }
 
-#Chart, .Deck, .sectionEditGroup, .cardEditGroup, .deckEditGroup, h5 {
+#Chart, .Deck, h5, .cardEditGroup {
     position: relative;
 }
 
-body, #Root, .cardEditGroup, .sectionContainer, .itemEditGroup>textarea {
+body, #Root, .cardEditGroup, .sectionContainer, .contentInput {
     overflow: hidden;
 }
 
-.nodeEditGroup, .cardEditGroup, .sectionContainer, .itemEditGroup, .sectionEditGroup {
+.nodeEditGroup, .cardEditGroup, .itemEditGroup, .sectionEditGroup, .sectionContainer {
     width: 100%;
 }
 
@@ -244,10 +244,6 @@ h5>.fa-window-maximize, h5>.fa-window-minimize {
     opacity: 0.2;
 }
 
-.sectionContainer {
-    transition: height 0.3s ease-out;
-}
-
 em {
     color: palegreen;
     font-style: normal;
@@ -325,24 +321,20 @@ input, textarea {
     font-size: 90%;
     border-radius: 5px;
     border: none;
-    margin: none;
+    margin: 0;
     outline: none;
 }
 
-.shellInput>input, .nodeInput>input {
-    font-size: 100%;
-    padding: 5px 10px;
-}
-
 .nodeNameInput {
+    width: calc(100% - 133px);
+    font-size: 100%;
     text-align: right;
-    width: calc(85% - 100px);
 }
 
 .shellInput>input {
     color: gainsboro;
     background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
+    border-radius: 16px;
     text-align: left;
 }
 
@@ -351,7 +343,7 @@ input, textarea {
 }
 
 .indented>input {
-    width: calc(65% - 100px);
+    width: 55%;
 }
 
 .nodeInput>.fa-folder, .fa-compress {
@@ -367,7 +359,7 @@ input, textarea {
     cursor: not-allowed;
 }
 
-.cardEditGroup .fa-trash {
+.fa-edit, .cardEditGroup .fa-trash {
     margin-left: 5px;
 }
 
@@ -422,12 +414,8 @@ input, textarea {
     transform: translateY(10%);
 }
 
-.nodeNameInput, .dirToggle {
-    box-sizing: border-box;
-}
-
 .nodeEditGroup {
-    padding: 10px 10% 0 0;
+    padding: 10px 10% 0;
     text-align: right;
 }
 
@@ -446,10 +434,6 @@ input, textarea {
     margin-right: 2px;
 }
 
-.fa-edit {
-    margin-left: 10px;
-}
-
 .fa-unsorted {
     cursor: grab;
 }
@@ -466,7 +450,7 @@ input, textarea {
 }
 
 #newNodeButton, #newCardButton {
-    margin: 20px 0 25vh 0;
+    margin: 20px 0 10vh 0;
 }
 
 .deckEditGroup {
@@ -476,10 +460,9 @@ input, textarea {
 }
 
 .deckHeading {
-    padding: 5px;
-    border-radius: 20px;
+    border-radius: 21px;
     font-size: 150%;
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .cardEditGroup {
@@ -493,10 +476,18 @@ input, textarea {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-.cardEditGroup>input {
-    width: 60%;
-    font-size: 120%;
+.cardTitle {
+    border-radius: 16px;
+    font-size: 110%;
     text-align: center;
+}
+
+.cardTitle, .sectionTitle {
+    width: 300px;
+}
+
+.nodeNameInput, .deckHeading, .cardTitle, .sectionTitle, .contentInput {
+    padding: 5px 10px;
 }
 
 .cardEditGroup>.fa-window-minimize, .cardEditGroup>.fa-window-maximize {
@@ -516,8 +507,8 @@ input, textarea {
 }
 
 .sectionTitle {
-    width: 50%;
     padding: 3px 10px;
+    border-radius: 12px;
     text-align: center;
 }
 
@@ -525,13 +516,10 @@ input, textarea {
     padding-top: 10px;
 }
 
-.itemEditGroup>textarea {
+.contentInput {
     width: calc(100% - 72px);
     height: 30px;
     min-height: 30px;
-    padding: 5px 10px;
-    box-shadow: inset 0 0 10px 2px white;
-    box-sizing: border-box;
     resize: none;
 }
 
@@ -560,6 +548,6 @@ input, textarea {
 }
 
 .dim {
-    opacity: 0.2;
+    opacity: 0.3;
     pointer-events: none;
 }
