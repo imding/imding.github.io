@@ -368,60 +368,63 @@ class Pipeline {
             newNodeButton = newElement('i', { id: 'newNodeButton', className: 'fa fa-plus-square fa-2x' }),
             deckEditor = newElement('div', { id: 'deckEditor', className: 'hidden' }),
             newCardButton = newElement('i', { id: 'newCardButton', className: 'fa fa-plus-circle fa-2x' }),
-            moveActiveToCursorIn = editor => {
-                const rawPosition = event.clientY - editor.active.offset;
-                sCss(editor.active, { top: `${clamp(rawPosition, editor.lowerLimit, editor.upperLimit)}px` });
-            },
-            moveShadowNextTo = target => {
-                return {
-                    in: group => {
-                        if (event.movementY > 0) {
-                            group.insertBefore(group.active.shadowNode, target.nextElementSibling);
-                        }
-                        else {
-                            group.insertBefore(group.active.shadowNode, target);
-                        }
-                    },
-                };
-            },
-            activateDragWithin = editor => {
-                //  must be left click
-                if (event.button) return;
-                    
+            setActiveNodeIn = editor => {
+                console.clear();
+
                 editor.active = event.target.parentNode;
-                //  store offset value for use in chartEditor.startDrag()
-                editor.active.offset = event.clientY - editor.active.offsetTop;
-                // event.path.some(e => {
-                //     if (e.tagName == 'DIV') {
-                //         editor.active.offset -= e.offsetTop;
-                //         console.log(e, e.offsetTop, editor.active.offset);
-                //     }
-                //     return e == editor.active;
-                // });
-                // console.log(event.clientY, editor.active.offsetTop);
+                editor.active.classList.add('dim');
 
-                //  create and attach shadow node
-                editor.active.shadowNode = editor.active.cloneNode(true);
-                editor.active.shadowNode.classList.add('shadow');
-                editor.active.parentNode.insertBefore(editor.active.shadowNode, editor.active.nextElementSibling);
-                
-                //  store the lower and uppoer limit drag range
-                editor.lowerLimit = editor.offsetTop;
-                editor.upperLimit = gifa(editor.querySelectorAll('div'), -1).offsetTop;
+                console.log();
 
-                console.log(gifa(editor.querySelectorAll('div'), -1));
-                
-                sCss(editor.active.shadowNode, { opacity: 0.2 });
-                sCss(editor.active, {
-                    position: 'absolute',
-                    pointerEvents: 'none',
-                });
+                const lastNode = (
+                    !editor.active.previousElementSibling ||
+                    editor.active.previousElementSibling.tagName != 'DIV'
+                ) && (
+                    !editor.active.nextElementSibling ||
+                    editor.active.nextElementSibling.tagName != 'DIV'
+                );
+
+                if (lastNode) {
+                    dropActiveNodeIn(editor);
+                    return alert('last node');
+                }
+
                 sCss(cPanel, { cursor: 'grabbing' });
 
-                moveActiveToCursorIn(editor);
-                editor.startDrag();
+                console.log('active:', editor.active);
 
-                return { offset: n => editor.active.offset += n };
+                editor.startDrag();
+            },
+            moveActiveNodeIn = editor => {
+                
+
+                let target;
+                    
+                event.path.some(e => {
+                    if (e.tagName != 'DIV') return;
+                    if (`${e.className} dim` == editor.active.className) {
+                        return target = e;
+                    }
+                });
+
+                if (!target) return;
+
+
+                if (event.movementY > 0) {
+                    target.parentNode.insertBefore(editor.active, target.nextElementSibling);
+                    console.log('added below target');
+                }
+                else if (event.movementY < 0) {
+                    target.parentNode.insertBefore(editor.active, target);
+                    console.log('added above target');
+                }
+            },
+            dropActiveNodeIn = editor => {
+                editor.active.classList.remove('dim');
+                sCss(cPanel, { cursor: 'default' });
+
+                editor.active = null;
+                cPanel.onmousemove = null;
             },
             addNodeInput = (val, indent, isNode, focused) => {
                 const
@@ -562,7 +565,7 @@ class Pipeline {
                     chartEditor.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => activateDragWithin(chartEditor);
+                dragIcon.onmousedown = () => setActiveNodeIn(chartEditor);
 
                 nodeEditGroup.classList.add(isNode ? 'nodeInput' : 'shellInput');
                 if (indent) nodeEditGroup.classList.add('indented');
@@ -600,9 +603,9 @@ class Pipeline {
                 cardEditGroup.appendChild(cardTitleInput);
                 cardEditGroup.appendChild(removeIcon);
                 cardEditGroup.appendChild(dragIcon);
+                cardEditGroup.appendChild(minMaxIcon);
                 card.sections.forEach(sec => addSectionGroup(cardEditGroup, sec));
                 cardEditGroup.appendChild(newSectionButton);
-                cardEditGroup.appendChild(minMaxIcon);
 
                 //  handle events
                 removeIcon.onclick = () => {
@@ -611,7 +614,7 @@ class Pipeline {
                     deck.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => activateDragWithin(deckEditor);
+                dragIcon.onmousedown = () => setActiveNodeIn(deckEditor);
 
                 minMaxIcon.onclick = () => {
                     //  get and store the fully expanded height of the card edit group
@@ -686,7 +689,7 @@ class Pipeline {
                     card.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => activateDragWithin(deckEditor);
+                dragIcon.onmousedown = () => setActiveNodeIn(deckEditor);
 
                 newParagraphButton.onclick = () => newContent('p', 'html');
                 newImageButton.onclick = () => newContent('img', 'src');
@@ -735,7 +738,7 @@ class Pipeline {
                     section.removeChild(removeIcon.parentNode);
                 };
 
-                dragIcon.onmousedown = () => activateDragWithin(deckEditor);
+                dragIcon.onmousedown = () => setActiveNodeIn(deckEditor);
 
                 contentInput.focus();
             };
@@ -838,40 +841,13 @@ class Pipeline {
         cPanel.appendChild(chartEditor);
 
         cPanel.onmouseup = () => {
-            const endDragWithin = editor => {
-                editor.active.removeAttribute('style');
-                // sCss(editor.active, { position: 'relative',  });
-                sCss(cPanel, { cursor: 'default' });
-
-                //  move the active node above its shadow node
-                editor.active.parentNode.insertBefore(editor.active, editor.active.shadowNode);
-                editor.active.parentNode.removeChild(editor.active.shadowNode);
-                delete editor.active.shadowNode;
-                
-                console.log(editor.active);
-
-                editor.active = null;
-                cPanel.onmousemove = null;
-            };
+            console.log(`cursor: ${event.clientY} |`, `target: ${event.target.classList[0]} ${event.target.offsetTop}`);
 
             if (chartEditor.active) {
-                if (chartEditor.target) {
-                    chartEditor.insertBefore(chartEditor.active, chartEditor.target);
-                    chartEditor.target.restorePadding();
-                }
-                endDragWithin(chartEditor);
+                dropActiveNodeIn(chartEditor);
             }
             else if (deckEditor.active) {
-                if (deckEditor.target) {
-                    //  determine whether the target's parent contains more than 1 child edit group
-                    if (deckEditor.active.parentNode.querySelectorAll(`.${deckEditor.active.className}`).length > 1) {
-                        deckEditor.target.parentNode.insertBefore(deckEditor.active, deckEditor.target);
-                    }
-                    else alert('Target is the only edit group of its parent therefore can not be moved.');
-
-                    (deckEditor.target.restorePadding || deckEditor.target.restoreMargin)();
-                }
-                endDragWithin(deckEditor);
+                dropActiveNodeIn(deckEditor);
             }
         };
 
@@ -919,58 +895,8 @@ class Pipeline {
             deckEditor.activeDeck.el.appendChild(newCardButton);
         };
 
-        chartEditor.startDrag = () => {
-            cPanel.onmousemove = () => {
-                moveActiveToCursorIn(chartEditor);
-
-                const target = event.path.filter(e => {
-                    return (
-                        e.classList &&
-                        !e.classList.contains('shadow') &&
-                        e.classList.contains('nodeEditGroup')
-                    );
-                })[0];
-
-                if (!target || !event.movementY) return;
-
-                moveShadowNextTo(target).in(chartEditor);
-            };
-        };
-
-        deckEditor.startDrag = () => {
-            cPanel.onmousemove = () => {
-                console.clear();
-
-                moveActiveToCursorIn(deckEditor);
-
-                const target = {};
-
-                event.path.forEach(e => {
-                    if (!e.classList || e.classList.contains('shadow')) return;
-
-                    target.sameType = target.sameType || e.className == deckEditor.active.className;
-                    target.item = target.item || (e.classList.contains('itemEditGroup') ? e : null);
-                    target.section = target.section || (e.classList.contains('sectionEditGroup') ? e : null);
-                    target.card = target.card || (e.classList.contains('cardEditGroup') ? e : null);
-                });
-
-                if (!target.sameType) return;
-
-                console.log(target);
-                    // sameType = event.path.some(e => e.className == deckEditor.active.className),
-                    // targets = event.path.filter(e => {
-                    //     return (
-                    //         e.classList &&
-                    //         !e.classList.contains('shadow') &&
-                    //         (
-                    //             e.classList.contains('itemEditGroup') ||
-                    //             e.classList.contains('sectionEditGroup') ||
-                    //             e.classList.contains('cardEditGroup')
-                    //         )
-                    //     );
-                    // });
-            };
-        };
+        chartEditor.startDrag = () => cPanel.onmousemove = () => moveActiveNodeIn(chartEditor);
+        deckEditor.startDrag = () => cPanel.onmousemove = () => moveActiveNodeIn(deckEditor);
     }
 
     pushData() {

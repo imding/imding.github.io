@@ -50,12 +50,8 @@ body, #Root, .cardEditGroup, .sectionContainer, .itemEditGroup>textarea {
     overflow: hidden;
 }
 
-.nodeEditGroup, .cardEditGroup {
+.nodeEditGroup, .cardEditGroup, .sectionContainer, .itemEditGroup, .sectionEditGroup {
     width: 100%;
-}
-
-.sectionContainer, .itemEditGroup, .sectionEditGroup {
-    width: calc(100% - 20px);
 }
 
 /* grids */
@@ -486,15 +482,15 @@ input, textarea {
     background-color: rgba(255, 255, 255, 0.15);
 }
 
-.cardEditGroup, .sectionEditGroup {
-    padding: 10px 0;
-    border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.05);
+.cardEditGroup {
+    transition: height 0.2s ease-out;
 }
 
-.cardEditGroup {
-    margin-top: 20px;
-    transition: height 0.2s ease-out;
+.cardEditGroup, .sectionEditGroup {
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .cardEditGroup>input {
@@ -519,14 +515,14 @@ input, textarea {
     filter: grayscale(0);
 }
 
-.sectionEditGroup, .itemEditGroup {
-    margin: 10px;
-}
-
 .sectionTitle {
     width: 50%;
     padding: 3px 10px;
     text-align: center;
+}
+
+.itemEditGroup {
+    padding-top: 10px;
 }
 
 .itemEditGroup>textarea {
@@ -544,7 +540,7 @@ input, textarea {
 }
 
 .newSectionButton, .newContentButton {
-    margin: 0 20px;
+    margin: 10px 20px 0;
 }
 
 .newParagraphButton {
@@ -561,4 +557,9 @@ input, textarea {
 
 .hidden {
     display: none;
+}
+
+.dim {
+    opacity: 0.2;
+    pointer-events: none;
 }
