@@ -368,7 +368,22 @@ class Pipeline {
             newNodeButton = newElement('i', { id: 'newNodeButton', className: 'fa fa-plus-square fa-2x' }),
             deckEditor = newElement('div', { id: 'deckEditor', className: 'hidden' }),
             newCardButton = newElement('i', { id: 'newCardButton', className: 'fa fa-plus-circle fa-2x' }),
-            followCursor = editor => sCss(editor.active, { top: `${event.clientY - editor.active.offset}px` }),
+            moveActiveToCursorIn = editor => {
+                const rawPosition = event.clientY - editor.active.offset;
+                sCss(editor.active, { top: `${clamp(rawPosition, editor.lowerLimit, editor.upperLimit)}px` });
+            },
+            moveShadowNextTo = target => {
+                return {
+                    in: group => {
+                        if (event.movementY > 0) {
+                            group.insertBefore(group.active.shadowNode, target.nextElementSibling);
+                        }
+                        else {
+                            group.insertBefore(group.active.shadowNode, target);
+                        }
+                    },
+                };
+            },
             activateDragWithin = editor => {
                 //  must be left click
                 if (event.button) return;
@@ -376,25 +391,42 @@ class Pipeline {
                 editor.active = event.target.parentNode;
                 //  store offset value for use in chartEditor.startDrag()
                 editor.active.offset = event.clientY - editor.active.offsetTop;
+                // event.path.some(e => {
+                //     if (e.tagName == 'DIV') {
+                //         editor.active.offset -= e.offsetTop;
+                //         console.log(e, e.offsetTop, editor.active.offset);
+                //     }
+                //     return e == editor.active;
+                // });
+                // console.log(event.clientY, editor.active.offsetTop);
 
+                //  create and attach shadow node
                 editor.active.shadowNode = editor.active.cloneNode(true);
                 editor.active.shadowNode.classList.add('shadow');
-                editor.insertBefore(editor.active.shadowNode, editor.active);
+                editor.active.parentNode.insertBefore(editor.active.shadowNode, editor.active.nextElementSibling);
+                
+                //  store the lower and uppoer limit drag range
+                editor.lowerLimit = editor.offsetTop;
+                editor.upperLimit = gifa(editor.querySelectorAll('div'), -1).offsetTop;
+
+                console.log(gifa(editor.querySelectorAll('div'), -1));
                 
                 sCss(editor.active.shadowNode, { opacity: 0.2 });
                 sCss(editor.active, {
                     position: 'absolute',
                     pointerEvents: 'none',
                 });
-                // sCss(editor.active, { opacity: '0.6' });
                 sCss(cPanel, { cursor: 'grabbing' });
 
+                moveActiveToCursorIn(editor);
                 editor.startDrag();
+
+                return { offset: n => editor.active.offset += n };
             },
             addNodeInput = (val, indent, isNode, focused) => {
                 const
                     nodeEditGroup = newElement('div', { className: 'nodeEditGroup' }),
-                    dirToggle = newElement('div', { className: 'dirToggle' }),
+                    dirToggle = newElement('span', { className: 'dirToggle' }),
                     nodeNameInput = newElement('input', { className: 'nodeNameInput' }),
                     deckIcon = newElement('i', { className: 'fa fa-edit fa-fw' }),
                     shellIcon = newElement('i', { className: 'fa fa-folder fa-fw' }),
@@ -539,7 +571,7 @@ class Pipeline {
             addDeck = (name, cards) => {
                 const
                     deckEditGroup = newElement('div', { className: 'hidden deckEditGroup' }),
-                    deckHeading = newElement('div', { className: 'deckHeading' });
+                    deckHeading = newElement('h2', { className: 'deckHeading' });
 
                 deckEditor.appendChild(deckEditGroup);
                 deckEditGroup.appendChild(deckHeading);
@@ -610,7 +642,7 @@ class Pipeline {
                 //  reset card edit group height to 'auto' after fully expanded
                 cardEditGroup.addEventListener('transitionend', () => {
                     if (event.target == cardEditGroup && cardEditGroup.style.height == cardEditGroup.fullHeight) {
-                        sCss(cardEditGroup, { height: 'auto' });
+                        cardEditGroup.removeAttribute('style');
                         delete cardEditGroup.fullHeight;
                     }
                 });
@@ -807,15 +839,17 @@ class Pipeline {
 
         cPanel.onmouseup = () => {
             const endDragWithin = editor => {
-                sCss(editor.active, { position: 'static', top: 'auto', pointerEvents: 'auto' });
-                // sCss(editor.active, { opacity: '1' });
+                editor.active.removeAttribute('style');
+                // sCss(editor.active, { position: 'relative',  });
                 sCss(cPanel, { cursor: 'default' });
 
-                if (editor.active.shadowNode) {
-                    editor.removeChild(editor.active.shadowNode);
-                    delete editor.active.shadowNode;
-                }
+                //  move the active node above its shadow node
+                editor.active.parentNode.insertBefore(editor.active, editor.active.shadowNode);
+                editor.active.parentNode.removeChild(editor.active.shadowNode);
+                delete editor.active.shadowNode;
                 
+                console.log(editor.active);
+
                 editor.active = null;
                 cPanel.onmousemove = null;
             };
@@ -886,82 +920,55 @@ class Pipeline {
         };
 
         chartEditor.startDrag = () => {
-            followCursor(chartEditor);
-
             cPanel.onmousemove = () => {
+                moveActiveToCursorIn(chartEditor);
+
                 const target = event.path.filter(e => {
-                    return e.classList && e.classList.contains('nodeEditGroup') && !e.classList.contains('shadow');
+                    return (
+                        e.classList &&
+                        !e.classList.contains('shadow') &&
+                        e.classList.contains('nodeEditGroup')
+                    );
                 })[0];
 
-                followCursor(chartEditor);
+                if (!target || !event.movementY) return;
 
-
-                console.clear();
-                console.log(target);
-
-
-
-                // const
-                //     et = event.target,
-                //     //  valid target
-                //     vt = et.className.includes('nodeEditGroup') ? et : et.parentNode.className.includes('nodeEditGroup') ? et.parentNode : null;
-    
-                // if (!vt) return;
-    
-                // vt.restorePadding = () => {
-                //     sCss(vt, { paddingTop: '10px' });
-                //     vt.removeEventListener('mouseout', vt.restorePadding);
-                // };
-    
-                // if (vt != chartEditor.active && vt != chartEditor.active.nextElementSibling) {
-                //     sCss(vt, { paddingTop: '20px' });
-                //     chartEditor.target = vt;
-                // }
-                // else chartEditor.target = null;
-    
-                // vt.addEventListener('mouseout', vt.restorePadding);
+                moveShadowNextTo(target).in(chartEditor);
             };
         };
 
         deckEditor.startDrag = () => {
             cPanel.onmousemove = () => {
-                const
-                    et = event.target,
-                    dac = deckEditor.active.className,
-                    etp = et.parentNode,
-                    etgp = etp.parentNode,
-                    etggp = etgp.parentNode,
-                    //  valid target
-                    vt = et.className === dac ? et : etp.className === dac ? etp : etgp.className === dac ? etgp : etggp.className === dac ? etggp : null;
+                console.clear();
 
-                if (!vt) return;
+                moveActiveToCursorIn(deckEditor);
 
-                if (dac === 'itemEditGroup') {
-                    vt.restorePadding = () => {
-                        sCss(vt, { paddingTop: '0' });
-                        vt.removeEventListener('mouseout', vt.restorePadding);
-                    };
+                const target = {};
 
-                    if (vt != deckEditor.active && vt != deckEditor.active.nextElementSibling) {
-                        sCss(vt, { paddingTop: '10px' });
-                        deckEditor.target = vt;
-                    }
-                    else deckEditor.target = null;
-                }
-                else {
-                    vt.restoreMargin = () => {
-                        sCss(vt, { marginTop: vt.className === 'sectionEditGroup' ? '10px' : '25px' });
-                        vt.removeEventListener('mouseout', vt.restoreMargin);
-                    };
+                event.path.forEach(e => {
+                    if (!e.classList || e.classList.contains('shadow')) return;
 
-                    if (vt != deckEditor.active && vt != deckEditor.active.nextElementSibling) {
-                        sCss(vt, { marginTop: vt.className === 'sectionEditGroup' ? '25px' : '35px' });
-                        deckEditor.target = vt;
-                    }
-                    else deckEditor.target = null;
-                }
+                    target.sameType = target.sameType || e.className == deckEditor.active.className;
+                    target.item = target.item || (e.classList.contains('itemEditGroup') ? e : null);
+                    target.section = target.section || (e.classList.contains('sectionEditGroup') ? e : null);
+                    target.card = target.card || (e.classList.contains('cardEditGroup') ? e : null);
+                });
 
-                vt.addEventListener('mouseout', vt.restorePadding || vt.restoreMargin);
+                if (!target.sameType) return;
+
+                console.log(target);
+                    // sameType = event.path.some(e => e.className == deckEditor.active.className),
+                    // targets = event.path.filter(e => {
+                    //     return (
+                    //         e.classList &&
+                    //         !e.classList.contains('shadow') &&
+                    //         (
+                    //             e.classList.contains('itemEditGroup') ||
+                    //             e.classList.contains('sectionEditGroup') ||
+                    //             e.classList.contains('cardEditGroup')
+                    //         )
+                    //     );
+                    // });
             };
         };
     }

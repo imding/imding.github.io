@@ -42,12 +42,20 @@ ul, ol {
     position: absolute;
 }
 
-#Chart, .Deck, .cardEditGroup, h5 {
+#Chart, .Deck, .sectionEditGroup, .cardEditGroup, .deckEditGroup, h5 {
     position: relative;
 }
 
-body, #Root, .sectionContainer, .cardEditGroup, .itemEditGroup>textarea {
+body, #Root, .cardEditGroup, .sectionContainer, .itemEditGroup>textarea {
     overflow: hidden;
+}
+
+.nodeEditGroup, .cardEditGroup {
+    width: 100%;
+}
+
+.sectionContainer, .itemEditGroup, .sectionEditGroup {
+    width: calc(100% - 20px);
 }
 
 /* grids */
@@ -230,7 +238,7 @@ h5 {
     background-image: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
-h5 > .fa-window-maximize, h5 > .fa-window-minimize {
+h5>.fa-window-maximize, h5>.fa-window-minimize {
     top: 6px;
     right: 10px;
     background-color: rgba(0, 0, 0, 0.2);
@@ -423,10 +431,8 @@ input, textarea {
 }
 
 .nodeEditGroup {
-    width: 100%;
     padding: 10px 10% 0 0;
     text-align: right;
-    /* transition: top 0.1s ease-out; */
 }
 
 .dirToggle, .nodeNameInput, .fa-edit, .fa-folder, .fa-compress, .fa-trash, .fa-unsorted, .typeToggle, .editor, #editIcon, #pushIcon, #pullIcon {
@@ -467,11 +473,6 @@ input, textarea {
     margin: 20px 0 25vh 0;
 }
 
-.cardEditGroup, .sectionEditGroup {
-    margin: 0px;
-    transition: margin, 0.6s, ease-out
-}
-
 .deckEditGroup {
     width: 90%;
     border-radius: 10px;
@@ -479,21 +480,20 @@ input, textarea {
 }
 
 .deckHeading {
-    margin-top: 20px;
     padding: 5px;
-    border-radius: 5px;
+    border-radius: 20px;
     font-size: 150%;
     background-color: rgba(255, 255, 255, 0.15);
 }
 
 .cardEditGroup, .sectionEditGroup {
-    padding: 10px;
+    padding: 10px 0;
     border-radius: 5px;
     background-color: rgba(255, 255, 255, 0.05);
 }
 
 .cardEditGroup {
-    margin-top: 25px;
+    margin-top: 20px;
     transition: height 0.2s ease-out;
 }
 
@@ -519,21 +519,14 @@ input, textarea {
     filter: grayscale(0);
 }
 
-.sectionEditGroup {
-    margin-top: 10px;
+.sectionEditGroup, .itemEditGroup {
+    margin: 10px;
 }
 
 .sectionTitle {
     width: 50%;
     padding: 3px 10px;
     text-align: center;
-}
-
-.itemEditGroup {
-    padding: 0px;
-    margin-top: 10px;
-    text-align: center;
-    transition: padding 0.06s ease-out;
 }
 
 .itemEditGroup>textarea {
@@ -551,7 +544,7 @@ input, textarea {
 }
 
 .newSectionButton, .newContentButton {
-    margin: 15px 20px 0 20px;
+    margin: 0 20px;
 }
 
 .newParagraphButton {
