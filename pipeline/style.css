@@ -42,7 +42,7 @@ ul, ol {
     position: absolute;
 }
 
-#Chart, .Deck, h5, .cardEditGroup {
+#Chart, .Active, .Deck, h5, .cardEditGroup {
     position: relative;
 }
 
@@ -90,7 +90,7 @@ body, #Root, .cardEditGroup, .sectionContainer, .contentInput {
 
 .Node {
     white-space: nowrap;
-    padding: 4px 10px 5px 10px;
+    padding: 5px 10px 5px 12px;
     margin: auto;
     border-color: #1D2533;
     border-radius: 5px;

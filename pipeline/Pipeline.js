@@ -140,10 +140,26 @@ class Pipeline {
             }
         });
 
-        if (status) Object.entries(decksData).forEach(entry => {
-            const deckName = entry[0], cards = entry[1];
-            cards.forEach(card => this.chart.nodes[deckName].addCard(card));
-        });
+        if (status) {
+            Object.entries(decksData).forEach(entry => {
+                const deckName = entry[0], cards = entry[1];
+                cards.forEach(card => this.chart.nodes[deckName].addCard(card));
+            });
+
+            this.chart.self.querySelectorAll('.Active').forEach((e, i) => {
+                const label = newElement('div', { textContent: i + 1 });
+                e.appendChild(label);
+            
+                sCss(label, {
+                    position: 'absolute',
+                    width: '15px',
+                    left: '-2px',
+                    top: '-5px',
+                    opacity: '0.25',
+                    transform: 'scale(0.5)',
+                });
+            });
+        }
 
         return status;
     }
@@ -153,7 +169,7 @@ class Pipeline {
 
         const node = {
             //  index: Object.keys(this.chart.nodes).length,
-            self: newElement('div', { className: `Node ${parent ? 'Inner' : ''} Active`, textContent: name.replace(/^[^\w]+|[^\w]+$/, '') }),
+            self: newElement('div', { className: `Node ${parent ? 'Inner ' : ''}Active`, textContent: name.replace(/^[^\w]+|[^\w]+$/, '') }),
             deck: {
                 self: newElement('div', { id: `${camelise(name)}`, className: 'Deck' }),
                 offset: 0,
@@ -202,7 +218,7 @@ class Pipeline {
                     section.content.forEach(content => {
                         let item;
 
-                        if (content.type === 'p') {
+                        if (content.type == 'p') {
                             let escHTML = htmlEscape(content.html)
                                             .replace(/(\n\*\s[^\n]+)+/g, '\n<ul>$&\n</ul>')     //  wrap "* string" lines with <ul></ul>
                                             .replace(/(\n\*\*\s[^\n]+)+/g, '\n<ol>$&\n</ol>')   //  wrap "** string" lines with <ol></ol>
@@ -226,12 +242,12 @@ class Pipeline {
                             item.innerHTML = `${content.bullet ? `<i class='fa fa-${section.title ? 'exclamation-circle' : 'info-circle'}'></i>` : ''} ${escHTML}`;
                         }
 
-                        else if (content.type === 'img') {
+                        else if (content.type == 'img') {
                             item = newElement('a', { href: content.src, target: '_blank' });
                             item.appendChild(newElement('img', { src: content.src }));
                         }
 
-                        else if (content.type === 'code') {
+                        else if (content.type == 'code') {
                             item = newElement('code');
                             item.textContent = content.code;
                             item.onclick = () => {
@@ -251,8 +267,9 @@ class Pipeline {
                             };
                         }
 
-                        if (sectionContainer) sectionContainer.appendChild(item);
-                        else card.self.appendChild(item);
+                        sectionContainer ?
+                            sectionContainer.appendChild(item) :
+                            card.self.appendChild(item);
 
                         _section.content.push(item);
                     });
@@ -279,7 +296,7 @@ class Pipeline {
         node.deck.self.onmousemove = () => this.autoScroll(event.clientX, node.deck);
 
         node.self.onclick = () => {
-            if (this.activeNode === node) return;
+            if (this.activeNode == node) return;
 
             if (this.activeNode) {
                 //  de-highlight current active node, if any
@@ -404,12 +421,9 @@ class Pipeline {
 
                 if (!target || !event.movementY) return;
 
-                if (event.movementY > 0) {
-                    target.parentNode.insertBefore(editor.active, target.nextElementSibling);
-                }
-                else {
+                event.movementY > 0 ?
+                    target.parentNode.insertBefore(editor.active, target.nextElementSibling) :
                     target.parentNode.insertBefore(editor.active, target);
-                }
             },
             dropActiveNodeIn = editor => {
                 editor.active.classList.remove('dim');
@@ -543,10 +557,9 @@ class Pipeline {
 
                 indentIcon.onclick = () => {
                     if (gCss(indentIcon).opacity > 0.1) {
-                        if (nodeEditGroup.className.includes('indented')) {
-                            nodeEditGroup.classList.remove('indented');
-                        }
-                        else nodeEditGroup.classList.add('indented');
+                        nodeEditGroup.className.includes('indented') ?
+                            nodeEditGroup.classList.remove('indented') :
+                            nodeEditGroup.classList.add('indented');
                     }
                 };
 
@@ -942,9 +955,7 @@ class Pipeline {
                     }
                 }
 
-                if (r < 0) {
-                    r = (prompt(msg) || '').trim();
-                }
+                if (r < 0) r = (prompt(msg) || '').trim();
 
                 if (/^\d+$/.test(r)) {
                     //  remove everything from this.self
