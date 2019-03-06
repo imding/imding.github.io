@@ -891,42 +891,10 @@ class Pipeline {
                 title: '',
                 sections: [{ title: '', content: [{ type: 'p', html: '' }] }],
             });
-            deckEditor.activeDeck.el.appendChild(newCardButton);
         };
 
         chartEditor.startDrag = () => cPanel.onmousemove = () => moveActiveNodeIn(chartEditor);
         deckEditor.startDrag = () => cPanel.onmousemove = () => moveActiveNodeIn(deckEditor);
-    }
-
-    pushData() {
-        if (!window.firebase) return alert('Make sure Firebase is set up and you are connected to the Internet.');
-        if (cPanel.classList.contains('expanded')) return alert('Close the editor before pushing to cloud.');
-
-        let name = prompt('Give this pipeline a name.', this.name);
-
-        if (name) name = name.trim();
-        else return alert('Please give theis pipeline a name before pushing to cloud.');
-
-        if (/(^[^a-z])|[^a-z0-9_]/i.test(name)) return alert('Invalid character in name.');
-
-        this.fire.collection('Root').doc(name).get().then(qs => {
-            if (qs.exists) {
-                if (!confirm(`"${name}" already exists in the cloud, do you wish to overwrite it?`)) return alert('Push cancelled');
-                if (!confirm(`The current "${name}" data will be lost, are you sure?`)) return alert('Push cancelled');
-                if (!confirm('This action can not be undone. Please confirm.')) return alert('Push cancelled');
-            }
-
-            const
-                batch = this.fire.batch(),
-                data = {
-                    nodesData: ato(this.nodesData),
-                    decksData: this.decksData,
-                };
-
-            batch.set(this.fire.collection('Root').doc(name), data);
-
-            batch.commit().then(() => alert('Pipeline stored in the cloud.'));
-        });
     }
 
     pullData(pipelineNameOptional) {
@@ -969,6 +937,7 @@ class Pipeline {
                     Object.values(docs[index].data().nodesData).forEach(field => nd.push(typeof (field) == 'object' ? Object.values(field) : field));
 
                     this.render(nd, docs[index].data().decksData);
+                    this.initData = { nodesData: nd, decksData: docs[index].data().decksData };
 
                     sCss(cPanel, { top: `${gCss(Chart).height}px` });
 
@@ -982,41 +951,119 @@ class Pipeline {
         });
     }
 
-    // printDeck() {
-    //     let deckObj = '';
+    verifyAndPushData() {
+        if (!window.firebase) return alert('Make sure Firebase is set up and you are connected to the Internet.');
+        if (cPanel.classList.contains('expanded')) return alert('Close the editor before pushing to cloud.');
 
-    //     //  parse this.decksData and build deckObj
-    //     Object.entries(this.decksData).forEach(entry => {
-    //         deckObj += `${entry[0]}: [{\n`;
-    //         entry[1].forEach((card, j) => {
-    //             deckObj += `\ttitle: '${card.title}',\n\tsections: [{\n`;
+        let name = prompt('Give this pipeline a name.', this.name);
 
-    //             card.sections.forEach((sec, k) => {
-    //                 if (!sec.hasOwnProperty('title')) sec = { title: '', content: sec.content };
+        if (name) name = name.trim();
+        else return alert('Please give theis pipeline a name before pushing to cloud.');
 
-    //                 deckObj += `\t\ttitle: '${sec.title}',\n\t\tcontent: [\n`;
+        if (/(^[^a-z])|[^a-z0-9_]/i.test(name)) return alert('Invalid character in name.');
 
-    //                 sec.content.forEach(content => {
-    //                     const
-    //                         key = Object.keys(content)[1],
-    //                         value = Object.values(content)[1];
+        sCss(pushIcon, { pointerEvents: 'none' });
 
-    //                     deckObj += `\t\t\t{ type: '${content.type}', ${key}: '${value}' },\n`;
-    //                 });
+        const
+            fbDoc = this.fire.collection('Root').doc(name),
+            cancelPush = error => {
+                alert('Push cancelled');
+                pushIcon.removeAttribute('style');
+                if (error) throw new Error(error);
+            };
 
-    //                 deckObj += '\t\t],\n';
+        fbDoc.get().then(doc => {
+            const
+                remote = doc.data(),
+                initNodesData = Object.values(this.initData.nodesData).map(entry => Array.isArray(entry) ? [entry[0], entry[1]] : entry),
+                initDecksData = Object.entries(this.initData.decksData),
+                matchingNodes = initNodesData.every((node, i) => {
+                    if (typeof node == 'string' || node instanceof String) {
+                        return node == remote.nodesData[i];
+                    }
+                    else {
+                        const
+                            remoteNode = remote.nodesData[i],
+                            matchingShell = node[0] == remoteNode[0],
+                            matchingTitles = node[1].every((innerNode, _i) => innerNode == remoteNode[1][_i]);
+                        return matchingShell && matchingTitles;
+                    }
+                }),
+                matchingDecks = matchingNodes ?
+                    Object.entries(remote.decksData).length == initDecksData.length &&
+                    initDecksData.every(deck => {
+                        if (!remote.decksData.hasOwnProperty(deck[0])) return;
 
-    //                 if (k == card.sections.length - 1) deckObj += '\t}],\n';
-    //                 else deckObj += '\t}, {\n';
-    //             });
+                        const
+                            remoteCards = remote.decksData[deck[0]],
+                            initCards = deck[1],
+                            matchingCards =
+                                initCards.length == remoteCards.length && 
+                                initCards.every((card, j) => {
+                                    const
+                                        matchingTitle = card.title == remoteCards[j].title,
+                                        remoteSections = remoteCards[j].sections,
+                                        matchingSections =
+                                            card.sections.length == remoteSections.length &&
+                                            card.sections.every((sec, k) => {
+                                                const
+                                                    matchingTitle = sec.title == remoteSections[k].title,
+                                                    remoteContent = remoteSections[k].content,
+                                                    matchingContents =
+                                                        sec.content.length == remoteContent.length &&
+                                                        sec.content.every((content, l) => {
+                                                            return Object.entries(content).every((kvp, m) => {
+                                                                const
+                                                                    remoteContentData = Object.entries(remoteContent[l])[m],
+                                                                    matchingKey = kvp[0] == remoteContentData[0],
+                                                                    matchingValue = kvp[1] == remoteContentData[1];
+        
+                                                                return matchingKey && matchingValue;
+                                                            });
+                                                        });
+                                                return matchingTitle && matchingContents;
+                                            });
+                                    return matchingTitle && matchingSections;
+                                });
+                        return matchingCards;
+                    }) : false,
+                //  local data
+                data = {
+                    nodesData: ato(this.nodesData),
+                    decksData: this.decksData,
+                };
+            
+            if (matchingNodes && matchingDecks) {
+                if (doc.exists) {
+                    if (!confirm(`"${name}" already exists in the cloud, do you wish to overwrite it?`)) return cancelPush();
+                    if (!confirm(`The current "${name}" data will be lost, are you sure?`)) return cancelPush();
+                    if (!confirm('This action can not be undone. Please confirm.')) return cancelPush();
+                }
 
-    //             if (j == entry[1].length - 1) deckObj += '}],\n';
-    //             else deckObj += '}, {\n';
-    //         });
-    //     });
+                const batch = this.fire.batch();
 
-    //     return `\n${deckObj}\n`;
-    // }
+                batch.set(fbDoc, data);
+
+                batch.commit().then(() => {
+                    alert('Pipeline stored in the cloud.');
+                    this.initData = data;
+                    pushIcon.removeAttribute('style');
+                })
+                .catch(error => cancelPush(error));
+            }
+            else {
+                alert(`The remote version of the ${this.name} pipeline has been edited, to prevent loss of work, please send the console log to sd@bsd.education.`);
+                this.printData(data);
+                pushIcon.removeAttribute('style');
+            }
+        })
+        .catch(error => cancelPush(error));
+    }
+
+    printData(data) {
+        console.clear();
+        console.dir(JSON.stringify(data));
+    }
 
     creatorAccess() {
         const
@@ -1037,7 +1084,7 @@ class Pipeline {
         pullIcon.onclick = () => this.pullData();
         pushIcon.onclick = () => {
             const pw = prompt('Password:') || '';
-            if (this.authFn(pw, 1) == 'mfunfjo531') this.pushData();
+            if (this.authFn(pw, 1) == 'mfunfjo531') this.verifyAndPushData();
         };
         this.parseAddressLineParameters();
         this.creatorMode = true;
