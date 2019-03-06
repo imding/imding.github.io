@@ -77,6 +77,9 @@ class Utility {
             return obj;
         };
 
+        //  deep clone an object
+        this.cloneObject = obj => JSON.parse(JSON.stringify(obj));
+
         //  set & get attribute
         this.sAttr = (el, details) => Object.entries(details).forEach(entry => el.setAttribute(entry[0].replace(/([A-Z])/g, '-$1').toLowerCase(), entry[1].toString()));
         this.gAttr = el => {

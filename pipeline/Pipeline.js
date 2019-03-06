@@ -24,6 +24,16 @@ class Pipeline {
             },
         };
 
+        this.initData = {
+            nodesData: { 0: 'Pipeline' },
+            decksData: {
+                pipeline: [{
+                    title: 'Card Title',
+                    sections: [{ content: [{ type: 'p', html:'', bullet: true }] }],
+                }],
+            }
+        };
+
         this.markup = {
             deco: /\[([^:[\]]+)::([^\]]+)\]/,
             // b|i|u|em|del|sub|sup|samp
@@ -115,18 +125,20 @@ class Pipeline {
         sCss(focusElement.self, { left: `-${Math.round(targetPosition * clipSize + focusElement.offset)}px` });
     }
 
-    render(nodesData, decksData) {
+    render(nodesData = this.initData.nodesData, decksData = this.initData.decksData) {
         const autofillDeck = name => this.decksData[camelise(name)] = decksData[camelise(name)] || [{
             title: '',
             sections: [{ title: '', content: [{ type: 'p', html: '' }] }],
         }];
 
         this.init();
+        this.nodesData = [];
+        this.decksData = cloneObject(decksData);
 
-        this.nodesData = nodesData;
-        this.decksData = decksData;
+        //  build nodes array from incoming nodesData object
+        Object.values(nodesData).forEach(field => this.nodesData.push(typeof (field) == 'object' ? Object.values(field) : field));
 
-        const status = nodesData.every(nd => {
+        const validNodes = this.nodesData.every(nd => {
             if (Array.isArray(nd)) {
                 const shell = this.newShell(nd[0]);
                 return nd[1].every(title => {
@@ -140,8 +152,8 @@ class Pipeline {
             }
         });
 
-        if (status) {
-            Object.entries(decksData).forEach(entry => {
+        if (validNodes) {
+            Object.entries(this.decksData).forEach(entry => {
                 const deckName = entry[0], cards = entry[1];
                 cards.forEach(card => this.chart.nodes[deckName].addCard(card));
             });
@@ -161,7 +173,7 @@ class Pipeline {
             });
         }
 
-        return status;
+        return validNodes;
     }
 
     newNode(name, parent) {
@@ -909,12 +921,12 @@ class Pipeline {
 
                 docs.forEach((doc, i) => msg += `${i + 1}. ${doc.id}\n`);
 
-                let r = -1;
+                let userInput = -1;
 
                 if (pipelineNameOptional) {
                     for (var i = 0; i < docs.length; i++) {
                         if (docs[i].id == pipelineNameOptional) {
-                            r = i + 1;
+                            userInput = i + 1;
                             editIcon.style.display = 'none';
                             pullIcon.style.display = 'none';
                             pushIcon.style.display = 'none';
@@ -923,27 +935,25 @@ class Pipeline {
                     }
                 }
 
-                if (r < 0) r = (prompt(msg) || '').trim();
+                if (userInput < 0) userInput = Number((prompt(msg) || '').trim());
 
-                if (/^\d+$/.test(r)) {
+                if (Number.isFinite(userInput) && userInput > 0) {
                     //  remove everything from this.self
                     while (this.self.children.length) {
                         this.self.removeChild(this.self.firstElementChild);
                     }
-
-                    const nd = [], index = Number(r) - 1;
-
-                    //  build nodes array from cloud data object
-                    Object.values(docs[index].data().nodesData).forEach(field => nd.push(typeof (field) == 'object' ? Object.values(field) : field));
-
-                    this.render(nd, docs[index].data().decksData);
-                    this.initData = { nodesData: nd, decksData: docs[index].data().decksData };
+                    
+                    //  reduce userInput by 1 to be used as index
+                    userInput--;
+                    //  store initial data
+                    this.initData = docs[userInput].data();
+                    //  store pipeline name
+                    this.name = docs[userInput].id;
+                    //  render pipeline
+                    this.render(this.initData.nodesData, this.initData.decksData);
 
                     sCss(cPanel, { top: `${gCss(Chart).height}px` });
-
                     alert('Pipeline updated.');
-
-                    this.name = docs[r - 1].id;
                 }
                 else return alert('Invalid input.');
             }
@@ -966,6 +976,87 @@ class Pipeline {
 
         const
             fbDoc = this.fire.collection('Root').doc(name),
+            initNodesData = Object.values(this.initData.nodesData).map(entry => Array.isArray(entry) ? [entry[0], entry[1]] : entry),
+            initDecksData = Object.entries(this.initData.decksData),
+            newData = { nodesData: ato(this.nodesData), decksData: this.decksData },
+            verify = remote => {
+                const
+                    matchingNodes = initNodesData.every((node, i) => {
+                        if (typeof node == 'string' || node instanceof String) {
+                            return node == remote.nodesData[i];
+                        }
+                        else {
+                            const
+                                remoteNode = remote.nodesData[i],
+                                matchingShell = node[0] == remoteNode[0],
+                                matchingTitles = node[1].every((innerNode, _i) => innerNode == remoteNode[1][_i]);
+
+                            return matchingShell && matchingTitles;
+                        }
+                    }),
+                    verifyDecks = () => {
+                        return Object.entries(remote.decksData).length == initDecksData.length && initDecksData.every(deck => {
+                            return remote.decksData.hasOwnProperty(deck[0]) && verifyCards(deck[1], remote.decksData[deck[0]]);
+                        });
+                    },
+                    verifyCards = (initCards, remoteCards) => {
+                        return initCards.length == remoteCards.length && initCards.every((card, j) => {
+                            const
+                                matchingTitle = card.title == remoteCards[j].title,
+                                matchingSections = verifySections(card.sections, remoteCards[j].sections);
+
+                            return matchingTitle && matchingSections;
+                        });
+                    },
+                    verifySections = (initSections, remoteSections) => {
+                        return initSections.length == remoteSections.length && initSections.every((sec, k) => {
+                            const
+                                matchingTitle = sec.title == remoteSections[k].title,
+                                matchingContents = verifyContent(sec.content, remoteSections[k].content);
+
+                            return matchingTitle && matchingContents;
+                        });
+                    },
+                    verifyContent = (initContent, remoteContent) => {
+                        return initContent.length == remoteContent.length && initContent.every((content, l) => {
+                            return Object.entries(content).every(kvp => {
+                                const
+                                    matchingKey = remoteContent[l].hasOwnProperty(kvp[0]),
+                                    matchingValue = kvp[1] == remoteContent[l][kvp[0]];
+
+                                return matchingKey && matchingValue;
+                            });
+                        });
+                    },
+                    matchingDecks = matchingNodes && verifyDecks();
+
+                return { then: callback => {
+                    if (matchingDecks) {
+                        if (!confirm(`"${name}" already exists in the cloud, do you wish to overwrite it?`)) return cancelPush();
+                        if (!confirm(`The current "${name}" data will be lost, are you sure?`)) return cancelPush();
+                        if (!confirm('This action can not be undone. Please confirm.')) return cancelPush();
+
+                        callback();
+                    }
+                    else {
+                        alert(`Overwrite protection is in effect, you can either:\n1. Upload again and choose a name other than "${name}".\n2. Retrieve the "${name}" pipeline and LOSE YOUR CURRENT PROGRESS.`);
+                        console.warn('Push failed. Pipeline data:');
+                        console.dir(JSON.stringify(newData));
+                        pushIcon.removeAttribute('style');
+                    }
+                }};
+            },
+            commitPush = () => {
+                const batch = this.fire.batch();
+
+                batch.set(fbDoc, newData);
+                batch.commit().then(() => {
+                    alert('Pipeline stored in the cloud.');
+                    this.initData = cloneObject(newData);
+                    pushIcon.removeAttribute('style');
+                })
+                .catch(error => cancelPush(error));
+            },
             cancelPush = error => {
                 alert('Push cancelled');
                 pushIcon.removeAttribute('style');
@@ -973,96 +1064,16 @@ class Pipeline {
             };
 
         fbDoc.get().then(doc => {
-            const
-                remote = doc.data(),
-                initNodesData = Object.values(this.initData.nodesData).map(entry => Array.isArray(entry) ? [entry[0], entry[1]] : entry),
-                initDecksData = Object.entries(this.initData.decksData),
-                matchingNodes = initNodesData.every((node, i) => {
-                    if (typeof node == 'string' || node instanceof String) {
-                        return node == remote.nodesData[i];
-                    }
-                    else {
-                        const
-                            remoteNode = remote.nodesData[i],
-                            matchingShell = node[0] == remoteNode[0],
-                            matchingTitles = node[1].every((innerNode, _i) => innerNode == remoteNode[1][_i]);
-                        return matchingShell && matchingTitles;
-                    }
-                }),
-                matchingDecks = matchingNodes ?
-                    Object.entries(remote.decksData).length == initDecksData.length &&
-                    initDecksData.every(deck => {
-                        if (!remote.decksData.hasOwnProperty(deck[0])) return;
-
-                        const
-                            remoteCards = remote.decksData[deck[0]],
-                            initCards = deck[1],
-                            matchingCards =
-                                initCards.length == remoteCards.length && 
-                                initCards.every((card, j) => {
-                                    const
-                                        matchingTitle = card.title == remoteCards[j].title,
-                                        remoteSections = remoteCards[j].sections,
-                                        matchingSections =
-                                            card.sections.length == remoteSections.length &&
-                                            card.sections.every((sec, k) => {
-                                                const
-                                                    matchingTitle = sec.title == remoteSections[k].title,
-                                                    remoteContent = remoteSections[k].content,
-                                                    matchingContents =
-                                                        sec.content.length == remoteContent.length &&
-                                                        sec.content.every((content, l) => {
-                                                            return Object.entries(content).every((kvp, m) => {
-                                                                const
-                                                                    remoteContentData = Object.entries(remoteContent[l])[m],
-                                                                    matchingKey = kvp[0] == remoteContentData[0],
-                                                                    matchingValue = kvp[1] == remoteContentData[1];
-        
-                                                                return matchingKey && matchingValue;
-                                                            });
-                                                        });
-                                                return matchingTitle && matchingContents;
-                                            });
-                                    return matchingTitle && matchingSections;
-                                });
-                        return matchingCards;
-                    }) : false,
-                //  local data
-                data = {
-                    nodesData: ato(this.nodesData),
-                    decksData: this.decksData,
-                };
-            
-            if (matchingNodes && matchingDecks) {
-                if (doc.exists) {
-                    if (!confirm(`"${name}" already exists in the cloud, do you wish to overwrite it?`)) return cancelPush();
-                    if (!confirm(`The current "${name}" data will be lost, are you sure?`)) return cancelPush();
-                    if (!confirm('This action can not be undone. Please confirm.')) return cancelPush();
-                }
-
-                const batch = this.fire.batch();
-
-                batch.set(fbDoc, data);
-
-                batch.commit().then(() => {
-                    alert('Pipeline stored in the cloud.');
-                    this.initData = data;
-                    pushIcon.removeAttribute('style');
-                })
-                .catch(error => cancelPush(error));
-            }
-            else {
-                alert(`The remote version of the ${this.name} pipeline has been edited, to prevent loss of work, please send the console log to sd@bsd.education.`);
-                this.printData(data);
-                pushIcon.removeAttribute('style');
-            }
+            if (doc.exists) verify(doc.data()).then(commitPush);
+            else commitPush();
         })
         .catch(error => cancelPush(error));
     }
 
-    printData(data) {
+    printData() {
         console.clear();
-        console.dir(JSON.stringify(data));
+        console.warn('Pipeline data:');
+        console.log({});
     }
 
     creatorAccess() {

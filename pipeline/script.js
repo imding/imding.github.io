@@ -12,23 +12,8 @@ function init() {
     // display app container
     sCss(document.body, { visibility: 'visible' });
 
-    const nodesData = [
-        'Pipeline',
-    ];
-
-    const cardsData = {
-        pipeline: [{
-            title: 'Card Title',
-            sections: [{
-                content: [
-                    { type: 'p', html: '' },
-                ],
-            }],
-        }],
-    };
-
     pl = new Pipeline(Root);
-    pl.render(nodesData, cardsData);
+    pl.render();
 
     pl.creatorAccess();
 }
