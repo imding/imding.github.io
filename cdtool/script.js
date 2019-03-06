@@ -1314,8 +1314,8 @@ function generateJSON() {
     if (/^\d+\.\d+$/.test(version)) {
         const v = version.split(/\./);
         mission.settings.revision = `(${v[0]},${v[1]})`;
-        mission.settings.majorRevision = v[0];
-        mission.settings.minorRevision = v[1];
+        mission.settings.majorRevision = Number(v[0]);
+        mission.settings.minorRevision = Number(v[1]);
     }
     else alert('Invalid revision format, the default will be used.');
 
