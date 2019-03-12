@@ -31,7 +31,7 @@ html, body {
 body {
     color: #C8CACC;
     font-family: 'Abel', sans-serif;
-    user-select: none;
+    /* user-select: none; */
 }
 
 ul, ol {
