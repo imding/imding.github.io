@@ -12,9 +12,10 @@
   "author": "S. Ding",
   "license": "MIT",
   "dependencies": {
-    "electron": "^4.0.5"
+    "googleapis": "^38.0.0"
   },
   "devDependencies": {
+    "electron": "^4.0.8",
     "electron-packager": "^13.1.0"
   }
 }
