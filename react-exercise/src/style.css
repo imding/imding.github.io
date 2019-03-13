@@ -1,0 +1,13 @@
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+}
+
+#slides {
+    width: 200px;
+    height: 200px;
+    background-color: silver;
+}
