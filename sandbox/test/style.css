@@ -1,3 +1,21 @@
-h1 {
-    color: red;
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    text-align: center;
+}
+
+#content, #track {
+    position: relative;
+}
+
+#track>div {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    border: 1px dashed silver;
 }

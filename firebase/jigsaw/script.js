@@ -65,7 +65,7 @@ function loadImage() {
         if (document.body.contains(popup.element)) {
             document.body.removeChild(popup.element);
             showPopup(
-                "Couldn't load the image after 10 seconds, please make sure the image link is correct.",
+                'Couldn\'t load the image after 10 seconds, please make sure the image link is correct.',
                 'Okay',
                 () => document.body.removeChild(popup.element)
             );

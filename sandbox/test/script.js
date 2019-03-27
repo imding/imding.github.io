@@ -1,102 +1,93 @@
-function drawLosingScreen(color) {
+var content = document.querySelector('#content');
+var track = document.querySelector('#track');
+var blockSize = 32;
+var nColumn = 10;
+var nRow = 5;
+var trackBlocks = [];
+var path = [];
 
-    clearCanvas();
+window.onload = init;
+window.onresize = resizeContent;
 
-    var mod = (tileCount / gridSize) * gridSize;
 
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, gc.width, gc.height);
+function init() {
+    drawGrid();
+    plotPath();
 
-    ctx.fillStyle = color;
-    ctx.fillRect(6 * mod, 3 * mod, 8 * mod, 14 * mod);
-
-    ctx.fillStyle = 'black';
-    ctx.fillRect(8 * mod, 3 * mod, 6 * mod, 12 * mod);
-
-    // Draw the triangle tail
-    ctx.beginPath();
-    ctx.moveTo(13 * mod, 15 * mod);
-    ctx.lineTo(14 * mod, 16 * mod);
-    ctx.lineTo(14 * mod, 15 * mod);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(13 * mod, 17 * mod);
-    ctx.lineTo(14 * mod, 16 * mod);
-    ctx.lineTo(14 * mod, 17 * mod);
-    ctx.fill();
-
-    // Draw the eyes
-    ctx.fillStyle = 'white';
-    ctx.fillRect(6 * mod + 1 / 3 * mod, 3 * mod + 1 / 3 * mod, 1 / 3 * mod, 1 / 3 * mod);
-    ctx.fillRect(7 * mod + 1 / 3 * mod, 3 * mod + 1 / 3 * mod, 1 / 3 * mod, 1 / 3 * mod);
-
-    // Draw the tongue
-    ctx.fillStyle = 'pink';
-    ctx.fillRect(6 * mod + 5 / 6 * mod, 2.5 * mod, 1 / 3 * mod, 1 / 2 * mod);
-    ctx.beginPath();
-    ctx.moveTo(7 * mod, 2.5 * mod);
-    ctx.lineTo(7 * mod, 2 * mod + 3 / 8 * mod);
-    ctx.lineTo(6.5 * mod, 2 * mod);
-    ctx.lineTo(6 * mod + 5 / 6 * mod, 2.5 * mod);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(7 * mod, 2.5 * mod);
-    ctx.lineTo(7 * mod, 2 * mod + 3 / 8 * mod);
-    ctx.lineTo(7.5 * mod, 2 * mod);
-    ctx.lineTo(7 * mod + 1 / 6 * mod, 2.5 * mod);
-    ctx.fill();
-
+    resizeContent();
 }
 
-function drawStartingScreen() {
+function plotPath() {
+    var prevBlock;
+    // var seedRandom = new Math.seedrandom('1315b022-3715-4e54-aa31-e917c53fb0be');
+    var seedRandom = new Math.seedrandom();
 
-    clearCanvas();
+    do {
+        var newBlock;
 
-    var mod = (tileCount / gridSize) * gridSize;
+        if (path.length > 0) {
+            newBlock = prevBlock.neighbours[Math.floor(seedRandom() * prevBlock.neighbours.length)];
+            newBlock.neighbours = newBlock.neighbours.filter(neighbour => !path.includes(neighbour));
+        }
+        else {
+            newBlock = trackBlocks[Math.floor(seedRandom() * nRow)][0];
+        }
+        
+        newBlock.style.backgroundColor = 'lightblue';
+        path.push(newBlock);
+        prevBlock = newBlock;
+    }
+    while (prevBlock.endOfRow == false);
+}
 
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, gc.width, gc.height);
+function drawGrid() {
+    //  create an array or undefined items whose length is equal to nRow
+    var rows = new Array(nRow).fill();
 
-    ctx.fillStyle = 'green';
-    ctx.fillRect(6 * mod, 3 * mod, 8 * mod, 14 * mod);
+    track.style.width = nColumn * blockSize + 'px';
+    track.style.height = nRow * blockSize + 'px';
+    content.style.width = track.style.width;
 
-    ctx.fillStyle = 'black';
-    ctx.fillRect(8 * mod, 5 * mod, 6 * mod, 4 * mod);
-    ctx.fillRect(6 * mod, 11 * mod, 6 * mod, 4 * mod);
+    //  build the trackBlocks 2D array
+    rows.forEach((row, rowIndex) => {
+        //  create an array or undefined items whose length is equal to nColumn
+        row = new Array(nColumn).fill();
+        trackBlocks.push(row);
 
-    // Draw the triangle tail
-    ctx.beginPath();
-    ctx.moveTo(7 * mod, 15 * mod);
-    ctx.lineTo(6 * mod, 16 * mod);
-    ctx.lineTo(6 * mod, 15 * mod);
-    ctx.fill();
+        row.forEach((block, blockIndex) => {
+            block = document.createElement('div');
+            block.style.top = rowIndex * blockSize + 'px';
+            block.style.left = blockIndex * blockSize + 'px';
+            block.endOfRow = blockIndex == nColumn - 1;
+            
+            row[blockIndex] = block;
+            track.appendChild(block);
+        });
+    });
 
-    ctx.beginPath();
-    ctx.moveTo(7 * mod, 17 * mod);
-    ctx.lineTo(6 * mod, 16 * mod);
-    ctx.lineTo(6 * mod, 17 * mod);
-    ctx.fill();
+    //  store neighbouring blocks for each block
+    trackBlocks.forEach((row, nthRow) => {
+        row.forEach((block, nthColumn) => {
+            block.neighbours = [];
 
-    // Draw the eyes
-    ctx.fillStyle = 'white';
-    ctx.fillRect(13 * mod + 1 / 3 * mod, 3 * mod + 1 / 3 * mod, 1 / 3 * mod, 1 / 3 * mod);
-    ctx.fillRect(13 * mod + 1 / 3 * mod, 4 * mod + 1 / 3 * mod, 1 / 3 * mod, 1 / 3 * mod);
+            if (nthRow > 0) {
+                block.neighbours.push(trackBlocks[nthRow - 1][nthColumn]);
+            }
+            if (nthRow < nRow - 1) {
+                block.neighbours.push(trackBlocks[nthRow + 1][nthColumn]);
+            }
+            if (nthColumn < nColumn - 1) {
+                block.neighbours.push(trackBlocks[nthRow][nthColumn + 1]);
+            }
+        });
+    });
+}
 
-    // Draw the tongue
-    ctx.fillStyle = 'pink';
-    ctx.fillRect(14 * mod, 3 * mod + 5 / 6 * mod, 1 / 2 * mod, 1 / 3 * mod);
-    ctx.beginPath();
-    ctx.moveTo(14.5 * mod, 4 * mod);
-    ctx.lineTo(14 * mod + 5 / 8 * mod, 4 * mod);
-    ctx.lineTo(15 * mod, 3.5 * mod);
-    ctx.lineTo(14.5 * mod, 3 * mod + 5 / 6 * mod);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(14.5 * mod, 4 * mod);
-    ctx.lineTo(14 * mod + 5 / 8 * mod, 4 * mod);
-    ctx.lineTo(15 * mod, 4.5 * mod);
-    ctx.lineTo(14.5 * mod, 4 * mod + 1 / 6 * mod);
-    ctx.fill();
+function resizeContent() {
+    var contentRatio = content.offsetWidth / content.offsetHeight;
+    var windowRatio = window.innerWidth / window.innerHeight;
 
+    content.style.left = `${(window.innerWidth - content.offsetWidth) / 2}px`;
+    content.style.top = `${(window.innerHeight - content.offsetHeight) / 2}px`;
+    content.style.transform = `scale(${contentRatio > windowRatio ? window.innerWidth / content.offsetWidth : window.innerHeight / content.offsetHeight})`;
 }
