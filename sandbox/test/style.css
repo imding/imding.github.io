@@ -9,13 +9,21 @@ html, body {
     text-align: center;
 }
 
-#content, #track {
+#content, #grid {
     position: relative;
 }
 
-#track>div {
+#grid>div {
     position: absolute;
     width: 32px;
     height: 32px;
     border: 1px dashed silver;
+}
+
+#car {
+    border-radius: 50%;
+    background-color: firebrick;
+    transform: scale(0.5);
+    transition: all 0.5s linear;
+    z-index: 1;
 }
