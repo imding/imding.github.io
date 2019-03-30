@@ -2,101 +2,61 @@ var content = document.querySelector('#content');
 var grid = document.querySelector('#grid');
 var car = document.querySelector('#car');
 var btnRun = document.querySelector('#btnRun');
-var blockSize = 32;
+var cellSize = 32;
 var nColumn = 20;
 var nRow = 10;
-var trackBlocks = [];
-var track = [];
-var path = [];
+var trackCells = [];
 
 window.onload = init;
 window.onresize = resizeContent;
-btnRun.onclick = autoPilot;
+btnRun.onclick = findNextCell;
 
 function init() {
     drawGrid();
     plotPath();
 
-    //  place the car on the first block in the track
-    moveCarTo(track.shift());
-
     //  handle the transitionend event using the nextCommand function
-    car.addEventListener('transitionend', nextMove);
+    car.addEventListener('transitionend', findNextCell);
 
     resizeContent();
 }
 
 function autoPilot() {
-    console.log(car.restingBlock.branches);
+    btnRun.disabled = true;
+    btnRun.textContent = 'Ready...';
+
+    setTimeout(() => {
+        btnRun.textContent = '';
+    }, 1000);
 }
 
-function goUp(n) {
-    addToPath('up', n);
-}
+function findNextCell() {
+    var cellUp = car.currentCell.up;
 
-function goDown(n) {
-    addToPath('down', n);
-}
-
-function goRight(n) {
-    addToPath('right', n);
-}
-
-function addToPath(dir, n = 1) {
-    //  start the car after receving the first command
-    if (path.length == 0) {
-        btnRun.disabled = true;
-        btnRun.textContent = 'Ready...';
-        
-        setTimeout(() => {
-            btnRun.textContent = 'Go!';
-            nextMove();
-        }, 1000);
-    }
-
-    while (n--) {
-        var pathEnd = path[path.length - 1]||car.restingBlock;
-        path.push(pathEnd[dir]);
-    }
-}
-
-function nextMove() {
-    if (path.length) {
-        var nextBlock = path.shift();
-
-        if (nextBlock) {
-            if (nextBlock != track.shift()) {
-                fail('Your algorithm led the car off track.');
-            }
-            
-            moveCarTo(nextBlock);
-        }
-        else {
-            fail('Your algorithm tries to lead the car off the grid.');
-        }
+    if (cellUp && cellUp != car.prevCell && cellUp.isConnectedTo(car.currentCell)) {
+        moveCarTo(cellUp);
     }
     else {
-        checkResult();
+        var cellDown = car.currentCell.down;
+
+        if (cellDown && cellDown != car.prevCell && cellDown.isConnectedTo(car.currentCell)) {
+            moveCarTo(cellDown);
+        }
+        else {
+            var cellRight = car.currentCell.right;
+
+            if (cellRight && cellRight != car.prevCell && cellRight.isConnectedTo(car.currentCell)) {
+                moveCarTo(cellRight);
+            }
+            else {
+                checkResult();
+            }
+        }
     }
 }
 
 function checkResult() {
-    if (car.restingBlock == track[track.length - 1]) {
-        trackBlocks.forEach(row => row.forEach(block => grid.removeChild(block)));
-
-        trackBlocks = [];
-        track = [];
-        path = [];
-
-        init();
-        
-        console.log('Congratulations! You reached the finish line.');
-        btnRun.disabled = false;
-        btnRun.textContent = 'Run Algorithm';
-    }
-    else {
-        fail('Your algorithm did not lead the car to the finish line.');
-    }
+    
 }
 
 function fail(msg) {
@@ -109,79 +69,97 @@ function fail(msg) {
 }
 
 function moveCarTo(el) {
-    car.restingBlock = el;
+    car.prevCell = car.currentCell;
+    car.currentCell = el;
     car.style.top = el.offsetTop + 'px';
     car.style.left = el.offsetLeft + 'px';
 }
 
 function plotPath() {
-    var prevBlock;
-    // var seedRandom = new Math.seedrandom('1315b022-3715-4e54-aa31-e917c53fb0be');
-    var seedRandom = new Math.seedrandom();
+    var randomRowIndex = Math.floor(Math.random() * trackCells.length);
+    var prevCell = trackCells[randomRowIndex][0];
+
+    prevCell.style.backgroundColor = 'lightblue';
+    prevCell.inDir = 'left';
+
+    moveCarTo(prevCell);
 
     do {
-        var newBlock;
+        var randomBranchIndex = Math.floor(Math.random() * prevCell.paths.length);
+        var nextCell;
 
-        if (track.length > 0) {
-            newBlock = prevBlock.branches[Math.floor(seedRandom() * prevBlock.branches.length)];
-            newBlock.branches = newBlock.branches.filter(neighbour => !track.includes(neighbour));
+        nextCell = prevCell.paths[randomBranchIndex];
+        nextCell.style.backgroundColor = 'lightblue';
+        nextCell.paths = nextCell.paths.filter(cell => cell != prevCell);
+        
+        if (nextCell.offsetTop > prevCell.offsetTop) {
+            prevCell.outDir = 'down';
+            nextCell.inDir = 'up';
+        }
+        else if (nextCell.offsetTop < prevCell.offsetTop) {
+            prevCell.outDir = 'up';
+            nextCell.inDir = 'down';
         }
         else {
-            newBlock = trackBlocks[Math.floor(seedRandom() * nRow)][0];
+            prevCell.outDir = 'right';
+            nextCell.inDir = 'left';
         }
         
-        newBlock.style.backgroundColor = 'lightblue';
-        
-        if (prevBlock) prevBlock.nextBlock = newBlock;
-
-        prevBlock = newBlock;
-        track.push(newBlock);
+        prevCell = nextCell;
     }
-    while (prevBlock.endOfRow == false);
+    while (nextCell.endOfRow == false);
 }
 
 function drawGrid() {
     //  create an array or undefined items whose length is equal to nRow
     var rows = new Array(nRow).fill();
 
-    grid.style.width = nColumn * blockSize + 'px';
-    grid.style.height = nRow * blockSize + 'px';
+    grid.style.width = nColumn * cellSize + 'px';
+    grid.style.height = nRow * cellSize + 'px';
     content.style.width = grid.style.width;
 
-    //  build the trackBlocks 2D array
+    //  build the trackCells 2D array
     rows.forEach((row, rowIndex) => {
         //  create an array of undefined items whose length is equal to nColumn
         row = new Array(nColumn).fill();
-        trackBlocks.push(row);
+        trackCells.push(row);
 
-        row.forEach((block, blockIndex) => {
-            block = document.createElement('div');
-            block.style.top = rowIndex * blockSize + 'px';
-            block.style.left = blockIndex * blockSize + 'px';
-            block.endOfRow = blockIndex == nColumn - 1;            
-            row[blockIndex] = block;
-            grid.appendChild(block);
+        row.forEach((cell, cellIndex) => {
+            cell = document.createElement('div');
+            cell.style.top = rowIndex * cellSize + 'px';
+            cell.style.left = cellIndex * cellSize + 'px';
+            cell.endOfRow = cellIndex == nColumn - 1;      
+            row[cellIndex] = cell;
+            grid.appendChild(cell);
         });
     });
 
-    //  store neighbouring blocks for each block
-    trackBlocks.forEach((row, nthRow) => {
-        row.forEach((block, nthColumn) => {
-            block.up = block.down = block.right = null;
-            block.branches = [];
+    //  store neighbouring cells for each cell
+    trackCells.forEach((row, nthRow) => {
+        row.forEach((cell, nthColumn) => {
+            cell.up = cell.down = cell.right = null;
+            cell.paths = [];
 
             if (nthRow > 0) {
-                block.up = trackBlocks[nthRow - 1][nthColumn];
-                block.branches.push(block.up);
+                cell.up = trackCells[nthRow - 1][nthColumn];
+                cell.paths.push(cell.up);
             }
             if (nthRow < nRow - 1) {
-                block.down = trackBlocks[nthRow + 1][nthColumn];
-                block.branches.push(block.down);
+                cell.down = trackCells[nthRow + 1][nthColumn];
+                cell.paths.push(cell.down);
             }
             if (nthColumn < nColumn - 1) {
-                block.right = trackBlocks[nthRow][nthColumn + 1];
-                block.branches.push(block.right);
+                cell.right = trackCells[nthRow][nthColumn + 1];
+                cell.paths.push(cell.right);
             }
+
+            cell.isConnectedTo = block => {
+                var pathUp = block.outDir == 'up' && cell.inDir == 'down';
+                var pathDown = block.outDir == 'down' && cell.inDir == 'up';
+                var pathRight = block.outDir == 'right' && cell.inDir == 'left';
+
+                return pathUp || pathDown || pathRight;
+            };
         });
     });
 }
