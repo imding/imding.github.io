@@ -1,0 +1,61 @@
+### Brief
+Grade 3-5
+Grade 6-8
+Outcome: Chatbot on a vehicle
+
+
+### Building AI
+
+
+--- Day 1
+Introduction ( 20mins )
+
+Understanding AI ( 10/60mins )
+  Artificial intelligence ( examples )
+  addon - General intelligence ( unplugged activity )
+  addon - Q & A
+
+Coding Overview ( 60mins )
+  Instruction demo of the inspect feature on a live site
+  Sandbox template exercise
+
+Algorithms with origami ( 30mins )
+Relate algorithm to function calls ( 10mins )
+Algorithms with code - traverse a track ( 40mins )
+
+( 130mins of addon TBD )
+
+
+--- Day 2
+Concept: Logic
+Tech Concept: Boolean; Relational Operators; Conditionals
+Activity 1: 
+Guided Project ( Auto Navigation + Chatbot Feedback )
+
+
+--- Day 3
+Concept: Program Memory
+Tech Concept: 2D array; index; array operations ( push, unshift, pop, shift, filter )
+Activity 1: hacking your brain;  
+Guided Project ( Local Database + Update Chatbot )
+
+
+--- Day 4
+Concept: Randomness & Iteration ( maze )
+Tech Concepts: Math ( random, floor ); index; for loop
+Activity 1:
+Guided Project ( Simulation + Chatbot Commands )
+
+
+--- Day 5
+Customisation
+Showcase Website
+Presentation
+
+
+** Coding Prep **
+Explain coding concepts required by the project for that day
+Use unplugged activities
+Show videos
+Interactive 
+Typing challenge
