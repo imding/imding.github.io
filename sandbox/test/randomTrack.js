@@ -6,6 +6,8 @@ var cellSize = 32;
 var nColumn = 20;
 var nRow = 10;
 var trackCells = [];
+var LongMemrory = [];
+var workingMemory = [];
 
 window.onload = init;
 window.onresize = resizeContent;
@@ -34,19 +36,24 @@ function findNextCell() {
     var cellUp = car.currentCell.up;
 
     if (cellUp && cellUp != car.prevCell && cellUp.isConnectedTo(car.currentCell)) {
+        // check through long memory
+        //   if cellUp is in longMemory && the residing entry is a success, then go ahead
         moveCarTo(cellUp);
+        workingMemory.push(cellUp);
     }
     else {
         var cellDown = car.currentCell.down;
 
         if (cellDown && cellDown != car.prevCell && cellDown.isConnectedTo(car.currentCell)) {
             moveCarTo(cellDown);
+            workingMemory.push(cellDown);
         }
         else {
             var cellRight = car.currentCell.right;
 
             if (cellRight && cellRight != car.prevCell && cellRight.isConnectedTo(car.currentCell)) {
                 moveCarTo(cellRight);
+                workingMemory.push(right);
             }
             else {
                 checkResult();
@@ -56,7 +63,26 @@ function findNextCell() {
 }
 
 function checkResult() {
-    
+    if ('reached_end') {
+        LongMemrory.push(workingMemory, 'success');
+        workingMemory = [];
+    }
+    else {
+        LongMemrory.push(workingMemory, 'failure');
+    }
+}
+
+function readUserCommand(cmd) {
+    if (cmd == "stop") {
+        moveCarTo(car);
+        dashboard('car stopped.');
+    }
+    else if (cmd == "continue" || cmd == 'keep going' || cmd == 'resume') {
+        findNextCell();
+    }
+    else if (cmd == 'where am i') {
+        dashboard('We are in D4');
+    }
 }
 
 function fail(msg) {
