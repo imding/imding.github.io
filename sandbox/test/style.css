@@ -17,6 +17,10 @@ html, body {
     display: flex;
 }
 
+#grid {
+    background-color: #6abe30;
+}
+
 #grid>div {
     position: absolute;
     width: 32px;
