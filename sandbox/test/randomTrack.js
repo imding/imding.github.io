@@ -5,9 +5,10 @@ var btnRun = document.querySelector('#btnRun');
 var messages = document.querySelector('#messages');
 var userInput = document.querySelector('#userInput');
 var cellSize = 32;
-var nColumn = 10;
-var nRow = 5;
+var nColumn = 20;
+var nRow = 8;
 var gridCells = [];
+var longMemory = [];
 
 var debugMode = true;
 
@@ -90,7 +91,7 @@ function moveCarTo(nextCell) {
             rotation = 90;
         }
 
-        car.style.transform = `scale(0.6) rotate(${rotation}deg)`;
+        car.style.transform = `rotate(${rotation}deg)`;
     }
 
     car.prevCell = car.currentCell;
@@ -134,27 +135,7 @@ function plotPath() {
         }
 
         //  assign appropriate road type image
-        var roadType;
-        var dir = [prevCell.inDir.sort().join(''), prevCell.outDir.sort().join('')].sort().join('');
-
-        if (dir == 'downup') {
-            roadType = 'vertical';
-        }
-        else if (dir == 'leftright') {
-            roadType = 'horizontal';
-        }
-        else if (dir == 'downright') {
-            roadType = 'upper_left_corner';
-        }
-        else if (dir == 'downleft') {
-            roadType = 'upper_right_corner';
-        }
-        else if (dir == 'leftup') {
-            roadType = 'lower_right_corner';
-        }
-        else if (dir == 'rightup') {
-            roadType = 'lower_left_corner';
-        }
+        var roadType = prevCell.inDir.concat(prevCell.outDir).sort().join('');
 
         prevCell.setRoadType(roadType);
 
@@ -166,8 +147,6 @@ function plotPath() {
         prevCell = nextCell;
     }
     while (nextCell.endOfRow == false);
-
-
 }
 
 function drawGrid() {

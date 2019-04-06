@@ -21,15 +21,13 @@ html, body {
     position: absolute;
     width: 32px;
     height: 32px;
-    /* border: 1px dashed silver; */
 }
 
 #car {
     background-image: url('https://app.bsd.education/resources/car_blue.png');
-    background-size: contain;
-    background-position: center;
+    background-size: 60%;
+    background-position: 2px center;
     background-repeat: no-repeat;
-    transform: scale(0.6);
     transition: left 0.5s linear, top 0.5s linear, transform 0.15s ease-in-out;
     z-index: 1;
 }
@@ -53,4 +51,6 @@ html, body {
 
 .road {
     background-repeat: no-repeat;
+    background-origin: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
