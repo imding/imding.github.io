@@ -32,8 +32,15 @@ html, body {
     background-size: 60%;
     background-position: 2px center;
     background-repeat: no-repeat;
-    transition: left 0.5s linear, top 0.5s linear, transform 0.15s ease-in-out;
     z-index: 1;
+}
+
+.normal {
+    transition: left 0.5s linear, top 0.5s linear, transform 0.15s ease-in-out;
+}
+
+.fast {
+    transition: left 0.02s linear, top 0.02s linear;
 }
 
 #chatbot {
@@ -57,4 +64,12 @@ html, body {
     background-repeat: no-repeat;
     background-origin: border-box;
     border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.target {
+    border: 1px solid rgba(255, 0, 0, 0.5);
+}
+
+.previous {
+    border: 1px solid rgba(0, 0, 255, 0.5);
 }
