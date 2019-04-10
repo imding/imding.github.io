@@ -40,7 +40,7 @@ html, body {
 	overflow: hidden;
 }
 
-button {
+#app>button {
 	width: 65px;
 	height: 35px;
 	font-size: 1em;
@@ -63,7 +63,7 @@ button {
 	border: solid ghostwhite 2px;
 }
 
-.hotkey {
+#tipContainer .hotkey {
 	color: mintcream;
 	background-color: slateblue;
 	padding: 2px 6px;
@@ -88,7 +88,7 @@ button {
 	overflow-y: scroll;
 }
 
-#recover, #tips {
+#app>#recover, #app #tips {
 	width: 30px;
 	height: 30px;
 	background-color: slateblue;

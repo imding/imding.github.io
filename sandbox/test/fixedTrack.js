@@ -5,13 +5,13 @@ var btnRun = document.querySelector('#btnRun');
 var blockSize = 32;
 var nColumn = 10;
 var nRow = 5;
-var trackBlocks = [];
+var gridCells = [];
 var track = [];
 var path = [];
 
 window.onload = init;
 window.onresize = resizeContent;
-btnRun.onclick = autoPilot;
+btnRun.onclick = navigateRoad;
 
 function init() {
     drawGrid();
@@ -26,7 +26,7 @@ function init() {
     resizeContent();
 }
 
-function autoPilot() {
+function navigateRoad() {
     goRight(3);
     goUp();
     goRight(3);
@@ -114,7 +114,8 @@ function plotPath() {
             newBlock.branches = newBlock.branches.filter(neighbour => !track.includes(neighbour));
         }
         else {
-            newBlock = trackBlocks[Math.floor(seedRandom() * nRow)][0];
+            newBlock = gridCells[Math.floor(seedRandom() * nRow)][0];
+            newBlock.roadType.push('left');
         }
         
         newBlock.style.backgroundColor = 'lightblue';
@@ -139,7 +140,7 @@ function drawGrid() {
     rows.forEach((row, rowIndex) => {
         //  create an array of undefined items whose length is equal to nColumn
         row = new Array(nColumn).fill();
-        trackBlocks.push(row);
+        gridCells.push(row);
 
         row.forEach((block, blockIndex) => {
             block = document.createElement('div');
@@ -152,21 +153,28 @@ function drawGrid() {
     });
 
     //  store neighbouring blocks for each block
-    trackBlocks.forEach((row, nthRow) => {
+    gridCells.forEach((row, nthRow) => {
         row.forEach((block, nthColumn) => {
-            block.up = block.down = block.right = null;
+            block.up = null;
+            block.down = null;
+            block.left = null;
+            block.right = null;
             block.branches = [];
+            block.roadType = [];
 
             if (nthRow > 0) {
-                block.up = trackBlocks[nthRow - 1][nthColumn];
+                block.up = gridCells[nthRow - 1][nthColumn];
                 block.branches.push(block.up);
             }
             if (nthRow < nRow - 1) {
-                block.down = trackBlocks[nthRow + 1][nthColumn];
+                block.down = gridCells[nthRow + 1][nthColumn];
                 block.branches.push(block.down);
             }
+            if (nthColumn > 0) {
+                block.left = gridCells[nthRow][nthColumn - 1];
+            }
             if (nthColumn < nColumn - 1) {
-                block.right = trackBlocks[nthRow][nthColumn + 1];
+                block.right = gridCells[nthRow][nthColumn + 1];
                 block.branches.push(block.right);
             }
         });

@@ -2,16 +2,20 @@ var content = document.querySelector('#content');
 var grid = document.querySelector('#grid');
 var car = document.querySelector('#car');
 var btnRun = document.querySelector('#btnRun');
-var btnAddPath = document.querySelector('#btnAddPath');
+var btnStop = document.querySelector('#btnStop');
+var btnTest = document.querySelector('#btnTest');
 var messages = document.querySelector('#messages');
 var userInput = document.querySelector('#userInput');
 var cellSize = 32;
-var nColumn = 10;
-var nRow = 10;
+var nColumn = 5;
+var nRow = 5;
 var gridCells = [];
 var bestAttempt = [];
 var shortMemory = [];
-var mode = 'fast';
+var mode = 'normal';
+var iteration = 0;
+var maxIteration = 200000;
+var deadends = 0.3;
 
 window.onload = init;
 window.onresize = resizeContent;
@@ -35,56 +39,137 @@ function init() {
     resizeContent();
 }
 
-function stopAlgorithm() {
-    setTimeout(() => {
-        shortMemory = [];
-
-        // btnRun.disabled = false;
-        // btnRun.textContent = 'Reset Car';
-        // btnRun.onclick = resetCar;
-        resetCar();
-    }, 500);
-}
-
 function findNextCell() {
+    if (mode == 'ultra') return runWithoutUI();
     if (event && event.propertyName == 'transform') return;
     if (car.currentCell.id == 'finish') return;
 
     btnRun.disabled = true;
     btnRun.textContent = 'Running...';
 
-    var randomNextCell;
     var currentCell = car.currentCell;
     
     //  check if the car has circled back to the starting cell
     if (shortMemory.length > 0 && currentCell == car.startCell && currentCell.roadType.length == 2) {
-        console.log(`The algorithm failed to find the exit in this iteration. Distance travelled: ${shortMemory.length} cells.`);
-        return stopAlgorithm();
+        stopAlgorithm(`The algorithm failed to find the exit in this iteration. Distance travelled: ${shortMemory.length} cells.`);
     }
+    else if (currentCell.deadend) {
+        stopAlgorithm('The algorithm lead to a dead end.');
+    }
+    else {
+        var randomNextCell;
 
-    while (randomNextCell == undefined || randomNextCell == car.prevCell) {        
-        randomNextCell = currentCell[randomItemFrom(currentCell.roadType)];
-    }
-    
-    shortMemory.push(randomNextCell);
-    
-    //  check if the car has reached the exit
-    if (randomNextCell.id == 'finish') {
-        console.log(`Your algorithm worked! Total distance travelled: ${shortMemory.length} cells.`);
-        bestAttempt = shortMemory;
-        stopAlgorithm();
-    }
-    
-    //  check if the car has travelled same distance as the best attempt
-    else if (shortMemory.length == bestAttempt.length) {
-        console.log(`The algorithm failed to find the exit in less than ${bestAttempt.length} moves, this iteration is discarded.`);
-        return stopAlgorithm();
-    }
+        do randomNextCell = currentCell[randomItemFrom(currentCell.roadType)];
+        while (!randomNextCell || randomNextCell == car.prevCell);
 
-    moveCarTo(randomNextCell);
+        shortMemory.push(randomNextCell);
+    
+        //  check if the car has travelled same distance as the best attempt
+        if (shortMemory.length == bestAttempt.length) {
+            stopAlgorithm(`The algorithm failed to find the exit in less than ${bestAttempt.length} moves, this iteration is discarded.`);
+        }
+        else {
+            moveCarTo(randomNextCell);
+        
+            //  check if the car has reached the exit
+            if (randomNextCell.id == 'finish') {
+                bestAttempt = shortMemory;
+                stopAlgorithm(`Your algorithm worked! Total distance travelled: ${bestAttempt.length} cells.`);
+            }
+            else if (mode == 'fast') {
+                setTimeout(findNextCell, 0);
+            }
+        }
+    }
 }
 
-function resetCar() {    
+function runWithoutUI() {
+    btnRun.disabled = true;
+    btnRun.textContent = 'Running...';
+
+    var uuidv4 = () => {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            let r = Math.random() * 16 | 0,
+                v = c == 'x' ? r : (r & 0x3 | 0x8);
+
+            return v.toString(16);
+        });
+    };
+
+    var cellsData;
+    
+    cellsData = gridCells.map(row => row.map(cell => {
+        return {
+            id: uuidv4(),
+            roadType: cell.roadType,
+            start: cell == car.startCell,
+            finish: cell.id == 'finish',
+            deadend: !!cell.deadend,
+        };
+    }));
+
+    cellsData.forEach((row, nthRow) => row.forEach((cell, nthColumn) => {
+        cell.row = nthRow;
+        cell.column = nthColumn;
+        cell.up    = nthRow > 0              ? cellsData[nthRow - 1][nthColumn] : null;
+        cell.down  = nthRow < nRow - 1       ? cellsData[nthRow + 1][nthColumn] : null;
+        cell.left  = nthColumn > 0           ? cellsData[nthRow][nthColumn - 1] : null;
+        cell.right = nthColumn < nColumn - 1 ? cellsData[nthRow][nthColumn + 1] : null;
+
+        if (cell.start) {
+            car.startCell = cell;
+            currentCell = cell;
+            prevCell = cell;
+        }
+    }));
+
+    iteration = 0;
+
+    do {
+        if (currentCell.id == car.startCell.id && currentCell.roadType.length == 2 && shortMemory.length > 0) {
+            stopPureSim();
+        }
+        else if (currentCell.deadend) {
+            stopPureSim();
+        }
+        else if (currentCell.finish) {
+            bestAttempt = shortMemory;
+            stopPureSim(`It worked! Steps taken: ${bestAttempt.length}.`);
+        }
+        else {
+            var randomNextCell;
+
+            do randomNextCell = currentCell[randomItemFrom(currentCell.roadType)];
+            while (!randomNextCell || randomNextCell.id == prevCell.id);
+            
+            prevCell = currentCell;
+            currentCell = randomNextCell;
+            shortMemory.push(gridCells[currentCell.row][currentCell.column]);
+
+            if (shortMemory.length == bestAttempt.length) {
+                stopPureSim();
+            }
+        }
+    }
+    while (iteration < maxIteration);
+
+    btnRun.disabled = false;
+    btnRun.textContent = 'Run Algorithm';
+    console.log(`Algorithm ran ${maxIteration} times, best attempt: ${bestAttempt.length} steps.`);
+}
+
+function stopPureSim(message) {
+    shortMemory = [];
+    currentCell = car.startCell;
+    prevCell = car.startCell;
+    iteration++;
+    reset();
+    
+    if (message) console.log(message);
+}
+
+function stopAlgorithm(message, restart = true) {
+    var transition = car.style.transition;
     var countdown = duration => {
         if (duration > 0) {
             btnRun.disabled = true;
@@ -93,20 +178,25 @@ function resetCar() {
         }
 
         car.style.transition = transition;
-        // btnRun.disabled = false;
-        // btnRun.textContent = 'Run Again';
-        // btnRun.onclick = findNextCell;
         findNextCell();
     };
-    var transition = car.style.transition;
+
+
+    setTimeout(() => {
+        reset();
+        if (restart) countdown(1);
+    }, 500);
     
+    if (message) console.log(message);
+}
+
+function reset() {
+    shortMemory = [];
     car.style.transition = 'none';
     car.rotation = 0;
     car.prevCell = null;
     car.currentCell = null;
-    
     moveCarTo(car.startCell);
-    countdown(1);
 }
 
 function moveCarTo(nextCell) {
@@ -162,6 +252,11 @@ function plotPath(prevRoadCell) {
     prevRoadCell = prevRoadCell || car.currentCell;
     prevRoadCell.roadType.push('left');
 
+    var removeDeadEnd = roadCell => {
+        if (roadCell.roadType.length > 1) {
+            delete roadCell.deadend;
+        }
+    };
     var expandFrom = targetCell => {
         //  remove target cell from the available paths of the previous road cell
         remove(targetCell).from(prevRoadCell.paths);
@@ -188,9 +283,11 @@ function plotPath(prevRoadCell) {
 
         //  assign appropriate road type image
         prevRoadCell.setRoadType(prevRoadCell.roadType.sort().join(''));
+        removeDeadEnd(prevRoadCell);
 
-        if (targetCell.className == 'road') {
+        if (targetCell.className == 'road' || targetCell.deadend) {
             targetCell.setRoadType(targetCell.roadType.sort().join(''));
+            removeDeadEnd(targetCell);
         }
 
         prevRoadCell = targetCell;
@@ -215,11 +312,14 @@ function plotPath(prevRoadCell) {
     newRoadCell.setRoadType('finish');
     newRoadCell.id = 'finish';
 
+    //  create branches to fill all the empty cells
     var branch = [];
     var emptyCells = gridCells.flat().filter(cell => cell.className == '' && cell.right != null);
 
-    while (emptyCells.length > 0) {
+    btnTest.onclick = () => {
+        //  check if a branch is already created
         if (branch.length == 0) {
+            //  select a cell from the first path
             var branchCell = randomItemFrom(gridCells.flat().filter(cell =>
                 cell.className == 'road' &&
                 cell.id != 'finish' &&
@@ -228,13 +328,19 @@ function plotPath(prevRoadCell) {
                 cell.right.id != 'finish' &&
                 cell.paths.filter(neighbourCell => neighbourCell.className == '').length > 0
             ));
-
+            
             prevRoadCell = branchCell;
             newRoadCell = randomItemFrom(branchCell.paths.filter(cell => cell.className == ''));
         }
         else {
             newRoadCell = randomItemFrom(branch[branch.length - 1].paths);
-            emptyCells.pop();
+            remove(prevRoadCell).from(emptyCells);
+
+            //  determine whether new road cell is a deadend
+            if (newRoadCell.className != 'road' && Math.random() > deadends) {
+                newRoadCell.deadend = true;
+                remove(newRoadCell).from(emptyCells);
+            }
         }
 
         //  remove paths that lead to the last column
@@ -244,13 +350,55 @@ function plotPath(prevRoadCell) {
 
         expandFrom(newRoadCell);
 
-        if (newRoadCell.className == 'road') {
+        if (newRoadCell.className == 'road' || newRoadCell.deadend) {
             branch = [];
         }
         else {
             branch.push(newRoadCell);
         }
-    }
+    };
+
+    // while (emptyCells.length > 0) {
+    //     //  check if a branch is already created
+    //     if (branch.length == 0) {
+    //         //  select a cell from the first path
+    //         var branchCell = randomItemFrom(gridCells.flat().filter(cell =>
+    //             cell.className == 'road' &&
+    //             cell.id != 'finish' &&
+    //             cell.right != null &&
+    //             cell.right.right != null &&
+    //             cell.right.id != 'finish' &&
+    //             cell.paths.filter(neighbourCell => neighbourCell.className == '').length > 0
+    //         ));
+            
+    //         prevRoadCell = branchCell;
+    //         newRoadCell = randomItemFrom(branchCell.paths.filter(cell => cell.className == ''));
+    //     }
+    //     else {
+    //         newRoadCell = randomItemFrom(branch[branch.length - 1].paths);
+    //         remove(prevRoadCell).from(emptyCells);
+
+    //         //  determine whether new road cell is a deadend
+    //         if (newRoadCell.className != 'road' && Math.random() > deadends) {
+    //             newRoadCell.deadend = true;
+    //             remove(newRoadCell).from(emptyCells);
+    //         }
+    //     }
+
+    //     //  remove paths that lead to the last column
+    //     if (newRoadCell.right.right == null) {
+    //         remove(newRoadCell.right).from(newRoadCell.paths);
+    //     }
+
+    //     expandFrom(newRoadCell);
+
+    //     if (newRoadCell.className == 'road' || newRoadCell.deadend) {
+    //         branch = [];
+    //     }
+    //     else {
+    //         branch.push(newRoadCell);
+    //     }
+    // }
 }
 
 function drawGrid() {
@@ -260,9 +408,10 @@ function drawGrid() {
     grid.style.width = nColumn * cellSize + 'px';
     grid.style.height = nRow * cellSize + 'px';
 
-    messages.style.height = `${grid.offsetHeight - userInput.offsetHeight}px`;
+    // messages.style.height = `${grid.offsetHeight - userInput.offsetHeight}px`;
 
-    content.style.width = `${grid.offsetWidth + messages.offsetWidth}px`;
+    // content.style.width = `${grid.offsetWidth + messages.offsetWidth}px`;
+    content.style.width = grid.style.width;
 
     //  build the trackCells 2D array
     rows.forEach((row, rowIndex) => {

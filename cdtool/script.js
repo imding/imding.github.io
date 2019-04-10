@@ -716,8 +716,8 @@ function updatePreview() {
 
     headContent.push(
         '\t<style>\n',
-        noMarkup(css).trim().length > 0 ? noMarkup(css) : '/* NO STYLE */',
-        '\n</style>'
+        noMarkup(css).trim().length > 0 ? noMarkup(css).replace(/^./gm, '\t\t$&') : '\t\t/* NO STYLE */',
+        '\n\t</style>'
     );
 
     bodyContent = bodyContent
@@ -733,9 +733,9 @@ function updatePreview() {
         '</head>\n',
         '<body>',
         bodyContent.join('\n'),
-        '\n\n<script type="text/javascript">\n',
-        noMarkup(js).trim().length > 0 ? noMarkup(js) : '// NO SCRIPT',
-        '\n</script>\n',
+        '\n\n\t<script type="text/javascript">\n',
+        noMarkup(js).trim().length > 0 ? noMarkup(js).replace(/^./gm, '\t\t$&') : '\t\t// NO SCRIPT',
+        '\n\t</script>\n',
         '</body>',
         '</html>',
     ].join('\n');

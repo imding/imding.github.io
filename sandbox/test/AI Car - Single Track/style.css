@@ -1,0 +1,195 @@
+/* font converted using font-converter.net. thank you! */
+@font-face {
+    font-family: "FailedAttempt";
+    src: url("http://imding.github.io/fonts/FailedAttempt/FailedAttempt.eot");
+    /* IE9 Compat Modes */
+    src: url("http://imding.github.io/fonts/FailedAttempt/FailedAttempt.eot?#iefix") format("embedded-opentype"),
+        /* IE6-IE8 */
+        url("http://imding.github.io/fonts/FailedAttempt/FailedAttempt.otf") format("opentype"),
+        /* Open Type Font */
+        url("http://imding.github.io/fonts/FailedAttempt/FailedAttempt.svg") format("svg"),
+        /* Legacy iOS */
+        url("http://imding.github.io/fonts/FailedAttempt/FailedAttempt.ttf") format("truetype"),
+        /* Safari, Android, iOS */
+        url("http://imding.github.io/fonts/FailedAttempt/FailedAttempt.woff") format("woff"),
+        /* Modern Browsers */
+        url("http://imding.github.io/fonts/FailedAttempt/FailedAttempt.woff2") format("woff2");
+    /* Modern Browsers */
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+    text-align: center;
+    font-family: 'FailedAttempt';
+    background-color: #333;
+}
+
+button,
+input,
+textarea {
+    outline: none;
+    border: none;
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+#title {
+    padding-top: 10px;
+    margin-bottom: 10px;
+    color: white;
+    font-size: 60px;
+}
+
+#content {
+    width: 90vw;
+    margin: auto;
+}
+
+#content,
+#grid {
+    position: relative;
+}
+
+/*
+    simulation area styles
+*/
+#grid {
+    border-radius: 5px;
+    background-color: mediumseagreen;
+    box-shadow: 0 0 15px #111;
+    overflow: hidden;
+}
+
+#grid>div {
+    position: absolute;
+}
+
+#car {
+    background-image: url('https://app.bsd.education/resources/car_blue.png');
+    background-size: 60%;
+    background-position: 25% center;
+    background-repeat: no-repeat;
+    transition: left 0.4s linear, top 0.4s linear, transform 0.1s ease-in-out;
+    z-index: 1;
+}
+
+.road {
+    background-repeat: no-repeat;
+    background-origin: border-box;
+    background-size: 100%;
+    /* border: 1px dotted rgba(0, 0, 0, 0.3); */
+    transform: scale(1.005);
+}
+
+#btnRun {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    padding: 10px 30px 10px 15px;
+    font-size: 50px;
+    border-radius: 20px;
+    font-family: 'FailedAttempt';
+    color: ghostwhite;
+    background-color: dodgerblue;
+    transform: translateX(-50%);
+}
+
+#btnRun:hover {
+    box-shadow: 0 0 10px #111;
+}
+
+#btnRun:active {
+    transform: scale(0.98) translate(-50%);
+}
+
+#btnRun>.fa {
+    transform: scale(0.6);
+}
+
+/*
+    chat-bot styles
+*/
+#chatbot {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    width: 100%;
+    padding: 0 20px 20px;
+    max-width: 600px;
+    transform: translateX(-50%);
+}
+
+#inputContainer {
+    display: flex;
+}
+
+#messages,
+#userInput {
+    font-weight: bold;
+}
+
+#messages {
+    height: 120px;
+    border-radius: 10px;
+    margin: auto auto 10px;
+    font-size: 18px;
+    font-weight: normal;
+    overflow-y: auto;
+    background-color: #222;
+    color: gainsboro;
+}
+
+.userMessage, .botMessage {
+    padding: 8px 15px 0;
+}
+
+.userMessage {
+    text-align: right;
+}
+
+.botMessage {
+    text-align: left;
+}
+
+#userInput {
+    height: 40px;
+    padding: 10px;
+    border-radius: 23px;
+    font-family: 'FailedAttempt';
+    font-size: 20px;
+    color: #333;
+    flex: auto;
+}
+
+#userInput:hover,
+#userInput:focus,
+#btnSend:hover {
+    box-shadow: 0 0 10px #111;
+}
+
+#btnSend {
+    margin-left: 10px;
+    height: 40px;
+    padding: 0 10px;
+    border-radius: 10px;
+    background-color: dodgerblue;
+    color: white;
+    font-size: 20px;
+    flex: none;
+}

@@ -6,7 +6,7 @@ var messages = document.querySelector('#messages');
 var userInput = document.querySelector('#userInput');
 var cellSize = 32;
 var nColumn = 20;
-var nRow = 8;
+var nRow = 20;
 var gridCells = [];
 var longMemory = [];
 
@@ -156,9 +156,10 @@ function drawGrid() {
     grid.style.width = nColumn * cellSize + 'px';
     grid.style.height = nRow * cellSize + 'px';
 
-    messages.style.height = `${grid.offsetHeight - userInput.offsetHeight}px`;
+    // messages.style.height = `${grid.offsetHeight - userInput.offsetHeight}px`;
 
-    content.style.width = `${grid.offsetWidth + messages.offsetWidth}px`;
+    // content.style.width = `${grid.offsetWidth + messages.offsetWidth}px`;
+    content.style.width = grid.style.width;
 
     //  build the trackCells 2D array
     rows.forEach((row, rowIndex) => {
