@@ -34,16 +34,16 @@ Guided Project ( Auto Navigation + Chatbot Feedback )
 
 
 --- Day 3
-Concept: Program Memory
-Tech Concept: 2D array; index; array operations ( push, unshift, pop, shift, filter )
-Activity 1: hacking your brain;  
+Concept: Randomness
+Tech Concept: Math ( random, floor ), array index
+Activity 1: 
 Guided Project ( Local Database + Update Chatbot )
 
 
 --- Day 4
-Concept: Randomness & Iteration ( maze )
-Tech Concepts: Math ( random, floor ); index; for loop
-Activity 1:
+Concept: Memory & Iteration ( maze )
+Tech Concepts: 2D array; index; array operations ( push ); loop
+Activity 1: hacking your brain;
 Guided Project ( Simulation + Chatbot Commands )
 
 
@@ -59,3 +59,6 @@ Use unplugged activities
 Show videos
 Interactive 
 Typing challenge
+
+
+** Chatbot Theme **

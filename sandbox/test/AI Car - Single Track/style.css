@@ -93,13 +93,13 @@ button:active {
     background-repeat: no-repeat;
     background-origin: border-box;
     background-size: 100%;
-    /* border: 1px dotted rgba(0, 0, 0, 0.3); */
-    transform: scale(1.005);
+    border: 1px dotted rgba(0, 0, 0, 0.3);
+    transform: scale(1.015);
 }
 
 #btnRun {
     position: fixed;
-    left: 50%;
+    /* left: 50%; */
     bottom: 20px;
     padding: 10px 30px 10px 15px;
     font-size: 50px;
@@ -108,10 +108,11 @@ button:active {
     color: ghostwhite;
     background-color: dodgerblue;
     transform: translateX(-50%);
+    transform-origin: 0;
 }
 
 #btnRun:hover {
-    box-shadow: 0 0 10px #111;
+    box-shadow: 0 0 20px #111;
 }
 
 #btnRun:active {
@@ -141,7 +142,7 @@ button:active {
 
 #messages,
 #userInput {
-    font-weight: bold;
+    font-family: 'VT323';
 }
 
 #messages {
@@ -149,29 +150,32 @@ button:active {
     border-radius: 10px;
     margin: auto auto 10px;
     font-size: 18px;
-    font-weight: normal;
     overflow-y: auto;
     background-color: #222;
     color: gainsboro;
 }
 
-.userMessage, .botMessage {
+.userMessage,
+.botMessage {
     padding: 8px 15px 0;
+    height: 30px;
+    border-radius: 15px;
 }
 
 .userMessage {
     text-align: right;
+    color: ghostwhite;
 }
 
 .botMessage {
     text-align: left;
+    color: lightblue;
 }
 
 #userInput {
     height: 40px;
-    padding: 10px;
+    padding: 10px 20px;
     border-radius: 23px;
-    font-family: 'FailedAttempt';
     font-size: 20px;
     color: #333;
     flex: auto;
@@ -192,4 +196,24 @@ button:active {
     color: white;
     font-size: 20px;
     flex: none;
+}
+
+#messages::after {
+    
+}
+
+#messages::-webkit-scrollbar {
+    width: 10px;
+}
+
+#messages::-webkit-scrollbar-thumb {
+    border-style: solid;
+    border-color: transparent;
+    border-radius: 5px;
+    background-color: silver;
+    background-clip: content-box;
+}
+
+#messages::-webkit-scrollbar-track {
+    margin: 10px;
 }
