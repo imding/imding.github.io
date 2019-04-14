@@ -36,7 +36,7 @@ html, body {
 }
 
 .normal {
-    transition: left 1s linear, top 1s linear, transform 0.15s ease-in-out;
+    transition: left 0.35s linear, top 0.35s linear, transform 0.1s ease-in-out;
 }
 
 .fast {

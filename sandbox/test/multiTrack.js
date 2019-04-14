@@ -3,24 +3,30 @@ var grid = document.querySelector('#grid');
 var car = document.querySelector('#car');
 var btnRun = document.querySelector('#btnRun');
 var btnStop = document.querySelector('#btnStop');
-var btnTest = document.querySelector('#btnTest');
+var btnShow = document.querySelector('#btnShow');
 var messages = document.querySelector('#messages');
 var userInput = document.querySelector('#userInput');
 var cellSize = 32;
-var nColumn = 30;
-var nRow = 30;
+var nColumn = 10;
+var nRow = 10;
 var gridCells = [];
 var bestAttempt = [];
 var shortMemory = [];
 var mode = 'ultra';
-var iteration = 0;
-var iterationPerRun = 100000;
-var totalIteration = 0;
 var deadends = 0.3;
+
+//  for the showBestAttempt function only
+var demoCounter = 0;
+
+//  for the runWithoutUI function only
+var iteration = 0;
+var totalIteration = 0;
+var currentCell;
+var prevCell;
 
 window.onload = init;
 window.onresize = resizeContent;
-btnRun.onclick = findNextCell;
+
 
 function init() {
     drawGrid();
@@ -30,23 +36,97 @@ function init() {
     car.rotation = 0;
     car.currentRow = randomItemFrom(gridCells);
     car.startCell = car.currentRow[0];
+    car.transition = car.style.transition;
+    
     moveCarTo(car.startCell);
 
     plotPath();
 
-    //  handle the transitionend event using the nextCommand function
-    car.addEventListener('transitionend', findNextCell);
+    btnRun.onclick = () => {
+        if (demoCounter > 0) {
+            car.removeEventListener('transitionend', showBestAttempt);
+            demoCounter = 0;
+        }
+
+        btnRun.textContent = 'Running...';
+        btnRun.disabled = true;
+        btnShow.disabled = true;
+
+        if (mode == 'ultra') {
+            runWithoutUI();
+        }
+        else {
+            //  handle the transitionend event using the nextCommand function
+            car.addEventListener('transitionend', findNextCell);
+    
+            btnStop.disabled = false;
+    
+            findNextCell();
+        }
+    };
+
+    btnShow.onclick = () => {
+        btnRun.disabled = true;
+        btnShow.disabled = true;
+        car.className = 'normal';
+
+        if (mode != 'ultra') {
+            car.removeEventListener('transitionend', findNextCell);
+        }
+
+        car.addEventListener('transitionend', showBestAttempt);
+        showBestAttempt();
+    };
+
+    if (mode != 'ultra') {
+        btnStop.onclick = () => {
+            btnRun.textContent = 'Run Algorithm';
+            btnRun.disabled = false;
+            btnStop.disabled = true;
+            stopAlgorithm('User stopped algorithm.', false);
+
+            if (bestAttempt.length > 0) {
+                btnShow.disabled = false;
+            }
+        };
+    }
 
     resizeContent();
 }
 
+function showBestAttempt() {
+    if (event && event.propertyName == 'transform') return;
+
+    if (demoCounter < bestAttempt.length) {
+        moveCarTo(bestAttempt[demoCounter++]);
+    }
+    else {
+        setTimeout(() => {
+            btnShow.disabled = false;
+            btnRun.disabled = false;
+            
+            car.removeEventListener('transitionend', showBestAttempt);
+            
+            if (mode == 'ultra') {
+                car.rotation = 0;
+                car.prevCell = null;
+                car.currentCell = null;
+                car.classList.remove('normal');
+                moveCarTo(gridCells[car.startCell.row][car.startCell.column]);
+            }
+            else {
+                car.addEventListener('transitionend', findNextCell);
+                reset();
+            }
+
+            demoCounter = 0;
+        }, 2000);
+    }
+}
+
 function findNextCell() {
-    if (mode == 'ultra') return runWithoutUI();
     if (event && event.propertyName == 'transform') return;
     if (car.currentCell.id == 'finish') return;
-
-    btnRun.disabled = true;
-    btnRun.textContent = 'Running...';
 
     var currentCell = car.currentCell;
     
@@ -77,7 +157,7 @@ function findNextCell() {
                 bestAttempt = shortMemory;
                 stopAlgorithm(`Your algorithm worked! Total distance travelled: ${bestAttempt.length} cells.`);
             }
-            else if (mode == 'fast') {
+            else if (mode == 'fast' && btnRun.disabled) {
                 setTimeout(findNextCell, 0);
             }
         }
@@ -88,6 +168,7 @@ function runWithoutUI() {
     btnRun.disabled = true;
     btnRun.textContent = 'Running...';
 
+    var cellsData;
     var uuidv4 = () => {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
             let r = Math.random() * 16 | 0,
@@ -96,8 +177,15 @@ function runWithoutUI() {
             return v.toString(16);
         });
     };
-
-    var cellsData;
+    var stopPureSim = message => {
+        shortMemory = [];
+        currentCell = car.startCell;
+        prevCell = car.startCell;
+        iteration++;
+        shortMemory = [];
+        
+        if (message) console.log(message);
+    };
     
     cellsData = gridCells.map(row => row.map(cell => {
         return {
@@ -125,6 +213,7 @@ function runWithoutUI() {
     }));
 
     iteration = 0;
+
     var pathFound = 0;
 
     console.clear();
@@ -138,7 +227,7 @@ function runWithoutUI() {
         }
         else if (currentCell.finish) {
             bestAttempt = shortMemory;
-            stopPureSim(`The algorithm found a new path to the exit! Steps taken: ${bestAttempt.length}.`);
+            stopPureSim('The algorithm found a new path to the exit!');
             pathFound = true;
         }
         else {
@@ -151,25 +240,29 @@ function runWithoutUI() {
             currentCell = randomNextCell;
             shortMemory.push(gridCells[currentCell.row][currentCell.column]);
 
-            if (shortMemory.length == bestAttempt.length) {
+            if (bestAttempt.length > 0 && shortMemory.length > bestAttempt.length) {
                 stopPureSim();
             }
         }
     }
-    while (pathFound == false);
+    while (pathFound == false && iteration < 100000000);
 
     totalIteration += iteration;
+
+    if (pathFound) {
+        btnShow.disabled = false;
+    }
 
     btnRun.disabled = false;
     btnRun.textContent = 'Run Algorithm';
 
-    var totalIterationText;
+    var totalIterationText = totalIteration;
 
     if ((totalIteration / 1000000) >= 1) {
-        totalIterationText = `${(totalIteration / 1000000).toFixed(1)}M`;
+        totalIterationText = `${(totalIteration / 1000000).toFixed(1)} million`;
     }
     else if ((totalIteration / 1000) >= 1) {
-        totalIterationText = `${(totalIteration / 1000).toFixed(1)}K`;
+        totalIterationText = `${(totalIteration / 1000).toFixed(1)} thousand`;
     }
 
     if (bestAttempt.length > 0) {
@@ -180,35 +273,28 @@ function runWithoutUI() {
     }
 }
 
-function stopPureSim(message) {
-    shortMemory = [];
-    currentCell = car.startCell;
-    prevCell = car.startCell;
-    iteration++;
-    reset();
-    
-    if (message) console.log(message);
-}
-
 function stopAlgorithm(message, restart = true) {
-    var transition = car.style.transition;
-    var countdown = duration => {
-        if (duration > 0) {
-            btnRun.disabled = true;
-            btnRun.textContent = `Restarting in ${duration}`;
-            return setTimeout(() => countdown(--duration), 1000);
-        }
+    if (restart == true) {
+        var countdown = duration => {
+            if (btnStop.disabled) return;
 
-        car.style.transition = transition;
-        findNextCell();
-    };
-
-
-    setTimeout(() => {
-        reset();
-        if (restart) countdown(1);
-    }, 500);
+            if (duration > 0) {
+                btnRun.disabled = true;
+                return setTimeout(() => countdown(--duration), 1000);
+            }
     
+            findNextCell();
+        };
+    
+        setTimeout(() => {
+            reset();
+            countdown(1);
+        }, 500);
+    }
+    else {
+        reset();
+    }
+
     if (message) console.log(message);
 }
 
@@ -219,6 +305,11 @@ function reset() {
     car.prevCell = null;
     car.currentCell = null;
     moveCarTo(car.startCell);
+
+    setTimeout(() => {
+        car.style.transition = '';
+        car.className = mode;
+    }, 100);
 }
 
 function moveCarTo(nextCell) {
@@ -236,15 +327,15 @@ function moveCarTo(nextCell) {
         
         if (prevCell) {
             clockwise =
-                (prevCell == cellRight && nextCell == cellUp) ||
-                (prevCell == cellLeft && nextCell == cellDown) ||
-                (prevCell == cellUp && nextCell == cellLeft) ||
+                (prevCell == cellRight && nextCell == cellUp)   ||
+                (prevCell == cellLeft && nextCell == cellDown)  ||
+                (prevCell == cellUp && nextCell == cellLeft)    ||
                 (prevCell == cellDown && nextCell == cellRight);
             
             anitClockwise =
                 (prevCell == cellRight && nextCell == cellDown) ||
-                (prevCell == cellLeft && nextCell == cellUp) ||
-                (prevCell == cellUp && nextCell == cellRight) ||
+                (prevCell == cellLeft && nextCell == cellUp)    ||
+                (prevCell == cellUp && nextCell == cellRight)   ||
                 (prevCell == cellDown && nextCell == cellLeft);
         }
         else {

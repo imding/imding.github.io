@@ -3,11 +3,11 @@ var grid = document.querySelector('#grid');
 var car = document.querySelector('#car');
 
 // var chatbot = document.querySelector('#chatbot');
-var messages = document.querySelector('#messages');
-var userInput = document.querySelector('#userInput');
-var btnSend = document.querySelector('#btnSend');
+// var messages = document.querySelector('#messages');
+// var userInput = document.querySelector('#userInput');
+// var btnSend = document.querySelector('#btnSend');
 
-// var btnRun = document.querySelector('#btnRun');
+var btnRun = document.querySelector('#btnRun');
 
 var nColumn = 8;
 var nRow = 5;
@@ -17,23 +17,25 @@ var track = [];
 var path = [];
 var userId = 'Ding';
 
+var imagePath = 'file:///C:/Users/Ding/Desktop/github/imding.github.io/images/ai_car/';
+
 window.onload = init;
 window.onresize = resizeContent;
-window.onkeypress = handleKeyPress;
-btnSend.onclick = readUserInput;
+// window.onkeypress = handleKeyPress;
+// btnSend.onclick = readUserInput;
 
-btnSend.enable = () => {
-    btnSend.disabled = false;
-    btnSend.style.filter = 'inherit';
-    btnSend.style.opacity = 'inherit';
-};
-btnSend.disable = () => {
-    btnSend.disabled = true;
-    btnSend.style.filter = 'grayscale(0.6)';
-    btnSend.style.opacity = '0.6';
-};
+// btnSend.enable = () => {
+//     btnSend.disabled = false;
+//     btnSend.style.filter = 'inherit';
+//     btnSend.style.opacity = 'inherit';
+// };
+// btnSend.disable = () => {
+//     btnSend.disabled = true;
+//     btnSend.style.filter = 'grayscale(0.6)';
+//     btnSend.style.opacity = '0.6';
+// };
 
-// btnRun.onclick = navigateRoad;
+btnRun.onclick = navigateRoad;
 
 // function loadProfile() {
 //     $BSD.profile.get().then(p => {
@@ -59,67 +61,76 @@ function init() {
     resizeContent();
 }
 
-function readUserInput() {
-    var command = userInput.value.trim().replace(/\s+/g, ' ').toLowerCase();
+// function readUserInput() {
+//     var command = userInput.value.trim().replace(/\s+/g, ' ').toLowerCase();
     
-    if (command.length > 0) {
-        displayUserMessage(command);
+//     if (command.length > 0) {
+//         displayUserMessage(command);
 
-        btnSend.disable();
+//         btnSend.disable();
 
-        if (command == 'run algorithm') {
-            navigateRoad();
-        }
-        else if (command == 'go right' || command == 'move right') {
-            goRight();
-        }
-        else if (command == 'go up') {
-            goUp();
-        }
-        else if (command == 'go down') {
-            goDown();
-        }
-        else if (command == 'go left') {
-            goLeft();
-        }
-        else {
-            displayBotMessage(`Sorry, I didn't understand your command: ${command}`);
-            btnSend.enable();
-        }
-    }
-}
+//         if (command == 'help') {
+//             btnSend.enable();
+//             displayBotMessage('Sure, here is a list of commands I can understand:');
+//             displayBotMessage('go up: move the car up one cell.');
+//             displayBotMessage('go down: move the car down one cell.');
+//             displayBotMessage('go left: move the car to the left one cell.');
+//             displayBotMessage('go right: move the car to the right one cell');
+//             displayBotMessage('run algorithm: run the navigateRoad function.');
+//         }
+//         else if (command == 'run algorithm') {
+//             navigateRoad();
+//         }
+//         else if (command == 'go up') {
+//             goUp();
+//         }
+//         else if (command == 'go down') {
+//             goDown();
+//         }
+//         else if (command == 'go left') {
+//             goLeft();
+//         }
+//         else if (command == 'go right' || command == 'move right') {
+//             goRight();
+//         }
+//         else {
+//             btnSend.enable();
+//             displayBotMessage(`Sorry, I didn't understand your command: ${command}`);
+//         }
+//     }
+// }
 
-function displayUserMessage(message) {
-    attachMessage(message, 'userMessage');
-}
+// function displayUserMessage(message) {
+//     attachMessage(message, 'userMessage');
+// }
 
-function displayBotMessage(message) {
-    attachMessage(message, 'botMessage');
-}
+// function displayBotMessage(message) {
+//     attachMessage(message, 'botMessage');
+// }
 
-function attachMessage(message, type) {
-    var newMessage = document.createElement('div');
-    var avatar = document.createElement('img');
-    var text = document.createElement('p');
+// function attachMessage(message, type) {
+//     var newMessage = document.createElement('div');
+//     var avatar = document.createElement('img');
+//     var text = document.createElement('p');
     
-    text.className = type;
-    text.textContent = message;
-    messages.appendChild(text);
+//     text.className = type;
+//     text.textContent = message;
+//     messages.appendChild(text);
 
-    userInput.value = '';
-    messages.scrollTo(0, messages.scrollHeight);
-}
+//     userInput.value = '';
+//     messages.scrollTo(0, messages.scrollHeight);
+// }
 
-function handleKeyPress() {
-    if (event.keyCode == 13) {
-        btnSend.click();
-    }
-}
+// function handleKeyPress() {
+//     if (event.keyCode == 13) {
+//         btnSend.click();
+//     }
+// }
 
 function navigateRoad() {
-    // btnRun.disabled = true;
-    // btnRun.style.filter = 'grayscale(0.6)';
-    // btnRun.style.opacity = '0.6';
+    btnRun.disabled = true;
+    btnRun.style.filter = 'grayscale(0.6)';
+    btnRun.style.opacity = '0.6';
 
     goRight(2);
     goUp(3);
@@ -153,49 +164,65 @@ function goLeft(n) {
 }
 
 function addToPath(dir, n = 1) {
-    //  start the car after receving the first command
-    if (path.length == 0) {
-        setTimeout(nextMove, 200);
+    //  check whether there is queued commands
+    var queuedCommands = path.length > 0;
+
+    while (n-- > 0) {
+        var lastPathCell = path[path.length - 1] || car.currentCell;
+        path.push(lastPathCell[dir]);
     }
 
-    while (n--) {
-        var pathEnd = path[path.length - 1] || car.currentCell;
-        path.push(pathEnd[dir]);
-    }
+    if (queuedCommands == false) nextMove();
 }
 
 function nextMove() {
     if (event && event.propertyName == 'transform') return;
 
-    if (path.length) {
+    if (car.currentCell.id == 'finish') {
+        // displayBotMessage('You have reached the finishe line!');
+        alert('Your algorithm worked! The car has reached the finishe line!');
+    }
+    else if (path.length > 0) {
         var nextCell = path.shift();
 
-        if (nextCell) {
-            if (car.currentCell.reachableRoads.includes(nextCell) == false) {
-                displayBotMessage('The algorithm led the car off track.');
-                // console.log('The algorithm led the car off track. Check the navigateRoad function.');
-                btnSend.enable();
-            }
-            else if (nextCell.id == 'finish') {
-                displayBotMessage('You have reached the finishe line! ');
-                // console.log('Your algorithm worked!');
-            }
-            
-            moveCarTo(nextCell);
+        //  check if next cell exists on the grid
+        if (nextCell == null) {
+            // displayBotMessage('The algorithm tries to lead the car off the grid. Check the navigateRoad function.');
+            // btnSend.enable();
+            alert('The algorithm tries to lead the car off the grid. Please check the navigateRoad function.');
         }
         else {
-            displayBotMessage('The algorithm tries to lead the car off the grid. Check the navigateRoad function.');
-            // console.log('The algorithm tries to lead the car off the grid. Check the navigateRoad function.');
-            btnSend.enable();
+            //  check if the first command is a valid move
+            var goodStart = car.prevCell == null && car.currentCell.reachableRoads.includes(nextCell);
+
+            if (goodStart || car.prevCell.reachableRoads.includes(car.currentCell)) {
+                moveCarTo(nextCell);
+            }
+            else {
+                // displayBotMessage('The algorithm led the car off track.');
+                // btnSend.enable();
+                alert('The algorithm led the car off track. Please check the navigateRoad function.');
+            }
         }
     }
     else {
-        displayBotMessage(`Sucessfully moved from ${car.prevCell.location} to ${car.currentCell.location}`);
-        btnSend.enable();
+        // displayBotMessage(`Sucessfully moved from ${car.prevCell.location} to ${car.currentCell.location}`);
+        // btnSend.enable();
+        alert('The algorithm did not lead the car to the finish line.');
     }
 }
 
 function moveCarTo(nextCell) {
+    steerCarToward(nextCell);
+    car.prevCell = car.currentCell;
+    car.currentCell = nextCell;
+    car.currentRow = gridCells.filter(row => row.includes(nextCell))[0];
+    car.style.top = nextCell.style.top;
+    car.style.left = nextCell.style.left;
+}
+
+//  must be called before moveCarTo(nextCell)
+function steerCarToward(cell) {
     //  rotate the car
     if (car.currentCell) {
         var clockwise;
@@ -203,20 +230,20 @@ function moveCarTo(nextCell) {
 
         if (car.prevCell) {
             clockwise = 
-                (car.prevCell == car.currentCell.right && nextCell == car.currentCell.up) ||
-                (car.prevCell == car.currentCell.left && nextCell == car.currentCell.down) ||
-                (car.prevCell == car.currentCell.up && nextCell == car.currentCell.left) ||
-                (car.prevCell == car.currentCell.down && nextCell == car.currentCell.right);
+                (car.prevCell == car.currentCell.right && cell == car.currentCell.up) ||
+                (car.prevCell == car.currentCell.left && cell == car.currentCell.down) ||
+                (car.prevCell == car.currentCell.up && cell == car.currentCell.left) ||
+                (car.prevCell == car.currentCell.down && cell == car.currentCell.right);
 
             anitClockwise =
-                (car.prevCell == car.currentCell.right && nextCell == car.currentCell.down) ||
-                (car.prevCell == car.currentCell.left && nextCell == car.currentCell.up) ||
-                (car.prevCell == car.currentCell.up && nextCell == car.currentCell.right) ||
-                (car.prevCell == car.currentCell.down && nextCell == car.currentCell.left);
+                (car.prevCell == car.currentCell.right && cell == car.currentCell.down) ||
+                (car.prevCell == car.currentCell.left && cell == car.currentCell.up) ||
+                (car.prevCell == car.currentCell.up && cell == car.currentCell.right) ||
+                (car.prevCell == car.currentCell.down && cell == car.currentCell.left);
         }
         else {
-            clockwise = nextCell.up == car.currentCell;
-            anitClockwise = nextCell.down == car.currentCell;
+            clockwise = cell.up == car.currentCell;
+            anitClockwise = cell.down == car.currentCell;
         }
 
         if (clockwise) {
@@ -225,16 +252,11 @@ function moveCarTo(nextCell) {
         else if (anitClockwise) {
             car.rotation -= 90;
         }
-        else if (nextCell == car.prevCell) {
+        else if (cell == car.prevCell) {
             car.rotation -= 180;
         }
     }
-    
-    car.prevCell = car.currentCell;
-    car.currentCell = nextCell;
-    car.currentRow = gridCells.filter(row => row.includes(nextCell))[0];
-    car.style.top = nextCell.style.top;
-    car.style.left = nextCell.style.left;
+
     car.style.transform = `rotate(${car.rotation}deg)`;
 }
 
@@ -321,7 +343,7 @@ function drawGrid() {
             cell.location = `(x: ${nthColumn + 1}, y: ${nthRow + 1})`;
             cell.setRoadType = type => {
                 cell.className = 'road';
-                cell.style.backgroundImage = `url('https://app.bsd.education/resources/road_${type}.png')`;
+                cell.style.backgroundImage = `url('${imagePath}/road_${type}.png')`;
             };
 
             if (nthRow > 0) {
@@ -352,10 +374,10 @@ function resizeContent() {
     resizeGrid();
     
     var contentRatio = content.offsetWidth / content.offsetHeight;
-    var windowRatio = window.innerWidth / (window.innerHeight - chatbot.offsetHeight);
-    var scaleRatio = contentRatio > windowRatio ? window.innerWidth * 0.9 / content.offsetWidth : (window.innerHeight - chatbot.offsetHeight) * 0.9 / content.offsetHeight;
+    var windowRatio = window.innerWidth / (window.innerHeight - btnRun.offsetHeight);
+    var scaleRatio = contentRatio > windowRatio ? window.innerWidth * 0.9 / content.offsetWidth : (window.innerHeight - btnRun.offsetHeight) * 0.9 / content.offsetHeight;
 
-    content.style.top = `${(window.innerHeight - chatbot.offsetHeight - content.offsetHeight) / 2}px`;
+    content.style.top = `${(window.innerHeight - btnRun.offsetHeight - content.offsetHeight) / 2}px`;
     content.style.transform = `scale(${scaleRatio})`;
 }
 
