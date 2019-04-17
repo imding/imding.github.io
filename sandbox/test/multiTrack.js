@@ -7,12 +7,12 @@ var btnShow = document.querySelector('#btnShow');
 var messages = document.querySelector('#messages');
 var userInput = document.querySelector('#userInput');
 var cellSize = 32;
-var nColumn = 10;
-var nRow = 10;
+var nColumn = 6;
+var nRow = 6;
 var gridCells = [];
 var bestAttempt = [];
 var shortMemory = [];
-var mode = 'ultra';
+var mode = 'fast';
 var deadends = 0.3;
 
 //  for the showBestAttempt function only

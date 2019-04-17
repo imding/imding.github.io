@@ -53,21 +53,6 @@ function findNextCell() {
     }
 }
 
-function checkCell(cell) {
-    
-    cell.color = cell.style.backgroundColor;
-    cell.style.backgroundColor = 'lightgreen';
-
-    if (cell && cell != car.prevCell && cell.isConnectedTo(car.currentCell)) {
-        if (debugMode) {
-            // setTimeout(cell => set);
-        }
-        else {
-            moveCarTo(cell);
-        }
-    }
-}
-
 function checkResult() {
     var carPositionIndex = car.currentRow.indexOf(car.currentCell);
     
