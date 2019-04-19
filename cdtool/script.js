@@ -581,7 +581,7 @@ function instructionHTML(source, n = cStep) {
         //     source[i] = e.replace(inlineImage, '<img src="$1" style="width: 20px; display: inline">');
         // }
         else {
-            e = styleText(e);
+            if (!isPre) e = styleText(e);
             source[i] = (e.trim().length && !isPre && !isList) ? `<p>${e}</p>` : e;
         }
 
