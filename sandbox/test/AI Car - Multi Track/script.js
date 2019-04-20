@@ -1,4 +1,5 @@
 var content = document.querySelector('#content');
+var title = document.querySelector('#title');
 var grid = document.querySelector('#grid');
 var car = document.querySelector('#car');
 
@@ -7,20 +8,18 @@ var messages = document.querySelector('#messages');
 var userInput = document.querySelector('#userInput');
 var btnSend = document.querySelector('#btnSend');
 
-var nColumn = 8;
-var nRow = 5;
+var nColumn = 6;
+var nRow = 4;
+var deadends = 0.3;
 var cellSize = 90 / nColumn;
 var gridCells = [];
-var track = [];
-var path = [];
-var userId = 'Ding';
-
-// var imagePath = 'file:///C:/Users/Ding/Desktop/github/imding.github.io/images/ai_car/';
+var autoMode = false;
 var imagePath = 'https://app.bsd.education/resources';
 
 window.onload = init;
 window.onresize = resizeContent;
 window.onkeypress = handleKeyPress;
+
 btnSend.onclick = readUserInput;
 
 btnSend.enable = () => {
@@ -28,18 +27,12 @@ btnSend.enable = () => {
     btnSend.style.filter = 'inherit';
     btnSend.style.opacity = 'inherit';
 };
+
 btnSend.disable = () => {
     btnSend.disabled = true;
     btnSend.style.filter = 'grayscale(0.6)';
     btnSend.style.opacity = '0.6';
 };
-
-// function loadProfile() {
-//     $BSD.profile.get().then(p => {
-//         userId = p.userId;
-//         init();
-//     });
-// }
 
 function init() {
     drawGrid();
@@ -52,10 +45,12 @@ function init() {
     //  place the car on the first block in the track
     car.rotation = 0;
     
-    //  handle the transitionend event using the nextCommand function
-    car.addEventListener('transitionend', nextMove);
+    //  handle the transitionend event using the checkPrevMove function
+    car.addEventListener('transitionend', checkPrevMove);
 
     resizeContent();
+
+    userInput.focus();
 }
 
 function readUserInput() {
@@ -69,14 +64,14 @@ function readUserInput() {
         if (command == 'help') {
             btnSend.enable();
             displayBotMessage('Sure, here is a list of commands I can understand:');
-            displayBotMessage('go up: move the car up one cell.');
-            displayBotMessage('go down: move the car down one cell.');
-            displayBotMessage('go left: move the car to the left one cell.');
-            displayBotMessage('go right: move the car to the right one cell');
-            displayBotMessage('run algorithm: run the navigateRoad function.');
+            displayBotMessage('"go up" - move the car up one cell.');
+            displayBotMessage('"go down" - move the car down one cell.');
+            displayBotMessage('"go left" - move the car to the left one cell.');
+            displayBotMessage('"go right" - move the car to the right one cell.');
         }
-        else if (command == 'run algorithm') {
-            navigateRoad();
+        else if (command == 'reset') {
+            reset();
+            btnSend.enable();
         }
         else if (command == 'go up') {
             goUp();
@@ -87,101 +82,110 @@ function readUserInput() {
         else if (command == 'go left') {
             goLeft();
         }
-        else if (command == 'go right' || command == 'move right') {
+        else if (command == 'go right') {
             goRight();
+        }
+        else if (command == 'auto drive') {
+            autoMode = true;
+            decideNextMove();
         }
         else {
             btnSend.enable();
             displayBotMessage(`Sorry, I didn't understand your command: ${command}`);
         }
     }
-}
-
-function displayUserMessage(message) {
-    attachMessage(message, 'userMessage');
-}
-
-function displayBotMessage(message) {
-    attachMessage(message, 'botMessage');
-}
-
-function attachMessage(message, type) {
-    var newMessage = document.createElement('div');
-    var avatar = document.createElement('img');
-    var text = document.createElement('p');
     
-    text.className = type;
-    text.textContent = message;
-    messages.appendChild(text);
-
-    userInput.value = '';
-    messages.scrollTo(0, messages.scrollHeight);
+    userInput.focus();
 }
 
-function handleKeyPress() {
-    if (event.keyCode == 13) {
-        btnSend.click();
-    }
+function reset() {
+    car.style.transition = 'none';
+    car.rotation = 0;
+    car.prevCell = null;
+    car.currentCell = null;
+    moveCarTo(car.startCell);
+    setTimeout(() => car.style.transition = '', 100);
 }
 
-function goUp(n) {
-    addToPath('up', n);
+function goUp() {
+    checkAndMove('up');
 }
 
-function goDown(n) {
-    addToPath('down', n);
+function goDown() {
+    checkAndMove('down');
 }
 
-function goRight(n) {
-    addToPath('right', n);
+function goRight() {
+    checkAndMove('right');
 }
 
-function goLeft(n) {
-    addToPath('left', n);
+function goLeft() {
+    checkAndMove('left');
 }
 
-function addToPath(dir, n = 1) {
-    //  check whether there is queued commands
-    var queuedCommands = path.length > 0;
-
-    while (n-- > 0) {
-        var lastPathCell = path[path.length - 1] || car.currentCell;
-        path.push(lastPathCell[dir]);
-    }
-
-    if (queuedCommands == false) nextMove();
-}
-
-function nextMove() {
-    if (event && event.propertyName == 'transform') return;
-
-    if (car.currentCell.id == 'finish') {
-        displayBotMessage('You have reached the finishe line!');
-    }
-    else if (path.length > 0) {
-        var nextCell = path.shift();
-
-        //  check if next cell exists on the grid
-        if (nextCell == null) {
-            displayBotMessage('The algorithm tries to lead the car off the grid. Check the navigateRoad function.');
-            btnSend.enable();
-        }
-        else {
-            //  check if the first command is a valid move
-            var goodStart = car.prevCell == null && car.currentCell.reachableRoads.includes(nextCell);
-
-            if (goodStart || car.prevCell.reachableRoads.includes(car.currentCell)) {
-                moveCarTo(nextCell);
-            }
-            else {
-                displayBotMessage('The algorithm led the car off track.');
-                btnSend.enable();
-            }
-        }
+function checkAndMove(dir) {
+    if (car.currentCell[dir] == 'unknown') {
+        displayBotMessage('The car cannot leave the map.');
+        btnSend.enable();
     }
     else {
-        displayBotMessage(`Sucessfully moved from ${car.prevCell.location} to ${car.currentCell.location}`);
+        moveCarTo(car.currentCell[dir]);
+    }
+}
+
+function decideNextMove() {
+    var currentCell = car.currentCell;
+    var prevCell = car.prevCell;
+    
+    if (currentCell.right != prevCell && currentCell.reachableRoads.includes(currentCell.right)) {
+        moveCarTo(currentCell.right);
+    }
+    else if (currentCell.up != prevCell && currentCell.reachableRoads.includes(currentCell.up)) {
+        moveCarTo(currentCell.up);
+    }
+    else if (currentCell.down != prevCell && currentCell.reachableRoads.includes(currentCell.down)) {
+        moveCarTo(currentCell.down);
+    }
+    else if (currentCell.left != prevCell && currentCell.reachableRoads.includes(currentCell.left)) {
+        moveCarTo(currentCell.left);
+    }
+    else {
         btnSend.enable();
+        autoMode = false;
+
+        if (currentCell.id == 'finish') {
+            displayBotMessage('Your AutoDrive system worked, the car has reached the finish line!');
+        }
+        else {
+            displayBotMessage('The AutoDrive system failed to determine where to go next.');
+        }
+    }
+}
+
+function checkPrevMove() {
+    if (event && event.propertyName == 'transform') return;
+    
+    if (autoMode == true) {
+        decideNextMove();
+    }
+    else {
+        btnSend.enable();
+
+        var currentCell = car.currentCell;
+        var prevCell = car.prevCell;
+
+        //  make sure the path to the current cell is valid
+        if (prevCell.reachableRoads.includes(currentCell)) {
+            if (currentCell.id == 'finish') {
+                displayBotMessage('You have reached the finish line!');
+            }
+        }
+        else if (currentCell.className != 'road' || (prevCell.className == currentCell.className)) {
+            displayBotMessage('You drove the car off road.');
+        }
+        else {
+            displayBotMessage('The car is back on the road.');
+        }
     }
 }
 
@@ -189,7 +193,6 @@ function moveCarTo(nextCell) {
     steerCarToward(nextCell);
     car.prevCell = car.currentCell;
     car.currentCell = nextCell;
-    car.currentRow = gridCells.filter(row => row.includes(nextCell))[0];
     car.style.top = nextCell.style.top;
     car.style.left = nextCell.style.left;
 }
@@ -234,12 +237,57 @@ function steerCarToward(cell) {
 }
 
 function plotPath() {
-    var seedRandom = new Math.seedrandom(userId);
+    car.startCell = randomItemFrom(gridCells)[0];
 
-    car.currentRow = gridCells[Math.floor(seedRandom() * gridCells.length)];
-
-    var prevRoadCell = car.currentRow[0];
+    var prevRoadCell = car.startCell;
     var newRoadCell;
+    var removeDeadEnd = roadCell => {
+        if (roadCell.roadType.length > 1) {
+            delete roadCell.deadend;
+        }
+    };
+    var expandFrom = targetCell => {
+        //  remove target cell from the available paths of the previous road cell
+        remove(targetCell).from(prevRoadCell.paths);
+        //  remove the previous road cell from the available paths of target cell
+        remove(prevRoadCell).from(targetCell.paths);
+
+        //  assign road type for previous and target cells
+        if (targetCell.up == prevRoadCell) {
+            prevRoadCell.roadType.push('down');
+            targetCell.roadType.push('up');
+        }
+        else if (targetCell.down == prevRoadCell) {
+            prevRoadCell.roadType.push('up');
+            targetCell.roadType.push('down');
+        }
+        else if (targetCell.left == prevRoadCell) {
+            prevRoadCell.roadType.push('right');
+            targetCell.roadType.push('left');
+        }
+        else {
+            prevRoadCell.roadType.push('left');
+            targetCell.roadType.push('right');
+        }
+
+        newRoadCell.reachableRoads.push(prevRoadCell);
+        prevRoadCell.reachableRoads.push(newRoadCell);
+
+        //  assign appropriate road type image
+        prevRoadCell.setRoadType(prevRoadCell.roadType.sort().join(''));
+        removeDeadEnd(prevRoadCell);
+
+        if (targetCell.className == 'road' || targetCell.deadend) {
+            targetCell.setRoadType(targetCell.roadType.sort().join(''));
+            removeDeadEnd(targetCell);
+        }
+
+        prevRoadCell = targetCell;
+    };
+
+    /*
+        plot a single path from start to finish
+    */
 
     prevRoadCell.roadType.push('left');
 
@@ -247,37 +295,72 @@ function plotPath() {
 
     do {
         var filteredPaths = prevRoadCell.paths.filter(cell => cell != prevRoadCell.left);
-        newRoadCell = filteredPaths[Math.floor(seedRandom() * filteredPaths.length)];
+        newRoadCell = randomItemFrom(filteredPaths);
 
-        remove(prevRoadCell).from(newRoadCell.paths);
+        expandFrom(newRoadCell);
         
-        if (newRoadCell.up == prevRoadCell) {
-            newRoadCell.roadType.push('up');
-            prevRoadCell.roadType.push('down');
-        }
-        else if (newRoadCell.down == prevRoadCell) {
-            newRoadCell.roadType.push('down');
-            prevRoadCell.roadType.push('up');
-        }
-        else {
-            newRoadCell.roadType.push('left');
-            prevRoadCell.roadType.push('right');
-        }
-        
-        newRoadCell.reachableRoads.push(prevRoadCell);
-        prevRoadCell.reachableRoads.push(newRoadCell);
-
-        //  assign appropriate road type image
-        prevRoadCell.setRoadType(prevRoadCell.roadType.sort().join(''));
-
-        //  update prevCell for next loop iteration
-        prevRoadCell = newRoadCell;
-        track.push(newRoadCell);
+        newRoadCell.paths.forEach(neighbourCell => {
+            //  check whether target cell blocks off paths of neighbouring cells
+            if (neighbourCell.className == 'road') {
+                remove(newRoadCell).from(neighbourCell.paths);
+                remove(neighbourCell).from(newRoadCell.paths);
+            }
+        });
     }
     while (newRoadCell.endOfRow == false);
 
+    //  set road type on the last cell in a row
     newRoadCell.setRoadType('finish');
     newRoadCell.id = 'finish';
+
+    /*
+        plot branches until entire map is filled
+    */
+
+    var branch = [];
+    var emptyCells = gridCells.flat().filter(cell => cell.className == '' && cell.right != 'unknown');
+
+    while (emptyCells.length > 0) {
+        //  check if a branch is already created
+        if (branch.length == 0) {
+            //  select a cell from the first path
+            var branchCell = randomItemFrom(gridCells.flat().filter(cell =>
+                cell.className == 'road' &&
+                cell.id != 'finish' &&
+                cell.right != 'unknown' &&
+                cell.right.right != 'unknown' &&
+                cell.right.id != 'finish' &&
+                cell.paths.filter(neighbourCell => neighbourCell.className == '').length > 0
+            ));
+            
+            prevRoadCell = branchCell;
+            newRoadCell = randomItemFrom(branchCell.paths.filter(cell => cell.className == ''));
+        }
+        else {
+            newRoadCell = randomItemFrom(branch[branch.length - 1].paths);
+            remove(prevRoadCell).from(emptyCells);
+
+            //  determine whether new road cell is a deadend
+            if (newRoadCell.className != 'road' && srand() > deadends) {
+                newRoadCell.deadend = true;
+                remove(newRoadCell).from(emptyCells);
+            }
+        }
+
+        //  remove paths that lead to the last column
+        if (newRoadCell.right.right == 'unknown') {
+            remove(newRoadCell.right).from(newRoadCell.paths);
+        }
+
+        expandFrom(newRoadCell);
+
+        if (newRoadCell.className == 'road' || newRoadCell.deadend) {
+            branch = [];
+        }
+        else {
+            branch.push(newRoadCell);
+        }
+    }
 }
 
 function drawGrid() {
@@ -298,7 +381,7 @@ function drawGrid() {
             cell.style.height = cell.style.width;
             cell.style.top = `${(100 / nRow) * rowIndex}%`;
             cell.style.left = `${(100 / nColumn) * cellIndex}%`;
-            cell.endOfRow = cellIndex == nColumn - 1;      
+            cell.endOfRow = cellIndex == nColumn - 1;
             row[cellIndex] = cell;
             grid.appendChild(cell);
         });
@@ -307,13 +390,13 @@ function drawGrid() {
     //  store neighbouring cells for each cell
     gridCells.forEach((row, nthRow) => {
         row.forEach((cell, nthColumn) => {
-            cell.up = cell.down = cell.left = cell.right = null;
+            cell.up = 'unknown';
+            cell.down = 'unknown';
+            cell.left = 'unknown';
+            cell.right = 'unknown';
             cell.paths = [];
             cell.reachableRoads = [];
             cell.roadType = [];
-            cell.row = nthRow;
-            cell.column = nthColumn;
-            cell.location = `(x: ${nthColumn + 1}, y: ${nthRow + 1})`;
             cell.setRoadType = type => {
                 cell.className = 'road';
                 cell.style.backgroundImage = `url('${imagePath}/road_${type}.png')`;
@@ -339,8 +422,34 @@ function drawGrid() {
     });
 }
 
+function displayUserMessage(message) {
+    attachMessage(message, 'userMessage');
+}
+
+function displayBotMessage(message) {
+    attachMessage(message, 'botMessage');
+}
+
+function attachMessage(message, type) {
+    var text = document.createElement('p');
+    
+    text.className = type;
+    text.textContent = message;
+    messages.appendChild(text);
+
+    userInput.value = '';
+    messages.scrollTo(0, messages.scrollHeight);
+}
+
+function handleKeyPress() {
+    if (event.keyCode == 13) {
+        btnSend.click();
+    }
+}
+
 function resizeGrid() {
     grid.style.height = `${90 * (nRow / nColumn)}vw`;
+    title.style.fontSize = `${grid.offsetHeight * 0.2}px`;
 }
 
 function resizeContent() {
@@ -354,8 +463,10 @@ function resizeContent() {
     content.style.transform = `scale(${scaleRatio})`;
 }
 
+var srand = new Math.seedrandom('101');
+
 function randomIndexFrom(arr) {
-    return Math.floor(Math.random() * arr.length);
+    return Math.floor(srand() * arr.length);
 }
 
 function randomItemFrom(arr) {
@@ -363,7 +474,5 @@ function randomItemFrom(arr) {
 }
 
 function remove(item) {
-    return {
-        from: arr => arr.splice(arr.indexOf(item), 1),
-    };
+    return { from: arr => arr.splice(arr.indexOf(item), 1) };
 }

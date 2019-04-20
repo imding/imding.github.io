@@ -509,17 +509,17 @@ function drawGrid() {
             cell.right = null;
             cell.paths = [];
             cell.roadType = [];
-            cell.path = cellDir => {
-                return {
-                    linksTo: targetCell => {
-                        return {
-                            path: targetCellDir => {
-                                return cell.roadType.includes(cellDir) && targetCell.roadType.includes(targetCellDir);
-                            },
-                        };
-                    },
-                };
-            };
+            // cell.path = cellDir => {
+            //     return {
+            //         linksTo: targetCell => {
+            //             return {
+            //                 path: targetCellDir => {
+            //                     return cell.roadType.includes(cellDir) && targetCell.roadType.includes(targetCellDir);
+            //                 },
+            //             };
+            //         },
+            //     };
+            // };
             cell.setRoadType = type => {
                 cell.className = 'road';
                 cell.style.backgroundImage = `url('https://app.bsd.education/resources/road_${type}.png')`;
