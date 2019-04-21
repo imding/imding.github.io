@@ -136,23 +136,31 @@ function checkAndMove(dir) {
 function decideNextMove() {
     var currentCell = car.currentCell;
     var prevCell = car.prevCell;
-    var availableMoves = [];
+    var availableCells = [];
     
     if (currentCell.right != prevCell && currentCell.reachableRoads.includes(currentCell.right)) {
-        availableMoves.push(currentCell.right);
+        availableCells.push(currentCell.right);
     }
+    
     if (currentCell.up != prevCell && currentCell.reachableRoads.includes(currentCell.up)) {
-        availableMoves.push(currentCell.up);
+        availableCells.push(currentCell.up);
     }
+    
     if (currentCell.down != prevCell && currentCell.reachableRoads.includes(currentCell.down)) {
-        availableMoves.push(currentCell.down);
+        availableCells.push(currentCell.down);
     }
+    
     if (currentCell.left != prevCell && currentCell.reachableRoads.includes(currentCell.left)) {
-        availableMoves.push(currentCell.left);
+        availableCells.push(currentCell.left);
     }
+    
+    
+    if (availableCells.length > 0) {
+        var randomNumber = Math.random() * availableCells.length;
+        var randomIndex = Math.floor(randomNumber);
+        var randomCell = availableCells[randomIndex];
 
-    if (availableMoves.length > 0) {
-        moveCarTo(randomItemFrom(availableMoves));
+        moveCarTo(randomCell);
     }
     else {
         btnSend.enable();
