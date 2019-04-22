@@ -99,7 +99,7 @@ html, body {
 	font-family: 'Averia Sans Libre', cursive;
 	height: 100%;
 	padding: 10px;
-	background: rgba( 248, 248, 255, .8);
+	background: gainsboro;
 	box-sizing: border-box;
 	border-radius: 10px;
 	border: none;
@@ -108,15 +108,19 @@ html, body {
 	overflow-x: hidden;
 }
 
+#preview {
+	border: none;
+	background-color: rgba(255, 255, 255, 0.1);
+}
+
 #preview, #styledInstruction {
 	position: absolute;
 	border-radius: 10px;
-	border: solid ghostwhite 2px;
 	box-sizing: border-box;
-	background: white;
 }
 
 #styledInstruction {
+	background: white;
 	user-select: initial;
 	overflow: auto;
 }

@@ -297,24 +297,24 @@ window.onload = () => {
     Object.assign(window, new Utility());
 
     taInstruction.onblur = () => info.value = `${cProj} - ${cStep} / ${tSteps} - ${getStepName()}`;
-    info.onfocus = () => editProjectInfo();
-    info.onblur = () => updateProjectInfo();
+    info.onfocus = editProjectInfo;
+    info.onblur = updateProjectInfo;
     info.onkeydown = evt => { if (evt.code == 'Enter') { info.blur(); } };
-    btnRecover.onclick = () => recoverFromLocal();
-    btnLoad.ondblclick = () => loadTextFile();
-    btnConvert.onclick = () => convertInstruction();
+    btnRecover.onclick = recoverFromLocal;
+    btnLoad.ondblclick = loadTextFile;
+    btnConvert.onclick = convertInstruction;
     btnSave.onclick = () => { commitToMaster(); saveTextFile(master); };
     btnTips.onclick = showTips;
     btnPrev.onclick = () => { prevStep(); updateStepLogic(); };
     btnAdd.onclick = () => { addStep(); updateStepLogic(); };
-    btnDel.onclick = () => confirmDel();
+    btnDel.onclick = confirmDel;
     btnNext.onclick = () => { nextStep(); updateStepLogic(); };
     btnDupPrev.onclick = () => copyCode(cStep - 1);
     btnHTML.onclick = evt => { toggleCodePanel(evt.target); codeEditor.getSession().setMode('ace/mode/html'); };
     btnCSS.onclick = evt => { toggleCodePanel(evt.target); codeEditor.getSession().setMode('ace/mode/css'); };
     btnJS.onclick = evt => { toggleCodePanel(evt.target); codeEditor.getSession().setMode('ace/mode/javascript'); };
-    btnRun.onclick = () => updatePreview();
-    btnRun.ondblclick = () => closePreview();
+    btnRun.onclick = updatePreview;
+    btnRun.ondblclick = closePreview;
     btnDupNext.onclick = () => copyCode(cStep + 1);
     btnHTML.disabled = true;
     btnHTML.style.background = 'indianred';
@@ -437,6 +437,13 @@ function convertInstruction() {
         inst[cStep] = taInstruction.value;
         btnConvert.className = 'fa fa-clipboard';
         styledInstruction = newElement('div', { id: 'styledInstruction' });
+        styledInstruction.redraw = () => {
+            styledInstruction.style.top = taInstruction.style.top;
+            styledInstruction.style.left = taInstruction.style.left;
+            styledInstruction.style.width = taInstruction.style.width;
+            styledInstruction.style.height = taInstruction.style.height;
+            styledInstruction.style.padding = `0 ${(taInstruction.offsetWidth - 380) / 2}px`;
+        };
         app.appendChild(styledInstruction);
         updateStyledInstruction();
     }
@@ -454,8 +461,8 @@ function convertInstruction() {
 
 function updateStyledInstruction() {
     styledInstruction.innerHTML = instructionHTML(inst[cStep]);
+    styledInstruction.redraw();
     selectAndCopy(styledInstruction);
-    alignWithInstruction(styledInstruction);
     convertLineNumber();
 }
 
@@ -714,6 +721,10 @@ function updatePreview() {
         '\t<link rel="stylesheet" href="../font-awesome-4.7.0/css/font-awesome.min.css">'
     );
 
+    if (noMarkup(css).trim().lefnth > 0) {
+        noMarkup(css).replace(/^./gm, '\t\t$&');
+    }
+
     headContent.push(
         '\t<style>\n',
         noMarkup(css).trim().length > 0 ? noMarkup(css).replace(/^./gm, '\t\t$&') : '\t\t/* NO STYLE */',
@@ -723,7 +734,7 @@ function updatePreview() {
     bodyContent = bodyContent
         .split('\n')
         .filter(l => l.length)
-        .map(l => { if (!redundant[1].test(l)) return `\t${l}`; });
+        .map(l => redundant[1].test(l) ? null : `\t${l}`);
 
     const pCode = [
         '<!DOCTYPE html>',
@@ -741,11 +752,20 @@ function updatePreview() {
     ].join('\n');
 
     if (!document.querySelector('#preview')) {
-        storeActiveCode();
         preview = newElement('iframe', { id: 'preview' });
-        alignWithInstruction(preview);
+        preview.redraw = () => {
+            const halfHeight = get(taInstruction, 'height') / 2;
+            
+            preview.style.width = taInstruction.style.width;
+            preview.style.height = taInstruction.style.height;
+            preview.style.left = taInstruction.style.left;
+            preview.style.top = `${get(taInstruction, 'top') + get(taInstruction, 'height') + margin}px`;
+        };
+        
+        taInstruction.redraw();
         app.appendChild(preview);
     }
+
     preview.srcdoc = pCode;
 }
 
@@ -769,6 +789,7 @@ function closePreview() {
     if (preview) {
         app.removeChild(preview);
         preview = null;
+        taInstruction.redraw();
     }
 }
 
@@ -809,7 +830,7 @@ function confirmDel() {
     switch (get(btnDel, 'background')) {
         case '34, 139, 34':
             btnDel.style.background = 'firebrick';
-            setTimeout(() => { btnDel.style.background = tSteps < 2 ? 'indianred' : 'forestgreen'; }, 1000);
+            setTimeout(() => btnDel.style.background = tSteps < 2 ? 'indianred' : 'forestgreen', 1000);
             break;
         case '178, 34, 34':
             btnDel.style.background = 'darkred';
@@ -1572,14 +1593,10 @@ function adaptToView() {
             // OFFSET TO CENTRE
             (get(vDiv, 'left') - pagePadding - arr.length * get(e, 'width') - margin * (arr.length - 1)) / 2 + pagePadding + 'px';
     });
-    taInstruction.style.left = pagePadding + 'px';
-    taInstruction.style.top = get(btnLoad, 'top') + get(btnLoad, 'height') + margin + 'px';
-    taInstruction.style.width = get(vDiv, 'left') - pagePadding + 'px';
-    taInstruction.style.height = get(btnPrev, 'top') - margin - get(taInstruction, 'top') + 'px';
-    btnConvert.style.left = get(taInstruction, 'width') / 2 - get(btnConvert, 'width') / 2 + pagePadding + 'px';
 
-    preview ? alignWithInstruction(preview) : null;
-    styledInstruction ? alignWithInstruction(styledInstruction) : null;
+    taInstruction.redraw();
+    
+    btnConvert.style.left = get(taInstruction, 'width') / 2 - get(btnConvert, 'width') / 2 + pagePadding + 'px';
 
     // ===== RIGHT SIDE ===== //
     btnDupPrev.style.left = get(vDiv, 'left') + get(vDiv, 'width') + pagePadding + 'px';
@@ -1626,15 +1643,6 @@ function flexDivider() {
     hDiv.style.width = window.innerWidth - vDivMin + 'px';
 }
 
-function alignWithInstruction(e, target = taInstruction) {
-    e.style.left = get(target, 'left') + 'px';
-    e.style.top = get(target, 'top') + 'px';
-    e.style.width = get(target, 'width') + 'px';
-    e.style.height = get(target, 'height') + 'px';
-
-    if (e == styledInstruction) e.style.padding = `0 ${(target.offsetWidth - 380) / 2}px`;
-}
-
 function initializeUI() {
     app.appendChild(hDiv);
     app.appendChild(vDiv);
@@ -1655,6 +1663,26 @@ function initializeUI() {
         // if (preview) closePreview();
         xOffset = evt.clientX - get(vDiv, 'left'); yOffset = evt.clientY - get(hDiv, 'top');
         window.addEventListener('mousemove', moveDivider, true);
+    };
+
+    taInstruction.redraw = () => {
+        taInstruction.style.top = get(btnLoad, 'top') + get(btnLoad, 'height') + margin + 'px';
+        taInstruction.style.left = pagePadding + 'px';
+        taInstruction.style.width = get(vDiv, 'left') - pagePadding + 'px';
+
+        const fullHeight = get(btnPrev, 'top') - margin - get(taInstruction, 'top');
+
+        if (preview) {
+            taInstruction.style.height = `${(fullHeight - margin) / 2}px`;
+            preview.redraw();
+        }
+        else {
+            taInstruction.style.height = `${fullHeight}px`;
+        }
+
+        if (styledInstruction) {
+            styledInstruction.redraw();
+        }
     };
 
     const elem = Array.from(app.getElementsByTagName('*'));
@@ -1792,7 +1820,7 @@ function testLogic() {
 
         setTimeout(() => {
             gutter.style.background = '#f6f6f6';
-            setTimeout(() => { gutter.style.transition = 'none'; }, 300);
+            setTimeout(() => gutter.style.transition = 'none', 300);
         }, 600);
 
         highlightButton();
