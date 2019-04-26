@@ -23,7 +23,8 @@ const
     htmlToken = ['##HTML##', '##HTML_E##', /##HTML##.*##HTML_E##/],
     cssToken = ['##CSS##', '##CSS_E##', /##CSS##.*##CSS_E##/],
     jsToken = ['##JS##', '##JS_E##', /##JS##.*##JS_E##/],
-    markup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'],
+    editableMarkup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'],
+    keyLearningMarkup = '#KEY_LEARNING#';
 
     vDiv = document.createElement('div'),
     hDiv = document.createElement('div'),
@@ -69,7 +70,7 @@ const
     template = [
         'Formatting\n\n`code`\n\n*bold text*\n\n_underlined text_\n\n~italic text~\n\n*_~bold underlined and italic~_*\n\n(html)<!-- code snippet -->(#)\n\n[link::URL]\n\n[glossary#html#<div>]\n\n[img::https://app.bsd.education/resources/bsdlogo.png]\n\n(---)\n\n[-\n\tunordered\n\tlist\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]\n\n(*)note highlight\n\n(**)centred note highlight\n\n(***)\n\n(!)On +html#<body>#+1, objective description\n\n(>>style.css)',
         'Generic step\n\nStep context.\n\n(---)\n\n[-\n\t(*)\n\t(*)\n-]\n\n(***)\n\n(!)On +type#key#, \n\n(!)On +type#key#, \n\n(!)On +type#key#, ',
-        'Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n\t(*)item 1\n\t(*)item 2\n-]',
+        `Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n${keyLearningMarkup}\n-]`,
     ],
 
     tipsData = [
@@ -179,57 +180,57 @@ const
 
     glossaryLink = {
         html: {
-            'HTML': '53fa2693-c653-411c-9a7d-f1df47d36432',
-            '<a>': 'de2005f1-d7e4-424b-8f4a-624783079e7c',
-            '<b>': '31bdb056-c63b-4a71-bf50-ba798aaec9f4',
-            '<body>': 'd694e726-ee2b-4b81-9ca4-21302387ef43',
-            '<br>': 'beef4a5f-f32f-4266-baf2-f297ce1e7ca3',
+            'HTML':     '53fa2693-c653-411c-9a7d-f1df47d36432',
+            '<a>':      'de2005f1-d7e4-424b-8f4a-624783079e7c',
+            '<b>':      '31bdb056-c63b-4a71-bf50-ba798aaec9f4',
+            '<body>':   'd694e726-ee2b-4b81-9ca4-21302387ef43',
+            '<br>':     'beef4a5f-f32f-4266-baf2-f297ce1e7ca3',
             '<button>': 'aef3c0f8-e182-41f8-9f56-5df2f7f0c814',
             '<canvas>': '35dc2e11-8f4b-49a5-942c-7b10d1561de3',
-            '<div>': '6f45e8ff-64d2-4528-827a-9d2722b8449d',
-            '<h1>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
-            '<h2>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
-            '<h3>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
-            '<h4>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
-            '<h5>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
-            '<h6>': '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
-            '<head>': '35287bae-ead4-4b8e-b2ca-1d990ea555ca',
+            '<div>':    '6f45e8ff-64d2-4528-827a-9d2722b8449d',
+            '<h1>':     '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<h2>':     '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<h3>':     '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<h4>':     '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<h5>':     '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<h6>':     '2b80319b-5dc3-4f5d-89f8-1f38b5969f6e',
+            '<head>':   '35287bae-ead4-4b8e-b2ca-1d990ea555ca',
             '<iframe>': 'c7d8cbbd-b5e4-4212-baaa-7ee5253c86ed',
-            '<img>': '1eff844a-cc1d-4e36-b5dc-8b29d9b7ce7d',
+            '<img>':    '1eff844a-cc1d-4e36-b5dc-8b29d9b7ce7d',
             '<script>': '72e6a24d-eb8d-4000-bee8-859baffda976',
-            'id': '05c870d4-8500-4dbd-98ef-92fd1f6d84a1',
-            'onclick': 'c8b0c517-cdbb-44b4-a79f-0e9ee70d9a87',
+            'id':       '05c870d4-8500-4dbd-98ef-92fd1f6d84a1',
+            'onclick':  'c8b0c517-cdbb-44b4-a79f-0e9ee70d9a87',
         },
         css: {
-            'CSS': 'da14e3f5-4197-46ee-9006-b858b1214b67',
-            'animation': '18055ae9-47d6-47b9-9146-4fecac4c0c8b',
+            'CSS':              'da14e3f5-4197-46ee-9006-b858b1214b67',
+            'animation':        '18055ae9-47d6-47b9-9146-4fecac4c0c8b',
             'background-color': 'c0ed8259-70af-4c0c-abdc-56be713f6cdf',
-            'border': '927c1e89-ccfb-47d4-b25f-85238c30e1f7',
-            'border-radius': 'b10d6311-78b5-4604-b30e-6d6ce2fbe2e9',
-            'cursor': '65c42136-afe9-492d-9569-4a57639dc5e4',
-            'font-size': 'd81da100-c237-4606-8687-9eabf717e1e6',
-            'height': '7fe3e114-0f5f-4851-b3aa-97232d4d4b6c',
-            'margin': '3a2f0a2d-1c4c-4882-ab43-37386ef16a67',
-            'max-width': '0709c8c8-da93-4b63-8bea-bd5154babee1',
-            'outline': '56565ef1-8786-4aa2-b959-1cf066dd8cd1',
-            'selector': '010c68a7-e6cc-46e9-b9af-99c6708110e8',
-            'text-align': 'e8f7c7af-74e5-4bd2-b322-7e3a40594ece',
-            'width': 'a1ca4408-3396-4d15-878e-dc003503fe0f',
+            'border':           '927c1e89-ccfb-47d4-b25f-85238c30e1f7',
+            'border-radius':    'b10d6311-78b5-4604-b30e-6d6ce2fbe2e9',
+            'cursor':           '65c42136-afe9-492d-9569-4a57639dc5e4',
+            'font-size':        'd81da100-c237-4606-8687-9eabf717e1e6',
+            'height':           '7fe3e114-0f5f-4851-b3aa-97232d4d4b6c',
+            'margin':           '3a2f0a2d-1c4c-4882-ab43-37386ef16a67',
+            'max-width':        '0709c8c8-da93-4b63-8bea-bd5154babee1',
+            'outline':          '56565ef1-8786-4aa2-b959-1cf066dd8cd1',
+            'selector':         '010c68a7-e6cc-46e9-b9af-99c6708110e8',
+            'text-align':       'e8f7c7af-74e5-4bd2-b322-7e3a40594ece',
+            'width':            'a1ca4408-3396-4d15-878e-dc003503fe0f',
         },
         javascript: {
-            'JavaScript': '051f20b9-73df-49fd-905f-7e438e0c7a61',
-            'alert': 'f840417f-4006-4436-9cc1-f8d40da50808',
-            'array': 'f6b7d0fc-700b-4202-861a-b5900a6fd922',
-            'arithmetic operator': '6bc23e90-67a4-4ba5-a27c-35d5f3add4a1',
-            'charCodeAt': '537e811a-4aba-4702-9484-7080b3dc6eb4',
-            'else if': '2ed56671-86c8-4799-a423-5d7f549ec659',
-            'else': '2ed56671-86c8-4799-a423-5d7f549ec659',
-            'forEach': 'f17d20df-0558-4e71-9453-241850c24347',
-            'fromCharCode': 'f98f0fe0-53b6-47b9-8f80-f5c439acacdb',
-            'function': '37322df6-fd28-4a7e-992f-05f0e06ecfe1',
-            'if': '2ed56671-86c8-4799-a423-5d7f549ec659',
-            'prompt': 'f5359b15-9a4d-48d3-acb5-3d1a60db49a2',
-            'variable': 'ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52',
+            'JavaScript':           '051f20b9-73df-49fd-905f-7e438e0c7a61',
+            'alert':                'f840417f-4006-4436-9cc1-f8d40da50808',
+            'array':                'f6b7d0fc-700b-4202-861a-b5900a6fd922',
+            'arithmetic operator':  '6bc23e90-67a4-4ba5-a27c-35d5f3add4a1',
+            'charCodeAt':           '537e811a-4aba-4702-9484-7080b3dc6eb4',
+            'else if':              '2ed56671-86c8-4799-a423-5d7f549ec659',
+            'else':                 '2ed56671-86c8-4799-a423-5d7f549ec659',
+            'forEach':              'f17d20df-0558-4e71-9453-241850c24347',
+            'fromCharCode':         'f98f0fe0-53b6-47b9-8f80-f5c439acacdb',
+            'function':             '37322df6-fd28-4a7e-992f-05f0e06ecfe1',
+            'if':                   '2ed56671-86c8-4799-a423-5d7f549ec659',
+            'prompt':               'f5359b15-9a4d-48d3-acb5-3d1a60db49a2',
+            'variable':             'ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52',
         },
     };
 
@@ -245,7 +246,7 @@ let gutter,
     tSteps = 1,                     // TOTAL STEPS
 
     inst = [''],                                    // INSTRUCTION FOR ALL STEPS
-    html = '', css = '', js = '',                   // CODE CONTENT OF EACH TYPE
+    html = '', css = '', js = '',                   // CODE CONTENT OF EACH TYPE OF THE ACTIVE STEP
     code = [''],                                    // CODE FOR ALL STEPS
     htmlLogic = '', cssLogic = '', jsLogic = '',    // STEP LOGIC OF EACH CODE TYPE
     logic = [''],                                   // TRANITION FOR ALL STEPS
@@ -770,19 +771,19 @@ function updatePreview() {
 }
 
 function noMarkup(str) {
-    return str.replace(new RegExp(`(${markup[0]}\\s*)|(\\s*${markup[1]})`, 'g'), '');
+    return str.replace(new RegExp(`(${editableMarkup[0]}\\s*)|(\\s*${editableMarkup[1]})`, 'g'), '');
 }
 
 function convertEditable() {
     let sel = codeEditor.getSelectedText();
 
-    if (sel.includes(markup[0]) || sel.includes(markup[1])) {
-        while (sel.includes(markup[0]) || sel.includes(markup[1])) {
-            sel = sel.replace(markup[0], '').replace(markup[1], '');
+    if (sel.includes(editableMarkup[0]) || sel.includes(editableMarkup[1])) {
+        while (sel.includes(editableMarkup[0]) || sel.includes(editableMarkup[1])) {
+            sel = sel.replace(editableMarkup[0], '').replace(editableMarkup[1], '');
         }
         codeEditor.insert(sel);
     }
-    else codeEditor.insert(`${markup[0]}${sel}${markup[1]}`);
+    else codeEditor.insert(`${editableMarkup[0]}${sel}${editableMarkup[1]}`);
 }
 
 function closePreview() {
@@ -1157,7 +1158,7 @@ function generateJSON() {
                     if (stepObj.files[file].answers) stepObj.files[file].answers.push(answer[2]);
                     else stepObj.files[file].answers = [answer[2]];
 
-                    if (editableContents[q].replace(markup[0], '').replace(markup[1], '').trim() == answer[2]) {
+                    if (editableContents[q].replace(editableMarkup[0], '').replace(editableMarkup[1], '').trim() == answer[2]) {
                         stepObj.files[file].contents = stepObj.files[file].contents.replace(editableContents[q], '#BEGIN_EDITABLE#    #END_EDITABLE#');
                     }
                 }
@@ -1190,7 +1191,7 @@ function generateJSON() {
 
             //  store editable locations for each file (not optimised for editable lines)
             codeString.split(/\n/).forEach((line, k) => {
-                if (line.includes(markup[0])) {
+                if (line.includes(editableMarkup[0])) {
                     editables[type].push(k + 1);
                 }
             });
@@ -1415,6 +1416,16 @@ function recoverFromLocal() {
 // ================================================= //
 // ==================== HANDLER ==================== //
 // ================================================= //
+
+function insertSummary() {
+    const keyLearningItems = [];
+    
+    code.forEach(stepCode => {
+        
+    });
+
+    // taInstruction.value = template[2]
+}
 
 function keyHandler() {
     // disable F5 key
@@ -1736,7 +1747,7 @@ function testLogic() {
 
             if (!m) log(`step logic failed: '${k}' can not be found.`);
             else if (m.length > 1) log(`step logic failed: '${k}' is not unique.`);
-            else return c.replace(k, `${markup[0]}${k}${markup[1]}`);
+            else return c.replace(k, `${editableMarkup[0]}${k}${editableMarkup[1]}`);
         };
 
     if (cStep > 1 && get(gutter, 'background') == '246, 246, 246') {
@@ -1844,10 +1855,10 @@ function generateTest() {
     codeEditor.gotoLine(0, 0, false);
 
     while (/#(BEGIN|END)_EDITABLE#/.test(codeEditor.getValue())) {
-        const r1 = codeEditor.find(markup[0], { caseSensitive: true });
+        const r1 = codeEditor.find(editableMarkup[0], { caseSensitive: true });
         if (r1) {
             codeEditor.insert('');
-            const r2 = codeEditor.find(markup[1], { caseSensitive: true });
+            const r2 = codeEditor.find(editableMarkup[1], { caseSensitive: true });
             if (r2) {
                 codeEditor.insert('');
                 codeEditor.selection.setRange({
