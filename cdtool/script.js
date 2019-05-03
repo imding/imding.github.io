@@ -1395,7 +1395,7 @@ function saveToLocal() {
             localStorage.lbcontent = master;
             codeEditor.session.setScrollTop(codeScrollTop);
             logicEditor.session.setScrollTop(logicScroolTop);
-            console.clear();
+            // console.clear();
             print('file saved to local');
 
             return true;
