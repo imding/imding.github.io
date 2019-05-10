@@ -1,3 +1,18 @@
+### Fixes
+--- Auto Navigation
+- decideNextMove function creation first, then connect to else if
+- else if (options.includes(Up)) {}
+- checkFinishLine()
+- 
+
+
+--- Random Decisions
+
+
+--- Iteration & Memory
+
+
+
 ### Brief
 Grade 3-5
 Grade 6-8
