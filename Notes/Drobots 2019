@@ -1,8 +1,6 @@
 ### Fixes
---- Auto Navigation
-- decideNextMove function creation first, then connect to else if
-- else if (options.includes(Up)) {}
-- checkFinishLine()
+--- Random Decision
+- change availableCells.push(currentCell.right) to options.push(right)
 - 
 
 

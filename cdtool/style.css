@@ -102,19 +102,14 @@ html, body {
 	background: gainsboro;
 	box-sizing: border-box;
 	border-radius: 10px;
-	border: none;
 	outline: none;
 	resize: none;
 	overflow-x: hidden;
 }
 
-#preview {
-	border: none;
-	background-color: rgba(255, 255, 255, 0.1);
-}
-
 #preview, #styledInstruction {
 	position: absolute;
+	border: none;
 	border-radius: 10px;
 	box-sizing: border-box;
 }
@@ -132,7 +127,7 @@ html, body {
 	border-radius: 10px;
 }
 
-#info {
+#app>#info {
 	height: 35px;
 	padding: 0 10px;
 	color: ghostwhite;

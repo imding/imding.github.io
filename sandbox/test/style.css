@@ -1,75 +1,125 @@
+/* font converted using font-converter.net. thank you! */
+@font-face {
+    font-family: "FailedAttempt";
+    src: url("https://imding.github.io/fonts/FailedAttempt/FailedAttempt.eot");
+    /* IE9 Compat Modes */
+    src: url("https://imding.github.io/fonts/FailedAttempt/FailedAttempt.eot?#iefix") format("embedded-opentype"),
+        /* IE6-IE8 */
+        url("https://imding.github.io/fonts/FailedAttempt/FailedAttempt.otf") format("opentype"),
+        /* Open Type Font */
+        url("https://imding.github.io/fonts/FailedAttempt/FailedAttempt.svg") format("svg"),
+        /* Legacy iOS */
+        url("https://imding.github.io/fonts/FailedAttempt/FailedAttempt.ttf") format("truetype"),
+        /* Safari, Android, iOS */
+        url("https://imding.github.io/fonts/FailedAttempt/FailedAttempt.woff") format("woff"),
+        /* Modern Browsers */
+        url("https://imding.github.io/fonts/FailedAttempt/FailedAttempt.woff2") format("woff2");
+    /* Modern Browsers */
+    font-weight: normal;
+    font-style: normal;
+}
+
 * {
     margin: 0;
     box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
     height: 100%;
     overflow: hidden;
     text-align: center;
+    font-family: 'FailedAttempt';
+    background-color: #333;
 }
 
-#content, #grid {
+button,
+input,
+textarea {
+    outline: none;
+    border: none;
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+button {
+    cursor: pointer;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+#title {
+    padding-top: 10px;
+    margin-bottom: 10px;
+    color: white;
+}
+
+#content {
+    width: 90vw;
+    margin: auto;
+}
+
+#content,
+#grid {
     position: relative;
 }
 
-#flexContainer {
-    display: flex;
-}
-
+/*
+    simulation area styles
+*/
 #grid {
-    background-color: #6abe30;
+    border-radius: 5px;
+    background-color: mediumseagreen;
+    background-image: url('  ');
+    background-size: 32px;
+    box-shadow: 0 0 15px #111;
+    overflow: hidden;
 }
 
 #grid>div {
     position: absolute;
-    width: 32px;
-    height: 32px;
 }
 
 #car {
     background-image: url('https://app.bsd.education/resources/car_blue.png');
     background-size: 60%;
-    background-position: 2px center;
+    background-position: 25% center;
     background-repeat: no-repeat;
+    transition-property: left, top, transform;
+    transition-timing-function: linear, linear, ease-in-out;
     z-index: 1;
-}
-
-.normal {
-    transition: left 0.1s linear, top 0.1s linear, transform 0.02s ease-in-out;
-}
-
-.fast {
-    transition: none;
-}
-
-#chatbot {
-    width: 200px;
-}
-
-#chatbot>#messages {
-    overflow-y: auto;
-}
-
-#chatbot>input {
-    width: 100%;
-    outline: none;
-}
-
-#chatbot>button {
-    width: 50%;
 }
 
 .road {
     background-repeat: no-repeat;
     background-origin: border-box;
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-size: 100%;
+    transform: scale(1.015);
 }
 
-.target {
-    border: 1px solid rgba(255, 0, 0, 0.5);
+#btnRun {
+    position: fixed;
+    bottom: 20px;
+    padding: 10px 30px 10px 15px;
+    font-size: 50px;
+    border-radius: 20px;
+    font-family: 'FailedAttempt';
+    color: ghostwhite;
+    background-color: dodgerblue;
+    transform: translateX(-50%);
+    transform-origin: 0;
 }
 
-.previous {
-    border: 1px solid rgba(0, 0, 255, 0.5);
+#btnRun:hover {
+    box-shadow: 0 0 20px #111;
 }
+
+#btnRun:active {
+    transform: scale(0.98) translate(-50%);
+}
+
+#btnRun>.fa {
+    transform: scale(0.6);
+}
+

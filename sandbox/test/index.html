@@ -1,38 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="style.css"/>
+	<link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">
+	<link rel='stylesheet' href='../../font-awesome-4.7.0/css/font-awesome.min.css'>
+    <!-- <link href="/resources/css/font-awesome.min.css" rel="stylesheet">  -->
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-	<div id='content'>
-		<h1 id='title'>Auto-pilot</h1>
+    <div id='content'>
+        <p id='title'>Smart Car</p>
 
-		<br>
-		
-		<div id='flexContainer'>
-			<div id='sim'>
-				<div id='grid'>
-					<div id='car'></div>
-				</div>
-				<br>
-				<button id='btnRun'>Run Algorithm</button>
-				<button id='btnStop' disabled>Stop</button>
-				<button id='btnShow' disabled>Show Result</button>
-			</div>
+        <div id='grid'>
+            <div id='car'></div>
+        </div>
 	
-			<!-- <div id='chatbot'>	
-				<div id='messages'></div>
-				<input id='userInput'>
-				<br>
-				<br>
-				<button id='send'>Send</button>
-			</div> -->
+		<div id='controls'>
+			<button id='btnAutoDrive'>Auto Drive</button>
+			<button id='btnReset'>Reset</button>
+			<button id='btnPlayback'>Playback</button>
 		</div>
-	</div>
+    </div>
 
-	<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.1/seedrandom.min.js"></script> -->
-	<!-- <script type="text/javascript" src="fixedTrack.js"></script> -->
-	<!-- <script type="text/javascript" src="randomTrack.js"></script> -->
-	<script type="text/javascript" src="multiTrack.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
