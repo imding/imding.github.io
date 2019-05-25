@@ -1,77 +1,48 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>brain.js</title>
-    <link href="https://fonts.googleapis.com/css?family=Poppins|Roboto&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div class="fluid-container">
-        <div id="page1" class="page current">
-            <div class="container text-center">
-                <div class="form-group pt-3">
-                    <h2 class="mb-3">Write what you want the AI to learn.</h2>
-                    <input type="text" class="form-control mb-2" id="objective" placeholder="Write a word you what to teach the AI...">
-                    <button id="goPage2Btn" class="btn btn-primary mt-2" type="button">Next</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="page2" class="page">
-            <div class="container">
-                <div class="pt-3 pb-2">
-                    <h3 class="text-center">Draw an image of the <span id="objectiveName1"></span>.</h3>
-                    <div>
-                        <p class="text-center">Click on <strong class="btn btn-success">Add More Sample</strong> button to give the AI more sample images about the <span id="objectiveName2"></span></p>
-                        <p class="text-center">Click on <strong class="btn btn-primary">Training</strong> to let the AI remembers the images.</p>
-                    </div>
-                </div>
-                <div id="canvasSlider">
-                    <div id="canvasContainer"></div>
-                </div>
-                <div class="prevCV">&lt;</div>
-                <div class="nextCV">&gt;</div>
-                <button id="trainingBtn" class="btn btn-primary" type="button">Training</button>
-                <button id="addMoreSample" class="btn btn-success" type="button">Add More Sample</button>
-                <button id="clearBtn" class="btn btn-danger" type="button">Clear</button>
-                <button id='btnPixelArray'>Pixel Array</button>
-            </div>
-        </div>
-
-        <div id="page3" class="page">
-            <div class="container">
-                <div class="form-group pt-3">
-                    <h3 class="text-center">Draw an image and click on <strong class="btn btn-primary">Guess</strong> button.</h3>
-                    <p class="text-center">Let's see if the AI can recognize what you teach.</p>
-                    <div id="guessCanvasContainer">
-
-                    </div>
-                    <!-- <canvas id="guessCanvas"></canvas> -->
-                    <div class="text-center">
-                        <button id="guessBtn" class="btn btn-primary mt-2" type="button">Guess</button>
-                        <button id="restartBtn" class="btn btn-success mt-2" type="button">Teach a new word</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="blackBG" class="text-center">
-            <img src="https://app.bsd.education/resources/loading_spinner.gif" alt="">
-            <h2 id="loadingMessage">AI is learning...</h2>
-        </div>
+    <div id="pageTarget">
+        <h2>What do you want the AI to recognise?</h2>
+        <p>Subject 1</p>
+        <input id="inputSubject1" placeholder="e.g. elephant" />
+        <p>Subject 2</p>
+        <input id="inputSubject2" placeholder="e.g. bird" />
+        <br />
+        <button id="btnBeginTraining">Next</button>
     </div>
 
-    
-    <script src="https://app.bsd.education/resources/js/brain.js"></script>
+    <div id="pageTraining">
+        <h2>Train your AI by drawing...</h2>
+        <div id="subjectContainer1">
+            <h3>What is</h3>
+            <canvas id="cvsTrainSubject1"></canvas>
+            <br />
+            <button id="btnSubmitSubject1">Submit</button>
+        </div>
+        <div id="subjectContainer2">
+            <h3>What is</h3>
+            <canvas id="cvsTrainSubject2"></canvas>
+            <br />
+            <button id="btnSubmitSubject2">Submit</button>
+        </div>
+        <br>
+        <button id="btnBeginGuessing" disabled>Next</button>
+    </div>
+
+    <div id="pageGuess">
+        <h2>Draw something for the AI to guess...</h2>
+        <div id="guessCanvasContainer">
+            <canvas id="cvsGuess"></canvas>
+        </div>
+        <button id="btnGuess">Guess</button>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/synaptic/1.0.8/synaptic.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
     <script src="script.js"></script>
 </body>
-
 </html>

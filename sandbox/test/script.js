@@ -1,5 +1,129 @@
+// bsd-config(disable-instrumentation)
+// bsd-disable infinite-loop-detection
+
+const pageTarget = document.querySelector('#pageTarget');
+const pageTraining = document.querySelector('#pageTraining');
+const pageGuess = document.querySelector('#pageGuess');
+
+const inputSubject1 = document.querySelector('#inputSubject1');
+const inputSubject2 = document.querySelector('#inputSubject2');
+
+const subjectContainer1 = document.querySelector('#subjectContainer1');
+const subjectContainer2 = document.querySelector('#subjectContainer2');
+
+const cvsTrainSubject1 = new DrawableCanvas(document.querySelector('#cvsTrainSubject1'));
+const cvsTrainSubject2 = new DrawableCanvas(document.querySelector('#cvsTrainSubject2'));
+const cvsGuess = new DrawableCanvas(document.querySelector('#cvsGuess'));
+
+const btnBeginTraining = document.querySelector('#btnBeginTraining');
+const btnBeginGuessing = document.querySelector('#btnBeginGuessing');
+const btnSubmitSubject1 = document.querySelector('#btnSubmitSubject1');
+const btnSubmitSubject2 = document.querySelector('#btnSubmitSubject2');
+
+const pixelateThreshold = 0.6;
+const canvasSize = 300;
+const strokeWidth = 10;
+const learningRate = 0.3;
+const iterations = 1000;
+
+let subject1;
+let subject2;
+
+let minSamples = 4;
+let subjectSamples1 = minSamples;
+let subjectSamples2 = minSamples;
+
+let training = [];
+
+const {
+    Layer,
+    Network
+} = window.synaptic;
+
+let inputLayer = new Layer(Math.pow(canvasSize / strokeWidth, 2));
+let outputLayer = new Layer(2);
+
+inputLayer.project(outputLayer);
+
+let network = new Network({
+    input: inputLayer,
+    output: outputLayer,
+});
+
+console.clear();
+
+document.querySelectorAll('canvas').forEach(canvas => {
+    canvas.width = canvasSize;
+    canvas.height = canvasSize;
+});
+
+btnBeginTraining.onclick = () => {
+    subject1 = inputSubject1.value.trim();
+    subject2 = inputSubject2.value.trim();
+
+    subjectContainer1.querySelector('h3').textContent = `a ${subject1}:`;
+    subjectContainer2.querySelector('h3').textContent = `a ${subject2}:`;
+
+    updateMinSamples();
+
+    pageTarget.style.display = 'none';
+    pageTraining.style.display = 'inherit';
+};
+
+btnSubmitSubject1.onclick = () => submitTraining(cvsTrainSubject1, [1, 0]);
+btnSubmitSubject2.onclick = () => submitTraining(cvsTrainSubject2, [0, 1]);
+
+btnBeginGuessing.onclick = () => {
+    startTraining();
+    pageTraining.style.display = 'none';
+    pageGuess.style.display = 'inherit';
+};
+
+btnGuess.onclick = () => {
+    inputLayer.activate(cvsGuess.getPixelArray());
+    const result = outputLayer.activate();
+
+    cvsGuess.reset();
+
+    // alert(`${subject1}: ${Math.floor(result[0] * 100)}%, ${subject2}: ${Math.floor(result[1] * 100)}%`);
+    console.log(`${subject1}: ${Math.floor(result[0] * 100)}%`);
+    console.log(`${subject2}: ${Math.floor(result[1] * 100)}%`);
+};
+
+function submitTraining(canvas, _outputLayer) {
+    training.push({
+        input: canvas.getPixelArray(),
+        output: _outputLayer,
+    });
+
+    subjectSamples1 = Math.max(0, subjectSamples1 - _outputLayer[0]);
+    subjectSamples2 = Math.max(0, subjectSamples2 - _outputLayer[1]);
+
+    updateMinSamples();
+
+    btnBeginGuessing.disabled = Boolean(subjectSamples1 + subjectSamples2);
+
+    canvas.reset();
+}
+
+function startTraining() {
+    for (let i = 0; i < iterations; i++) {
+        training = _.shuffle(training);
+
+        training.forEach(data => {
+            network.activate(data.input);
+            network.propagate(learningRate, data.output);
+        });
+    }
+}
+
+function updateMinSamples() {
+    btnSubmitSubject1.textContent = `Submit (${subjectSamples1})`;
+    btnSubmitSubject2.textContent = `Submit (${subjectSamples2})`;
+}
+
+
 function DrawableCanvas(el) {
-    const px = 10;
     const ctx = el.getContext('2d');
     let x = [];
     let y = [];
@@ -15,7 +139,7 @@ function DrawableCanvas(el) {
         clear();
         ctx.strokeStyle = 'red';
         ctx.lineJoin = 'round';
-        ctx.lineWidth = px;
+        ctx.lineWidth = strokeWidth;
         for (let i = 0; i < moves.length; i++) {
             ctx.beginPath();
             if (moves[i] && i) {
@@ -40,7 +164,7 @@ function DrawableCanvas(el) {
     const grid = () => {
         const w = el.clientWidth;
         const h = el.clientHeight;
-        const p = el.clientWidth / px;
+        const p = el.clientWidth / strokeWidth;
         const xStep = w / p;
         const yStep = h / p;
         for (let x = 0; x < w; x += xStep) {
@@ -66,21 +190,70 @@ function DrawableCanvas(el) {
         clear();
     };
     this.getPixelArray = () => {
-        const pixelArray = [];
+        let pixelArray = [];
 
-        for (let x = 0; x < canvasSize; x += px) {
-            for (let y = 0; y < canvasSize; y += px) {
-                const pixels = ctx.getImageData(x, y, px, px).data.filter((_, i) => i % 4 == 0).map(v => v ? 1 : 0);
-                pixelArray.push(pixels.includes(1) ? 1 : 0);
+        for (let y = 0; y < el.height; y += strokeWidth) {
+            pixelArray.push([]);
+            for (let x = 0; x < el.width; x += strokeWidth) {
+                const pixels = ctx.getImageData(x, y, strokeWidth, strokeWidth).data.filter((_, i) => i % 4 == 0).map(v => v ? 1 : 0);
+                const halfPixel = pixels.filter(p => p == 1).length / pixels.filter(p => p == 0).length >= pixelateThreshold * 2;
+                pixelArray[y / strokeWidth].push(halfPixel ? 1 : 0);
             }
         }
 
-        return pixelArray;
+        let leadingZero = 0,
+            trailingZero = 0;
+
+        pixelArray = pixelArray.filter(row => {
+            const _row = Array.from(row);
+
+            if (row.includes(1)) {
+                leadingZero = leadingZero ? Math.min(leadingZero, _row.indexOf(1)) : _row.indexOf(1);
+                trailingZero = trailingZero ? Math.min(trailingZero, _row.reverse().indexOf(1)) : _row.reverse().indexOf(1);
+                return true;
+            }
+
+            return;
+        });
+
+        pixelArray = pixelArray.map(row => row.reverse().slice(trailingZero).reverse().slice(leadingZero));
+
+        if (pixelArray[0].length > pixelArray.length) {
+            const margin = (pixelArray[0].length - pixelArray.length) / 2;
+            const topMargin = new Array(Math.floor(margin)).fill(new Array(pixelArray[0].length).fill(0));
+            const bottomMargin = new Array(Math.ceil(margin)).fill(new Array(pixelArray[0].length).fill(0));
+
+            pixelArray = [...topMargin, ...pixelArray, ...bottomMargin];
+        } else if (pixelArray[0].length < pixelArray.length) {
+            const margin = (pixelArray.length - pixelArray[0].length) / 2;
+            const leftMargin = new Array(Math.ceil(margin)).fill(0);
+            const rightMargin = new Array(Math.floor(margin)).fill(0);
+
+            pixelArray.forEach((_, x) => pixelArray[x] = [...leftMargin, ...pixelArray[x], ...rightMargin]);
+        }
+
+        let scaledArray = new Array(canvasSize / strokeWidth).fill(new Array(canvasSize / strokeWidth).fill(0));
+        const ratio = {
+            x: scaledArray[0].length / pixelArray[0].length,
+            y: scaledArray.length / pixelArray.length,
+        };
+
+        scaledArray = scaledArray.map((row, y) => {
+            return row.map((_, x) => {
+                return pixelArray[Math.floor(y / ratio.y)][Math.floor(x / ratio.x)];
+            });
+        });
+
+        // console.clear();
+        // console.log(pixelArray);
+        // console.log(scaledArray);
+        // console.log(scaledArray.flat());
+        return scaledArray.flat();
     };
     this.getVector = (debug = true) => {
         const w = el.clientWidth;
         const h = el.clientHeight;
-        const p = el.clientWidth / px;
+        const p = el.clientWidth / strokeWidth;
         const xStep = w / p;
         const yStep = h / p;
         const vector = [];
@@ -157,259 +330,3 @@ function DrawableCanvas(el) {
     el.addEventListener('touchmove', onTouchMove);
     el.addEventListener('touchend', stopTouchMove);
 }
-
-//const guessCanvas = new DrawableCanvas(document.getElementById('guessCanvas'));
-var guessCanvas;
-
-var net;
-
-var trainedData = [];
-
-
-/**
- * CUSTOM CODE
- */
-
-var btnPixelArray = document.querySelector('#btnPixelArray');
-btnPixelArray.onclick = () => {
-    canvasArray[0].getPixelArray();
-};
-
-var canvasSize = 500;
-var blackBG = document.getElementById('blackBG');
-var maxIteration = 20;
-var wordArray = [];
-var currentPage = 1;
-var pageWidth = window.innerWidth;
-var fluidContainer = document.querySelector('.fluid-container');
-//fluidContainer.style.width = pageWidth + "px";
-
-var canvasContainer = document.getElementById('canvasContainer');
-canvasContainer.marginLeft = 0;
-
-var canvasSlider = document.querySelector('#canvasSlider');
-canvasSlider.style.width = canvasSize + 'px';
-canvasSlider.style.height = canvasSize + 'px';
-
-var guessCanvasContainer = document.querySelector('#guessCanvasContainer');
-guessCanvasContainer.style.width = canvasSize + 'px';
-guessCanvasContainer.style.height = canvasSize + 'px';
-
-var canvasCount = 0;
-var canvasWidth = canvasSize;
-var canvasArray = [];
-var prevCV = document.querySelector('.prevCV');
-prevCV.onclick = previousCanvas;
-
-var nextCV = document.querySelector('.nextCV');
-nextCV.onclick = nextCanvas;
-
-
-var clearBtn = document.getElementById('clearBtn');
-clearBtn.onclick = clearCanvas;
-
-var restartBtn = document.getElementById('restartBtn');
-restartBtn.onclick = restart;
-
-var objective = document.getElementById('objective');
-objective.oninput = onInputObjective;
-
-var goPage2Btn = document.getElementById('goPage2Btn');
-goPage2Btn.disabled = true;
-goPage2Btn.onclick = () => {
-    wordArray.push(objective.value);
-    gotoPage(2);
-    objectiveName1.innerHTML = objective.value;
-    objectiveName2.innerHTML = objective.value;
-
-    addNewSample();
-};
-
-var addMoreSample = document.getElementById('addMoreSample');
-addMoreSample.onclick = addNewSample;
-
-var trainingBtn = document.getElementById('trainingBtn');
-trainingBtn.onclick = () => {
-    showBlackBG();
-    setTimeout(startTraining, 100);
-};
-
-// get all pages
-var pageArray = [...document.querySelectorAll('.page')];
-
-function onInputObjective() {
-    //console.log(objective.value);
-    if (objective.value.length > 0) {
-        goPage2Btn.disabled = false;
-    }
-    else {
-        goPage2Btn.disabled = true;
-    }
-}
-
-function gotoPage(pageNumber) {
-    pageArray[pageNumber - 1].style.left = 0;
-    if (pageNumber > currentPage) {
-        // move to the left
-        pageArray[currentPage - 1].style.left = -pageWidth + 'px';
-    }
-    else {
-        // move to the right
-        pageArray[currentPage - 1].style.left = pageWidth + 'px';
-
-        if (pageNumber == 1) {
-            initialPages();
-        }
-    }
-
-    currentPage = pageNumber;
-}
-
-function initialPages() {
-    for (var i = 1; i < pageArray.length; i++) {
-        pageArray[i].style.left = pageWidth + 'px';
-    }
-}
-
-function addNewSample() {
-    canvasCount++;
-
-    var cv = document.createElement('canvas');
-    cv.id = 'cv' + canvasCount;
-    cv.className = 'cv';
-    cv.width = canvasSize;
-    cv.height = canvasSize;
-    cv.style.left = ((canvasCount - 1) * canvasWidth) + 'px';
-
-
-    canvasContainer.appendChild(cv);
-    canvasContainer.marginLeft = -((canvasCount - 1) * canvasWidth);
-    canvasContainer.style.marginLeft = canvasContainer.marginLeft + 'px';
-
-    var newDrawableCV = new DrawableCanvas(cv);
-    canvasArray.push(newDrawableCV);
-}
-
-function previousCanvas() {
-    canvasContainer.marginLeft += canvasWidth;
-    if (canvasContainer.marginLeft >= 0) {
-        canvasContainer.marginLeft = 0;
-    }
-    canvasContainer.style.marginLeft = canvasContainer.marginLeft + 'px';
-}
-
-function nextCanvas() {
-    canvasContainer.marginLeft -= canvasWidth;
-    if (canvasContainer.marginLeft <= -((canvasCount - 1) * canvasWidth)) {
-        canvasContainer.marginLeft = -((canvasCount - 1) * canvasWidth);
-    }
-    canvasContainer.style.marginLeft = canvasContainer.marginLeft + 'px'; 
-}
-
-function startTraining() {
-    //console.log(canvasArray);
-    //console.log("start training");
-
-    canvasArray.map(eachCanvas => {
-        var outputObj = {};
-        outputObj[objective.value] = 1;
-
-        var cvResult = {
-            input: eachCanvas.getPixelArray(),
-            output: outputObj
-        };
-
-        trainedData.push(cvResult);
-    });
-
-    //console.log("==== DATA ====");
-    //console.log(trainedData);
-
-    net = new brain.NeuralNetwork();
-    const result = net.train(trainedData, {
-        iterations: maxIteration,
-        // TODO: add callback to update the progress bar
-        /*
-        callback: function(data) {
-            //console.log(data);
-            //var percentage = (data.iterations / maxIteration) * 100;
-            //console.log(percentage);
-        },
-        callbackPeriod: 5
-        */
-    });
-
-    //console.log("==== RESULT ====");
-    console.log(result);
-    
-    hideBlackBG();
-
-    // TODO:
-    createGuessCanvas();
-    //guessCanvasContainer
-    gotoPage(3);    
-}
-
-function createGuessCanvas() {
-    guessCanvasContainer.innerHTML = '';
-
-    var cv = document.createElement('canvas');
-    cv.id = 'guessCanvas';
-    cv.width = canvasSize;
-    cv.height = canvasSize;
-    guessCanvasContainer.appendChild(cv);
-
-    guessCanvas = new DrawableCanvas(cv);
-}
-
-var guessBtn = document.getElementById('guessBtn');
-guessBtn.onclick = () => {
-    showBlackBG('AI is guessing...');
-    setTimeout(onGuess, 100);
-};
-
-
-function onGuess() {
-    //const result = brain.likely(guessCanvas.getPixelArray(), net);
-    const result = net.run(guessCanvas.getPixelArray());
-
-    var guessObject = Object.keys(result).reduce((prev, current) => {
-        return result[current] > result[prev] ? current : prev;
-    });
-
-    console.log(result);
-    //console.log(guessObject);
-    alert('I think you draw the ' + guessObject);
-    hideBlackBG();
-    guessCanvas.reset();
-}
-
-function restart() {
-    // reset objective
-    objective.value = '';
-
-    canvasContainer.innerHTML = '';
-    canvasArray = [];
-
-    canvasCount = 0;
-
-    gotoPage(1);
-}
-
-function showBlackBG(message = 'AI is learning...') {
-    blackBG.style.left = '0px';
-    loadingMessage.innerHTML = message;
-}
-
-function hideBlackBG() {
-    blackBG.style.left = '-99999px';
-}
-
-function clearCanvas() {
-    //console.log(Math.abs(canvasContainer.marginLeft) / canvasWidth);
-    var canvasId = Math.floor(Math.abs(canvasContainer.marginLeft) / canvasWidth);
-
-    canvasArray[canvasId].reset();
-}
-
-initialPages();
