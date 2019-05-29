@@ -41,12 +41,15 @@ const {
 } = window.synaptic;
 
 let inputLayer = new Layer(Math.pow(canvasSize / strokeWidth, 2));
+let hiddenLayer = new Layer(strokeWidth);
 let outputLayer = new Layer(2);
 
-inputLayer.project(outputLayer);
+inputLayer.project(hiddenLayer);
+hiddenLayer.project(outputLayer);
 
 let network = new Network({
     input: inputLayer,
+    hidden: [hiddenLayer],
     output: outputLayer,
 });
 
@@ -80,8 +83,7 @@ btnBeginGuessing.onclick = () => {
 };
 
 btnGuess.onclick = () => {
-    inputLayer.activate(cvsGuess.getPixelArray());
-    const result = outputLayer.activate();
+    const result = network.activate(cvsGuess.getPixelArray());
 
     cvsGuess.reset();
 
@@ -224,7 +226,8 @@ function DrawableCanvas(el) {
             const bottomMargin = new Array(Math.ceil(margin)).fill(new Array(pixelArray[0].length).fill(0));
 
             pixelArray = [...topMargin, ...pixelArray, ...bottomMargin];
-        } else if (pixelArray[0].length < pixelArray.length) {
+        }
+        else if (pixelArray[0].length < pixelArray.length) {
             const margin = (pixelArray.length - pixelArray[0].length) / 2;
             const leftMargin = new Array(Math.ceil(margin)).fill(0);
             const rightMargin = new Array(Math.floor(margin)).fill(0);
@@ -246,7 +249,7 @@ function DrawableCanvas(el) {
 
         // console.clear();
         // console.log(pixelArray);
-        // console.log(scaledArray);
+        console.log(scaledArray);
         // console.log(scaledArray.flat());
         return scaledArray.flat();
     };
