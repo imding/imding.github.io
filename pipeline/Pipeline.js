@@ -29,7 +29,7 @@ class Pipeline {
             decksData: {
                 pipeline: [{
                     title: 'Card Title',
-                    sections: [{ content: [{ type: 'p', html:'', bullet: true }] }],
+                    sections: [{ content: [{ type: 'p', html: '', bullet: true }] }],
                 }],
             }
         };
@@ -97,6 +97,8 @@ class Pipeline {
     }
 
     init() {
+        this.clear();
+
         this.chart.self = newElement('div', { id: 'Chart' });
         this.chart.nodes = {};
         this.chart.offset = 0;
@@ -161,7 +163,7 @@ class Pipeline {
             this.chart.self.querySelectorAll('.Active').forEach((e, i) => {
                 const label = newElement('div', { textContent: i + 1 });
                 e.appendChild(label);
-            
+
                 sCss(label, {
                     position: 'absolute',
                     width: '15px',
@@ -222,7 +224,7 @@ class Pipeline {
                         };
 
                         sectionContainer = newElement('div', { className: 'sectionContainer' });
-                        
+
                         if (node.deck.hasOwnProperty('toBeCollapsed')) node.deck.toBeCollapsed.push(sectionContainer);
                         else node.deck.toBeCollapsed = [sectionContainer];
                     }
@@ -232,26 +234,26 @@ class Pipeline {
 
                         if (content.type == 'p') {
                             let escHTML = htmlEscape(content.html)
-                                            .replace(/(\n\*\s[^\n]+)+/g, '\n<ul>$&\n</ul>')     //  wrap "* string" lines with <ul></ul>
-                                            .replace(/(\n\*\*\s[^\n]+)+/g, '\n<ol>$&\n</ol>')   //  wrap "** string" lines with <ol></ol>
-                                            .replace(/\n\**\s([^\n]+)/g, '\n\t<li>$1</li>');    //  wrap each "* string" line with <li></li>
-                            
+                                .replace(/(\n\*\s[^\n]+)+/g, '\n<ul>$&\n</ul>')     //  wrap "* string" lines with <ul></ul>
+                                .replace(/(\n\*\*\s[^\n]+)+/g, '\n<ol>$&\n</ol>')   //  wrap "** string" lines with <ol></ol>
+                                .replace(/\n\**\s([^\n]+)/g, '\n\t<li>$1</li>');    //  wrap each "* string" line with <li></li>
+
                             item = newElement('div');
-                            
+
                             sCss(item, { marginTop: '10px' });
-                            
+
                             if (!content.hasOwnProperty('bullet')) content.bullet = true;
-                            
+
                             while (this.markup.deco.test(escHTML)) {
                                 const
-                                m = escHTML.match(this.markup.deco),
+                                    m = escHTML.match(this.markup.deco),
                                     // patterns to turn into tags
                                     _p = /^(b|i|u|em|del|sub|sup|samp)$/g.test(m[1]);
-                                    
+
                                 escHTML = escHTML.replace(m[0], _p ? `<${m[1]}>${m[2]}</${m[1]}>` : `<a href='${m[2]}' target='_blank'>${m[1]}</a>`);
                             }
-                            
-                            item.innerHTML = `${content.bullet ? `<i class='fa fa-${section.title ? 'exclamation-circle' : 'info-circle'}'></i>` : ''} ${escHTML}`;
+
+                            item.innerHTML = `${content.bullet ? `<i class='fa fa-${section.title ? 'bolt' : 'info-circle'}'></i>` : ''} ${escHTML}`;
                         }
 
                         else if (content.type == 'img') {
@@ -407,9 +409,9 @@ class Pipeline {
                     !editor.active.previousElementSibling ||
                     editor.active.previousElementSibling.tagName != 'DIV'
                 ) && (
-                    !editor.active.nextElementSibling ||
-                    editor.active.nextElementSibling.tagName != 'DIV'
-                );
+                        !editor.active.nextElementSibling ||
+                        editor.active.nextElementSibling.tagName != 'DIV'
+                    );
 
                 if (lastNode) {
                     dropActiveNodeIn(editor);
@@ -422,7 +424,7 @@ class Pipeline {
             },
             moveActiveNodeIn = editor => {
                 let target;
-                    
+
                 event.path.some(e => {
                     if (e.tagName != 'DIV') return;
 
@@ -836,11 +838,11 @@ class Pipeline {
 
                 if (error) return alert(error);
 
-                while (this.self.children.length) {
-                    this.self.removeChild(this.self.firstElementChild);
-                }
+                this.clear();
 
                 if (this.render(nodesData, this.decksData)) this.hideCreatorPanel();
+                
+                this.savePipeline();
             }
             else {
                 checkDecks();
@@ -882,7 +884,7 @@ class Pipeline {
                 name = uid('Node', '_'),
                 prevIndent = prevNode.contains('indented'),
                 dir = prevNode.contains('shellInput') ? '' : '>> ';
-            
+
             addNodeInput(`${dir}${name}`, !dir || prevIndent, isNode, isFocused);
             chartEditor.appendChild(newNodeButton);
 
@@ -938,11 +940,8 @@ class Pipeline {
                 if (userInput < 0) userInput = Number((prompt(msg) || '').trim());
 
                 if (Number.isFinite(userInput) && userInput > 0) {
-                    //  remove everything from this.self
-                    while (this.self.children.length) {
-                        this.self.removeChild(this.self.firstElementChild);
-                    }
-                    
+                    if (userInput > docs.length) return alert('Invalid input');
+
                     //  reduce userInput by 1 to be used as index
                     userInput--;
                     //  store initial data
@@ -1030,21 +1029,23 @@ class Pipeline {
                     },
                     matchingDecks = matchingNodes && verifyDecks();
 
-                return { then: callback => {
-                    if (matchingDecks) {
-                        if (!confirm(`"${name}" already exists in the cloud, do you wish to overwrite it?`)) return cancelPush();
-                        if (!confirm(`The current "${name}" data will be lost, are you sure?`)) return cancelPush();
-                        if (!confirm('This action can not be undone. Please confirm.')) return cancelPush();
+                return {
+                    then: callback => {
+                        if (matchingDecks) {
+                            if (!confirm(`"${name}" already exists in the cloud, do you wish to overwrite it?`)) return cancelPush();
+                            if (!confirm(`The current "${name}" data will be lost, are you sure?`)) return cancelPush();
+                            if (!confirm('This action can not be undone. Please confirm.')) return cancelPush();
 
-                        callback();
+                            callback();
+                        }
+                        else {
+                            alert(`This pipeline has been updated since your last commit, you can either:\n1. Upload again and choose a name other than "${name}".\n2. Retrieve the "${name}" pipeline and LOSE YOUR CURRENT PROGRESS.`);
+                            console.warn('Push failed. Pipeline data:');
+                            console.dir(JSON.stringify(newData));
+                            pushIcon.removeAttribute('style');
+                        }
                     }
-                    else {
-                        alert(`Overwrite protection is in effect, you can either:\n1. Upload again and choose a name other than "${name}".\n2. Retrieve the "${name}" pipeline and LOSE YOUR CURRENT PROGRESS.`);
-                        console.warn('Push failed. Pipeline data:');
-                        console.dir(JSON.stringify(newData));
-                        pushIcon.removeAttribute('style');
-                    }
-                }};
+                };
             },
             commitPush = () => {
                 const batch = this.fire.batch();
@@ -1055,7 +1056,7 @@ class Pipeline {
                     this.initData = cloneObject(newData);
                     pushIcon.removeAttribute('style');
                 })
-                .catch(error => cancelPush(error));
+                    .catch(error => cancelPush(error));
             },
             cancelPush = error => {
                 alert('Push cancelled');
@@ -1067,13 +1068,43 @@ class Pipeline {
             if (doc.exists) verify(doc.data()).then(commitPush);
             else commitPush();
         })
-        .catch(error => cancelPush(error));
+            .catch(error => cancelPush(error));
+    }
+
+    clear() {
+        //  remove everything from this.self
+        while (this.self.children.length) {
+            this.self.removeChild(this.self.firstElementChild);
+        }
+    }
+
+    savePipeline() {
+        const name = this.name.length ? this.name : 'untitled';
+        localStorage.setItem(`pipeline:${name}`, JSON.stringify({ nodesData: ato(this.nodesData), decksData: this.decksData }));
+    }
+
+    loadPipeline() {
+        const titles = Object.entries(localStorage).filter(entry => entry[0].startsWith('pipeline:')).map(entry => entry[0].replace(/^pipeline:/, ''));
+        const userInput = Number((prompt(`Specify which pipeline to load:\n${titles.map((title, idx) => `${idx + 1}. ${title}`).join('\n')}`) || '').trim());
+
+        if (userInput > 0) {
+            if (userInput > titles.length) return alert('Invalid input.');
+
+            this.name = titles[userInput - 1];
+
+            const localData = JSON.parse(localStorage.getItem(`pipeline:${this.name}`));
+            
+            this.render(localData.nodesData, localData.decksData);
+            
+            this.fire.collection('Root').doc(this.name).get().then(doc => this.initData = doc.exists ? doc.data() : localData);
+        }
+        else return alert('Invalid input.');
     }
 
     printData() {
         console.clear();
         console.warn('Pipeline data:');
-        console.log({});
+        console.log({ nodesData: ato(this.nodesData), decksData: this.decksData });
     }
 
     creatorAccess() {

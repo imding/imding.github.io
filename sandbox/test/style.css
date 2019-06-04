@@ -1,18 +1,4 @@
 body {
-    text-align: center;
     background-color: white;
-}
-
-canvas {
-    box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.3);
-}
-
-#pageTraining,
-#pageGuess {
-    display: none;
-}
-
-#subjectContainer1,
-#subjectContainer2 {
-    display: inline-block;
+    text-align: center;
 }

@@ -184,7 +184,7 @@ code::-webkit-scrollbar-thumb {
 
 /* card content styles */
 
-.fa-info-circle, .fa-exclamation-circle {
+.fa-info-circle, .fa-bolt {
     margin-right: 5px;
 }
 
@@ -196,15 +196,19 @@ code::-webkit-scrollbar-thumb {
     color: indianred;
 }
 
-.fa-exclamation-circle {
-    transform: scale(0.8);
+.fa-info-circle {
     color: whitesmoke;
+}
+
+.fa-bolt {
+    transform: scale(0.8);
+    color: gainsboro;
 }
 
 h4 {
     position: sticky;
     top: -18px;
-    color: #c8cacc;
+    color: #C8CACC;
     border-style: solid;
     border-width: 0 10px 0 10px;
     border-color: #1d2533;
