@@ -184,8 +184,8 @@ code::-webkit-scrollbar-thumb {
 
 /* card content styles */
 
-.fa-info-circle, .fa-bolt {
-    margin-right: 5px;
+.fa-star, .fa-bolt {
+    transform: scale(0.8);
 }
 
 .fa-caret-right, .fa-caret-left, .fa-caret-up, .fa-caret-down {
@@ -196,13 +196,12 @@ code::-webkit-scrollbar-thumb {
     color: indianred;
 }
 
-.fa-info-circle {
-    color: whitesmoke;
+.fa-star {
+    color: gold;
 }
 
 .fa-bolt {
-    transform: scale(0.8);
-    color: gainsboro;
+    color: goldenrod;
 }
 
 h4 {
