@@ -38,7 +38,7 @@ ul, ol {
     margin: 0;
 }
 
-#cPanel, .fa-window-minimize, .fa-window-maximize {
+#cPanel, .fa-window-minimize, .fa-window-maximize, .fa-diamond {
     position: absolute;
 }
 
@@ -204,6 +204,17 @@ code::-webkit-scrollbar-thumb {
     color: goldenrod;
 }
 
+.fa-diamond {
+    top: 20px;
+    right: 20px;
+    color: grey;
+    transition: color 0.2s ease-out;
+}
+
+.fa-diamond:hover {
+    color: white;
+}
+
 h4 {
     position: sticky;
     top: -18px;
@@ -316,7 +327,7 @@ sup, sub {
 
 /* admin styles */
 
-#editIcon, #pushIcon, #pullIcon, .deckToggle, .dirToggle, .fa-edit, .fa-trash, .fa-folder, .fa-compress, #newNodeButton, #doneButton, .typeToggle, .newSectionButton, .newContentButton, #newCardButton {
+#editIcon, #pushIcon, #pullIcon, .deckToggle, .dirToggle, .fa-edit, .fa-trash, .fa-folder, .fa-compress, .fa-diamond, #newNodeButton, #doneButton, .typeToggle, .newSectionButton, .newContentButton, #newCardButton {
     cursor: pointer;
 }
 
@@ -390,7 +401,7 @@ input, textarea {
     transform: translate(-50%, -50%);
     border-radius: 20px;
     box-shadow: 0 0 10px #111;
-    background-color: rgba(0, 0, 0, 0.6);
+    background-color: rgba(0, 0, 0, 0.65);
 }
 
 #editIcon, #pushIcon, #pullIcon {

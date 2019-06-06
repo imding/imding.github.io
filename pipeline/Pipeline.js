@@ -40,6 +40,54 @@ class Pipeline {
             tags: /<(b|i|u|em|del|sub|sup|samp)>([^<>]+)<\/\1>/g,
         };
 
+        this.templates = {
+            lesson_plan: [
+                {
+                    title: 'Overview',
+                    sections: [
+                        { title: 'Activities', content: [{ type: 'p', html: '' }] },
+                        { title: 'Learning Objectives', content: [{ type: 'p', html: '' }] },
+                    ],
+                }, {
+                    title: 'Review',
+                    sections: [
+                        { content: [{ type: 'p', html: '' }] },
+                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em::5 minutes]' }] },
+                    ],
+                }, {
+                    title: 'Engage',
+                    sections: [
+                        { content: [{ type: 'p', html: '' }] },
+                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em:: minutes]' }] },
+                    ],
+                }, {
+                    title: 'Explain',
+                    sections: [
+                        { content: [{ type: 'p', html: '' }] },
+                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em:: minutes]' }] },
+                    ],
+                }, {
+                    title: 'Activity',
+                    sections: [
+                        {
+                            content: [
+                                { type: 'p', html: 'Goal: ' },
+                                { type: 'p', html: 'Duration:  minutes' },
+                                { type: 'p', html: 'Mode: ' },
+                            ]
+                        },
+                        { title: 'Notes', content: [{ type: 'p', html: '' }] },
+                    ],
+                }, {
+                    title: 'Wrap Up',
+                    sections: [
+                        { content: [{ type: 'p', html: '' }] },
+                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em::5 minutes]' }] },
+                    ],
+                }
+            ],
+        };
+
         if (window.firebase) {
             const config = {
                 apiKey: 'AIzaSyBsuGNus_E4va5nZbPQ5ITlvaFHhI99XpA',
@@ -399,6 +447,7 @@ class Pipeline {
             newNodeButton = newElement('i', { id: 'newNodeButton', className: 'fa fa-plus-square fa-2x' }),
             deckEditor = newElement('div', { id: 'deckEditor', className: 'hidden' }),
             newCardButton = newElement('i', { id: 'newCardButton', className: 'fa fa-plus-circle fa-2x' }),
+            applyTemplateIcon = newElement('i', { className: 'fa fa-fw fa-diamond' }),
             setActiveNodeIn = editor => {
                 if (event.button) return;
 
@@ -535,10 +584,10 @@ class Pipeline {
                     if (!isNode) return;
 
                     chartEditor.classList.add('hidden');
-                    deckEditor.activeDeck = {
-                        name: camelise(deckIcon.previousElementSibling.value),
-                        el: deckEditor[camelise(deckIcon.previousElementSibling.value)]
-                    };
+
+                    const deckName = camelise(deckIcon.previousElementSibling.value);
+
+                    deckEditor.activeDeck = { name: deckName, el: deckEditor[deckName] };
                     deckEditor.classList.remove('hidden');
                     deckEditor.activeDeck.el.classList.remove('hidden');
                     //  update deck heading text content
@@ -590,10 +639,171 @@ class Pipeline {
                 if (indent) nodeEditGroup.classList.add('indented');
                 if (focused) nodeNameInput.select();
             },
-            addDeck = (name, cards) => {
+            addDeckEditGroup = (name, cards) => {
                 const
                     deckEditGroup = newElement('div', { className: 'hidden deckEditGroup' }),
-                    deckHeading = newElement('h2', { className: 'deckHeading' });
+                    deckHeading = newElement('h2', { className: 'deckHeading' }),
+                    defaultCards = [{ title: '', sections: [{ content: [{ type: 'p', html: '' }] }] }];
+
+                deckEditGroup.addCardGroup = card => {
+                    const
+                        cardEditGroup = newElement('div', { className: 'cardEditGroup' }),
+                        cardTitleInput = newElement('input', { placeholder: 'card title is required', value: card.title || 'Card Title', className: 'editor cardTitle' }),
+                        removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
+                        dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
+                        minMaxIcon = newElement('i', { className: 'fa fa-window-minimize' }),
+                        newSectionButton = newElement('i', { className: 'newSectionButton fa fa-plus-circle fa-lg' });
+
+                    cardEditGroup.addSectionGroup = section => {
+                        const
+                            sectionEditGroup = newElement('div', { className: 'sectionEditGroup' }),
+                            newParagraphButton = newElement('i', { className: 'newContentButton newParagraphButton fa fa-plus-square fa-lg' }),
+                            newImageButton = newElement('i', { className: 'newContentButton newImageButton fa fa-plus-square fa-lg' }),
+                            newCodeButton = newElement('i', { className: 'newContentButton newCodeButton fa fa-plus-square fa-lg' }),
+                            removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
+                            dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
+                            newContent = (type, key) => {
+                                sectionEditGroup.addContentInput({ type: type, [key]: '' });
+                                appendButtons();
+                            },
+                            appendButtons = () => {
+                                sectionEditGroup.appendChild(newParagraphButton);
+                                sectionEditGroup.appendChild(newImageButton);
+                                sectionEditGroup.appendChild(newCodeButton);
+                            };
+
+                        sectionEditGroup.addContentInput = item => {
+                            const
+                                itemEditGroup = newElement('div', { className: 'itemEditGroup' }),
+                                typeToggle = newElement('i', { className: `typeToggle fa fa-fw fa-${item.type == 'p' ? 'file-text-o' : item.type == 'img' ? 'file-image-o' : 'code'}` }),
+                                contentInput = newElement('textarea', { placeholder: 'Content', className: 'editor contentInput' }),
+                                removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
+                                dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
+                                type = item.type == 'p' ? 'html' : item.type == 'img' ? 'src' : 'code';
+
+                            //  resize function for every <textarea>
+                            contentInput.resize = () => {
+                                window.ruler.textContent = `${contentInput.value} `;
+                                sCss(contentInput, { height: `${gCss(window.ruler).height}px` });
+                            };
+
+                            sectionEditGroup.appendChild(itemEditGroup);
+                            itemEditGroup.appendChild(typeToggle);
+                            itemEditGroup.appendChild(contentInput);
+                            itemEditGroup.appendChild(removeIcon);
+                            itemEditGroup.appendChild(dragIcon);
+
+                            sCss(typeToggle, { color: item.type == 'p' ? 'skyblue' : item.type == 'img' ? 'goldenrod' : 'plum' });
+
+                            typeToggle.onclick = () => {
+                                const
+                                    isP = typeToggle.classList.contains('fa-file-text-o'),
+                                    isImg = typeToggle.classList.contains('fa-file-image-o');
+
+                                typeToggle.classList.remove(isP ? 'fa-file-text-o' : isImg ? 'fa-file-image-o' : 'fa-code');
+                                typeToggle.classList.add(isP ? 'fa-file-image-o' : isImg ? 'fa-code' : 'fa-file-text-o');
+                                sCss(typeToggle, { color: isP ? 'goldenrod' : isImg ? 'plum' : 'skyblue' });
+                            };
+
+                            contentInput.value = item[type];
+                            contentInput.onfocus = () => window.ruler.matchStyle(contentInput);
+                            contentInput.oninput = contentInput.resize;
+
+                            removeIcon.onclick = () => {
+                                if (sectionEditGroup.querySelectorAll('.itemEditGroup').length == 1) return alert('Each section must have at least one item.');
+                                if (!confirm('You are about to delete an item.\nThis action can not be undone. Are you sure?')) return;
+                                sectionEditGroup.removeChild(removeIcon.parentNode);
+                            };
+
+                            dragIcon.onmousedown = () => setActiveNodeIn(deckEditor);
+
+                            contentInput.focus();
+                        };
+
+                        cardEditGroup.appendChild(sectionEditGroup);
+
+                        sectionEditGroup.appendChild(newElement('input', {
+                            value: section.title || '',
+                            placeholder: 'Untitled Section',
+                            className: 'editor sectionTitle',
+                        }));
+                        sectionEditGroup.appendChild(removeIcon);
+                        sectionEditGroup.appendChild(dragIcon);
+
+                        //  attach all items to a section
+                        section.content.forEach(item => sectionEditGroup.addContentInput(item));
+
+                        appendButtons();
+
+                        removeIcon.onclick = () => {
+                            if (cardEditGroup.querySelectorAll('.sectionEditGroup').length == 1) return alert('Each card must have at least one section.');
+                            if (!confirm('You are about to delete a section.\nThis action can not be undone. Are you sure?')) return;
+                            cardEditGroup.removeChild(removeIcon.parentNode);
+                        };
+
+                        dragIcon.onmousedown = () => setActiveNodeIn(deckEditor);
+
+                        newParagraphButton.onclick = () => newContent('p', 'html');
+                        newImageButton.onclick = () => newContent('img', 'src');
+                        newCodeButton.onclick = () => newContent('code', 'code');
+                    };
+                    
+                    deckEditGroup.appendChild(cardEditGroup);
+
+                    cardEditGroup.onmouseenter = () => deckEditor.activeCard = cardEditGroup;
+                    cardEditGroup.onmouseleave = () => deckEditor.activeCard = null;
+
+                    //  attach elements to the card editor group
+                    cardEditGroup.appendChild(cardTitleInput);
+                    cardEditGroup.appendChild(removeIcon);
+                    cardEditGroup.appendChild(dragIcon);
+                    cardEditGroup.appendChild(minMaxIcon);
+                    card.sections.forEach(sec => cardEditGroup.addSectionGroup(sec));
+                    cardEditGroup.appendChild(newSectionButton);
+
+                    //  handle events
+                    removeIcon.onclick = () => {
+                        if (deckEditGroup.querySelectorAll('.cardEditGroup').length == 1) return alert('Each deck must have at least one card.');
+                        if (!confirm('You are about to delete a card.\nThis action can not be undone. Are you sure?')) return;
+                        deckEditGroup.removeChild(removeIcon.parentNode);
+                    };
+
+                    dragIcon.onmousedown = () => setActiveNodeIn(deckEditor);
+
+                    minMaxIcon.onclick = () => {
+                        //  get and store the fully expanded height of the card edit group
+                        if (!cardEditGroup.hasOwnProperty('fullHeight')) {
+                            cardEditGroup.fullHeight = `${gCss(cardEditGroup).height}px`;
+                            //  convert 'auto' height to '0px' format ( prep for transition )
+                            sCss(cardEditGroup, { height: cardEditGroup.fullHeight });
+                        }
+
+                        if (cardEditGroup.collapsed = !cardEditGroup.collapsed) {
+                            minMaxIcon.className = 'fa fa-window-maximize';
+                            sCss(cardEditGroup, { height: `${gCss(cardTitleInput).height + 20}px` });
+                        }
+                        else {
+                            minMaxIcon.className = 'fa fa-window-minimize';
+                            sCss(cardEditGroup, { height: cardEditGroup.fullHeight });
+                        }
+                    };
+
+                    newSectionButton.onclick = () => {
+                        cardEditGroup.addSectionGroup({
+                            title: '',
+                            content: [{ type: 'p', html: '' }],
+                        });
+                        cardEditGroup.appendChild(newSectionButton);
+                    };
+
+                    //  reset card edit group height to 'auto' after fully expanded
+                    cardEditGroup.addEventListener('transitionend', () => {
+                        if (event.target == cardEditGroup && cardEditGroup.style.height == cardEditGroup.fullHeight) {
+                            cardEditGroup.removeAttribute('style');
+                            delete cardEditGroup.fullHeight;
+                        }
+                    });
+                };
 
                 deckEditor.appendChild(deckEditGroup);
                 deckEditGroup.appendChild(deckHeading);
@@ -601,165 +811,7 @@ class Pipeline {
                 deckEditor[name] = deckEditGroup;
                 deckEditor[name].heading = deckHeading;
 
-                (cards || [{ title: '', sections: [{ content: [{ type: 'p', html: '' }] }] }])
-                    .forEach(card => addCardGroup(deckEditGroup, card));
-            },
-            addCardGroup = (deck, card) => {
-                const
-                    cardEditGroup = newElement('div', { className: 'cardEditGroup' }),
-                    cardTitleInput = newElement('input', { placeholder: 'card title is required', value: card.title || 'Card Title', className: 'editor cardTitle' }),
-                    removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
-                    dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
-                    minMaxIcon = newElement('i', { className: 'fa fa-window-minimize' }),
-                    newSectionButton = newElement('i', { className: 'newSectionButton fa fa-plus-circle fa-lg' });
-
-                deck.appendChild(cardEditGroup);
-
-                cardEditGroup.onmouseenter = () => deckEditor.activeCard = cardEditGroup;
-                cardEditGroup.onmouseleave = () => deckEditor.activeCard = null;
-
-                //  attach elements to the card editor group
-                cardEditGroup.appendChild(cardTitleInput);
-                cardEditGroup.appendChild(removeIcon);
-                cardEditGroup.appendChild(dragIcon);
-                cardEditGroup.appendChild(minMaxIcon);
-                card.sections.forEach(sec => addSectionGroup(cardEditGroup, sec));
-                cardEditGroup.appendChild(newSectionButton);
-
-                //  handle events
-                removeIcon.onclick = () => {
-                    if (deck.querySelectorAll('.cardEditGroup').length == 1) return alert('Each deck must have at least one card.');
-                    if (!confirm('You are about to delete a card.\nThis action can not be undone. Are you sure?')) return;
-                    deck.removeChild(removeIcon.parentNode);
-                };
-
-                dragIcon.onmousedown = () => setActiveNodeIn(deckEditor);
-
-                minMaxIcon.onclick = () => {
-                    //  get and store the fully expanded height of the card edit group
-                    if (!cardEditGroup.hasOwnProperty('fullHeight')) {
-                        cardEditGroup.fullHeight = `${gCss(cardEditGroup).height}px`;
-                        //  convert 'auto' height to '0px' format ( prep for transition )
-                        sCss(cardEditGroup, { height: cardEditGroup.fullHeight });
-                    }
-
-                    if (cardEditGroup.collapsed = !cardEditGroup.collapsed) {
-                        minMaxIcon.className = 'fa fa-window-maximize';
-                        sCss(cardEditGroup, { height: `${gCss(cardTitleInput).height + 20}px` });
-                    }
-                    else {
-                        minMaxIcon.className = 'fa fa-window-minimize';
-                        sCss(cardEditGroup, { height: cardEditGroup.fullHeight });
-                    }
-                };
-
-                newSectionButton.onclick = () => {
-                    addSectionGroup(cardEditGroup, {
-                        title: '',
-                        content: [{ type: 'p', html: '' }],
-                    });
-                    cardEditGroup.appendChild(newSectionButton);
-                };
-
-                //  reset card edit group height to 'auto' after fully expanded
-                cardEditGroup.addEventListener('transitionend', () => {
-                    if (event.target == cardEditGroup && cardEditGroup.style.height == cardEditGroup.fullHeight) {
-                        cardEditGroup.removeAttribute('style');
-                        delete cardEditGroup.fullHeight;
-                    }
-                });
-            },
-            addSectionGroup = (card, section) => {
-                const
-                    sectionEditGroup = newElement('div', { className: 'sectionEditGroup' }),
-                    newParagraphButton = newElement('i', { className: 'newContentButton newParagraphButton fa fa-plus-square fa-lg' }),
-                    newImageButton = newElement('i', { className: 'newContentButton newImageButton fa fa-plus-square fa-lg' }),
-                    newCodeButton = newElement('i', { className: 'newContentButton newCodeButton fa fa-plus-square fa-lg' }),
-                    removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
-                    dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
-                    newContent = (type, key) => {
-                        addContentInput(sectionEditGroup, { type: type, [key]: '' });
-                        appendButtons();
-                    },
-                    appendButtons = () => {
-                        sectionEditGroup.appendChild(newParagraphButton);
-                        sectionEditGroup.appendChild(newImageButton);
-                        sectionEditGroup.appendChild(newCodeButton);
-                    };
-
-                card.appendChild(sectionEditGroup);
-
-                sectionEditGroup.appendChild(newElement('input', {
-                    value: section.title || '',
-                    placeholder: 'Untitled Section',
-                    className: 'editor sectionTitle',
-                }));
-                sectionEditGroup.appendChild(removeIcon);
-                sectionEditGroup.appendChild(dragIcon);
-
-                //  attach all items to a section
-                section.content.forEach(item => addContentInput(sectionEditGroup, item));
-
-                appendButtons();
-
-                removeIcon.onclick = () => {
-                    if (card.querySelectorAll('.sectionEditGroup').length == 1) return alert('Each card must have at least one section.');
-                    if (!confirm('You are about to delete a section.\nThis action can not be undone. Are you sure?')) return;
-                    card.removeChild(removeIcon.parentNode);
-                };
-
-                dragIcon.onmousedown = () => setActiveNodeIn(deckEditor);
-
-                newParagraphButton.onclick = () => newContent('p', 'html');
-                newImageButton.onclick = () => newContent('img', 'src');
-                newCodeButton.onclick = () => newContent('code', 'code');
-            },
-            addContentInput = (section, item) => {
-                const
-                    itemEditGroup = newElement('div', { className: 'itemEditGroup' }),
-                    typeToggle = newElement('i', { className: `typeToggle fa fa-fw fa-${item.type == 'p' ? 'file-text-o' : item.type == 'img' ? 'file-image-o' : 'code'}` }),
-                    contentInput = newElement('textarea', { placeholder: 'Content', className: 'editor contentInput' }),
-                    removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
-                    dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
-                    type = item.type == 'p' ? 'html' : item.type == 'img' ? 'src' : 'code';
-
-                //  resize function for every <textarea>
-                contentInput.resize = () => {
-                    window.ruler.textContent = `${contentInput.value} `;
-                    sCss(contentInput, { height: `${gCss(window.ruler).height}px` });
-                };
-
-                section.appendChild(itemEditGroup);
-                itemEditGroup.appendChild(typeToggle);
-                itemEditGroup.appendChild(contentInput);
-                itemEditGroup.appendChild(removeIcon);
-                itemEditGroup.appendChild(dragIcon);
-
-                sCss(typeToggle, { color: item.type == 'p' ? 'skyblue' : item.type == 'img' ? 'goldenrod' : 'plum' });
-
-                typeToggle.onclick = () => {
-                    const
-                        isP = typeToggle.classList.contains('fa-file-text-o'),
-                        isImg = typeToggle.classList.contains('fa-file-image-o');
-
-                    typeToggle.classList.remove(isP ? 'fa-file-text-o' : isImg ? 'fa-file-image-o' : 'fa-code');
-                    typeToggle.classList.add(isP ? 'fa-file-image-o' : isImg ? 'fa-code' : 'fa-file-text-o');
-                    sCss(typeToggle, { color: isP ? 'goldenrod' : isImg ? 'plum' : 'skyblue' });
-                };
-
-                contentInput.value = item[type];
-                contentInput.onfocus = () => window.ruler.matchStyle(contentInput);
-                contentInput.oninput = contentInput.resize;
-
-                removeIcon.onclick = () => {
-                    if (section.querySelectorAll('.itemEditGroup').length == 1) return alert('Each section must have at least one item.');
-                    if (!confirm('You are about to delete an item.\nThis action can not be undone. Are you sure?')) return;
-                    section.removeChild(removeIcon.parentNode);
-                };
-
-                dragIcon.onmousedown = () => setActiveNodeIn(deckEditor);
-
-                contentInput.focus();
+                (cards || defaultCards).forEach(card => deckEditGroup.addCardGroup(card));
             };
 
         //  attach the 'done' button
@@ -841,7 +893,7 @@ class Pipeline {
                 this.clear();
 
                 if (this.render(nodesData, this.decksData)) this.hideCreatorPanel();
-                
+
                 this.savePipeline();
             }
             else {
@@ -888,23 +940,46 @@ class Pipeline {
             addNodeInput(`${dir}${name}`, !dir || prevIndent, isNode, isFocused);
             chartEditor.appendChild(newNodeButton);
 
-            addDeck(camelise(name));
+            addDeckEditGroup(camelise(name));
             deckEditor.appendChild(newCardButton);
         };
 
         //  attach container for deck editor
         cPanel.appendChild(deckEditor);
 
-        Object.entries(this.decksData).forEach(entry => addDeck(entry[0], entry[1]));
+        Object.entries(this.decksData).forEach(entry => addDeckEditGroup(entry[0], entry[1]));
 
         //  attach new card button for deck editor
         deckEditor.appendChild(newCardButton);
+        deckEditor.appendChild(applyTemplateIcon);
 
         newCardButton.onclick = () => {
-            addCardGroup(deckEditor.activeDeck.el, {
+            deckEditor.activeDeck.el.addCardGroup({
                 title: '',
                 sections: [{ title: '', content: [{ type: 'p', html: '' }] }],
             });
+        };
+
+        applyTemplateIcon.onclick = () => {
+            if (confirm('Applying a template will overwrite the current deck. Are you sure?')) {
+                const options = Object.keys(this.templates);
+                const userInput = Number(prompt(`Pick a template to apply:\n${options.map((name, idx) => `${idx + 1}. ${name.replace(/_/g, ' ')}`).join('\n')}`));
+
+                if (userInput > 0) {
+                    if (userInput > options.length) return alert('Invalid input');
+
+                    const deckEditGroup = deckEditor.activeDeck.el;
+
+                    //  remove all cards from active deck
+                    while (deckEditGroup.children.length > 1) {
+                        deckEditGroup.removeChild(deckEditGroup.lastElementChild);
+                    }
+
+                    // this.templates[options[userInput - 1]].forEach(card => addCardGroup(deckEditGroup, card));
+                    this.templates[options[userInput - 1]].forEach(card => deckEditGroup.addCardGroup(card));
+                }
+                else return alert('Invalid input.');
+            }
         };
 
         chartEditor.startDrag = () => cPanel.onmousemove = () => moveActiveNodeIn(chartEditor);
@@ -1093,9 +1168,9 @@ class Pipeline {
             this.name = titles[userInput - 1];
 
             const localData = JSON.parse(localStorage.getItem(`pipeline:${this.name}`));
-            
+
             this.render(localData.nodesData, localData.decksData);
-            
+
             this.fire.collection('Root').doc(this.name).get().then(doc => this.initData = doc.exists ? doc.data() : localData);
         }
         else return alert('Invalid input.');
