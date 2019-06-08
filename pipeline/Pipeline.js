@@ -58,26 +58,26 @@ class Pipeline {
                     title: 'Engage',
                     sections: [
                         { content: [{ type: 'p', html: '' }] },
-                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em:: minutes]' }] },
+                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em::5 minutes]' }] },
                     ],
                 }, {
                     title: 'Explain',
                     sections: [
                         { content: [{ type: 'p', html: '' }] },
-                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em:: minutes]' }] },
+                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em::15 minutes]' }] },
                     ],
                 }, {
                     title: 'Activity',
-                    sections: [
-                        {
-                            content: [
-                                { type: 'p', html: 'Goal: ' },
-                                { type: 'p', html: 'Duration:  minutes' },
-                                { type: 'p', html: 'Mode: ' },
-                            ]
-                        },
-                        { title: 'Notes', content: [{ type: 'p', html: '' }] },
-                    ],
+                    sections: [{
+                        content: [
+                            { type: 'p', html: 'Goal: Students will ' },
+                            { type: 'p', html: 'Duration: [em::30 minutes]' },
+                            { type: 'p', html: 'Mode: Individual work' },
+                        ]
+                    }, {
+                        title: 'Notes',
+                        content: [{ type: 'p', html: '' }],
+                    }],
                 }, {
                     title: 'Wrap Up',
                     sections: [
@@ -101,7 +101,6 @@ class Pipeline {
             firebase.initializeApp(config);
 
             this.fire = firebase.firestore();
-
             this.fire.settings({ timestampsInSnapshots: true });
         }
 
@@ -747,7 +746,7 @@ class Pipeline {
                         newImageButton.onclick = () => newContent('img', 'src');
                         newCodeButton.onclick = () => newContent('code', 'code');
                     };
-                    
+
                     deckEditGroup.appendChild(cardEditGroup);
 
                     cardEditGroup.onmouseenter = () => deckEditor.activeCard = cardEditGroup;
@@ -905,6 +904,7 @@ class Pipeline {
                 deckEditor.activeDeck = null;
 
                 doneButton.textContent = 'SAVE & CLOSE';
+                cPanel.scrollTo(0, 0);
             }
         };
 
