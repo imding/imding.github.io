@@ -104,11 +104,11 @@ class Pipeline {
             this.fire.settings({ timestampsInSnapshots: true });
         }
 
-        window.ruler = newElement('div', { id: 'ruler' });
-        window.ruler.matchStyle = target => {
+        this.ruler = newElement('div', { id: 'ruler' });
+        this.ruler.matchStyle = target => {
             const targetStyle = gCss(target);
 
-            sCss(window.ruler, {
+            sCss(this.ruler, {
                 boxSizing: targetStyle.boxSizing,
                 whiteSpace: targetStyle.whiteSpace,
                 fontFamily: targetStyle.fontFamily,
@@ -117,7 +117,10 @@ class Pipeline {
                 padding: `${targetStyle.paddingTop}px ${targetStyle.paddingRight}px ${targetStyle.paddingBottom}px ${targetStyle.paddingLeft}px`,
             });
         };
-        document.body.appendChild(window.ruler);
+
+        sCss(this.ruler, { wordBreak: 'break-word' });
+        
+        document.body.appendChild(this.ruler);
 
         window.onresize = () => {
             if (this.activeNode) {
@@ -593,7 +596,7 @@ class Pipeline {
                     deckEditor.activeDeck.el.heading.textContent = nodeNameInput.value;
                     //  resize all <textarea> elements in the deck
                     deckEditor.activeDeck.el.querySelectorAll('.contentInput').forEach(ci => {
-                        window.ruler.matchStyle(ci);
+                        this.ruler.matchStyle(ci);
                         ci.resize();
                     });
 
@@ -682,8 +685,8 @@ class Pipeline {
 
                             //  resize function for every <textarea>
                             contentInput.resize = () => {
-                                window.ruler.textContent = `${contentInput.value} `;
-                                sCss(contentInput, { height: `${gCss(window.ruler).height}px` });
+                                this.ruler.textContent = `${contentInput.value} `;
+                                sCss(contentInput, { height: `${gCss(this.ruler).height}px` });
                             };
 
                             sectionEditGroup.appendChild(itemEditGroup);
@@ -705,7 +708,7 @@ class Pipeline {
                             };
 
                             contentInput.value = item[type];
-                            contentInput.onfocus = () => window.ruler.matchStyle(contentInput);
+                            contentInput.onfocus = () => this.ruler.matchStyle(contentInput);
                             contentInput.oninput = contentInput.resize;
 
                             removeIcon.onclick = () => {
