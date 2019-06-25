@@ -64,14 +64,14 @@ class Pipeline {
                     title: 'Explain',
                     sections: [
                         { content: [{ type: 'p', html: '' }] },
-                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em::15 minutes]' }] },
+                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em::5 minutes]' }] },
                     ],
                 }, {
                     title: 'Activity',
                     sections: [{
                         content: [
                             { type: 'p', html: 'Goal: Students will ' },
-                            { type: 'p', html: 'Duration: [em::30 minutes]' },
+                            { type: 'p', html: 'Duration: [em::40 minutes]' },
                             { type: 'p', html: 'Mode: Individual work' },
                         ]
                     }, {
