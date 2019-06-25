@@ -307,8 +307,15 @@ class Pipeline {
                         }
 
                         else if (content.type == 'img') {
+                            content.src = content.src.replace(/^#/, `data/${this.name}/`);
                             item = newElement('a', { href: content.src, target: '_blank' });
                             item.appendChild(newElement('img', { src: content.src }));
+                        }
+
+                        else if (content.type == 'video') {
+                            content.src = content.src.replace(/^#/, `data/${this.name}/`);
+                            item = newElement('video', { controls: true, loop: true });
+                            item.appendChild(newElement('source', { src: content.src }));
                         }
 
                         else if (content.type == 'code') {
@@ -661,6 +668,7 @@ class Pipeline {
                             sectionEditGroup = newElement('div', { className: 'sectionEditGroup' }),
                             newParagraphButton = newElement('i', { className: 'newContentButton newParagraphButton fa fa-plus-square fa-lg' }),
                             newImageButton = newElement('i', { className: 'newContentButton newImageButton fa fa-plus-square fa-lg' }),
+                            newVideoButton = newElement('i', { className: 'newContentButton newVideoButton fa fa-plus-square fa-lg' }),
                             newCodeButton = newElement('i', { className: 'newContentButton newCodeButton fa fa-plus-square fa-lg' }),
                             removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
                             dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
@@ -671,17 +679,18 @@ class Pipeline {
                             appendButtons = () => {
                                 sectionEditGroup.appendChild(newParagraphButton);
                                 sectionEditGroup.appendChild(newImageButton);
+                                sectionEditGroup.appendChild(newVideoButton);
                                 sectionEditGroup.appendChild(newCodeButton);
                             };
 
                         sectionEditGroup.addContentInput = item => {
                             const
                                 itemEditGroup = newElement('div', { className: 'itemEditGroup' }),
-                                typeToggle = newElement('i', { className: `typeToggle fa fa-fw fa-${item.type == 'p' ? 'file-text-o' : item.type == 'img' ? 'file-image-o' : 'code'}` }),
+                                typeToggle = newElement('i', { className: `typeToggle fa fa-fw fa-file-${item.type == 'p' ? 'text' : item.type == 'img' ? 'image' : item.type == 'video' ? 'video' : 'code'}-o` }),
                                 contentInput = newElement('textarea', { placeholder: 'Content', className: 'editor contentInput' }),
                                 removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
                                 dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
-                                type = item.type == 'p' ? 'html' : item.type == 'img' ? 'src' : 'code';
+                                type = item.type == 'p' ? 'html' : (item.type == 'img' || item.type == 'video') ? 'src' : 'code';
 
                             //  resize function for every <textarea>
                             contentInput.resize = () => {
@@ -695,16 +704,17 @@ class Pipeline {
                             itemEditGroup.appendChild(removeIcon);
                             itemEditGroup.appendChild(dragIcon);
 
-                            sCss(typeToggle, { color: item.type == 'p' ? 'skyblue' : item.type == 'img' ? 'goldenrod' : 'plum' });
+                            sCss(typeToggle, { color: item.type == 'p' ? 'skyblue' : item.type == 'img' ? 'goldenrod' : item.type == 'video' ? 'mediumaquamarine' : 'plum' });
 
                             typeToggle.onclick = () => {
                                 const
                                     isP = typeToggle.classList.contains('fa-file-text-o'),
-                                    isImg = typeToggle.classList.contains('fa-file-image-o');
+                                    isImg = typeToggle.classList.contains('fa-file-image-o'),
+                                    isVid = typeToggle.classList.contains('fa-file-video-o');
 
-                                typeToggle.classList.remove(isP ? 'fa-file-text-o' : isImg ? 'fa-file-image-o' : 'fa-code');
-                                typeToggle.classList.add(isP ? 'fa-file-image-o' : isImg ? 'fa-code' : 'fa-file-text-o');
-                                sCss(typeToggle, { color: isP ? 'goldenrod' : isImg ? 'plum' : 'skyblue' });
+                                typeToggle.classList.remove(`fa-file-${isP ? 'text' : isImg ? 'image' : isVid ? 'video' : 'code'}-o`);
+                                typeToggle.classList.add(`fa-file-${isP ? 'image' : isImg ? 'video' : isVid ? 'code' : 'text'}-o`);
+                                sCss(typeToggle, { color: isP ? 'goldenrod' : isImg ? 'mediumaquamarine' : isVid ? 'plum' : 'skyblue' });
                             };
 
                             contentInput.value = item[type];
@@ -747,6 +757,7 @@ class Pipeline {
 
                         newParagraphButton.onclick = () => newContent('p', 'html');
                         newImageButton.onclick = () => newContent('img', 'src');
+                        newVideoButton.onclick = () => newContent('video', 'src');
                         newCodeButton.onclick = () => newContent('code', 'code');
                     };
 
@@ -854,8 +865,8 @@ class Pipeline {
                         objFrom = inputGroup => {
                             const
                                 ttcl = inputGroup.querySelector('.typeToggle').classList,
-                                type = ttcl.contains('fa-file-text-o') ? 'p' : ttcl.contains('fa-file-image-o') ? 'img' : 'code',
-                                key = type == 'p' ? 'html' : type == 'img' ? 'src' : 'code';
+                                type = ttcl.contains('fa-file-text-o') ? 'p' : ttcl.contains('fa-file-image-o') ? 'img' : ttcl.contains('fa-file-video-o') ? 'video' : 'code',
+                                key = type == 'p' ? 'html' : (type == 'img' || type == 'video') ? 'src' : 'code';
 
                             return {
                                 type: type,
