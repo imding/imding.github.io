@@ -88,7 +88,7 @@ class Pipeline {
             ],
         };
 
-        if (window.firebase) {
+        if (window.firebase.firestore) {
             const config = {
                 apiKey: 'AIzaSyBsuGNus_E4va5nZbPQ5ITlvaFHhI99XpA',
                 authDomain: 'd-pipeline.firebaseapp.com',
@@ -1174,7 +1174,12 @@ class Pipeline {
 
             this.render(localData.nodesData, localData.decksData);
 
-            this.fire.collection('Root').doc(this.name).get().then(doc => this.initData = doc.exists ? doc.data() : localData);
+            if (this.fire) {
+                this.fire.collection('Root').doc(this.name).get().then(doc => this.initData = doc.exists ? doc.data() : localData);
+            }
+            else {
+                this.initData = localData;
+            }
         }
         else return alert('Invalid input.');
     }
