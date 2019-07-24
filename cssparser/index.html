@@ -1,16 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<link rel="stylesheet" type="text/css" href="style.css"/>
-</head>
-<body>
-	<pre class='heading'>Teacher Code</pre>
-	<textarea id="teacher"></textarea>
-	<pre class='heading'>Learner Code</pre>
-	<textarea id="learner"></textarea>
-	<br>
-	<button id="btnCompare">Compare</button>
-	<pre id="info"></pre>
-	<script type="text/javascript" src="script.js"></script>
-</body>
+    <head>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+    </head>
+    <body>
+        <pre class="heading">Teacher Code</pre>
+        <textarea id="teacher"></textarea>
+        <pre class="heading">Learner Code</pre>
+        <textarea id="learner"></textarea>
+        <br />
+
+		<div class='opts'>
+			<input type='checkbox' id='extraSel' name='extraSel' />
+			<label for='extraSel'>allowExtraSelectors</label>
+		</div>
+
+		<div class='opts'>
+			<input type='checkbox' id='extraDeco' name='extraDeco' />
+			<label for='extraDeco'>allowExtraDeclarations</label>
+		</div>
+		
+		<br />
+        <button id="btnCompare">Compare</button>
+        <pre id="info"></pre>
+        <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
+        <script type="text/javascript" src="script.js"></script>
+    </body>
 </html>

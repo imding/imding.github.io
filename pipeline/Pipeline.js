@@ -353,7 +353,7 @@ class Pipeline {
         };
 
         if (this.chart.nodes.hasOwnProperty(node.deck.self.id)) {
-            alert(`the ${name} node already exists.`);
+            alert(`the ${name.replace(/^>> /, '')} node already exists.`);
             return false;
         }
 
@@ -687,7 +687,7 @@ class Pipeline {
                             const
                                 itemEditGroup = newElement('div', { className: 'itemEditGroup' }),
                                 typeToggle = newElement('i', { className: `typeToggle fa fa-fw fa-file-${item.type == 'p' ? 'text' : item.type == 'img' ? 'image' : item.type == 'video' ? 'video' : 'code'}-o` }),
-                                contentInput = newElement('textarea', { placeholder: 'Content', className: 'editor contentInput' }),
+                                contentInput = newElement('textarea', { placeholder: `${item.type == 'p' ? 'Content' : item.type == 'img' ? 'Image link' : item.type == 'video' ? 'Video link' : 'Code'}`, className: 'editor contentInput' }),
                                 removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
                                 dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
                                 type = item.type == 'p' ? 'html' : (item.type == 'img' || item.type == 'video') ? 'src' : 'code';

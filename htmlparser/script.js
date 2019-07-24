@@ -1147,7 +1147,7 @@ btnObjectiveText.onclick = () => {
 
         ot += ` <${el.openingTag.tagName}> element`;
 
-        if ()
+        // if ()
 
         console.log(el);
         info.textContent = ot;

@@ -22,6 +22,19 @@ body {
 	resize: none;
 }
 
+input, label {
+	vertical-align: middle;
+}
+
+label {
+	font-family: monospace;
+	color: ghostwhite;
+}
+
+.opts {
+	margin-bottom: 10px;
+}
+
 #btnParse, #btnCompare {
 	padding: 5px 20px;
 }
