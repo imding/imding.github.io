@@ -1,7 +1,7 @@
 // ========== LOCAL ONLY ========== //
 
 const ti = '@import URL("http://font.googleapis.com/css?family=Roboto");';
-const li = '@import url("http://font.googleapis.com/css?family=Arial");';
+const li = '@import url(http://font.googleapis.com/css?family=Arial);';
 
 window.onload = initialize;
 

@@ -474,7 +474,7 @@ function instructionHTML(source, n = cStep) {
         tab = /^\(>>(.+)\)/,
         loc = /(?:(\w+)\.)?(html|css|js)#([^#\n]+)#([-+]\d+)?/,
         // image = /\[IMG::(https?:\/\/[^'"\s]+\.(jpg|gif|jpeg|bmp|png|svg))\]/gi,
-        image = /\[IMG::([^\s]+)\]/gi,
+        image = /\[IMG::(.+)\]/gi,
         glossary = /\[([^#]*)#(html|css|js)#([^\]]+)\]/,
         
         //  the following styles are allowed to oocur multiple times per line
