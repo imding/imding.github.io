@@ -562,7 +562,7 @@ function instructionHTML(source, n = cStep) {
         }
         // - OBJECTIVES -
         else if (/^\(\*{3}\)/.test(e)) {
-            source[i] = '<center><p><strong>- OBJECTIVES -</strong></p></center>';
+            source[i] = '<hr><center><p class="highlight"><strong style="letter-spacing: 2px">OBJECTIVES</strong></p></center>';
         }
         //  Switch tab
         else if (tab.test(e)) {
@@ -608,9 +608,9 @@ function instructionHTML(source, n = cStep) {
         // CODE SNIPPETS
         .replace(/\((html|css|js)\)/g, '<pre class="language-$1"><code class="snippet">').replace(/-js/g, '-javascript').replace(/\(#\)/g, '</code></pre>');
 
-    source += (n > 1 && n < tSteps ? '\n<hr>\n<p class="highlight">Click on <strong>Check all objectives</strong> to continue</p>' :
-        n == 1 ? '\n<hr>\n<p class="highlight">Click on <strong>Next step</strong> to get started</p>' :
-            '\n<hr>\n<p class="highlight"><strong>Export to Sandbox</strong> is now available for this project</p>');
+    // source += (n > 1 && n < tSteps ? '\n<hr>\n<p class="highlight">Click on <strong>Check all objectives</strong> to continue</p>' :
+    //     n == 1 ? '\n<hr>\n<p class="highlight">Click on <strong>Next step</strong> to get started</p>' :
+    //         '\n<hr>\n<p class="highlight"><strong>Export to Sandbox</strong> is now available for this project</p>');
 
     return source;
 }
@@ -1076,7 +1076,7 @@ function generateJSON() {
             testIds = [];
 
         stepObj.title = inst[i].split(/(\r+)?\n+/)[0];
-        stepObj.content.instructions = instructionHTML(inst[i], i);
+        stepObj.content.instructions = instructionHTML(inst[i].replace(/(\([*]{3}\))[\s\S]*/, '$1'), i);
         stepObj.stepNo = i;
         stepObj.orderNo = i * 1000;
 
@@ -1237,7 +1237,7 @@ function generateJSON() {
 
         objectives.forEach((objective, k) => {
             //  encode escaped characters
-            objective = objective.replace(/\\(.)/g, (m, p1) => encodeURIComponent(p1));
+            // objective = objective.replace(/\\(.)/g, (m, p1) => encodeURIComponent(p1));
 
             //  generate 16-digit unique test id
             let testId;
@@ -1252,14 +1252,14 @@ function generateJSON() {
             const objectiveDescription =
                 //  remove type#key#offset and any preceding string before passing to instructionHTML()
                 //  instructionHTML() converts markup such as *bold* or `code` to HTML code
-                instructionHTML(`\n\n${objective.replace(/^(.*(html|css|js)#[^#]+#([+-]\d+)?,|\(!\))\s*/, '')
-                    //  capitalise first letter
-                    .replace(/\b\w/, l => l.toUpperCase())}`)
+                instructionHTML(`\n\n${objective.replace(/^(\(!\))\s*/, '')}`)
                     //  remove <hr> and following string
-                    .split('<hr>')[0]
+                    // .split('<hr>')[0]
                     .trim()
                     //  remove parent <p> element
                     .replace(/^<p>/, '').replace(/<\/p>$/, '')
+                    //  remove redundant <strong> tags
+                    .replace(/<\/strong>(\s*)<strong>/g, '$1')
                     //  convert phrases such as "following image" or "following link" to "provided image" or "provided link"
                     .replace(/following\s+(image|link|text|)/, 'provided $1')
                     //  convert trailing ":" to "."
@@ -1323,13 +1323,20 @@ function generateJSON() {
     });
 
     //  collect project settings
-    const
-        mid = prompt('Please provide mission uuid. Leave blank to generate a new one.'),
-        version = prompt('Please provide a revision ( e.g. 2.13 ).', '1.0'),
-        status = prompt('Please choose a publish status:\n1. author only\n2. internal\n3. Exclusive', 1),
-        core = prompt('Please choose a core for this project:\n1. Web Development\n2. App Development\n3. Robotics and Hardware\n4. Video Game Development', 1),
-        dsp = prompt('Project description:'),
-        img = prompt('Card image link', '/resources/bsdlogo.png');
+    let [mid, version, status, core, dsp, img] = [
+        () => prompt('Please provide mission uuid. Leave blank to generate a new one.'),
+        () => prompt('Please provide a revision ( e.g. 2.13 ).', '1.0'),
+        () => prompt('Please choose a publish status:\n1. author only\n2. internal\n3. Exclusive', 1),
+        () => prompt('Please choose a core for this project:\n1. Web Development\n2. App Development\n3. Robotics and Hardware\n4. Video Game Development', 1),
+        () => prompt('Project description:'),
+        () => prompt('Card image link', '/resources/bsdlogo.png')
+    ]
+    .map(input => {
+        const answer = input();
+
+        if (answer === null) throw new Error('User cancelled JSON generation.');
+        return answer;
+    });
 
     mission.missionUuid = (mid && mid.trim().length) ? mid.trim() : uuidv4();
 
@@ -1810,7 +1817,7 @@ function testLogic() {
         if (/^\s*return/m.test(_logic)) {
             /codeWithoutMarkup/.test(_logic) ? input = noMarkup(input) : null;
             // APPLY CODE IN LOGIC EDITOR TO INPUT
-            output = eval(`(function(){ ${decodeURI(_logic).replace(/codeWithoutMarkup/g, 'input').replace(/let\s+output/, 'output')} }())`);
+            output = eval(`(function(){ ${decodeURI(_logic.replace(/%/g, '%25')).replace(/codeWithoutMarkup/g, 'input').replace(/let\s+output/, 'output')} }())`);
             
             if (typeof (output) == 'string') {
                 setValue(codeEditor, output);
