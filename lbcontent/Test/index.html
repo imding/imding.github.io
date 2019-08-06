@@ -1,23 +1,129 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link href="style.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 80px;
+            background-color: #00AA7C;
+            font-family: Tahoma, Verdana, Segoe, sans-serif;
+            color: white;
+            text-align: center;
+        }
+
+        #counter {
+            color: white;
+            width: 500px;
+            font-size: 100px;
+            text-align: center;
+            background-color: #00AA8D;
+            border-radius: 60px;
+            border: 10px solid #008975;
+            margin: 20px auto;
+        }
+
+        button {
+            border-radius: 10px;
+            font-family: Tahoma, Verdana, Segoe, sans-serif;
+            color: white;
+            font-size: 20px;
+            background: #00AA8D;
+            padding: 15px 20px 10px 20px;
+            border: 4px solid #008975;
+            text-align: center;
+        }
+
+        /* Only button to be shown by default */
+        #startPause {
+            display: inline;
+        }
+    </style>
 </head>
 <body>
-    <div id="game">
-        <button id="playPause">PLAY</button>
-        
-        <p id="instruction">Move mouse up and down to control your pad</p>
-        
-        <div id="pong">
-            <div id="ball"></div>
-            <div id="playerPad"></div>
-            <div id="aiPad"></div>
-            <span id="playerScore">0</span>
-            <span id="aiScore">0</span>
-        </div>
+    <h1>Stopwatch</h1>
+    <!-- mm:ss:0 -->
+    <p id="counter">00:00:00</p>
+
+    <div id="controls">
+        <button id="start">Start</button>
+        <button id="lap">Lap</button>
+        <button id="btnReset">Reset</button>
     </div>
 
-    <script src="script.js"></script>
+    <div id='laps'></div>
+
+    <script>
+        var time = 0;
+        var lapTime = 0;
+        var lapID = 0;
+        var running = false;
+        var paused = false;
+        var timer;
+
+        start.onclick = startTimer;
+        lap.onclick = recordLap;
+        btnReset.onclick = resetTimer;
+
+        function startTimer() {
+            if (running == false) {
+                running = true;
+                timer = setInterval(increaseTimer, 10);
+            } else {
+                paused = !paused;
+            }
+            if (paused == false) {
+                start.textContent = 'Pause';
+            } else {
+                start.textContent = 'Start';
+            }
+        }
+
+        function increaseTimer() {
+            if (paused == false) {
+                time++;
+                counter.textContent = timeToString();
+            }
+        }
+
+        function recordLap() {
+            if (running == true && paused == false) {
+                var newLap = document.createElement('p');
+                newLap.textContent = lapString();
+                laps.appendChild(newLap);
+            }
+        }
+
+        function resetTimer() {
+            console.log('hi');
+            time = 0;
+            lapTime = 0;
+            lapID = 0;
+            running = false;
+            paused = false;
+            start.textContent = 'Start';
+            counter.textContent = timeToString();
+            clearInterval(timer);
+        }
+
+        function timeToString() {
+            var tenth = time % 100;
+            var sec = Math.floor(time / 100 % 60);
+            var min = Math.floor(time / 100 / 60);
+
+            if (tenth < 10) {
+                tenth = '0' + tenth;
+            }
+            if (sec < 10) {
+                sec = '0' + sec;
+            }
+            if (min < 10) {
+                min = '0' + min;
+            }
+            return `${min}:${sec}:${tenth}`;
+        }
+
+        function lapString() {
+            return `Lap #${++lapID} - ${timeToString()}`;
+        }
+    </script>
 </body>
 </html>

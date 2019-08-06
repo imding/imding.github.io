@@ -69,7 +69,7 @@ const
 
     template = [
         'Formatting\n\n`code`\n\n*bold text*\n\n_underlined text_\n\n~italic text~\n\n*_~bold underlined and italic~_*\n\n(html)<!-- code snippet -->(#)\n\n[link::URL]\n\n[glossary#html#<div>]\n\n[img::https://app.bsd.education/resources/bsdlogo.png]\n\n(---)\n\n[-\n\tunordered\n\tlist\n-]\n\n[=\n\t(*)ordered\n\t(*)list\n=]\n\n(*)note highlight\n\n(**)centred note highlight\n\n(***)\n\n(!)On +html#<body>#+1, objective description\n\n(>>style.css)',
-        'Generic step\n\nStep context.\n\n(---)\n\n[-\n\t(*)\n\t(*)\n-]\n\n(***)\n\n(!)On +type#key#, \n\n(!)On +type#key#, \n\n(!)On +type#key#, ',
+        'Generic step\n\n*Current Progress*\n\n*The Problem*\n\n*Solution*\n\n(---)\n\n[-\n\t(*)\n\t(*)\n-]\n\n(***)\n\n(!)On +type#key#, \n\n(!)On +type#key#, \n\n(!)On +type#key#, ',
         `Summary\n\nGreat job!\n\nYou have completed this project, here is a recap:\n\n[-\n${keyLearningMarkup}\n-]`,
     ],
 
