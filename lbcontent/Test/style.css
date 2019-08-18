@@ -1,84 +1,81 @@
 @import url("https://fonts.googleapis.com/css?family=VT323");
-
-body {
-    background-color: black;
-    text-align: center;
-    font-family: "VT323";
-    font-size: 36px;
+* {
+    margin: 0;
+    box-sizing: border-box;
     user-select: none;
 }
 
-#game,
-#playerPad,
-#aiPad,
-#ball {
-    position: absolute;
+body, html {
+    height: 100vh;
+    font-family: "VT323";
+    text-align: center;
+    background-color: #333;
 }
 
-#pong {
+h1 {
+    color: ghostwhite;
+    font-size: 60px;
+    font-weight: normal;
+}
+
+p {
+    margin-top: 10px;
+    color: gray;
+    font-size: 18px;
+}
+
+span {
+    font-size: 36px;
+}
+
+button {
+    padding: 5px 20px;
+    border-radius: 10px;
+    color: silver;
+    font-family: "VT323";
+    font-size: 36px;
+    background-color: #111;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+#gameArea {
     position: relative;
-    width: 500px;
-    height: 300px;
-    background-color: rgb(9, 27, 54);
+    margin: 10px auto;
+    padding: 0 10px;
+    background-color: black;
     overflow: hidden;
     cursor: none;
 }
 
+#playerPad, #aiPad, #ball {
+    position: absolute;
+}
+
+#playerScore {
+    margin-right: 10px;
+    color: dodgerblue;
+}
+
+#aiScore {
+    color: tomato;
+}
+
+#playerPad, #aiPad {
+    border-radius: 5px;
+}
+
 #playerPad {
-    width: 10px;
-    height: 80px;
-    top: 110px;
-    left: 10px;
-    background-color: limegreen;
-    transition: top 0.1s ease-in-out;
+    background-color: dodgerblue;
 }
 
 #aiPad {
-    width: 10px;
-    height: 80px;
-    top: 110px;
-    right: 10px;
-    background-color: slateblue;
-    transition: top 0.2s ease-in-out;
-}
-
-#playerPad,
-#aiPad {
-    border-radius: 10px;
+    background-color: tomato;
+    transition: top 0.2s linear;
 }
 
 #ball {
-    width: 20px;
-    height: 20px;
+    background-color: silver;
     border-radius: 50%;
-    top: 140px;
-    left: 240px;
-    background-color: skyblue;
-}
-
-#playerScore,
-#aiScore {
-    top: 30px;
-    color: limegreen;
-}
-
-#aiScore {
-    color: slateblue;
-}
-
-#playPause {
-    width: 150px;
-    top: 5%;
-    background-color: black;
-    color: skyblue;
-    font-family: "VT323";
-    font-size: 30px;
-    cursor: pointer;
-}
-
-#instruction {
-    width: 100%;
-    color: darkgray;
-    top: 10%;
-    font-size: 24px;
 }

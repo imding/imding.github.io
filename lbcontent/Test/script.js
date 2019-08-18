@@ -1,332 +1,250 @@
-var expLogs = [{
-    name: 'Living plant',
-    hypothesis: 'Plants need water and sunlight to live',
-    toggle: ['yes'],
-    variable: 'time of day; number times the plats gets watered',
-    method: 'I will leave a plant in the sun and water it twice a day for a week, and then put it in the shade and water it only once every 3 days, I will also take a photo of the plant each day and compare them.',
-    conclusion: 'Through this experiment I learned that the plan is more healthy in the first week.',
-    id: 1,
-}];
-var currentLogID = 0;
-var passThisStep = false;
 
-// Set up Framework7
-var app = new Framework7({
-    // App root element
-    root: '#app',
-    // App Name
-    name: 'Science Experimental Log',
-    // App id
-    id: 'education.bsd.sciencelog',
-    // Theme: 'ios' for iOS, 'md' for Android (Material)
-    theme: 'md',
-    // Add default routes
-    routes: [
-        {
-            path: '/newexperiment/',
-            content: `
-                <!-- Other Page, "data-name" contains page name -->
-                <div data-name="newexp" class="page">
-                    <!-- Top Navbar -->
-                    <div class="navbar">
-                        <div class="navbar-inner">
-                            <div class="title">New Experimental Log</div>
-                        </div>
-                    </div>
-                    <!-- Scrollable page content -->
-                    <div class="page-content">
-                        <form class="list" id="my-form">
-                            <ul>
-                                <li>
-                                    <div class="item-content item-input">
-                                        <div class="item-inner">
-                                            <div class="item-title item-label">Experimental Name</div>
-                                            <div class="item-input-wrap">
-                                                <input type="text" name="name" placeholder="What do you want to find out?" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="item-content item-input">
-                                        <div class="item-inner">
-                                            <div class="item-title item-label">
-                                                Hypothesis
-                                                <span class="float-right">
-                                                    Were you right?
-                                                    <label class="checkbox">
-                                                        <input type="checkbox" name="toggle">
-                                                        <i class="icon icon-checkbox"></i>
-                                                    </label>
-                                                </span>
-                                            </div>
-                                            <div class="item-input-wrap">
-                                                <textarea name="hypothesis" placeholder="What is your hypothesis?"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="item-content item-input">
-                                        <div class="item-inner">
-                                            <div class="item-title item-label">Variables</div>
-                                            <div class="item-input-wrap">
-                                                <textarea name="variable" placeholder="What could you change?"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="item-content item-input">
-                                        <div class="item-inner">
-                                            <div class="item-title item-label">Method</div>
-                                            <div class="item-input-wrap">
-                                                <textarea name="method" placeholder="How do you plan to carry out the experiment?"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="item-content item-input">
-                                        <div class="item-inner">
-                                            <div class="item-title item-label">Conclusion</div>
-                                            <div class="item-input-wrap">
-                                                <textarea name="conclusion" placeholder="What did you learn from this experiment?"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </form>
-                        <div class="block">
-                            <div class="row">
-                                <a href="#" id="saveExp" class="col button button-raised button-fill button-round back">Save Experiment</a>
-                                <a href="#" class="col button button-raised button-outline button-round back" >Back</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `
-        },
-        {
-            path: '/log/:id',
-            content: `
-                <!-- Other Page, "data-name" contains page name -->
-                <div data-name="viewexp" class="page">
-                    <!-- Top Navbar -->
-                    <div class="navbar">
-                        <div class="navbar-inner">
-                            <div class="title">View Experiment Log</div>
-                        </div>
-                    </div>
-                    <!-- Scrollable page content -->
-                    <div class="page-content">
-                        <form class="list" id="my-form">
-                            <ul>
-                                <li>
-                                    <div class="item-content item-input">
-                                        <div class="item-inner">
-                                            <div class="item-title item-label">Experimental Name</div>
-                                            <div class="item-input-wrap">
-                                                <input type="text" id="logName" name="name" placeholder="What do you want to find out?">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="item-content item-input">
-                                        <div class="item-inner">
-                                            <div class="item-title item-label">
-                                                Hypothesis
-                                                <span class="float-right">
-                                                    Were you right?
-                                                    <label class="checkbox">
-                                                        <input id="logResult" type="checkbox" name="toggle" value="yes">
-                                                        <i class="toggle-icon"></i>
-                                                    </label>
-                                                </span>
-                                            </div>
-                                            <div class="item-input-wrap">
-                                                <textarea id="logHypothesis" name="hypothesis" placeholder="What are your hypothesis?"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="item-content item-input">
-                                        <div class="item-inner">
-                                            <div class="item-title item-label">Variables</div>
-                                            <div class="item-input-wrap">
-                                                <textarea id="logVariable" name="variable" placeholder="What could you change?"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="item-content item-input">
-                                        <div class="item-inner">
-                                            <div class="item-title item-label">Method</div>
-                                            <div class="item-input-wrap">
-                                                <textarea id="logMethod" name="method" placeholder="How do you plan to carry out the experiment?"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div class="item-content item-input">
-                                        <div class="item-inner">
-                                            <div class="item-title item-label">Conclusion</div>
-                                            <div class="item-input-wrap">
-                                                <textarea id="logConclusion" name="conclusion" placeholder="Describe your project..."></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
-                            </ul>
-                        </form>
-                        <div class="block">
-                            <a href="#" class="col button button-large button-raised button-outline button-round back" >Back</a>
-                        </div>
-                    </div>
-                </div>
-            `,
-            on: {
-                pageBeforeIn: function (event, page) {
-                    // do something before page gets into the view
-                    //console.log(page.route.params.id);
-                    currentLogID = page.route.params.id;
-                    var log = expLogs[currentLogID - 1];
-                    
-                    // initial value
-                    document.getElementById('logName').value = log.name;
-                    document.getElementById('logHypothesis').innerHTML = log.hypothesis;
-                    document.getElementById('logVariable').innerHTML = log.variable;
-                    document.getElementById('logMethod').innerHTML = log.method;
-                    document.getElementById('logConclusion').innerHTML = log.conclusion;
-                    if (log.toggle.length > 0) {
-                        document.getElementById('logResult').checked = true;
-                    }
+var gameWidth = 500;
+var gameHeight = 400;
 
-                    // update log on input change
-                    document.getElementById('logName').addEventListener('input', updateName);
-                    document.getElementById('logHypothesis').addEventListener('input', updateHypothesis);
-                    document.getElementById('logMethod').addEventListener('input', updateMethod);
-                    document.getElementById('logVariable').addEventListener('input', updateVariable);
-                    document.getElementById('logResult').addEventListener('change', updateResult);
-                    document.getElementById('logConclusion').addEventListener('input', updateConclusion);
-                },
-            }
-        },
-    ],
-});
+var padWidth = 10;
+var padHeight = 80;
+var playerPadX = 10;
+var aiPadX = gameWidth - padWidth - playerPadX;
 
+var ballSize = 15;
+var ballX = (gameWidth - ballSize) / 2;
+var ballY = (gameHeight - ballSize) / 2;
 
-function updateName() {
-    var log = expLogs[currentLogID - 1];
-    log.name = this.value;
+var maxSpeed = 15;
+var speed = 10;
+var speedX = 6;
+var speedY = 8;
+
+var aiError = 60;
+var aiTurn;
+
+var playing = false;
+var paused = false;
+var lostBall = false;
+
+window.onload = initGame;
+
+function initGame() {
+    document.querySelectorAll('*').forEach(el => {
+        el.setPosition = (x, y) => {
+            el.style.left = `${x}px`;
+            el.style.top = `${(y)}px`;
+        };
+        el.setSize = (w, h) => {
+            el.style.width = `${w}px`;
+            el.style.height = `${Number.isFinite(h) ? h : w}px`;
+        }
+    });
+
+    var padStartingY = (gameHeight - padHeight) / 2;
+    
+    gameArea.setSize(gameWidth, gameHeight);
+    playerPad.setSize(padWidth, padHeight);
+    aiPad.setSize(padWidth, padHeight);
+    ball.setSize(ballSize);
+
+    playerPad.setPosition(playerPadX, padStartingY);
+    aiPad.setPosition(aiPadX, padStartingY);
+    ball.setPosition(ballX, ballY);
+
+    playPause.onclick = startGame;
+    gameArea.onmousemove = updatePlayerPad;
 }
 
-function updateHypothesis() {
-    var log = expLogs[currentLogID - 1];
-    log.hypothesis = this.value;
-}
-
-function updateVariable() {
-    var log = expLogs[currentLogID - 1];
-    log.variable = this.value;
-}
-
-function updateMethod() {
-    var log = expLogs[currentLogID - 1];
-    log.method = this.value;
-}
-
-function updateResult() {
-    var log = expLogs[currentLogID - 1];
-    if (document.getElementById('logResult').checked) {
-        log.toggle = ['yes'];
+function startGame() {
+    if (playing) {
+        if (paused) {
+            playPause.innerText = 'PAUSE';
+        }
+        else {
+            playPause.innerText = 'RESUME';
+        }
+        paused = !paused;
     }
     else {
-        log.toggle = [];
+        playing = true;
+        playPause.innerText = 'PAUSE';
+
+        randomizeSpeed();
+        randomizeDir();
+        render();
+    }   
+}
+
+function animatePong() {
+    ballX += speedX;
+    ballY += speedY;
+
+    checkWallRebound();
+    checkPadRebound();
+    updateAiPad();
+    checkLoss();
+
+    ball.setPosition(ballX, ballY);
+}
+
+function updatePlayerPad() {
+    if (playing && !paused) {
+        var mouseY = event.offsetY;
+
+        if (mouseY > 0 && mouseY < gameHeight) {
+            var playerPadY = mouseY - padHeight / 2;
+            playerPadY = Math.max(playerPadY, 5);
+            playerPadY = Math.min(playerPadY, gameHeight - padHeight - 5);
+            playerPad.setPosition(playerPadX, playerPadY);
+        }
     }
 }
 
-function updateConclusion() {
-    var log = expLogs[currentLogID - 1];
-    log.conclusion = this.value;
+function updateAiPad() {
+    if (aiTurn) {
+        //  determine whether ball has moved pass 80% across its container
+        var inRange = ballX > gameWidth * 0.8;
+
+        if (inRange) {
+            var maxTop = gameHeight - padHeight;
+            var distance = aiPadX - ballX - ballSize;
+            var eta = distance / speedX;
+            var estimate = ballY + speedY * eta;
+            var aiPadY = estimate - padHeight / 2;
+
+            aiPadY = aiPadY + randomRange(aiError, -aiError);
+            aiPadY = Math.max(aiPadY, 5);
+            aiPadY = Math.min(aiPadY, maxTop - 5);
+
+            aiPad.setPosition(aiPadX, aiPadY);
+            aiTurn = false;
+
+            console.log(`AI moves to ${Math.round(aiPadY)}px.`);
+        }
+    }
 }
 
-var $$ = Dom7;
+function checkWallRebound() {
+    var maxY = gameHeight - ballSize;
 
-app.on('pageInit', function(page) {
-    if (page.name == 'home') {
-        displayExperimentalLog();
+    if (ballY < 0 || ballY > maxY) {
+        randomizeSpeed();
+        speedY *= -1;
+        ballY = ballY > 0 ? maxY : 0;
     }
-});
-
-app.on('pageAfterIn', function(page) {
-    if (page.name == 'home') {
-        displayExperimentalLog();
-    }
-    else if (page.name == 'newexp') {
-        $$('#saveExp').on('click', getFormData);
-    }
-});
-
-
-// Initialize the app by adding the main view:
-var mainView = app.views.create('.view-main');
-
-function getFormData() {
-    var formData = app.form.convertToData('#my-form');
-    
-    formData.id = expLogs.length + 1;
-    expLogs.push(formData);
-  
-    passThisStep = true;
 }
 
+function checkPadRebound() {
+    //  check whether ball has moved passed the player pad
+    if (ballX <= playerPadX + padWidth) {
+        checkPadCollision(playerPad);
+    }
+    //  check whether ball has moved passed the AI pad
+    else if (ballX >= aiPadX - ballSize) {
+        checkPadCollision(aiPad);
+    }
+}
 
-function displayExperimentalLog() {
-    // clear previous list
-    document.getElementById('log-list').innerHTML = '';
+function checkLoss() {
+    if (ballX <= -ballSize) {
+        aiScore.innerText = parseInt(aiScore.innerText) + 1;
+        aiError /= 0.9;
+        resetGame();
+    }
+    else if (ballX >= gameWidth) {
+        playerScore.innerText = parseInt(playerScore.innerText) + 1;
+        aiError *= 0.9;
+        resetGame();
+    }
+}
 
-    // loop through every log and append it to #log-list
-    expLogs.map(log => {
-        var logLi = document.createElement('li');
-        var anchorLink = document.createElement('a');
-        anchorLink.className = 'item-link item-content';
-        anchorLink.href = '/log/' + log.id;
-        logLi.appendChild(anchorLink);
+function resetGame() {
+    ballX = (gameWidth - ballSize) / 2;
+    ballY = (gameHeight - ballSize) / 2;
 
-        var itemInnerDiv = document.createElement('div');
-        itemInnerDiv.className = 'item-inner';
-        anchorLink.appendChild(itemInnerDiv);
+    playing = false;
+    lostBall = false;
 
-        var itemTitleRowDiv = document.createElement('div');
-        itemTitleRowDiv.className = 'item-title-row';
-        itemInnerDiv.appendChild(itemTitleRowDiv);
+    playPause.innerText = 'PLAY';
+}
 
-        var itemTitleDiv = document.createElement('div');
-        itemTitleDiv.className = 'item-title';
-        itemTitleDiv.innerHTML = log.name;
-        itemTitleRowDiv.appendChild(itemTitleDiv);
+function checkPadCollision(pad) {
+    var lowerTop = pad.offsetTop - ballSize;
+    var upperTop = pad.offsetTop + padHeight;
+    var contact = ballY >= lowerTop && ballY <= upperTop;
+    var ballRadius = ballSize / 2;
+    //  determine whether contact if a valid catch
+    var validCatch = ballY >= lowerTop + ballRadius && ballY <= upperTop - ballRadius;
 
-        var itemAfterDiv = document.createElement('div');
-        itemAfterDiv.className = 'item-after';
-        itemAfterDiv.innerHTML = log.toggle.length > 0 ? 'Success' : 'Fail';
-        itemTitleRowDiv.appendChild(itemAfterDiv);
+    if (contact) {
+        if (lostBall) {
+            //  reverse vertical movement
+            speedY *= -1;
+        }
+        else if (validCatch) {
+            randomizeSpeed();
+            //  reverse horizontal movement
+            speedX *= -1;
 
-        var itemSubtitleDiv = document.createElement('div');
-        itemSubtitleDiv.className = 'item-subtitle';
-        itemSubtitleDiv.innerHTML = log.variable;
-        itemInnerDiv.appendChild(itemSubtitleDiv);
+            if (pad == playerPad) {
+                //  increase ball movement speed
+                speed += 0.2;
+                //  clamp at maximum speed
+                speed = Math.min(speed, maxSpeed);
+                //  correct any clipping by the player pad
+                ballX = playerPadX + padWidth;
+                aiTurn = true;
+            }
+            else if (pad == aiPad) {
+                //  correct any clipping by the AI pad
+                ballX = aiPadX - ballSize;
+            }
+        }
+    }
+    else {
+        lostBall = true;
+    }
+}
 
-        var itemTextDiv = document.createElement('div');
-        itemTextDiv.className = 'item-text';
-        itemTextDiv.innerHTML = log.conclusion;
-        itemInnerDiv.appendChild(itemTextDiv);
+function randomizeSpeed() {
+    //  store current vertical direction of the ball
+    var xDir = speedX / Math.abs(speedX);
+    var yDir = speedY / Math.abs(speedY);
 
-        document.getElementById('log-list').appendChild(logLi);
-    });
+    speedX = xDir * randomize(speed / 1.5, 30);
+    speedY = yDir * Math.sqrt(speed ** 2 - speedX ** 2);
+}
+
+function randomizeDir() {
+    var randomDir = n => n * (Math.random() >= 0.5 ? 1 : -1);
+    speedX = randomDir(speedX);
+    speedY = randomDir(speedY);
+    aiTurn = speedX > 0;
+}
+
+var timePrevFrame = Date.now();
+
+function render() {
+    if (!playing) return;
+
+    var timeThisFrame = Date.now();
+    var elapsed = timeThisFrame - timePrevFrame;
+
+    if (elapsed > 33) {
+        timePrevFrame = timeThisFrame - (elapsed % 33);
+
+        if (!paused) {
+            requestAnimationFrame(animatePong);
+        }
+    }
+
+    requestAnimationFrame(render);
+}
+
+function randomize(n, perc) {
+    const sign = Math.random() >= 0.5 ? 1 : -1;
+    const noise = n * Math.random() * perc / 100;
+    return n + (noise * sign);
+}
+
+function randomRange(min, max, int = false) {
+    const r = Math.random() * (max - min) + min;
+    return int ? Math.round(r) : r;
 }
