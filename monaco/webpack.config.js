@@ -6,6 +6,9 @@ const path = require('path');
 module.exports = {
   mode: 'development',
   entry: './src/index.js',
+  devServer: {
+    port: 8000
+  },
   output: {
     filename: 'main.js',
     chunkFilename: './chunks/[id].js',
@@ -13,20 +16,47 @@ module.exports = {
   },
   module: {
     rules: [{
-      test: /\.css$/,
-      use: ['style-loader', 'css-loader']
+      test: /\.(sa|sc|c)ss$/,
+      use: ['style-loader', 'css-loader', 'sass-loader',]
+    }, {
+      test: /\.tsx?$/,
+      use: 'ts-loader'
+    }, {
+      test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
+      use: {
+        loader: 'file-loader',
+        options: {
+          name: '[name].[ext]',
+          outputPath: 'fonts/'
+        }
+      }
+    }, {
+      test: /\.html$/,
+      use: 'html-loader'
+    }, {
+      test: /\.(png|jpe?g|gif|svg)$/i,
+      use: {
+        loader: 'file-loader',
+        options: {
+          name: '[name].[hash].[ext]',
+          outputPath: 'images'
+        }
+      }
     }]
+  },
+  resolve: {
+    extensions: ['.js', '.ts', '.scss']
   },
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       hash: true,
       filename: 'index.html',
-      template: './src/index.html',
+      template: './src/template.html',
     }),
     new MonacoWebpackPlugin({
       output: './monaco/',
-      languages: ['javascript', 'css', 'html', 'typescript', 'json'],
+      languages: ['javascript', 'css', 'html'],
     })
   ],
 };

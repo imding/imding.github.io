@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>PAT</title>
+</head>
+<body>
+    <div id='root'>
+        <div id='left-panel'>
+            <div id='top-left-panel'>
+                <div id='codex-editor'></div>
+                <div id='action-panel'>
+                    <div class='action-unit'>
+                        <div class='action-header'>PROJECT</div>
+                        <div class='action-buttons'>
+                            <button id='btn-project-detail'>Detail</button>
+                            <button id='btn-open-project'>Open</button>
+                            <button id='btn-save-project'>Save</button>
+                            <button id='btn-copy-json'>Copy JSON</button>
+                            <button id='btn-continue'>Continue</button>
+                        </div>
+                    </div>
+                    <div class='action-unit'>
+                        <div class='action-header'>STEP</div>
+                        <div class='action-buttons'>
+                            <button id='btn-new-step'>New</button>
+                            <button id='btn-del-step'>Delete</button>
+                            <button id='btn-next-step'>Next</button>
+                            <button id='btn-prev-step'>Previous</button>
+                            <button id='btn-step-type'>Type</button>
+                            <button id='btn-step-order'>Order</button>
+                        </div>
+                    </div>
+                    <div class='action-unit'>
+                        <div class='action-header'>INST.</div>
+                        <div class='action-buttons'>
+                            <button id='btn-new-step'>Intro</button>
+                            <button id='btn-del-step'>Generic</button>
+                            <button id='btn-next-step'>Summary</button>
+                        </div>
+                    </div>
+                    <div class='action-unit'>
+                        <div class='action-header'>CODE</div>
+                        <div class='action-buttons'>
+                            <button id='btn-use-new'>Use New</button>
+                            <button id='btn-unchanged'>Unchanged</button>
+                            <button id='btn-modify'>Modify</button>
+                            <button id='btn-get-next'>Get Next</button>
+                            <button id='btn-get-prev'>Get Prev</button>
+                            <button id='btn-no-markup'>No Markup</button>
+                        </div>
+                    </div>
+                    <div class='action-unit'>
+                        <div class='action-header'>OUTPUT</div>
+                        <div class='action-buttons'>
+                            <button id='btn-toggle-output'>Show</button>
+                            <button id='btn-720p'>720p</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id='preview-panel' class='hidden'></div>
+        </div>
+
+        <div id='code-panel'>
+            <div id='code-tabs'></div>
+            <div id='code-editor'></div>
+        </div>
+    </div>
+</body>
+</html>
