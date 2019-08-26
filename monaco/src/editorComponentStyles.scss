@@ -1,0 +1,32 @@
+@mixin component-styles {
+    .codex-editor__redactor {
+        margin: 0;
+        padding-bottom: 100px;
+    }
+    
+    .ce-block--focused {
+        background-image: none;
+    }
+
+    .ce-block--selected .ce-block__content {
+        animation: none;
+        box-shadow: none;
+        background-color: #333;
+    }
+
+    .ce-toolbox {
+        border-radius: 5px;
+    }
+
+    .ce-conversion-toolbar {
+        box-shadow: none;
+    }
+
+    .ce-toolbox__tooltip, .ce-toolbar__actions {
+        display: none;
+    }
+
+    .ce-header {
+        padding: 20px 0;
+    }
+}

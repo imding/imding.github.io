@@ -3,7 +3,7 @@ export default class HTMLTree {
         return this.parse(html);
     }
 
-    parse(strHTML, origin, exception = null) {
+    parse(strHTML, exception = null) {
         const
             pOpeningTag = /^\s*<(?!\s*\/)(\s+)?([^<>]+)?(>)?/i,
             pClosingTag = /^\s*<(\s*)?\/(\s*)?([^<>]+)?(>)?/i,
@@ -17,16 +17,16 @@ export default class HTMLTree {
                     'embed', 'label', 'input', 'param', 'small', 'style', 'table', 'title', 'frame', 'track',
                     'button', 'canvas', 'center', 'footer', 'header', 'keygen', 'iframe', 'strong', 'select', 'option', 'script', 'source', 'strike',
                     'command', 'article', 'section',
-                    'noscript', 'textarea', 'frameset', 'noframes', 'progress',
+                    'noscript', 'textarea', 'frameset', 'noframes', 'progress', '!doctype',
                     'blockquote',
                 ],
-                void: ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'],
+                void: ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr', '!doctype'],
             },
             attributes = {
                 all: [
                     'id',
                     'alt', 'dir', 'for', 'low', 'max', 'min', 'rel', 'src',
-                    'cite', 'code', 'cols', 'data', 'form', 'high', 'href', 'icon', 'kind', 'lang', 'list', 'loop', 'name', 'open', 'ping', 'rows', 'size', 'slot', 'span', 'step', 'type', 'wrap',
+                    'cite', 'code', 'cols', 'data', 'form', 'high', 'href', 'html', 'icon', 'kind', 'lang', 'list', 'loop', 'name', 'open', 'ping', 'rows', 'size', 'slot', 'span', 'step', 'type', 'wrap',
                     'align', 'async', 'class', 'defer', 'ismap', 'label', 'media', 'muted', 'scope', 'shape', 'sizes', 'start', 'style', 'title', 'value', 'width',
                     'accept', 'action', 'coords', 'height', 'hidden', 'method', 'nowrap', 'poster', 'scoped', 'srcdoc', 'srcset', 'target', 'usemap',
                     'charset', 'checked', 'colspan', 'compact', 'content', 'declare', 'default', 'dirname', 'enctype', 'headers', 'keytype', 'noshade', 'optimum', 'pattern', 'preload', 'rowspan', 'sandbox', 'srclang', 'summary',
@@ -57,7 +57,7 @@ export default class HTMLTree {
 
                     'role' /* jQuery mobile specific */,
                 ],
-                boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
+                boolean: ['checked', 'disabled', 'html', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
             },
             lastOf = arr => {
                 if (!Array.isArray(arr)) arr = Array.from(arr);
@@ -177,15 +177,7 @@ export default class HTMLTree {
             }
         }
 
-        // console.log(`${origin}:`, tree);
-        verdict = verdict ? `${origin}: ${verdict}` : verdict;
-        return tree;
-
-        // this._tree = tree;
-        // this._messages = verdict ? [{
-        //     type: messageType.error,
-        //     message: verdict,
-        // }] : [];
+        return Object.assign(tree, { error: verdict.length ? verdict : false });
 
         // ===== NESTED FUNCTIONS ===== //
         function validatePartial(err) {
@@ -333,7 +325,7 @@ export default class HTMLTree {
                     verdict = `${tagRaw} is not a valid tag name.`;
                 }
 
-                // overwrite verdict if tagRaw starts with valid tag name followed by a valid attribute  name with no space in between
+                // overwrite verdict if tagRaw starts with valid tag name followed by a valid attribute name with no space in between
                 tags.all.forEach(t => {
                     if (tag.startsWith(t) && attributes.all.some(a => tag.slice(t.length) === a)) {
                         verdict = `There should be a space between ${tagRaw.slice(0, t.length)} and ${tagRaw.slice(t.length)}.`;

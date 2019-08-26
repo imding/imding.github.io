@@ -1,72 +1,147 @@
 
+//===== SECTION: NOTES =====//
+
+/*
+syntax highlight
+https://github.com/codesandbox/codesandbox-client/blob/196301c919dd032dccc08cbeb48cf8722eadd36b/packages/app/src/app/components/CodeEditor/Monaco/workers/syntax-highlighter.js
+
+*/
+
+//===== SECTION: IMPORTS =====//
+
 import './main.scss';
+import favicon from './images/favicon.png';
+
+import moment from 'moment';
 
 import EditorJS from '@editorjs/editorjs';
-import Header from '@editorjs/header';
-import List from '@editorjs/list';
-import Code from '@editorjs/code';
-import InlineCode from '@editorjs/inline-code';
-import Image from '@editorjs/simple-image';
+import Header from './components/Header';
+import Paragraph from './components/Paragraph';
+import SimpleImage from './components/SimpleImage';
+import List from './components/List';
+import Code from './components/Code';
+import InlineCode from './components/InlineCode';
 
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 
-import { el, newEl } from './utils/handy';
+// import strip from 'strip-comments';
+// import stripHtmlComments from 'strip-html-comments';
+
+import { el, newEl, obj } from './utils/Handy';
 import HTMLTree from './utils/HTMLTree';
 
-let missionJSON = {};
-let stepsJSON = [];
+import { newStepJson, newMissionJson } from './modules/JsonTemplates';
+
+//===== SECTION: ASSIGN FAVICON =====//
+
+el(document.querySelector('head')).new('link', {
+    type: 'image/x-icon',
+    rel: 'shortcut icon',
+    href: favicon,
+});
+
+//===== SECTION: INIT VARIABLES =====//
+
+let missionJson;
+let stepList = [];
 let activeStep = 1;
 
-const codeData = [{
-    html: { 'index': { model: null, state: null } },
-    css: { 'style': { model: null, state: null } },
-    js: { 'script': { model: null, state: null } },
-}];
+let refreshTimer;
+const refreshDelay = 800;
 
-const boilerplate = {
-    html: '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<link rel="stylesheet" href="style.css"/>\n\t</head>\n\t<body>\n\n\t\tWelcome to HTML\n\n\t\t<script src="script.js"></script>\n\t</body>\n</html>',
-    css: '/* CSS */',
-    js: '// JavaScript',
+const fileNamePattern = /\/?(.*)\.(.*)$/;
+
+const codeTemplate = {
+    html: '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<link rel="stylesheet" href="style.css"/>\n\t</head>\n\t<body>\n\n\t\t<h1>Welcome to HTML</h1>\n\n\t\t<script src="script.js"></script>\n\t</body>\n</html>',
+    css: '/* CSS */\n\n* {\n\tmargin: 0;\n\tbox-sizing: border-box;\n}\n',
+    js: '// JavaScript\n\nwindow.onload = init;\n\nfunction init() {}\n',
 };
+
+const codeModelStates = {
+    html: {
+        'index': {
+            model: monaco.editor.createModel(codeTemplate.html, 'html'),
+            state: null
+        }
+    },
+    css: {
+        'style': {
+            model: monaco.editor.createModel(codeTemplate.css, 'css'),
+            state: null
+        }
+    },
+    js: {
+        'script': {
+            model: monaco.editor.createModel(codeTemplate.js, 'javascript'),
+            state: null
+        }
+    },
+};
+
+//===== SECTION: LOAD APP =====//
 
 window.onload = initApp;
 
 function initApp() {
 
-    //===== COLLECT DOM ELEMENTS =====//
-    
+    //===== SECTION: COLLECT DOM ELEMENTS =====//
+
     Object.assign(window, {
+        codexContainer: el('#codex-editor'),
         codexEditor: new EditorJS({
             holder: 'codex-editor',
             tools: {
                 header: Header,
+                paragraph: Paragraph,
+                simpleImage: SimpleImage,
                 list: List,
                 code: Code,
                 inlineCode: InlineCode,
-                image: Image,
             },
-            // initialBlock: 'header',
         }),
-        //  buttons
-        btnOpenProject: document.querySelector('#btn-open-project'),
-        btnCopyJson: document.querySelector('#btn-copy-json'),
-        btnNextStep: document.querySelector('#btn-next-step'),
-        btnPrevStep: document.querySelector('#btn-prev-step'),
-        btnToggleOutput: document.querySelector('#btn-toggle-output'),
+        //  project buttons
+        btnOpenProject: el('#btn-open-project'),
+        btnSaveProject: el('#btn-save-project'),
+        btnCopyJson: el('#btn-copy-json'),
+        btnContinue: el('#btn-continue'),
+
+        //  step buttons
+        btnNewStep: el('#btn-new-step'),
+        btnDelStep: el('#btn-del-step'),
+        btnNextStep: el('#btn-next-step'),
+        btnPrevStep: el('#btn-prev-step'),
+
+        // instruction buttons
+        btnTemplate1: el('#btn-template-1'),
+        btnTemplate2: el('#btn-template-2'),
+        btnTemplate3: el('#btn-template-3'),
+
+        //  code buttons
+        btnToggleOutput: el('#btn-toggle-output'),
 
         //  panels
-        pnlPreview: document.querySelector('#preview-panel'),
+        pnlPreview: el('#preview-panel'),
 
-        codeTabs: document.querySelector('#code-tabs'),
-
-        codeContainer: document.querySelector('#code-editor'),
-        codeEditor: monaco.editor.create(document.querySelector('#code-editor'), {
-            model: monaco.editor.createModel(boilerplate.html, 'html'),
-            theme: 'vs-dark',
-        }),
+        //  code panel
+        codeTabs: el('#code-tabs'),
+        codeContainer: el('#code-editor'),
+        codeEditor: monaco.editor.create(el('#code-editor'), { theme: 'vs-dark' }),
     });
 
-    //===== UI EVENTS =====//
+    //===== SECTION: INITIALISE PROJECT CONTENT =====//
+
+    createMissionJson();
+
+    createNewStep({
+        title: 'Introduction',
+        orderNo: 1000,
+    });
+
+    codexEditor.isReady.then(() => {
+        loadStepContents(1);
+    });
+
+    //===== SECTION: UI EVENTS =====//
 
     window.onresize = () => codeEditor.layout();
 
@@ -77,43 +152,367 @@ function initApp() {
             const fileReader = new FileReader();
             fileReader.readAsText(fileToLoad.files[0], 'UTF-8');
             fileReader.onload = fileLoadedEvent => {
-                missionJSON = JSON.parse(fileLoadedEvent.target.result);
-                openProject(missionJSON);
+                createMissionJson(fileLoadedEvent.target.result);
+                loadStepContents(1);
             };
         };
     };
 
+    btnSaveProject.onclick = () => saveToLocal();
 
+    btnContinue.onclick = () => loadFromLocal();
 
-    btnNextStep.onclick = () => {
-        goToStep(++activeStep);
+    btnNewStep.onclick = () => {
+        createNewStep();
+        btnNextStep.click();
     };
 
-    btnPrevStep.onclick = () => {
-        goToStep(--activeStep);
+    btnNextStep.onclick = () => goToStep(activeStep + 1);
+
+    btnPrevStep.onclick = () => goToStep(activeStep - 1);
+
+    btnTemplate1.onclick = () => {
+        console.log(codexEditor.save());
+        console.log(stepList);
     };
 
     btnToggleOutput.onclick = () => {
-        pnlPreview.classList.toggle('hidden');
-        el(btnToggleOutput).toggle({ innerText: ['Show', 'Hide'] });
+        if (/code|interactive/.test(stepList[activeStep - 1].type)) {
+            pnlPreview.classList.toggle('hidden');
+            btnToggleOutput.firstElementChild.classList.toggle('active-blue');
+
+            if (pnlPreview.classList.contains('hidden')) {
+                el(pnlPreview).remove(pnlPreview.iframe);
+            }
+            else {
+                el(pnlPreview).addChild(pnlPreview.iframe = newEl('iframe'));
+                refreshOutput();
+            }
+        }
     };
 
-    //===== INITIALISE VALUES =====//
+    codeEditor.onDidChangeModelContent(() => refreshOutput(false));
+}
 
-    populateTabs().then(() => {
-        codeTabs.firstElementChild.classList.add('active');
+//===== SECTION: PROJECT OPERATIONS =====//
+
+function createMissionJson(fromString, override) {
+    missionJson = fromString ? JSON.parse(fromString) : newMissionJson(override);
+    stepList = obj(missionJson.steps).filter('values', step => step.title !== 'Deleted by merging process');
+    stepList = obj(stepList).sort('values', (a, b) => a.orderNo - b.orderNo);
+}
+
+function saveToLocal() {
+    storeStepContents(activeStep);
+
+    stepList.forEach(step => {
+        missionJson.steps[step.stepId] = step;
     });
+
+    missionJson.settings.lastModified = moment().format();
+
+    localStorage.setItem(`BSD:${missionJson.settings.title}`, JSON.stringify(missionJson));
+    console.log('Saved to local');
+}
+
+function loadFromLocal() {
+    let projects = [];
+    let options = 'Choose a project to load:';
+
+    obj(localStorage).forEachKey(key => {
+        if (key.startsWith('BSD:')) {
+            projects.push(localStorage.getItem(key));
+        }
+    });
+
+    projects = projects.map((project, idx) => {
+        project = JSON.parse(project);
+        options += `\n${idx + 1}. ${project.settings.title} @ ${project.settings.lastModified}`;
+        return project;
+    });
+
+    const userChoice = prompt(options);
+
+    if (userChoice >= 0 && userChoice <= projects.length) {
+        //  reset codeModelStates
+        obj(codeModelStates).forEachKey(type => delete codeModelStates[type]);
+
+        missionJson = projects[userChoice - 1];
+
+        stepList = obj(missionJson.steps).sort('values', (a, b) => a.orderNo - b.orderNo);
+
+        //  clear file schema before loading a new project
+        obj(codeModelStates).forEachKey(type => delete codeModelStates[type]);
+
+        obj(stepList[0].files).forEachEntry((fileFullName, file) => {
+            const [name, type] = fileFullName.split('.');
+            const { contents } = file;
+
+            //  build model state for first step
+            codeModelStates[type] ? null : codeModelStates[type] = {};
+            codeModelStates[type][name] = {
+                model: monaco.editor.createModel(contents, type.replace(/^js$/, 'javascript')),
+                state: null,
+            };
+        });
+
+        codeEditor.setModel(codeModelStates.html['index'].model);
+
+        refreshOutput();
+    }
+    else return;
+}
+
+//===== SECTION: STEP OPERATIONS =====//
+
+function createNewStep(override = {}) {
+    //  conver schema to json
+    const schemaJson = {};
+
+    obj(codeModelStates).forEachEntry((type, files) => {
+        obj(files).forEachKey(name => {
+            const contents = codeTemplate[type];
+
+            schemaJson[`${name}.${type}`] = {
+                answers: [],
+                contents,
+                mode: 'new_content',
+            };
+
+            codeModelStates[type][name] = {
+                model: monaco.editor.createModel(contents, type.replace(/^js$/, 'javascript')),
+                state: null,
+            };
+        });
+    });
+
+    //  use schema as base file structure of the new step
+    //  mutate it with override if exists
+    override.files = obj(schemaJson).mutate(override.files || {});
+
+    const stepJson = newStepJson(override);
+    const existingStepIds = stepList.map(step => step.stepId);
+
+    while (existingStepIds.includes(stepJson.stepId)) {
+        stepJson.stepId = (Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)) + 1).toString();
+    }
+
+    stepList.splice(activeStep, 0, stepJson);
+}
+
+function storeStepContents(instructions) {
+    const { stepIndex, stepHasCode } = getStepInfo(activeStep);
+
+    //  store instructions in current step
+    if (instructions.length) {
+        stepList[stepIndex].title = instructions.shift().data.text;
+
+        const contentKey = stepHasCode ? 'instructions' : 'text';
+        const stepContent = instructions.map(block => `<p>${block.data.text}</p>`).join('');
+
+        stepList[stepIndex].content[contentKey] = stepContent;
+    }
+
+    //  store code in the active tab of the current step
+    if (stepHasCode) {
+        storeTabModelState(codeTabs.active);
+
+        obj(stepList[stepIndex].files).forEachKey(fileName => {
+            const [_, name, type] = fileName.match(fileNamePattern);
+            const contents = codeModelStates[type][name].model.getValue();
+            stepList[stepIndex].files[fileName].contents = contents;
+        });
+
+        // obj(codeModelStates).forEachEntry((type, files) => {
+        //     obj(files).forEachKey(name => {
+        //         const contents = codeModelStates[type][name].model.getValue();
+        //         stepList[stepIndex].files[`${name}.${type}`].contents = contents;
+        //     });
+        // });
+    }
+
+    return {
+        then: cb => cb()
+    };
+}
+
+function loadStepContents(n) {
+    const { stepIndex, stepHasCode, stepJson } = getStepInfo(n);
+
+    loadStepInstructions(stepJson, stepHasCode);
+
+    if (stepHasCode) {
+        loadStepCode(stepJson, stepIndex);
+        refreshOutput();
+    }
+    else {
+        disableCodeEditor(`The code editor is disabled for ${stepJson.type} steps.`);
+
+        if (pnlPreview.iframe) {
+            pnlPreview.classList.toggle('hidden');
+            btnToggleOutput.firstElementChild.classList.toggle('active-blue');
+            el(pnlPreview).remove(pnlPreview.iframe);
+        }
+    }
+
+    activeStep = n;
+}
+
+function goToStep(n) {
+    if (n < 1 || n > stepList.length) {
+        return console.warn(`There is no step ${n}`);
+    }
+
+    codexEditor.save().then(contents => {
+        storeStepContents(contents.blocks).then(() => loadStepContents(n));
+    });
+}
+
+function getStepInfo(n) {
+    const stepInfo = { stepIndex: n - 1 };
+
+    stepInfo.stepJson = stepList[stepInfo.stepIndex];
+    stepInfo.stepHasCode = /code|interactive/.test(stepInfo.stepJson.type);
+
+    return stepInfo;
+}
+
+//===== SECTION: INSTRUCTION OPERATIONS =====//
+
+function loadStepInstructions(stepJson, withCode = true) {
+    codexEditor.blocks.clear();
+    codexEditor.blocks.insert('header', { text: stepJson.title }, {}, 0);
+
+    const stepContent = stepJson.content[['instructions', 'text'][withCode ? 0 : 1]];
+    const stepContentTree = new HTMLTree(stepContent);
+
+    stepContentTree.forEach(node => {
+        const { tagName } = node.openingTag;
+
+        //  prevent inserting empty blocks into the codex editor
+        node.rawContent = node.rawContent.replace(/(^&nbsp;)|(&nbsp;$)|(^<br\s*\/?>$)/g, '');
+        if (node.rawContent.length === 0) return;
+
+        let blockType = 'paragraph';
+        let blockContent = { text: node.rawContent };
+
+        if (/^pre$/.test(tagName)) {
+            blockType = 'code';
+            blockContent = { code: node.content[0].rawContent };
+        }
+        else if (/^[u|o]l$/.test(tagName)) {
+            blockType = 'list';
+            blockContent = {
+                style: `${tagName === 'ul' ? 'un' : ''}ordered`,
+                //  assumes each <li> has only one child
+                items: node.content.map(child => child.content[0].rawContent)
+            };
+        }
+        else if (/^center$/.test(tagName)) {
+            blockContent = { text: node.content[0].rawContent };
+        }
+
+        codexEditor.blocks.insert(blockType, blockContent);
+    });
+}
+
+//===== SECTION: IFRAME OPERATIONS =====//
+
+function refreshOutput(now = true) {
+    if (!pnlPreview.iframe) return;
+
+    const refresh = () => {
+        let srcHtml = Object.values(codeModelStates.html)[0].model.getValue();
+        const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
+
+        linkAndScript.forEach(node => {
+            const tree = new HTMLTree(node);
+
+            if (tree.error) return;
+
+            node = tree[0];
+
+            const tagType = node.openingTag.tagName;
+            const attrType = tagType === 'link' ? 'href' : tagType === 'script' ? 'src' : '';
+            const attrValue = node.openingTag.attrs.filter(attr => attr.name === attrType)[0].value;
+            const [_, name, type] = attrValue.match(fileNamePattern);
+
+            if (!codeModelStates[type]) return;
+            if (!codeModelStates[type][name]) return;
+
+            const replacement =
+                type === 'css' ?
+                    [node.openingTag.raw,
+                    `<style>${codeModelStates[type][name].model.getValue()}</style>`]
+                    :
+                    type === 'js' ?
+                        [`${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`,
+                        `<script>${codeModelStates[type][name].model.getValue()}</script>`]
+                        :
+                        [];
+
+            srcHtml = srcHtml.replace(...replacement);
+        });
+
+        pnlPreview.iframe.srcdoc =
+            srcHtml
+                //  transform relative platform paths to absolute paths
+                .replace(/(['"])\s*(\/resources\/)/g, '$1https://app.bsd.education$2')
+                //  remove editable markup
+                .replace(/#(BEGIN\s*|\s*END)_EDITABLE#/g, '');
+    };
+
+    if (now) return refresh();
+    else if (refreshTimer) clearTimeout(refreshTimer);
+
+    refreshTimer = setTimeout(refresh, refreshDelay);
+}
+
+//===== SECTION: CODE EDITOR OPERATIONS =====//
+
+function loadStepCode(stepJson, stepIndex) {
+    //  unpack all types of files in model & state schema
+    obj(codeModelStates).forEachEntry((type, files) => {
+        obj(files).forEachKey(name => {
+            const fileUnchanged = !stepJson.files.hasOwnProperty(`${name}.${type}`);
+            let contents;
+
+            if (fileUnchanged) {
+                let idx = stepIndex - 1;
+
+                do {
+                    //  loop through earlier steps to find user defined code contents
+                    //  i.e. unchanged or modify
+                    if (stepList[idx].files.hasOwnProperty(`${name}.${type}`)) {
+                        contents = stepList[idx].files[`${name}.${type}`].contents;
+                    }
+                }
+                while (!contents && idx-- >= 1);
+            }
+            else contents = stepJson.files[`${name}.${type}`].contents;
+
+            codeModelStates[type][name] = {
+                model: monaco.editor.createModel(contents, type.replace(/^js$/, 'javascript')),
+                state: null,
+            };
+        });
+    });
+
+    //  update code editor tabs
+    populateTabs(`active:${stepJson.content.startTab || 'index.html'}`);
 }
 
 function populateTabs(active) {
     el(codeTabs).remove(...codeTabs.children);
-    
-    Object.entries(codeData[activeStep - 1]).forEach(stepData => {
-        const [fileType, filesData] = stepData;
-        Object.keys(filesData).forEach(fileName => {
+
+    //  unpack the models & states in the current step
+    obj(codeModelStates).forEachEntry((fileType, filesData) => {
+        //  unpack the model & state for each file
+        obj(filesData).forEachKey(fileName => {
             const fileFullName = `${fileName}.${fileType}`;
             const isActive = active === `active:${fileFullName}`;
             const tab = el(codeTabs).new('span', { className: `tab${isActive ? ' active' : ''}`, innerText: fileFullName });
+
             tab.fileType = fileType;
             tab.fileName = fileName;
             tab.onclick = changeTab;
@@ -126,146 +525,49 @@ function populateTabs(active) {
 }
 
 function changeTab() {
-    const currentTab = codeTabs.querySelector('.tab.active');
     const targetTab = event.target;
 
+    //  store current tab model & state
+    storeTabModelState(codeTabs.active);
+
     //  toggle the "active" class name on current and target tabs
-    currentTab.classList.remove('active');
+    codeTabs.active.classList.remove('active');
     targetTab.classList.add('active');
 
-    //  store current tab model & state
-    storeTabModelState(currentTab);
     //  load target tab model & state
     loadTabModelState(targetTab);
+
     codeEditor.focus();
 }
 
 function storeTabModelState(tab) {
-    codeData[activeStep - 1][tab.fileType][tab.fileName] = {
+    codeModelStates[tab.fileType][tab.fileName] = {
         model: codeEditor.getModel(),
         state: codeEditor.saveViewState(),
     };
 }
 
 function loadTabModelState(tab) {
-    const targetTabData = codeData[activeStep - 1][tab.fileType][tab.fileName];
-    codeEditor.setModel(targetTabData.model || monaco.editor.createModel(
-        boilerplate[tab.fileType],
-        tab.fileType.replace(/^js$/, 'javascript')
-    ));
+    const targetTabData = codeModelStates[tab.fileType][tab.fileName];
+    codeEditor.setModel(targetTabData.model);
     codeEditor.restoreViewState(targetTabData.state);
-}
-
-function openProject(json) {
-    stepsJSON = Object.values(json.steps).sort((a, b) => a.orderNo - b.orderNo);
-    goToStep(1);
-}
-
-function goToStep(n) {
-    const stepIndex = n - 1;
-    const stepJSON = stepsJSON[stepIndex];
-    const hasCode = /code|interactive/.test(stepJSON.type);
-
-    //===== UPDATE STEP INSTRUCTIONS =====//
-    
-    codexEditor.blocks.clear();
-    codexEditor.blocks.insert('header', { text: stepJSON.title }, {}, 0);
-
-    const stepContent = stepJSON.content[['instructions', 'text'][hasCode ? 0 : 1]];
-    const stepContentTree = new HTMLTree(stepContent);
-
-    stepContentTree.forEach(el => {
-        const { tagName } = el.openingTag;
-
-        //  prevent inserting empty blocks into the codex editor
-        el.rawContent = el.rawContent.replace(/(^&nbsp;)|(&nbsp;$)|(^<br\s*\/?>$)/g, '');
-        if (el.rawContent.length === 0) return;
-
-        let blockType = 'paragraph';
-        let blockContent = { text: el.rawContent };
-
-        if (/^pre$/.test(tagName)) {
-            blockType = 'code';
-            blockContent = { code: el.content[0].rawContent };
-        }
-        else if (/^[u|o]l$/.test(tagName)) {
-            blockType = 'list';
-            blockContent = {
-                style: `${tagName === 'ul' ? 'un' : ''}ordered`,
-                //  assumes each <li> has only one child
-                items: el.content.map(child => child.content[0].rawContent)
-            };
-        }
-        else if (/^center$/.test(tagName)) {
-            blockContent = { text: el.content[0].rawContent };
-        }
-
-        codexEditor.blocks.insert(blockType, blockContent);
-    });
-
-    //===== UPDATE STEP CODE =====//
-
-    if (hasCode) {
-        const stepCodeData = codeData[stepIndex];
-
-        //  build stepData if none exists
-        if (!stepCodeData) {
-            Object.entries(stepJSON.files).forEach(file => {
-                const [fileName, fileData] = file;
-                const [name, type] = fileName.split('.');
-                const { answers, contents, mode } = fileData;
-
-                codeData[stepIndex] = Object.assign(codeData[stepIndex] || {}, {
-                    [type]: Object.assign((codeData[stepIndex] && codeData[stepIndex][type]) || {}, {
-                        [name]: {
-                            model: monaco.editor.createModel(contents, type.replace(/^js$/, 'javascript')),
-                            state: null,
-                        }
-                    })
-                });
-            });
-        }
-
-        //  update tab buttons using stepData
-        populateTabs(`active:${stepJSON.content.startTab || 'index.html'}`);
-    }
-    else {
-        disableCodeEditor(`The editor is disabled for ${stepJSON.type} steps.`);
-    }
-
-    //===== UPDATE STEP CODE =====//
-
-
-
-    // content: { text: "<p>In the&nbsp;<strong>Navigation Algorithm</stron…ts and talk back about topics of your choice.</p>" }
-    // deleted: false
-    // files:
-    // index.html:
-    // answers: []
-    // contents: "<!DOCTYPE html>↵<html>↵<head>↵    <link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">↵    <link href="/resources/css/font-awesome.min.css" rel="stylesheet">↵	<link rel="stylesheet" type="text/css" href="style.css"/>↵</head>↵<body>↵	<div id='content'>↵		<p id='title'>Auto Navigation</p>↵↵		<div id='grid'>↵			<div id='car'></div>↵        </div>↵    </div>↵↵    <div id='chatbot'>↵        <div id='messages'></div>↵↵        <div id='inputContainer'>↵            <input id='userInput' placeholder='Type message here' autocomplete='off'>↵            <button id='btnSend'><i class='fa fa-paper-plane fa-fw'></i></button>↵        </div>↵    </div>↵    ↵    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.1/seedrandom.min.js"></script>↵	<script src="script.js"></script>↵</body>↵</html>↵#BEGIN_EDITABLE##END_EDITABLE#"
-    // mode: "new_contents"
-    // __proto__: Object
-    // script.js: { contents: "var content = document.querySelector('#content');↵…om: arr => arr.splice(arr.indexOf(item), 1) };↵}↵", mode: "new_contents", answers: Array(2) }
-    // style.css: { contents: "/* font converted using font-converter.net. thank …   margin: 10px;↵}↵#BEGIN_EDITABLE##END_EDITABLE#", mode: "new_contents", answers: Array(0) }
-    // __proto__: Object
-    // majorRevision: 5
-    // minorRevision: 2
-    // orderNo: 500
-    // refMissionUuid: null
-    // stepId: "2755670874491644"
-    // tests: { }
-    // title: "Introduction"
-    // type: "text"
+    codeTabs.active = tab;
 }
 
 function disableCodeEditor(msg) {
-    codeTabs.querySelectorAll('.tab').forEach(tab => tab.onclick = null);
+    el(codeTabs).forEachChild(tab => {
+        if (tab.classList.contains('active')) {
+            tab.innerText = '...';
+        }
+        else el(codeTabs).remove(tab);
+    });
+
     codeEditor.setModel(monaco.editor.createModel(msg));
     codeEditor.updateOptions({ readOnly: true });
 }
 
 
-// const btnEditAnswers = document.querySelector('#editAnswers');
+// const btnEditAnswers = el('#editAnswers');
 
 // let editables = [];
 // let editAnswers = false;

@@ -14,6 +14,7 @@ module.exports = {
     chunkFilename: './chunks/[id].js',
     path: path.resolve(__dirname, 'dist')
   },
+
   module: {
     rules: [{
       test: /\.(sa|sc|c)ss$/,
@@ -22,7 +23,7 @@ module.exports = {
       test: /\.tsx?$/,
       use: 'ts-loader'
     }, {
-      test: /\.(woff(2)?|ttf|eot|svg)(\?v=\d+\.\d+\.\d+)?$/,
+      test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
       use: {
         loader: 'file-loader',
         options: {
@@ -45,6 +46,7 @@ module.exports = {
     }]
   },
   resolve: {
+    modules: [path.join(__dirname, 'src'), 'node_modules'],
     extensions: ['.js', '.ts', '.scss']
   },
   plugins: [

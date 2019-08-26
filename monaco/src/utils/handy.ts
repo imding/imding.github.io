@@ -1,4 +1,4 @@
-import { AppNode } from './interfaces';
+import { AppNode } from './Interfaces';
 
 // ========== ELEMENTS ========== //
 
@@ -7,7 +7,12 @@ export function newEl(type: string, attr?: object): AppNode {
     return newElement;
 };
 
-export function el(parent?: AppNode) {
+export function el(parent: AppNode | string): object {
+    if (typeof parent === 'string') {
+        const node: AppNode = document.querySelector(parent);
+        return node;
+    }
+
     const red = { color: 'crimson' };
     const blue = { color: 'dodgerblue' };
     const Errors = {
@@ -19,34 +24,37 @@ export function el(parent?: AppNode) {
         return !missingParent;
     };
 
-    return {
-        addChild: (...arr: Array<AppNode | string>) => {
-            validParent() && arr.forEach(child => {
+    return validParent() && {
+        addChild: (...arr: Array<AppNode | string>): void => {
+            arr.forEach(child => {
                 parent.appendChild(typeof child === 'string' ?
                     document.createTextNode(child) : child
                 );
             });
         },
-        new: (type: string, attr?: object): AppNode => {
-            return validParent() && parent.appendChild(newEl(type, attr));
+        forEachChild: (cb: (...arg: [AppNode, number]) => any): void => {
+            Array.from(parent.children).forEach((child: AppNode, idx) => cb(child, idx));
         },
-        remove: (...arr: Array<AppNode>) => {
-            validParent() && arr.forEach(child => parent.removeChild(child));
+        new: (type: string, attr?: object): AppNode => {
+            return parent.appendChild(newEl(type, attr));
+        },
+        remove: (...arr: Array<AppNode>): void => {
+            arr.forEach(child => parent.removeChild(child));
         },
         removeStyle: (...props: Array<string>): void => {
-            validParent() && props.forEach(prop => {
+            props.forEach(prop => {
                 parent.style.removeProperty(prop);
                 if (parent.style.length === 0) parent.removeAttribute('style');
             });
         },
         style: (css: object): void => {
-            validParent() && Object.entries(css).forEach(item => {
+            Object.entries(css).forEach(item => {
                 const [prop, value] = item;
                 parent.style[prop] = value;
             });
         },
-        toggle: (props: object): any => {
-            validParent() && Object.entries(props).every(prop => {
+        toggle: (props: object): void => {
+            Object.entries(props).every(prop => {
                 const [key, values] = prop;
                 if (Array.isArray(values) && values.length === 2) {
                     const val = parent[key];
@@ -63,7 +71,7 @@ export function el(parent?: AppNode) {
                 return false;
             });
         },
-        when: (type: string, callback: (...arg: any) => void, opt?: 'once') => {
+        when: (type: string, callback: (...arg: any) => void, opt?: 'once'): void => {
             const handler = callback;
 
             if (opt) callback = function () {
@@ -78,51 +86,74 @@ export function el(parent?: AppNode) {
 
 // ========== OBJECTS ========== //
 
-export function obj(obj: object) {
-    return {
-        forEachKey: (cb: (arg) => any) => {
+export function obj(srcObj: object) {
+    const srcClone = Object.assign({}, srcObj);
 
+    return {
+        clone: () => srcClone,
+        delete: (...keys: Array<string>): object => {
+            keys.forEach(key => delete srcClone[key]);
+            return srcClone;
         },
+        //  obj(o).filter('values', val => val.title !== 'Deleted by merging process');
+        filter: (selector: 'keys' | 'values', cb: (arg: any) => any): object => {
+            return Object[selector](srcClone).filter(cb);
+        },
+        forEachEntry: (cb: (...arg: [string, any, number]) => any): void => {
+            Object.entries(srcObj).forEach((entry, idx) => cb(entry[0], entry[1], idx));
+        },
+        forEachKey: (cb: (...arg: [string, number]) => any): void => {
+            Object.keys(srcObj).forEach((key, idx) => cb(key, idx));
+        },
+        mutate: (toObj: object): object => {
+            Object.entries(toObj).forEach(item => {
+                let [srcKey, newItem] = item;
+
+                if (srcObj.hasOwnProperty(srcKey)) {
+                    if (typeof newItem === 'object' && newItem !== null) delete srcClone[srcKey];
+                    else newItem = { [srcKey]: newItem };
+
+                    Object.assign(srcClone, newItem);
+                }
+            });
+
+            return srcClone;
+        },
+        sort: (selector: 'keys' | 'values', cb?: (...arg: Array<[any, any]>) => any): object => {
+            return Object[selector](srcClone).sort(cb || ((a: number, b: number) => a - b));
+        }
     };
 }
 
 // ========== ARRAYS ========== //
 
-export function arr(arr: Array<number>) {
+export function arr(arr: Array<number>): object {
     return {
         sum: (): number => arr.reduce((a, b) => a + b, 0),
     };
 };
 
-export function mutate(srcObj: object, toObj: object): object {
-    const srcClone = Object.assign({}, srcObj);
-
-    Object.entries(toObj).forEach(item => {
-        const srcKey = item[0];
-        let newItem = item[1];
-
-        if (srcObj.hasOwnProperty(srcKey)) {
-            if (typeof newItem === 'object' && newItem !== null) delete srcClone[srcKey];
-            else newItem = { [srcKey]: newItem };
-
-            Object.assign(srcClone, newItem);
-        }
-    });
-
-    return srcClone;
-};
-
 // ========== STRINGS ========== //
 
-export function str(src: string) {
+export function str(src: string): object {
     return {
         splice: (newSubStr: string, idx: number): string => `${src.slice(0, idx)}${newSubStr}${src.slice(idx)}`
     };
 }
 
+export function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const
+            r = Math.random() * 16 | 0,
+            v = c == 'x' ? r : (r & 0x3 | 0x8);
+
+        return v.toString(16);
+    });
+};
+
 // ========== ANIMEJS ========== //
 
-export function animate(timeline: object, arg: object) {}
+export function animate(timeline: object, arg: object) { }
 
 // ========== ALGREBRA ========== //
 
