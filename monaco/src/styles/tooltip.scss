@@ -1,0 +1,30 @@
+#tippie {
+    position: absolute;
+    
+    max-width: 180px;
+    padding: 5px 10px;
+
+    border-radius: 5px;
+
+    font-size: 0.65rem;
+    font-family: 'Share-Tech-Mono';
+
+    background-color: #161616;
+
+    transition: top 0.1s ease-out;
+
+    z-index: 9999;
+
+    .tipHeading {
+        margin-bottom: 5px;
+        font-size: 0.7rem;
+        text-align: center;
+        color: skyblue;
+    }
+
+    .tip {
+        text-align: justify;
+        text-justify: inter-word;
+        color: silver;
+    }
+}

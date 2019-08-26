@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>PAT</title>
+</head>
+<body>
+    <div id='root'>
+        <section id='left-panel'>
+            <section id='top-left-panel'>
+                <div id='codex-editor'></div>
+                <section id='actions-panel'>
+                    <div class='action-unit'>
+                        <h4 class='action-header'>PROJ</h4>
+                        <div class='action-buttons'>
+                            <div id='btn-project-settings'><i class='material-icons'>settings_applications</i></div>
+                            <div id='btn-open-project'><i class='material-icons'>folder_open</i></div>
+                            <div id='btn-save-project'><i class='material-icons'>save</i></div>
+                            <div id='btn-copy-json'><i class='material-icons'>receipt</i></div>
+                            <div id='btn-continue'><i class='material-icons'>unarchive</i></div>
+                        </div>
+                    </div>
+                    <div class='action-unit'>
+                        <h4 class='action-header'>STEP</h4>
+                        <div class='action-buttons'>
+                            <div id='btn-new-step'><i class='material-icons'>add</i></div>
+                            <div id='btn-del-step'><i class='material-icons'>clear</i></div>
+                            <div id='btn-next-step'><i class='material-icons'>skip_next</i></div>
+                            <div id='btn-prev-step'><i class='material-icons'>skip_previous</i></div>
+                            <div id='btn-step-type'><i class='material-icons'>textsms</i></div>
+                            <div id='btn-step-order'><i class='material-icons'>reorder</i></div>
+                        </div>
+                    </div>
+                    <div class='action-unit'>
+                        <h4 class='action-header'>INST</h4>
+                        <div class='action-buttons'>
+                            <div id='btn-template-1'><i class='material-icons'>looks_one</i></div>
+                            <div id='btn-template-2'><i class='material-icons'>looks_two</i></div>
+                            <div id='btn-template-3'><i class='material-icons'>looks_3</i></div>
+                        </div>
+                    </div>
+                    <div class='action-unit'>
+                        <h4 class='action-header'>CODE</h4>
+                        <div class='action-buttons'>
+                            <div id='btn-get-prev'><i class='material-icons'>chevron_right</i></div>
+                            <div id='btn-get-next'><i class='material-icons'>chevron_left</i></div>
+                            <div id='btn-code-mode'><i class='material-icons'>create</i></div>
+                            <div id='btn-toggle-output'><i class='material-icons'>visibility</i></div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+            <div id='preview-panel' class='hidden'></div>
+        </section>
+
+        <section id='code-panel'>
+            <div id='code-tabs'></div>
+            <div id='code-editor'></div>
+        </section>
+    </div>
+<script type="text/javascript" src="main.js?140232c33a0615894305"></script></body>
+</html>

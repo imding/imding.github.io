@@ -32,6 +32,9 @@ export function el(parent: AppNode | string): object {
                 );
             });
         },
+        getStyle: (prop: string): string | number => {
+            return window.getComputedStyle(parent).getPropertyValue(prop);
+        },
         forEachChild: (cb: (...arg: [AppNode, number]) => any): void => {
             Array.from(parent.children).forEach((child: AppNode, idx) => cb(child, idx));
         },
