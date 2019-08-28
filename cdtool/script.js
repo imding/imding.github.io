@@ -755,8 +755,6 @@ function updatePreview() {
     if (!document.querySelector('#preview')) {
         preview = newElement('iframe', { id: 'preview' });
         preview.redraw = () => {
-            const halfHeight = get(taInstruction, 'height') / 2;
-
             preview.style.width = taInstruction.style.width;
             preview.style.height = taInstruction.style.height;
             preview.style.left = taInstruction.style.left;
@@ -767,7 +765,7 @@ function updatePreview() {
         app.appendChild(preview);
     }
 
-    preview.srcdoc = pCode;
+    preview.srcdoc = pCode.replace(/(['"])\s*(\/resources\/)/g, '$1https://app.bsd.education$2');
 }
 
 function noMarkup(str) {
