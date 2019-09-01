@@ -44,7 +44,7 @@ export default function Tooltip(targets: Array<Tooltip>, cfg: TooltipConfig) {
                 containerPosition.left = `${left + width + (cfg.distance || 5) }px`;
             }
 
-            el(tipContainer).style(containerPosition);
+            el(tipContainer).setStyle(containerPosition);
         };
         const removeTooltip = (ev: MouseEvent) => {
             const intoSibling = ev.relatedTarget === tool.nextElementSibling || ev.relatedTarget === tool.previousElementSibling;

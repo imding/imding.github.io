@@ -26,7 +26,7 @@ export default function subMenu(scrollContainer: HTMLElement, groups: Array<SubM
         const attachSubMenu = () => {
             subMenuContainer = el(document.body).addNew('div', { id: 'subMenu' });
 
-            el(subMenuContainer).style({
+            el(subMenuContainer).setStyle({
                 left: `${host.offsetLeft + host.offsetWidth + 5}px`,
                 top: `${host.offsetTop - scrollContainer.scrollTop}px`,
                 opacity: 1
@@ -49,7 +49,7 @@ export default function subMenu(scrollContainer: HTMLElement, groups: Array<SubM
             Tooltip(tipsData, cfg);
         };
         const removeSubMenu = () => {
-            el(subMenuContainer).style({ opacity: 0 });
+            el(subMenuContainer).setStyle({ opacity: 0 });
             subMenuContainer.addEventListener('transitionend', () => document.body.removeChild(el('#subMenu')));
             subMenuContainer = null;
         };

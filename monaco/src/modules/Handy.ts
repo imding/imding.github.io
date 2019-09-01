@@ -1,4 +1,5 @@
 
+
 // ========== ELEMENTS ========== //
 
 export function newEl(type: string, attr?: object): HTMLElement {
@@ -6,7 +7,7 @@ export function newEl(type: string, attr?: object): HTMLElement {
     return newElement;
 }
 
-export function el(indicator: HTMLElement | string, attr?: object): HTMLElement {
+export function el(indicator: HTMLElement | string, attr?: object): any {
     const blue = { color: 'skyblue '};
     const parent = (indicator as HTMLElement);
     const addNew = (indicator: string, attr: object): object => {
@@ -16,7 +17,7 @@ export function el(indicator: HTMLElement | string, attr?: object): HTMLElement 
         addNew: (indicator: string, attr: object): object => {
             return Object.assign(parent.appendChild(newEl(indicator, attr)), addNew);
         },
-        style: (css: object): void => {
+        setStyle: (css: CSSStyleDeclaration): void => {
             Object.entries(css).forEach(item => {
                 const [prop, value] = item;
                 parent.style[prop] = value;
@@ -29,14 +30,14 @@ export function el(indicator: HTMLElement | string, attr?: object): HTMLElement 
             return Object.assign(newEl(indicator, attr), { addNew });
         }
 
-        const query: HTMLElement = document.querySelector(indicator);
+        const query = document.querySelector(indicator);
 
         if (!query) console.warn(...richText([`el('${indicator}')`, blue], ' returned null.'));
         
         return query;
     }
     else {
-        return methods as HTMLElement;
+        return methods;
     }
 
 

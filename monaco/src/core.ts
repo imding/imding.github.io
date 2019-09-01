@@ -22,7 +22,7 @@ import subMenu from './modules/SubMenu';
 // const { el, obj, richText } = require('./modules/Handy');
 const EditorJS = require('@editorjs/editorjs');
 
-//===== SECTION: INITIALISE APP =====//
+//===== INITIALISE APP =====//
 
 const App = {
     root: el('#root'),
@@ -80,7 +80,7 @@ const App = {
 
                     parent.append(subBranch as HTMLElement);
                     console.log(...richText('3. added ', [(subBranch as HTMLElement).id || (subBranch as HTMLElement).className || (subBranch as HTMLElement).tagName, { color: 'skyblue' }], ' to ', [parent.id || parent.className || parent.tagName, { color: 'skyblue' }]));
-                    
+
                     App.populate(subBranch as HTMLElement, leaf);
                 }
             }
@@ -92,7 +92,7 @@ const App = {
     }
 };
 
-//===== SECTION: INITIALISE VARIABLES =====//
+//===== INITIALISE VARIABLES =====//
 
 let missionJson: MissionJSON;
 let stepList = [];
@@ -139,14 +139,18 @@ const modelStateSchema = {
     },
 };
 
-//===== SECTION: LOAD APP =====//
+//===== LOAD APP =====//
 
 window.onload = init;
 
 function init(): void {
+    addFavIcon();
+    assembleAppUI();
+}
 
-    //===== SECTION: ASSIGN FAVICON =====//
+//===== LOAD FAVICON =====//
 
+function addFavIcon() {
     const head = el('head');
     const link = el('link', {
         type: 'image/x-icon',
@@ -155,9 +159,14 @@ function init(): void {
     });
 
     head.append(link);
+}
 
-    //===== SECTION: BUILD DOM =====//
+//===== BUILD DOM =====//
 
+function assembleAppUI() {
+
+    //===== APP UI STRUCTURE =====//
+    
     App.populate(el('#root') as HTMLElement, {
         pnlLeft: [el('section', { id: 'left-panel' }), {
             pnlTopLeft: [el('section', { id: 'top-left-panel' }), {
@@ -176,18 +185,18 @@ function init(): void {
                     stepUnit: [el('div', { className: 'action-unit' }), {
                         stepHeader: el('h4', { innerText: 'STEP' }),
                         stepActions: [el('div', { className: 'action-buttons' }), {
-                            btnNewStep: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'add' }) }],
-                            btnDelStep: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'clear' }) }],
+                            btnNewStep: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'fiber_new' }) }],
+                            btnDelStep: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'delete_forever' }) }],
                             btnNextStep: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'skip_next' }) }],
                             btnPrevStep: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'skip_previous' }) }],
                             btnStepType: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'code' }) }],
-                            btnStepOrder: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'reorder' }) }]
+                            btnStepOrder: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'layers' }) }]
                         }]
                     }],
                     instUnit: [el('div', { className: 'action-unit' }), {
                         instHeader: el('h4', { innerText: 'INST' }),
                         instActions: [el('div', { className: 'action-buttons' }), {
-                            btnTemplates: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'add' }) }]
+                            btnTemplates: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'flash_on' }) }]
                         }]
                     }],
                     codeUnit: [el('div', { className: 'action-unit' }), {
@@ -209,6 +218,8 @@ function init(): void {
             codeContainer: self,
         }]
     });
+
+    //===== TOOLTIP =====//
 
     tooltip([{
         tool: App.UI.btnProjectSettings,
@@ -254,9 +265,35 @@ function init(): void {
         tool: App.UI.btnStepOrder,
         heading: 'order',
         tip: 'click to view and rearrange the order of steps'
+    }, {
+        tool: App.UI.btnTemplates,
+        heading: 'templates',
+        tip: 'click to choose a template'
+    }, {
+        tool: App.UI.btnGetPrev,
+        heading: 'get previous',
+        tip: 'overwrite the current tab with code from the previous step'
+    }, {
+        tool: App.UI.btnGetNext,
+        heading: 'get next',
+        tip: 'overwrite the current tab with code from the next step'
+    }, {
+        tool: App.UI.btnCodeMode,
+        heading: 'mode',
+        tip: 'click to choose the method by which the code for the current tab is defined'
+    }, {
+        tool: App.UI.btnModelAnswers,
+        heading: 'edit answers',
+        tip: 'show and hide the model answer panel'
+    }, {
+        tool: App.UI.btnToggleOutput,
+        heading: 'output',
+        tip: 'show and hide the code output preview panel'
     }], {
             dim: [App.UI.codexContainer]
         });
+
+    //=====  SUBMENU GROUPS =====//
 
     subMenu(App.UI.pnlActions, [{
         host: App.UI.btnStepType,
@@ -278,6 +315,25 @@ function init(): void {
             }
         }
     }, {
+        host: App.UI.btnTemplates,
+        items: {
+            'filter_1': {
+                tipHeading: 'introduction',
+                tip: 'insert introduction step template',
+                handler: () => {}
+            },
+            'filter_2': {
+                tipHeading: 'generic step',
+                tip: 'insert generic step template',
+                handler: () => {}
+            },
+            'filter_3': {
+                tipHeading: 'summary',
+                tip: 'insert summary step template',
+                handler: () => {}
+            }
+        }
+    }, {
         host: App.UI.btnCodeMode,
         items: {
             'create': {
@@ -287,7 +343,7 @@ function init(): void {
             },
             'build': {
                 tipHeading: 'modify content',
-                tip: 'the content of this code tab will be determined by step transition code',
+                tip: 'the content of this code tab will be defined by step transition code',
                 handler: () => { }
             },
             'lock': {
@@ -301,7 +357,7 @@ function init(): void {
             distance: 15,
         });
 
-    //===== SECTION: INITIALISE EDITORS =====//
+    //===== INITIALISE EDITORS =====//
 
     const { codexContainer, codeContainer } = App.UI;
 
@@ -312,5 +368,5 @@ function init(): void {
     App.UI.codeEditor = monaco.editor.create(codeContainer as HTMLElement, { theme: 'vs-dark' });
 }
 
-
+//===== INITIALISE PROJECT CONTENT =====//
 
