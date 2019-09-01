@@ -68,6 +68,10 @@ body {
     color: skyblue;
 }
 
+.active-green {
+    color: greenyellow;
+}
+
 .false-red {
     color: crimson;
 }
@@ -171,7 +175,7 @@ body {
         }
     }
 
-    #preview-panel {
+    #preview {
         height: 225px;
         background-color: silver;
 

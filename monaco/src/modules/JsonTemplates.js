@@ -1,6 +1,19 @@
 
 import { uuidv4 } from '../utils/Handy';
 
+export function newTestJson(cfg) {
+    const { name, type, stepId, testId, orderNo, editableIndex, answer } = cfg;
+
+    return {
+        'title': `On <strong>${type.toUpperCase()} line ##LINE('${name}.${type.toLowerCase()}','KEY')##</strong>, OBJECTIVE.`,
+        'stepId': stepId,
+        'testId': testId || (Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)) + 1).toString(),
+        'orderNo': orderNo,
+        'testFunction': `pass.if.${type.toLowerCase()}.editable(${editableIndex}).equivalent(\`${answer}\`);`,
+        'failureMessage': ''
+    };
+}
+
 export function newStepJson(override) {
     return Object.assign({
         'title': 'Untitled',
@@ -23,12 +36,11 @@ export function newStepJson(override) {
 export function userDetails() {
     return {
         'aun': {
-            'name': 'Pongsit Kittisoranun',
             'id': 'e1c2751b-1e62-40f7-9b26-2dea77ee9332',
+            'name': 'Pongsit Kittisoranun',
             'email': 'pk@bsd.education',
         },
         'siuling': {
-
             'id': '1315b022-3715-4e54-aa31-e917c53fb0be',
             'name': 'Siuling Ding',
             'email': 'sd@bsd.education',

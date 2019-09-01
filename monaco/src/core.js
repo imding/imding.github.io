@@ -27,11 +27,12 @@ import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 // import strip from 'strip-comments';
 // import stripHtmlComments from 'strip-html-comments';
 
-import { el, newEl, obj } from './utils/Handy';
-import HTMLTree from './utils/HTMLTree';
+import { el, newEl, obj, str, richText } from './utils/Handy';
+import HTMLTree from './modules/HTMLTree';
 
-import { newStepJson, newMissionJson } from './modules/JsonTemplates';
+import { newTestJson, newStepJson, newMissionJson } from './modules/JsonTemplates';
 import tooltip from './modules/Tooltip';
+import subMenu from './modules/SubMenu';
 
 //===== SECTION: ASSIGN FAVICON =====//
 
@@ -45,20 +46,26 @@ el(document.querySelector('head')).new('link', {
 
 let missionJson;
 let stepList = [];
+let testList = [];
 let activeStep = 1;
 
 let refreshTimer;
 const refreshDelay = 800;
 
 const fileNamePattern = /\/?(.*)\.(.*)$/;
-
-const codeTemplate = {
-    html: '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<link rel="stylesheet" href="style.css"/>\n\t</head>\n\t<body>\n\n\t\t<h1>Welcome to HTML</h1>\n\n\t\t<script src="script.js"></script>\n\t</body>\n</html>',
-    css: '/* CSS */\n\n* {\n\tmargin: 0;\n\tbox-sizing: border-box;\n}\n',
-    js: '// JavaScript\n\nwindow.onload = init;\n\nfunction init() {}\n',
+//  the 'positive lookbehind' syntax has limited compatibility
+const editablePattern = {
+    excludingMarkup: /(?<=#BEGIN_EDITABLE#)[\s\S]*?(?=#END_EDITABLE#)/g,
+    includingMarkup: /#BEGIN_EDITABLE#([\s\S]*?)#END_EDITABLE#/g
 };
 
-const codeModelStates = {
+const codeTemplate = {
+    html: '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<link rel="stylesheet" href="style.css"/>\n\t</head>\n\t<body>\n\n\t\t#BEGIN_EDITABLE#<h1>Welcome to HTML</h1>#END_EDITABLE#\n\n\t\t<script src="script.js"></script>\n\t</body>\n</html>',
+    css: '/* CSS */\n\n* {\n\t#BEGIN_EDITABLE#margin: 0;#END_EDITABLE#\n\tbox-sizing: border-box;\n}\n',
+    js: '// JavaScript\n\n#BEGIN_EDITABLE#window.onload = init;#END_EDITABLE#\n\nfunction init() {}\n',
+};
+
+const modelStateSchema = {
     html: {
         'index': {
             model: monaco.editor.createModel(codeTemplate.html, 'html'),
@@ -121,6 +128,8 @@ function initApp() {
         btnTemplate3: el('#btn-template-3'),
 
         //  code buttons
+        btnCodeMode: el('#btn-code-mode'),
+        btnModelAnswers: el('#btn-model-answers'),
         btnToggleOutput: el('#btn-toggle-output'),
 
         //  panels
@@ -129,8 +138,8 @@ function initApp() {
 
         //  code panel
         codeTabs: el('#code-tabs'),
-        codeContainer: el('#code-editor'),
         codeEditor: monaco.editor.create(el('#code-editor'), { theme: 'vs-dark' }),
+        diffEditor: null,
     });
 
     //===== SECTION: INITIALISE PROJECT CONTENT =====//
@@ -146,9 +155,10 @@ function initApp() {
         loadStepContents(1);
     });
 
+
     //===== SECTION: UI EVENTS =====//
 
-    window.onresize = () => codeEditor.layout();
+    window.onresize = () => (codeEditor || diffEditor).layout();
 
     btnOpenProject.onclick = () => {
         const fileToLoad = newEl('input', { type: 'file', accept: '.json' });
@@ -172,6 +182,13 @@ function initApp() {
         btnNextStep.click();
     };
 
+    btnDelStep.onclick = () => {
+        if (stepList.length === 1) return alert('Failed to delete step, a project must have at least 1 step.');
+
+        stepList.splice(activeStep - 1, 1);
+        loadStepContents(Math.min(activeStep, stepList.length));
+    };
+
     btnNextStep.onclick = () => goToStep(activeStep + 1);
 
     btnPrevStep.onclick = () => goToStep(activeStep - 1);
@@ -179,6 +196,48 @@ function initApp() {
     btnTemplate1.onclick = () => {
         console.log(codexEditor.save());
         console.log(stepList);
+    };
+
+    btnModelAnswers.onclick = () => {
+        //  this handler assumes the code content includes at least one valid editable markup
+        //  this button should be disabled otherwise
+        const { stepIndex, stepJson } = parseStepJson(activeStep);
+
+        if (stepJson.type === 'code') {
+            const { fileName, fileType } = codeTabs.active;
+            const fileFullName = `${fileName}.${fileType}`;
+
+            btnModelAnswers.firstElementChild.classList.toggle('active-green');
+
+            storeTabData();
+
+            if (codeEditor) {
+                //  must dispose editor before creating another
+                const originalModel = codeEditor.getModel();
+
+                codeEditor.dispose();
+                codeEditor = null;
+
+                const codeWithAnswers = getModelCode(codeTabs.active);
+
+                diffEditor = monaco.editor.createDiffEditor(el('#code-editor'));
+                diffEditor.setModel({
+                    original: originalModel,
+                    modified: monaco.editor.createModel(codeWithAnswers, getTypeString(fileType)),
+                });
+            }
+            else {
+                //  must dispose editor before creating another
+                const diffModel = diffEditor.getModel();
+
+                diffEditor.dispose();
+                diffEditor = null;
+
+                codeEditor = monaco.editor.create(el('#code-editor'), { theme: 'vs-dark' });
+                codeEditor.setModel(diffModel.original);
+            }
+        }
+        else console.warn('The current step type does not support model answers.');
     };
 
     btnToggleOutput.onclick = () => {
@@ -200,51 +259,97 @@ function initApp() {
 
     //===== SECTION: TOOLTIPS =====//
 
-    tooltip(
-        {
-            tool: btnProjectSettings,
-            heading: 'settings',
-            tip: 'view and edit project level settings'
-        }, {
-            tool: btnOpenProject,
-            heading: 'open',
-            tip: 'open project from a JSON file containing a valid mission data structure'
-        }, {
-            tool: btnSaveProject,
-            heading: 'save',
-            tip: 'save the current project to disk as a JSON file'
-        }, {
-            tool: btnCopyJson,
-            heading: 'copy json',
-            tip: 'can be used with the "Import JSON" feature on the BSD Online'
-        }, {
-            tool: btnContinue,
-            heading: 'continue',
-            tip: 'load a project from local storage, doing so will overwite the current project'
-        }, {
-            tool: btnNewStep,
-            heading: 'new',
-            tip: 'create a new step after the current step and display it'
-        }, {
-            tool: btnDelStep,
-            heading: 'delete',
-            tip: 'delete the current step and display the next step'
-        }, {
-            tool: btnNextStep,
-            heading: 'next',
-            tip: 'move to the next step'
-        }, {
-            tool: btnPrevStep,
-            heading: 'previous',
-            tip: 'move to the previous step'
-        }, {
-            tool: btnStepType,
-            heading: 'type',
-            tip: 'click to change the type of the current step'
-        }, {
-            tool: btnStepOrder,
-            heading: 'order',
-            tip: 'click to view and rearrange the order of steps'
+    tooltip([{
+        tool: btnProjectSettings,
+        heading: 'settings',
+        tip: 'view and edit project level settings'
+    }, {
+        tool: btnOpenProject,
+        heading: 'open',
+        tip: 'open project from a JSON file containing a valid mission data structure'
+    }, {
+        tool: btnSaveProject,
+        heading: 'save',
+        tip: 'save the current project to disk as a JSON file'
+    }, {
+        tool: btnCopyJson,
+        heading: 'copy json',
+        tip: 'can be used with the "Import JSON" feature on the BSD Online'
+    }, {
+        tool: btnContinue,
+        heading: 'continue',
+        tip: 'load a project from local storage, doing so will overwite the current project'
+    }, {
+        tool: btnNewStep,
+        heading: 'new',
+        tip: 'create a new step after the current step and display it'
+    }, {
+        tool: btnDelStep,
+        heading: 'delete',
+        tip: 'delete the current step and display the next step'
+    }, {
+        tool: btnNextStep,
+        heading: 'next',
+        tip: 'move to the next step'
+    }, {
+        tool: btnPrevStep,
+        heading: 'previous',
+        tip: 'move to the previous step'
+    }, {
+        tool: btnStepType,
+        heading: 'type',
+        tip: 'click to change the type of the current step'
+    }, {
+        tool: btnStepOrder,
+        heading: 'order',
+        tip: 'click to view and rearrange the order of steps'
+    }], {
+            dim: codexContainer
+        });
+
+    //===== SECTION: SUBMENU =====//
+
+    subMenu([{
+        host: btnStepType,
+        items: {
+            'assignment': {
+                tipHeading: 'text',
+                tip: 'text steps are ready-only and no interaction is required from the learner',
+                handler: () => { }
+            },
+            'code': {
+                tipHeading: 'code',
+                tip: 'code steps can contain editables where the learner can write code',
+                handler: () => { }
+            },
+            'extension': {
+                tipHeading: 'interactive',
+                tip: 'the code panel is hidden in interactive steps and the learner is expected to interact with the output',
+                handler: () => { }
+            }
+        }
+    }, {
+        host: btnCodeMode,
+        items: {
+            'create': {
+                tipHeading: 'use new content',
+                tip: 'define the content of the current code tab from scratch',
+                handler: () => { }
+            },
+            'build': {
+                tipHeading: 'modify content',
+                tip: 'the content of this code tab will be determined by step transition code',
+                handler: () => { }
+            },
+            'lock': {
+                tipHeading: 'leave unchanged',
+                tip: 'the content of this code tab will be the same as the previous step',
+                handler: () => { }
+            }
+        }
+    }], {
+            placement: 'right',
+            distance: 15,
         });
 }
 
@@ -285,32 +390,34 @@ function loadFromLocal() {
         return project;
     });
 
+    if (projects.length === 0) return alert('There is no locally stored project.');
+
     const userChoice = prompt(options);
 
     if (userChoice >= 0 && userChoice <= projects.length) {
         //  reset codeModelStates
-        obj(codeModelStates).forEachKey(type => delete codeModelStates[type]);
+        obj(modelStateSchema).forEachKey(type => delete modelStateSchema[type]);
 
         missionJson = projects[userChoice - 1];
 
         stepList = obj(missionJson.steps).sort('values', (a, b) => a.orderNo - b.orderNo);
 
         //  clear file schema before loading a new project
-        obj(codeModelStates).forEachKey(type => delete codeModelStates[type]);
+        obj(modelStateSchema).forEachKey(type => delete modelStateSchema[type]);
 
         obj(stepList[0].files).forEachEntry((fileFullName, file) => {
             const [name, type] = fileFullName.split('.');
             const { contents } = file;
 
             //  build model state for first step
-            codeModelStates[type] ? null : codeModelStates[type] = {};
-            codeModelStates[type][name] = {
-                model: monaco.editor.createModel(contents, type.replace(/^js$/, 'javascript')),
+            modelStateSchema[type] ? null : modelStateSchema[type] = {};
+            modelStateSchema[type][name] = {
+                model: monaco.editor.createModel(contents, getTypeString(type)),
                 state: null,
             };
         });
 
-        codeEditor.setModel(codeModelStates.html['index'].model);
+        codeEditor.setModel(modelStateSchema.html['index'].model);
 
         refreshOutput();
     }
@@ -321,28 +428,33 @@ function loadFromLocal() {
 
 function createNewStep(override = {}) {
     //  conver schema to json
-    const schemaJson = {};
+    const filesJson = {};
+    const testsJson = {};
 
-    obj(codeModelStates).forEachEntry((type, files) => {
+    obj(modelStateSchema).forEachEntry((type, files) => {
         obj(files).forEachKey(name => {
             const contents = codeTemplate[type];
+            const fileFullName = `${name}.${type}`;
+            const { answers, tests } = answerAndTestFrom(contents, name, type);
 
-            schemaJson[`${name}.${type}`] = {
-                answers: [],
+            filesJson[fileFullName] = {
+                answers,
                 contents,
                 mode: 'new_content',
             };
 
-            codeModelStates[type][name] = {
-                model: monaco.editor.createModel(contents, type.replace(/^js$/, 'javascript')),
+            testsJson[fileFullName] = tests;
+
+            modelStateSchema[type][name] = {
+                model: monaco.editor.createModel(contents, getTypeString(type)),
                 state: null,
             };
         });
     });
 
     //  use schema as base file structure of the new step
-    //  mutate it with override if exists
-    override.files = obj(schemaJson).mutate(override.files || {});
+    //  mutate it with override.files if exists
+    override.files = obj(filesJson).mutate(override.files || {});
 
     const stepJson = newStepJson(override);
     const existingStepIds = stepList.map(step => step.stepId);
@@ -352,46 +464,45 @@ function createNewStep(override = {}) {
     }
 
     stepList.splice(activeStep, 0, stepJson);
+    testList.splice(activeStep, 0, testsJson);
 }
 
-function storeStepContents(instructions) {
-    const { stepIndex, stepHasCode } = getStepInfo(activeStep);
+function storeStepContents(n) {
+    const { stepIndex, stepHasCode } = parseStepJson(n);
 
     //  store instructions in current step
-    if (instructions.length) {
-        stepList[stepIndex].title = instructions.shift().data.text;
+    return codexEditor.save().then(contents => {
+        const instructions = contents.blocks;
 
-        const contentKey = stepHasCode ? 'instructions' : 'text';
-        const stepContent = instructions.map(block => `<p>${block.data.text}</p>`).join('');
-
-        stepList[stepIndex].content[contentKey] = stepContent;
-    }
-
-    //  store code in the active tab of the current step
-    if (stepHasCode) {
-        storeTabModelState(codeTabs.active);
-
-        obj(stepList[stepIndex].files).forEachKey(fileName => {
-            const [_, name, type] = fileName.match(fileNamePattern);
-            const contents = codeModelStates[type][name].model.getValue();
-            stepList[stepIndex].files[fileName].contents = contents;
-        });
-
-        // obj(codeModelStates).forEachEntry((type, files) => {
-        //     obj(files).forEachKey(name => {
-        //         const contents = codeModelStates[type][name].model.getValue();
-        //         stepList[stepIndex].files[`${name}.${type}`].contents = contents;
-        //     });
-        // });
-    }
-
-    return {
-        then: cb => cb()
-    };
+        if (instructions.length) {
+            stepList[stepIndex].title = instructions.shift().data.text;
+    
+            const contentKey = stepHasCode ? 'instructions' : 'text';
+            const stepContent = instructions.map(block => `<p>${block.data.text}</p>`).join('');
+    
+            stepList[stepIndex].content[contentKey] = stepContent;
+        }
+    
+        //  store code in the active tab of the current step
+        if (stepHasCode) {
+            storeTabData();
+    
+            obj(stepList[stepIndex].files).forEachKey(fileFullName => {
+                const [_, name, type] = fileFullName.match(fileNamePattern);
+                const contents = modelStateSchema[type][name].model.getValue();
+    
+                stepList[stepIndex].files[fileFullName].contents = contents;
+            });
+        }
+    
+        return {
+            then: cb => cb()
+        };
+    });
 }
 
 function loadStepContents(n) {
-    const { stepIndex, stepHasCode, stepJson } = getStepInfo(n);
+    const { stepIndex, stepHasCode, stepJson } = parseStepJson(n);
 
     loadStepInstructions(stepJson, stepHasCode);
 
@@ -417,12 +528,10 @@ function goToStep(n) {
         return console.warn(`There is no step ${n}`);
     }
 
-    codexEditor.save().then(contents => {
-        storeStepContents(contents.blocks).then(() => loadStepContents(n));
-    });
+    storeStepContents(activeStep).then(() => loadStepContents(n));
 }
 
-function getStepInfo(n) {
+function parseStepJson(n) {
     const stepInfo = { stepIndex: n - 1 };
 
     stepInfo.stepJson = stepList[stepInfo.stepIndex];
@@ -476,7 +585,7 @@ function refreshOutput(now = true) {
     if (!pnlPreview.iframe) return;
 
     const refresh = () => {
-        let srcHtml = Object.values(codeModelStates.html)[0].model.getValue();
+        let srcHtml = Object.values(modelStateSchema.html)[0].model.getValue();
         const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
 
         linkAndScript.forEach(node => {
@@ -491,17 +600,17 @@ function refreshOutput(now = true) {
             const attrValue = node.openingTag.attrs.filter(attr => attr.name === attrType)[0].value;
             const [_, name, type] = attrValue.match(fileNamePattern);
 
-            if (!codeModelStates[type]) return;
-            if (!codeModelStates[type][name]) return;
+            if (!modelStateSchema[type]) return;
+            if (!modelStateSchema[type][name]) return;
 
             const replacement =
                 type === 'css' ?
                     [node.openingTag.raw,
-                    `<style>${codeModelStates[type][name].model.getValue()}</style>`]
+                    `<style>${modelStateSchema[type][name].model.getValue()}</style>`]
                     :
                     type === 'js' ?
                         [`${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`,
-                        `<script>${codeModelStates[type][name].model.getValue()}</script>`]
+                        `<script>${modelStateSchema[type][name].model.getValue()}</script>`]
                         :
                         [];
 
@@ -522,45 +631,13 @@ function refreshOutput(now = true) {
     refreshTimer = setTimeout(refresh, refreshDelay);
 }
 
-//===== SECTION: CODE EDITOR OPERATIONS =====//
-
-function loadStepCode(stepJson, stepIndex) {
-    //  unpack all types of files in model & state schema
-    obj(codeModelStates).forEachEntry((type, files) => {
-        obj(files).forEachKey(name => {
-            const fileUnchanged = !stepJson.files.hasOwnProperty(`${name}.${type}`);
-            let contents;
-
-            if (fileUnchanged) {
-                let idx = stepIndex - 1;
-
-                do {
-                    //  loop through earlier steps to find user defined code contents
-                    //  i.e. unchanged or modify
-                    if (stepList[idx].files.hasOwnProperty(`${name}.${type}`)) {
-                        contents = stepList[idx].files[`${name}.${type}`].contents;
-                    }
-                }
-                while (!contents && idx-- >= 1);
-            }
-            else contents = stepJson.files[`${name}.${type}`].contents;
-
-            codeModelStates[type][name] = {
-                model: monaco.editor.createModel(contents, type.replace(/^js$/, 'javascript')),
-                state: null,
-            };
-        });
-    });
-
-    //  update code editor tabs
-    populateTabs(`active:${stepJson.content.startTab || 'index.html'}`);
-}
+//===== SECTION: CODE OPERATIONS =====//
 
 function populateTabs(active) {
     el(codeTabs).remove(...codeTabs.children);
 
     //  unpack the models & states in the current step
-    obj(codeModelStates).forEachEntry((fileType, filesData) => {
+    obj(modelStateSchema).forEachEntry((fileType, filesData) => {
         //  unpack the model & state for each file
         obj(filesData).forEachKey(fileName => {
             const fileFullName = `${fileName}.${fileType}`;
@@ -569,9 +646,10 @@ function populateTabs(active) {
 
             tab.fileType = fileType;
             tab.fileName = fileName;
+            tab.fileFullName = `${fileName}.${fileType}`;
             tab.onclick = changeTab;
 
-            if (isActive) loadTabModelState(tab);
+            if (isActive) loadTabData(tab);
         });
     });
 
@@ -581,30 +659,105 @@ function populateTabs(active) {
 function changeTab() {
     const targetTab = event.target;
 
-    //  store current tab model & state
-    storeTabModelState(codeTabs.active);
+    storeTabData();
 
     //  toggle the "active" class name on current and target tabs
     codeTabs.active.classList.remove('active');
     targetTab.classList.add('active');
 
-    //  load target tab model & state
-    loadTabModelState(targetTab);
+    loadTabData(targetTab);
 
-    codeEditor.focus();
+    (codeEditor || diffEditor).focus();
 }
 
-function storeTabModelState(tab) {
-    codeModelStates[tab.fileType][tab.fileName] = {
-        model: codeEditor.getModel(),
-        state: codeEditor.saveViewState(),
-    };
+function loadStepCode(stepJson, stepIndex) {
+    //  unpack all types of files in model & state schema
+    obj(modelStateSchema).forEachEntry((type, files) => {
+        obj(files).forEachKey(name => {
+            const fileFullName = `${name}.${type}`;
+            const fileUnchanged = !stepJson.files.hasOwnProperty(fileFullName);
+            let contents;
+
+            if (fileUnchanged) {
+                let idx = stepIndex - 1;
+
+                do {
+                    //  loop through earlier steps to find user defined code contents
+                    //  i.e. unchanged or modify
+                    if (stepList[idx].files.hasOwnProperty(fileFullName)) {
+                        contents = stepList[idx].files[fileFullName].contents;
+                    }
+                }
+                while (!contents && idx-- >= 1);
+            }
+            else contents = stepJson.files[fileFullName].contents;
+
+            modelStateSchema[type][name] = {
+                model: monaco.editor.createModel(contents, getTypeString(type)),
+                state: null
+            };
+        });
+    });
+
+    //  update code editor tabs
+    populateTabs(`active:${stepJson.content.startTab || 'index.html'}`);
 }
 
-function loadTabModelState(tab) {
-    const targetTabData = codeModelStates[tab.fileType][tab.fileName];
-    codeEditor.setModel(targetTabData.model);
-    codeEditor.restoreViewState(targetTabData.state);
+function answerAndTestFrom(code, name, type) {
+    const answers = code.match(editablePattern.excludingMarkup);
+    const tests = answers.map((answer, idx) => {
+        return { answer, name, type, editableIndex: idx };
+    });
+
+    return { answers, tests };
+}
+
+function getModelCode(tab) {
+    const stepIndex = activeStep - 1;
+    const { fileName, fileType, fileFullName } = tab;
+    const authorCode = modelStateSchema[fileType][fileName].model.getValue();
+
+    return authorCode.split(editablePattern.excludingMarkup).map((chunk, idx) => {
+        const answer = stepList[stepIndex].files[fileFullName].answers[idx];
+        return answer ? `${chunk}${answer}` : chunk;
+    }).join('');
+}
+
+function storeTabData() {
+    const { fileName, fileType, fileFullName } = codeTabs.active;
+
+    if (codeEditor) {
+        modelStateSchema[fileType][fileName] = {
+            model: codeEditor.getModel(),
+            state: codeEditor.saveViewState(),
+        };
+    }
+    else {
+        const stepIndex = activeStep - 1;
+        const codeWithAnswers = diffEditor.getModel().modified.getValue();
+        const { answers, tests } = answerAndTestFrom(codeWithAnswers, fileName, fileType);
+
+        stepList[stepIndex].files[fileFullName].answers = answers;
+        testList[stepIndex][fileFullName] = tests;
+    }
+}
+
+function loadTabData(tab) {
+    const targetTabData = modelStateSchema[tab.fileType][tab.fileName];
+
+    if (codeEditor) {
+        codeEditor.setModel(targetTabData.model);
+        codeEditor.restoreViewState(targetTabData.state);
+    }
+    else {
+        const codeWithAnswers = getModelCode(tab);
+
+        diffEditor.setModel({
+            original: targetTabData.model,
+            modified: monaco.editor.createModel(codeWithAnswers, getTypeString(tab.fileType))
+        });
+    }
+
     codeTabs.active = tab;
 }
 
@@ -618,6 +771,10 @@ function disableCodeEditor(msg) {
 
     codeEditor.setModel(monaco.editor.createModel(msg));
     codeEditor.updateOptions({ readOnly: true });
+}
+
+function getTypeString(string) {
+    return string.replace(/^js$/, 'javascript');
 }
 
 

@@ -1,7 +1,7 @@
 {
   "name": "monaco",
   "version": "0.0.1",
-  "description": "BSD Content Authoring Tool",
+  "description": "EditorJS + Monaco",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --open",
@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "monaco-editor": "^0.17.1",
+    "seedrandom": "^3.0.3",
     "strip-comments": "^1.0.2",
     "strip-html-comments": "^1.0.0"
   },

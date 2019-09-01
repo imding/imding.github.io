@@ -5,7 +5,7 @@ const path = require('path');
 
 module.exports = {
   mode: 'development',
-  entry: './src/core.js',
+  entry: './src/core.ts',
   devServer: {
     port: 8000
   },
@@ -14,13 +14,12 @@ module.exports = {
     chunkFilename: './chunks/[id].js',
     path: path.resolve(__dirname, 'dist')
   },
-
   module: {
     rules: [{
       test: /\.(sa|sc|c)ss$/,
       use: ['style-loader', 'css-loader', 'sass-loader',]
     }, {
-      test: /\.tsx?$/,
+      test: /\.ts$/,
       use: 'ts-loader'
     }, {
       test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,

@@ -1,5 +1,9 @@
 {
     "compilerOptions": {
-        "sourceMap": true
-    }
+        "module": "commonjs",
+        "lib": [
+            "dom",
+            "es6"
+        ]
+    },
 }

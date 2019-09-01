@@ -1,0 +1,25 @@
+#subMenu {
+    position: absolute;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: #333;
+    background-color: gainsboro;
+    transition: opacity 0.2s ease-out;    
+    opacity: 0;
+    z-index: 9999;
+
+    div {
+        padding: 6px 0 2px;
+        transition: color 0.1s ease-in-out;
+        
+        &:hover {
+            cursor: pointer;
+            color: royalblue;
+        }
+
+        i {
+            font-size: 1.2rem;
+            pointer-events: none;
+        }
+    }
+}
