@@ -791,7 +791,7 @@ class Pipeline {
                             sCss(cardEditGroup, { height: cardEditGroup.fullHeight });
                         }
 
-                        if (cardEditGroup.collapsed = !cardEditGroup.collapsed) {
+                        if ((cardEditGroup.collapsed = !cardEditGroup.collapsed)) {
                             minMaxIcon.className = 'fa fa-window-maximize';
                             sCss(cardEditGroup, { height: `${gCss(cardTitleInput).height + 20}px` });
                         }
@@ -1280,7 +1280,7 @@ class Pipeline {
 
         let match;
 
-        while (match = regex.exec(url)) {
+        while ((match = regex.exec(url))) {
             params[match[1]] = match[2];
         }
 
