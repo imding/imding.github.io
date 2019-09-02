@@ -17,6 +17,12 @@ export function el(indicator: HTMLElement | string, attr?: object): any {
         addNew: (indicator: string, attr: object): object => {
             return Object.assign(parent.appendChild(newEl(indicator, attr)), addNew);
         },
+        forEachChild: (cb: (...arg: [HTMLElement, number]) => any): void => {
+            Array.from(parent.children).forEach((child: HTMLElement, idx) => cb(child, idx));
+        },
+        remove: (...arr: Array<HTMLElement>): void => {
+            arr.forEach(child => parent.removeChild(child));
+        },
         setStyle: (css: CSSStyleDeclaration): void => {
             Object.entries(css).forEach(item => {
                 const [prop, value] = item;
@@ -63,15 +69,15 @@ export function el(indicator: HTMLElement | string, attr?: object): any {
     //     getStyle: (prop: string): string | number => {
     //         return window.getComputedStyle(parent).getPropertyValue(prop);
     //     },
-    //     forEachChild: (cb: (...arg: [HTMLElement, number]) => any): void => {
-    //         Array.from(parent.children).forEach((child: HTMLElement, idx) => cb(child, idx));
-    //     },
+        // forEachChild: (cb: (...arg: [HTMLElement, number]) => any): void => {
+        //     Array.from(parent.children).forEach((child: HTMLElement, idx) => cb(child, idx));
+        // },
     //     new: (type: string, attr?: object): HTMLElement => {
     //         return parent.appendChild(newEl(type, attr));
     //     },
-    //     remove: (...arr: Array<HTMLElement>): void => {
-    //         arr.forEach(child => parent.removeChild(child));
-    //     },
+        // remove: (...arr: Array<HTMLElement>): void => {
+        //     arr.forEach(child => parent.removeChild(child));
+        // },
     //     removeStyle: (...props: Array<string>): void => {
     //         props.forEach(prop => {
     //             parent.style.removeProperty(prop);
@@ -127,7 +133,11 @@ export function obj(srcObj: object) {
             return srcClone;
         },
         //  obj(o).filter('values', val => val.title !== 'Deleted by merging process');
-        filter: (selector: 'keys' | 'values', cb: (arg: any) => any): object => {
+        /**
+         * - remove properties in source object based on input algorithm
+         * @returns source object as array
+         */
+        filter: (selector: 'keys' | 'values', cb: (arg: any) => any): Array<any> => {
             return Object[selector](srcClone).filter(cb);
         },
         forEachEntry: (cb: (...arg: [string, any, number]) => any): void => {
@@ -150,7 +160,7 @@ export function obj(srcObj: object) {
 
             return srcClone;
         },
-        sort: (selector: 'keys' | 'values', cb?: (...arg: Array<[any, any]>) => any): object => {
+        sort: (selector: 'keys' | 'values', cb?: (...arg: [any, any]) => any): Array<any> => {
             return Object[selector](srcClone).sort(cb || ((a: number, b: number) => a - b));
         }
     };
@@ -158,8 +168,9 @@ export function obj(srcObj: object) {
 
 // ========== ARRAYS ========== //
 
-export function arr(arr: Array<number>): object {
+export function arr(arr: Array<any>) {
     return {
+
         sum: (): number => arr.reduce((a, b) => a + b, 0),
     };
 };

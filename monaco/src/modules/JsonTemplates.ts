@@ -24,7 +24,7 @@ export function newTestJson(cfg: TestConfig) {
     };
 }
 
-export function newStepJson(override: object) {
+export function newStepJson(override: StepJsonOverride) {
     return Object.assign({
         'title': 'Untitled',
         'type': 'code',
@@ -58,7 +58,7 @@ export function userDetails() {
     };
 }
 
-export function newMissionJson(override: object) {
+export function newMissionJson(override: MissionJsonOverride) {
     return Object.assign({
         'missionUuid': uuidv4(),
         'settings': {

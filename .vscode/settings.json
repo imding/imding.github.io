@@ -1,3 +1,11 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "todohighlight.keywords": [
+        {
+            "text": "//=====",
+            "color": "gainsboro",
+            "backgroundColor": "indigo",
+            "isWholeLine": true,
+        }
+    ],
 }

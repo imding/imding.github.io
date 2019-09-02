@@ -21,7 +21,8 @@ export default function Tooltip(targets: Array<Tooltip>, cfg: TooltipConfig) {
 
     targets.forEach((target: Tooltip) => {
         const [tool, tipHeadingText, tipText] = Object.values(target);
-        const attachTooltip = () => {
+
+        tool.attachTooltip = () => {
             if (!tipContainer) {
                 tipContainer = el(document.body).addNew('div', { id: 'tippie' });
                 heading = newEl('h4', { className: 'tipHeading' });
@@ -46,17 +47,22 @@ export default function Tooltip(targets: Array<Tooltip>, cfg: TooltipConfig) {
 
             el(tipContainer).setStyle(containerPosition);
         };
-        const removeTooltip = (ev: MouseEvent) => {
-            const intoSibling = ev.relatedTarget === tool.nextElementSibling || ev.relatedTarget === tool.previousElementSibling;
 
-            if (!intoSibling) {
+        tool.removeTooltip = (ev: MouseEvent) => {
+            const remove = () => {
                 cfg.dim.forEach(element => element.classList.toggle('dim'));
                 tipContainer.parentNode.removeChild(tipContainer);
                 tipContainer = null;
-            }
-        };
+            };
 
-        tool.addEventListener('mouseenter', attachTooltip);
-        tool.addEventListener('mouseout', removeTooltip);
+            if (ev.type === 'mouseout') {
+                const intoSibling = ev.relatedTarget === tool.nextElementSibling || ev.relatedTarget === tool.previousElementSibling;
+                intoSibling ? null : remove();
+            }
+            else remove();
+        }
+
+        tool.addEventListener('mouseenter', tool.attachTooltip);
+        tool.addEventListener('mouseout', tool.removeTooltip);
     });
 }

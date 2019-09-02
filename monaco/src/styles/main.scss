@@ -171,11 +171,16 @@ body {
                         pointer-events: none;
                     }
                 }
+
+                .disabled {
+                    opacity: 0.5;
+                    pointer-events: none;
+                }
             }
         }
     }
 
-    #preview {
+    #preview-panel {
         height: 225px;
         background-color: silver;
 
@@ -195,6 +200,8 @@ body {
     grid-template-rows:
         /* tabs panel height */   30px
         /* code editor height */  calc(100vh - 30px);
+
+    transition: opacity 0.2s ease-in-out;
 
     #code-tabs {
         grid-gap: 1px;

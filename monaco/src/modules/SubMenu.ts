@@ -20,11 +20,10 @@ interface SubMenuGroup {
 export default function subMenu(scrollContainer: HTMLElement, groups: Array<SubMenuGroup>, cfg: TooltipConfig) {
     groups.forEach(group => {
         let subMenuContainer: HTMLElement;
-        let ele: Element;
         const { host, items } = group;
         const tipsData = [];
         const attachSubMenu = () => {
-            subMenuContainer = el(document.body).addNew('div', { id: 'subMenu' });
+            subMenuContainer = el(document.body).addNew('div', { className: 'subMenu' });
 
             el(subMenuContainer).setStyle({
                 left: `${host.offsetLeft + host.offsetWidth + 5}px`,
@@ -42,7 +41,12 @@ export default function subMenu(scrollContainer: HTMLElement, groups: Array<SubM
                 button.append(icon);
                 subMenuContainer.append(button);
                 
-                button.onclick = handler;
+                button.onclick = (ev: MouseEvent) => {
+                    button.removeTooltip(ev);
+                    removeSubMenu();
+                    handler();
+                };
+                
                 tipsData.push({ tool: button, heading: tipHeading, tip });
             });
 
@@ -50,7 +54,7 @@ export default function subMenu(scrollContainer: HTMLElement, groups: Array<SubM
         };
         const removeSubMenu = () => {
             el(subMenuContainer).setStyle({ opacity: 0 });
-            subMenuContainer.addEventListener('transitionend', () => document.body.removeChild(el('#subMenu')));
+            subMenuContainer.addEventListener('transitionend', () => document.body.removeChild(event.target as HTMLElement));
             subMenuContainer = null;
         };
 
