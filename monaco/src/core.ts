@@ -23,16 +23,10 @@ import HTMLTree from './modules/HTMLTree';
 // const { el, obj, richText } = require('./modules/Handy');
 const EditorJS = require('./components/editor');
 
-//===== INITIALISE APP =====//
+//===== APP MODULES =====//
 
 const App = {
     root: el('#root'),
-    stepCodeCache: {},
-    Editors: {
-        codexEditor: null,
-        codeEditor: null,
-        diffEditor: null
-    },
     UI: {
         codexContainer: el('div', { id: 'codex-editor' }),
 
@@ -103,32 +97,51 @@ const App = {
     }
 };
 
-//===== INITIALISE VARIABLES =====//
+let codexEditor = null;
+let codeEditor = null;
+let diffEditor = null;
+
+//===== MEMORY MODULES =====//
 
 let missionJson: MissionJson;
 let stepList = [];
 let testList = [];
 let activeStep = 1;
 
+const stepCodeCache = {};
+
 let refreshTimer;
 const refreshDelay = 800;
 
-// const rng = seedrandom('vital');
-
-const fileNamePattern = /\/?(.*)\.(.*)$/;
-
-//  the 'positive lookbehind' syntax has limited compatibility
 const editablePattern = {
+    //  the 'positive lookbehind' syntax has limited compatibility
     excludingMarkup: /(?<=#BEGIN_EDITABLE#)[\s\S]*?(?=#END_EDITABLE#)/g,
     includingMarkup: /#BEGIN_EDITABLE#([\s\S]*?)#END_EDITABLE#/g
 };
 
 const codeTemplate = {
-    html: '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<link rel="stylesheet" href="style.css"/>\n\t</head>\n\t<body>\n\n\t\t#BEGIN_EDITABLE#<h1>Welcome to HTML</h1>#END_EDITABLE#\n\n\t\t<script src="script.js"></script>\n\t</body>\n</html>',
-    css: '/* CSS */\n\n* {\n\t#BEGIN_EDITABLE#margin: 0;#END_EDITABLE#\n\tbox-sizing: border-box;\n}\n',
-    js: '// JavaScript\n\n#BEGIN_EDITABLE#window.onload = init;#END_EDITABLE#\n\nfunction init() {}\n',
+    html: '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<link rel="stylesheet" href="style.css"/>\n\t</head>\n\t<body>\n\n\t\t<h1>Welcome to HTML</h1>\n\n\t\t#BEGIN_EDITABLE#    #END_EDITABLE#\n\n\t\t<script src="script.js"></script>\n\t</body>\n</html>',
+    css: '/* CSS */\n\n* {\n\tmargin: 0;\n\tbox-sizing: border-box;\n\t#BEGIN_EDITABLE#    #END_EDITABLE#\n}\n',
+    js: '// JavaScript\n\nwindow.onload = init;\n\nfunction init() {}\n',
     transition: '// Transition:\nreturn `${codeWithoutMarkup}#BEGIN_EDITABLE##END_EDITABLE#`;\n// let output = codeWithoutMarkup; //.replace(/\s*<!--.*-->/g,\'\');\n// output = insertLine(output, \'key\', { line: \'\', offset: 0 });\n// output = makeEditableBlock(output, \'key\');\n// return output;'
 };
+
+const modeTypes = {
+    newContents: 'new_contents',
+    modify: 'modify',
+}
+
+const iconNames = {
+    newContents: 'create',
+    modify: 'build',
+    leaveUnchanged: 'lock'
+}
+
+const langType = {
+    html: 'html',
+    css: 'css',
+    js: 'javascript'
+}
 
 /**
  * - every step in `missionJson` conforms with this schema
@@ -142,19 +155,19 @@ const codeTemplate = {
 const modelStateSchema = {
     html: {
         'index': {
-            model: monaco.editor.createModel(codeTemplate.html, 'html'),
+            model: monaco.editor.createModel(codeTemplate.html, langType.html),
             state: null
         }
     },
     css: {
         'style': {
-            model: monaco.editor.createModel(codeTemplate.css, 'css'),
+            model: monaco.editor.createModel(codeTemplate.css, langType.css),
             state: null
         }
     },
     js: {
         'script': {
-            model: monaco.editor.createModel(codeTemplate.js, 'javascript'),
+            model: monaco.editor.createModel(codeTemplate.js, langType.js),
             state: null
         }
     },
@@ -173,7 +186,7 @@ function init(): void {
         orderNo: 1000,
     });
 
-    App.Editors.codexEditor.isReady.then(() => loadStepContents(1));
+    codexEditor.isReady.then(() => loadStepContents(1));
 }
 
 //===== LOAD FAVICON =====//
@@ -387,14 +400,14 @@ function assembleAppUI() {
                     const { name, type, fullName } = App.UI.codeTabs.active;
                     const { stepIndex, stepJson } = parseStepJson();
 
-                    if (stepJson.files[fullName].mode === 'new_content') {
-                        App.stepCodeCache[fullName] = modelStateSchema[type][name].model.getValue();
+                    if (stepJson.files[fullName].mode === modeTypes.newContents) {
+                        stepCodeCache[fullName] = modelStateSchema[type][name].model.getValue();
                         console.log(`content of "${fullName}" saved to cache.`);
                     }
 
-                    App.Editors.codeEditor.setModel(monaco.editor.createModel(codeTemplate.transition, 'javascript'));
-                    App.UI.btnCodeMode.firstElementChild.innerText = 'build';
-                    stepList[stepIndex].files[fullName].mode = 'modify';
+                    codeEditor.setModel(monaco.editor.createModel(codeTemplate.transition, langType.js));
+                    App.UI.btnCodeMode.firstElementChild.innerText = iconNames.modify;
+                    stepList[stepIndex].files[fullName].mode = modeTypes.modify;
                 }
             },
             'lock': {
@@ -417,7 +430,7 @@ function assembleAppUI() {
 
     const { codexContainer, codeContainer } = App.UI;
 
-    App.Editors.codexEditor = new EditorJS({
+    codexEditor = new EditorJS({
         holder: codexContainer,
         tools: {
             header: Header,
@@ -429,7 +442,7 @@ function assembleAppUI() {
         },
     });
 
-    App.Editors.codeEditor = monaco.editor.create(codeContainer as HTMLElement, { theme: 'vs-dark' });
+    codeEditor = monaco.editor.create(codeContainer as HTMLElement, { theme: 'vs-dark' });
 
     registerTopLevelEvents();
 }
@@ -443,7 +456,7 @@ function registerTopLevelEvents() {
         pnlPreview, codeTabs
     } = App.UI;
 
-    window.onresize = () => (App.Editors.codeEditor || App.Editors.diffEditor).layout();
+    window.onresize = () => (codeEditor || diffEditor).layout();
 
     btnOpenProject.onclick = () => {
         const fileInput = newEl('input', { type: 'file', accept: '.json' }) as HTMLInputElement;
@@ -470,23 +483,22 @@ function registerTopLevelEvents() {
         //  this handler assumes the code content includes at least one valid editable markup
         //  this button should be disabled otherwise
         const { stepTypeIsCode } = parseStepJson();
-
         if (stepTypeIsCode) {
             storeTabData();
 
-            if (App.Editors.codeEditor) {
+            if (codeEditor) {
                 //  must dispose editor before creating another
-                const originalModel = App.Editors.codeEditor.getModel();
+                const originalModel = codeEditor.getModel();
 
-                App.Editors.codeEditor.dispose();
-                App.Editors.codeEditor = null;
+                codeEditor.dispose();
+                codeEditor = null;
 
                 const codeWithAnswers = getTabModelCode(codeTabs.active);
 
-                App.Editors.diffEditor = monaco.editor.createDiffEditor(el('#code-editor'));
-                App.Editors.diffEditor.setModel({
+                diffEditor = monaco.editor.createDiffEditor(el('#code-editor'));
+                diffEditor.setModel({
                     original: originalModel,
-                    modified: monaco.editor.createModel(codeWithAnswers, languageFromType(codeTabs.active.type)),
+                    modified: monaco.editor.createModel(codeWithAnswers, langType[codeTabs.active.type]),
                 });
 
                 btnModelAnswers.firstElementChild.classList.add('active-green');
@@ -512,6 +524,8 @@ function registerTopLevelEvents() {
             }
         }
     };
+
+    codeEditor.onDidChangeModelContent(() => refreshOutput(false));
 }
 
 //===== PROJECT OPERATION =====//
@@ -583,12 +597,12 @@ function loadFromLocal() {
             //  build model state for first step
             modelStateSchema[type] ? null : modelStateSchema[type] = {};
             modelStateSchema[type][name] = {
-                model: monaco.editor.createModel(contents, languageFromType(type)),
+                model: monaco.editor.createModel(contents, langType[type]),
                 state: null,
             };
         });
 
-        App.Editors.codeEditor.setModel(modelStateSchema.html['index'].model);
+        codeEditor.setModel(modelStateSchema.html['index'].model);
 
         refreshOutput();
     }
@@ -621,13 +635,13 @@ function createNewStep(override: StepJsonOverride = {}) {
         filesJson[fullName] = {
             answers,
             contents,
-            mode: 'new_content',
+            mode: modeTypes.newContents,
         };
 
         testsJson[fullName] = tests;
 
         modelStateSchema[type][name] = {
-            model: monaco.editor.createModel(contents, languageFromType(type)),
+            model: monaco.editor.createModel(contents, langType[type]),
             state: null,
         };
     });
@@ -661,7 +675,7 @@ function storeStepContents(stepNo: number) {
     const { stepIndex, stepHasCode } = parseStepJson(stepNo);
 
     //  store instructions in current step
-    return App.Editors.codexEditor.save().then(contents => {
+    return codexEditor.save().then(contents => {
         const instructions = contents.blocks;
 
         if (instructions.length) {
@@ -678,7 +692,7 @@ function storeStepContents(stepNo: number) {
             storeTabData();
 
             obj(stepList[stepIndex].files).forEachKey(fullName => {
-                const [_, name, type] = fullName.match(fileNamePattern);
+                const { name, type } = parseFileName(fullName);
                 const contents = modelStateSchema[type][name].model.getValue();
 
                 stepList[stepIndex].files[fullName].contents = contents;
@@ -697,7 +711,6 @@ function storeStepContents(stepNo: number) {
  * @param stepNo - the step to load
  */
 function loadStepContents(stepNo: number) {
-    const { codeEditor, diffEditor, codexEditor } = App.Editors;
     const { btnStepType, btnToggleOutput, pnlPreview, codeTabs } = App.UI;
     const { stepIndex, stepHasCode, stepJson, stepTypeIsCode } = parseStepJson(stepNo);
     const loadStepInstructions = () => {
@@ -757,10 +770,8 @@ function loadStepContents(stepNo: number) {
             }
             else contents = stepJson.files[fullName].contents;
 
-            const language = stepJson.files[fullName].mode === 'modify' ? 'javascript' : languageFromType(type);
-
             modelStateSchema[type][name] = {
-                model: monaco.editor.createModel(contents, language),
+                model: monaco.editor.createModel(contents, stepJson.files[fullName].mode === modeTypes.modify ? langType.js : langType[type]),
                 state: null
             };
         });
@@ -793,7 +804,7 @@ function loadStepContents(stepNo: number) {
     }
     else {
         if (diffEditor && !stepTypeIsCode) turnOffModelAnswers();
-        
+
         disableCodeEditor(`The code editor is disabled for ${stepJson.type} steps.`);
 
         if (pnlPreview.iframe) {
@@ -820,7 +831,7 @@ function parseStepJson(stepNo: number = activeStep) {
         stepTypeIsCode: stepList[stepIndex].type === 'code',
         stepHasEditableIn: (tab: Tab) => {
             return editablePattern.includingMarkup.test(stepList[stepIndex].files[tab.fullName].contents);
-        } 
+        }
     };
 }
 
@@ -843,7 +854,7 @@ function refreshOutput(now = true) {
             const tagType = node.openingTag.tagName;
             const attrType = tagType === 'link' ? 'href' : tagType === 'script' ? 'src' : '';
             const attrValue = node.openingTag.attrs.filter(attr => attr.name === attrType)[0].value;
-            const [_, name, type] = attrValue.match(fileNamePattern);
+            const { name, type } = parseFileName(attrValue);
 
             if (!modelStateSchema[type]) return;
             if (!modelStateSchema[type][name]) return;
@@ -882,22 +893,22 @@ function populateTabs(active: string) {
     const { codeTabs } = App.UI;
     const loadTabData = (tab: Tab) => {
         const { mode } = parseStepJson().stepJson.files[tab.fullName];
-        const modeIcon = mode.replace(/new_content/, 'create').replace(/modify/, 'build');
+        const modeIcon = mode.replace(new RegExp(modeTypes.newContents), 'create').replace(new RegExp(modeTypes.modify), 'build');
         const targetTabData = modelStateSchema[tab.type][tab.name];
         const setCodeModelState = () => {
-            App.Editors.codeEditor.setModel(targetTabData.model);
-            App.Editors.codeEditor.restoreViewState(targetTabData.state);
+            codeEditor.setModel(targetTabData.model);
+            codeEditor.restoreViewState(targetTabData.state);
         };
         const setDiffModelState = () => {
             const codeWithAnswers = getTabModelCode(tab);
 
-            App.Editors.diffEditor.setModel({
+            diffEditor.setModel({
                 original: targetTabData.model,
-                modified: monaco.editor.createModel(codeWithAnswers, languageFromType(tab.type))
+                modified: monaco.editor.createModel(codeWithAnswers, langType[tab.type])
             });
         };
 
-        App.Editors.codeEditor ? setCodeModelState() : setDiffModelState();
+        codeEditor ? setCodeModelState() : setDiffModelState();
         App.UI.btnCodeMode.firstElementChild.innerText = modeIcon;
         App.UI.codeTabs.active = tab;
     };
@@ -913,7 +924,6 @@ function populateTabs(active: string) {
         tab.type = type;
         tab.fullName = fullName;
         tab.onclick = () => {
-            const { codeEditor, diffEditor } = App.Editors;
             const { stepTypeIsCode } = parseStepJson();
 
             storeTabData();
@@ -939,19 +949,21 @@ function populateTabs(active: string) {
 
 function turnOffModelAnswers() {
     //  must dispose editor before creating another
-    const diffModel = App.Editors.diffEditor.getModel();
+    const diffModel = diffEditor.getModel();
 
-    App.Editors.diffEditor.dispose();
-    App.Editors.diffEditor = null;
+    diffEditor.dispose();
+    diffEditor = null;
 
-    App.Editors.codeEditor = monaco.editor.create(el('#code-editor'), { theme: 'vs-dark' });
-    App.Editors.codeEditor.setModel(diffModel.original);
+    codeEditor = monaco.editor.create(el('#code-editor'), { theme: 'vs-dark' });
+    codeEditor.setModel(diffModel.original);
 
     App.UI.btnModelAnswers.firstElementChild.classList.remove('active-green');
 }
 
+/**
+ * - stores the model & state of the current tab in `modelStateSchema`
+ */
 function storeTabData() {
-    const { codeEditor, diffEditor } = App.Editors;
     const { name, type, fullName } = App.UI.codeTabs.active;
 
     if (codeEditor) {
@@ -970,12 +982,18 @@ function storeTabData() {
     }
 }
 
+/**
+ * - gets the value of `modelStateSchema[type][name].model` where `name` & `type` are determined by the specified tab
+ * - might want to update `modelStateSchema[type][name]` before calling this function
+ * @param tab HTML element reference to a tab
+ * @returns the code content as a string
+ */
 function getTabModelCode(tab: Tab) {
     const { name, type, fullName } = tab;
     const stepIndex = activeStep - 1;
     const authorCode = modelStateSchema[type][name].model.getValue();
 
-    return authorCode.split(editablePattern.excludingMarkup).map((chunk, idx) => {
+    return authorCode.split(editablePattern.excludingMarkup).map((chunk: string, idx: number) => {
         const answer = stepList[stepIndex].files[fullName].answers[idx];
         return answer ? `${chunk}${answer}` : chunk;
     }).join('');
@@ -1002,6 +1020,8 @@ function forEachSchemaType(callback: (type?: string, files?: Array<object>) => v
     obj(modelStateSchema).forEachEntry((type, files) => callback(type, files));
 }
 
-function languageFromType(string: string) {
-    return string.replace(/^js$/, 'javascript');
+function parseFileName(fileName: string) {
+    const [match, name, type] = fileName.match(/\/?(.*)\.(.*)$/);
+    return { match, name, type };
 }
+

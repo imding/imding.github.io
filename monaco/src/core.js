@@ -27,10 +27,10 @@ import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 // import strip from 'strip-comments';
 // import stripHtmlComments from 'strip-html-comments';
 
-import { el, newEl, obj, str, richText } from './utils/Handy';
+import { el, newEl, obj } from './utils/Handy';
 import HTMLTree from './modules/HTMLTree';
 
-import { newTestJson, newStepJson, newMissionJson } from './modules/JsonTemplates';
+import { newStepJson, newMissionJson } from './modules/JsonTemplates';
 import tooltip from './modules/Tooltip';
 import subMenu from './modules/SubMenu';
 
@@ -52,7 +52,6 @@ let activeStep = 1;
 let refreshTimer;
 const refreshDelay = 800;
 
-const fileNamePattern = /\/?(.*)\.(.*)$/;
 //  the 'positive lookbehind' syntax has limited compatibility
 const editablePattern = {
     excludingMarkup: /(?<=#BEGIN_EDITABLE#)[\s\S]*?(?=#END_EDITABLE#)/g,
@@ -201,11 +200,10 @@ function initApp() {
     btnModelAnswers.onclick = () => {
         //  this handler assumes the code content includes at least one valid editable markup
         //  this button should be disabled otherwise
-        const { stepIndex, stepJson } = parseStepJson(activeStep);
+        const { stepJson } = parseStepJson(activeStep);
 
         if (stepJson.type === 'code') {
-            const { fileName, fileType } = codeTabs.active;
-            const fileFullName = `${fileName}.${fileType}`;
+            const { fileType } = codeTabs.active;
 
             btnModelAnswers.firstElementChild.classList.toggle('active-green');
 
@@ -487,16 +485,16 @@ function storeStepContents(n) {
         if (stepHasCode) {
             storeTabData();
     
-            obj(stepList[stepIndex].files).forEachKey(fileFullName => {
-                const [_, name, type] = fileFullName.match(fileNamePattern);
+            obj(stepList[stepIndex].files).forEachKey(fullName => {
+                const { name, type } = parseFileName(fullName);
                 const contents = modelStateSchema[type][name].model.getValue();
     
-                stepList[stepIndex].files[fileFullName].contents = contents;
+                stepList[stepIndex].files[fullName].contents = contents;
             });
         }
     
         return {
-            then: cb => cb()
+            then: callback => callback()
         };
     });
 }
@@ -599,6 +597,7 @@ function refreshOutput(now = true) {
             const attrType = tagType === 'link' ? 'href' : tagType === 'script' ? 'src' : '';
             const attrValue = node.openingTag.attrs.filter(attr => attr.name === attrType)[0].value;
             const [_, name, type] = attrValue.match(fileNamePattern);
+            // const { name, type } = parseFileName(attrValue);
 
             if (!modelStateSchema[type]) return;
             if (!modelStateSchema[type][name]) return;
