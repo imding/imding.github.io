@@ -1,7 +1,7 @@
 //  https://basarat.gitbooks.io/typescript/content/docs/project/globals.html
 
 import './styles/main.scss';
-import * as favicon from './images/favicon.png';
+import content, * as favicon from './images/favicon.png';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as moment from 'moment';
 
@@ -19,6 +19,7 @@ import { newTestJson, newStepJson, newMissionJson } from './modules/JsonTemplate
 import tooltip from './modules/Tooltip';
 import subMenu from './modules/SubMenu';
 import HTMLTree from './modules/HTMLTree';
+import { parse } from 'url';
 
 // const { el, obj, richText } = require('./modules/Handy');
 const EditorJS = require('./components/editor');
@@ -104,9 +105,9 @@ let diffEditor = null;
 //===== MEMORY MODULES =====//
 
 let missionJson: MissionJson;
+let projectFiles = ['index.html', 'style.css', 'script.js'];
 let stepList = [];
-let testList = [];
-let activeStep = 1;
+let activeStep = 0;
 
 const stepCodeCache = {};
 
@@ -177,17 +178,17 @@ const modelStateSchema = {
 
 window.onload = init;
 
-function init(): void {
+function init() {
     addFavIcon();
     assembleAppUI();
     createMissionJson();
-    createNewStep({
-        title: 'Instruction',
-        orderNo: 1000,
-    });
-
-    codexEditor.isReady.then(() => loadStepContents(1));
+    createNewStep();
+    // createNewStep({
+    //     title: 'Instruction',
+    //     orderNo: 1000,
+    // });
 }
+
 
 //===== LOAD FAVICON =====//
 
@@ -201,6 +202,7 @@ function addFavIcon() {
 
     head.append(link);
 }
+
 
 //===== DOM =====//
 
@@ -385,29 +387,14 @@ function assembleAppUI() {
                 tipHeading: 'use new content',
                 tip: 'define the content of the current code tab from scratch',
                 handler: () => {
-                    // const { name, type, fullName } = App.UI.codeTabs.active;
-
-                    // if (stepList[activeStep - 1].files[fullName].mode === 'modify') {
-                    //     App.stepCodeCache[fullName] = modelStateSchema[type][name].model.getValue();
-                    //     console.log(`content of "${fullName}" saved to cache.`);
-                    // }
+                    
                 }
             },
             'build': {
                 tipHeading: 'modify content',
                 tip: 'the content of the current tab will be defined by step transition code',
                 handler: () => {
-                    const { name, type, fullName } = App.UI.codeTabs.active;
-                    const { stepIndex, stepJson } = parseStepJson();
-
-                    if (stepJson.files[fullName].mode === modeTypes.newContents) {
-                        stepCodeCache[fullName] = modelStateSchema[type][name].model.getValue();
-                        console.log(`content of "${fullName}" saved to cache.`);
-                    }
-
-                    codeEditor.setModel(monaco.editor.createModel(codeTemplate.transition, langType.js));
-                    App.UI.btnCodeMode.firstElementChild.innerText = iconNames.modify;
-                    stepList[stepIndex].files[fullName].mode = modeTypes.modify;
+                    
                 }
             },
             'lock': {
@@ -421,10 +408,6 @@ function assembleAppUI() {
             distance: 15,
             dim: [App.UI.pnlCode]
         });
-
-    function storeCodeToCache() {
-
-    }
 
     //===== INITIALISE EDITORS =====//
 
@@ -448,87 +431,8 @@ function assembleAppUI() {
 }
 
 function registerTopLevelEvents() {
-    const {
-        btnOpenProject, btnSaveProject, btnContinue,
-        btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
-        btnTemplates,
-        btnModelAnswers, btnToggleOutput,
-        pnlPreview, codeTabs
-    } = App.UI;
-
-    window.onresize = () => (codeEditor || diffEditor).layout();
-
-    btnOpenProject.onclick = () => {
-        const fileInput = newEl('input', { type: 'file', accept: '.json' }) as HTMLInputElement;
-        fileInput.click();
-        fileInput.onchange = () => {
-            const reader = new FileReader();
-            reader.readAsText(fileInput.files[0], 'UTF-8');
-            reader.onload = () => {
-                createMissionJson(reader.result as string);
-                loadStepContents(1);
-                btnOpenProject.classList.add('disabled');
-            };
-        };
-    };
-
-    btnNewStep.onclick = () => {
-        createNewStep();
-        btnNextStep.click();
-    };
-    btnNextStep.onclick = () => goToStep(activeStep + 1);
-    btnPrevStep.onclick = () => goToStep(activeStep - 1);
-
-    btnModelAnswers.onclick = () => {
-        //  this handler assumes the code content includes at least one valid editable markup
-        //  this button should be disabled otherwise
-        const { stepTypeIsCode } = parseStepJson();
-        if (stepTypeIsCode) {
-            storeTabData();
-
-            if (codeEditor) {
-                //  must dispose editor before creating another
-                const originalModel = codeEditor.getModel();
-
-                codeEditor.dispose();
-                codeEditor = null;
-
-                const codeWithAnswers = getTabModelCode(codeTabs.active);
-
-                diffEditor = monaco.editor.createDiffEditor(el('#code-editor'));
-                diffEditor.setModel({
-                    original: originalModel,
-                    modified: monaco.editor.createModel(codeWithAnswers, langType[codeTabs.active.type]),
-                });
-
-                btnModelAnswers.firstElementChild.classList.add('active-green');
-            }
-            else {
-                turnOffModelAnswers();
-            }
-        }
-        else console.warn('The current step type does not support model answers.');
-    };
-
-    btnToggleOutput.onclick = () => {
-        if (/code|interactive/.test(stepList[activeStep - 1].type)) {
-            pnlPreview.classList.toggle('hidden');
-            btnToggleOutput.firstElementChild.classList.toggle('active-blue');
-
-            if (pnlPreview.classList.contains('hidden')) {
-                pnlPreview.removeChild(pnlPreview.iframe);
-            }
-            else {
-                pnlPreview.iframe = pnlPreview.appendChild(newEl('iframe'));
-                refreshOutput();
-            }
-        }
-    };
-
-    codeEditor.onDidChangeModelContent(() => refreshOutput(false));
+    
 }
-
-//===== PROJECT OPERATION =====//
 
 /**
  * - creates a new `missionJson` object
@@ -538,78 +442,52 @@ function registerTopLevelEvents() {
  */
 function createMissionJson(fromString?: string, override?: MissionJson) {
     missionJson = fromString ? JSON.parse(fromString) : newMissionJson(override);
+    
     stepList = obj(missionJson.steps)
         .filter('values', step => step.title !== 'Deleted by merging process')
         .sort((a: any, b: any) => a.orderNo - b.orderNo);
-    testList = stepList
-        .map(step => Object.values(step.tests))
-        .sort((a: any, b: any) => a.orderNo - b.orderNo);
-}
-
-function saveToLocal() {
-    storeStepContents(activeStep);
-
-    stepList.forEach(step => {
-        missionJson.steps[step.stepId] = step;
-    });
-
-    missionJson.settings.lastModified = moment().format();
-
-    localStorage.setItem(`BSD:${missionJson.settings.title}`, JSON.stringify(missionJson));
-    console.log('Saved to local');
-}
-
-function loadFromLocal() {
-    let projects = [];
-    let options = 'Choose a project to load:';
-
-    obj(localStorage).forEachKey(key => {
-        if (key.startsWith('BSD:')) {
-            projects.push(localStorage.getItem(key));
-        }
-    });
-
-    projects = projects.map((project, idx) => {
-        project = JSON.parse(project);
-        options += `\n${idx + 1}. ${project.settings.title} @ ${project.settings.lastModified}`;
-        return project;
-    });
-
-    if (projects.length === 0) return alert('There is no locally stored project.');
-
-    const userChoice = Number(prompt(options));
-
-    if (userChoice >= 0 && userChoice <= projects.length) {
-        //  reset codeModelStates
-        obj(modelStateSchema).forEachKey(type => delete modelStateSchema[type]);
-
-        missionJson = projects[userChoice - 1];
-
-        stepList = obj(missionJson.steps).sort('values', (a, b) => a.orderNo - b.orderNo);
-
-        //  clear file schema before loading a new project
-        obj(modelStateSchema).forEachKey(type => delete modelStateSchema[type]);
-
-        obj(stepList[0].files).forEachEntry((fileFullName, file) => {
-            const [name, type] = fileFullName.split('.');
-            const { contents } = file;
-
-            //  build model state for first step
-            modelStateSchema[type] ? null : modelStateSchema[type] = {};
-            modelStateSchema[type][name] = {
-                model: monaco.editor.createModel(contents, langType[type]),
-                state: null,
-            };
-        });
-
-        codeEditor.setModel(modelStateSchema.html['index'].model);
-
-        refreshOutput();
-    }
-    else return;
 }
 
 //===== STEP OPERATIONS =====//
+
+/**
+ * - create JSON object for each item in the `projectFile` array
+ */
+function createNewStep() {
+    
+
+    projectFiles.forEach(fullName => {
+        const { name, type }  = parseFileName(fullName);
+        //  create new tab
+        const tab = el(App.UI.codeTabs).addNew('span', { className: 'tab', innerText: `${name}.${type}` });
+        
+        updateStepJson().file(fullName, codeTemplate[type]);
+    });
+}
+
+function updateStepJson(stepNo: number = activeStep) {
+    return {
+        file: (fullName: string, contents: string) => {
+            stepList[stepNo - 1].files[fullName].contents = contents;
+        }
+    };
+}
+
+/**
+ * - creates a tab and attaches it to the tabs area
+ * @param name - name of the file whose content will be stored in the new tab
+ * @param type - type of the file whose content will be stored in the new tab
+ */
+function createNewTab(name: string, type: string) {
+    
+}
+
+//===== GLOBAL =====//
+
+function parseFileName(fileName: string) {
+    const [match, name, type] = fileName.match(/\/?(.*)\.(.*)$/);
+    return { match, name, type };
+}
 
 /**
  * - creates a new step 
@@ -619,409 +497,46 @@ function loadFromLocal() {
  * @param override
  * @returns `void`
  */
-function createNewStep(override: StepJsonOverride = {}) {
-    const filesJson = {};
-    const testsJson = {};
+// function createNewStep(override: StepJsonOverride = {}) {
+//     const filesJson = {};
+//     const testsJson = {};
+
+//     //  reset schema to code templates for new steps
+//     forEachSchemaFile((type, name) => {
+//         const contents = codeTemplate[type];
+//         const fullName = `${name}.${type}`;
+//         //  usually when createNewStep is called, there will be no editable in the code base
+//         //  this is here for quick testing purposes
+//         //  but leaving in as an ensurance mechanism
+//         const { answers, tests } = answerAndTestFrom(contents, name, type);
+
+//         filesJson[fullName] = {
+//             answers,
+//             contents,
+//             mode: modeTypes.newContents,
+//         };
+
+//         testsJson[fullName] = tests;
+
+//         modelStateSchema[type][name] = {
+//             model: monaco.editor.createModel(contents, langType[type]),
+//             state: null,
+//         };
+//     });
+
+//     //  use schema as base file structure of the new step
+//     //  mutate it with override.files if exists
+//     override.files = obj(filesJson).mutate(override.files || {});
+
+//     const stepJson = newStepJson(override);
+//     const existingStepIds = stepList.map(step => step.stepId);
+
+//     while (existingStepIds.includes(stepJson.stepId)) {
+//         stepJson.stepId = (Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)) + 1).toString();
+//     }
+
+//     stepList.splice(activeStep, 0, stepJson);
+//     testList.splice(activeStep, 0, testsJson);
+// }
 
-    //  reset schema to code templates for new steps
-    forEachSchemaFile((type, name) => {
-        const contents = codeTemplate[type];
-        const fullName = `${name}.${type}`;
-        //  usually when createNewStep is called, there will be no editable in the code base
-        //  this is here for quick testing purposes
-        //  but leaving in as an ensurance mechanism
-        const { answers, tests } = answerAndTestFrom(contents, name, type);
-
-        filesJson[fullName] = {
-            answers,
-            contents,
-            mode: modeTypes.newContents,
-        };
-
-        testsJson[fullName] = tests;
-
-        modelStateSchema[type][name] = {
-            model: monaco.editor.createModel(contents, langType[type]),
-            state: null,
-        };
-    });
-
-    //  use schema as base file structure of the new step
-    //  mutate it with override.files if exists
-    override.files = obj(filesJson).mutate(override.files || {});
-
-    const stepJson = newStepJson(override);
-    const existingStepIds = stepList.map(step => step.stepId);
-
-    while (existingStepIds.includes(stepJson.stepId)) {
-        stepJson.stepId = (Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)) + 1).toString();
-    }
-
-    stepList.splice(activeStep, 0, stepJson);
-    testList.splice(activeStep, 0, testsJson);
-}
-
-function goToStep(stepNo: number) {
-    if (stepNo < 1 || stepNo > stepList.length) return console.warn(`There is no step ${stepNo}`);
-    storeStepContents(activeStep).then(() => loadStepContents(stepNo));
-}
-
-/**
- * - stores the instructions and code in the active tab
- * - modifies `stepList`
- * @param stepNo - the step to store
- */
-function storeStepContents(stepNo: number) {
-    const { stepIndex, stepHasCode } = parseStepJson(stepNo);
-
-    //  store instructions in current step
-    return codexEditor.save().then(contents => {
-        const instructions = contents.blocks;
-
-        if (instructions.length) {
-            stepList[stepIndex].title = instructions.shift().data.text;
-
-            const contentKey = stepHasCode ? 'instructions' : 'text';
-            const stepContent = instructions.map(block => `<p>${block.data.text}</p>`).join('');
-
-            stepList[stepIndex].content[contentKey] = stepContent;
-        }
-
-        //  store code in the active tab of the current step
-        if (stepHasCode) {
-            storeTabData();
-
-            obj(stepList[stepIndex].files).forEachKey(fullName => {
-                const { name, type } = parseFileName(fullName);
-                const contents = modelStateSchema[type][name].model.getValue();
-
-                stepList[stepIndex].files[fullName].contents = contents;
-            });
-        }
-
-        return {
-            then: (callback: () => any) => callback()
-        };
-    });
-}
-
-/**
- * - updates UI to display the content of a step
- * - does not store data for the current step
- * @param stepNo - the step to load
- */
-function loadStepContents(stepNo: number) {
-    const { btnStepType, btnToggleOutput, pnlPreview, codeTabs } = App.UI;
-    const { stepIndex, stepHasCode, stepJson, stepTypeIsCode } = parseStepJson(stepNo);
-    const loadStepInstructions = () => {
-        codexEditor.blocks.clear();
-        codexEditor.blocks.insert('header', { text: stepJson.title }, {}, 0, true);
-
-        const stepContent = stepJson.content[['instructions', 'text'][stepHasCode ? 0 : 1]];
-        const stepContentTree = new HTMLTree(stepContent);
-
-        stepContentTree.forEach(node => {
-            const { tagName } = node.openingTag;
-
-            //  prevent inserting empty blocks into the codex editor
-            node.rawContent = node.rawContent.replace(/(^&nbsp;)|(&nbsp;$)|(^<br\s*\/?>$)/g, '');
-            if (node.rawContent.length === 0) return;
-
-            let blockType = 'paragraph';
-            let blockContent: object = { text: node.rawContent };
-
-            if (/^pre$/.test(tagName)) {
-                blockType = 'code';
-                blockContent = { code: node.content[0].rawContent };
-            }
-            else if (/^[u|o]l$/.test(tagName)) {
-                blockType = 'list';
-                blockContent = {
-                    style: `${tagName === 'ul' ? 'un' : ''}ordered`,
-                    //  assumes each <li> has only one child
-                    items: node.content.map(child => child.content[0].rawContent)
-                };
-            }
-            else if (/^center$/.test(tagName)) {
-                blockContent = { text: node.content[0].rawContent };
-            }
-
-            codexEditor.blocks.insert(blockType, blockContent);
-        });
-    };
-    const loadStepCode = () => {
-        //  unpack all types of files in model & state schema
-        forEachSchemaFile((type, name) => {
-            const fullName = `${name}.${type}`;
-            const fileUnchanged = !stepJson.files.hasOwnProperty(fullName);
-            let contents: string;
-
-            if (fileUnchanged) {
-                let idx = stepIndex - 1;
-
-                do {
-                    //  loop through earlier steps to find user defined code contents
-                    //  i.e. unchanged or modify
-                    if (stepList[idx].files.hasOwnProperty(fullName)) {
-                        contents = stepList[idx].files[fullName].contents;
-                    }
-                }
-                while (!contents && idx-- >= 1);
-            }
-            else contents = stepJson.files[fullName].contents;
-
-            modelStateSchema[type][name] = {
-                model: monaco.editor.createModel(contents, stepJson.files[fullName].mode === modeTypes.modify ? langType.js : langType[type]),
-                state: null
-            };
-        });
-
-        //  update code editor tabs
-        populateTabs(`active:${stepJson.content.startTab || 'index.html'}`);
-    };
-    const disableCodeEditor = (message: string) => {
-        el(codeTabs).forEachChild((tab: Tab) => {
-            if (tab.classList.contains('active')) {
-                tab.innerText = '...';
-            }
-            else el(codeTabs).remove(tab);
-        });
-
-        codeEditor.setModel(monaco.editor.createModel(message));
-        codeEditor.updateOptions({ readOnly: true });
-    };
-    const iconFromStepType = (type: string) => {
-        return type.replace(/text/, 'assignment').replace(/interactive/, 'extension');
-    };
-
-    activeStep = stepNo;
-
-    loadStepInstructions();
-
-    if (stepHasCode) {
-        loadStepCode();
-        refreshOutput();
-    }
-    else {
-        if (diffEditor && !stepTypeIsCode) turnOffModelAnswers();
-
-        disableCodeEditor(`The code editor is disabled for ${stepJson.type} steps.`);
-
-        if (pnlPreview.iframe) {
-            pnlPreview.classList.toggle('hidden');
-            btnToggleOutput.firstElementChild.classList.toggle('active-blue');
-            el(pnlPreview).remove(pnlPreview.iframe);
-        }
-    }
-
-    btnStepType.firstElementChild.innerText = iconFromStepType(stepJson.type);
-}
-
-/**
- * @param stepNo 
- * @returns object { `stepIndex`, `stepJson`, `stepHasCode` }
- */
-function parseStepJson(stepNo: number = activeStep) {
-    const stepIndex = stepNo - 1;
-
-    return {
-        stepIndex,
-        stepJson: stepList[stepIndex],
-        stepHasCode: /code|interactive/.test(stepList[stepIndex].type),
-        stepTypeIsCode: stepList[stepIndex].type === 'code',
-        stepHasEditableIn: (tab: Tab) => {
-            return editablePattern.includingMarkup.test(stepList[stepIndex].files[tab.fullName].contents);
-        }
-    };
-}
-
-//===== SECTION: IFRAME OPERATIONS =====//
-
-function refreshOutput(now = true) {
-    if (!App.UI.pnlPreview.iframe) return;
-
-    const refresh = () => {
-        let srcHtml = Object.values(modelStateSchema.html)[0].model.getValue();
-        const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
-
-        linkAndScript.forEach(elementString => {
-            const tree = new HTMLTree(elementString);
-
-            if (tree.error) return;
-
-            const node = tree[0];
-
-            const tagType = node.openingTag.tagName;
-            const attrType = tagType === 'link' ? 'href' : tagType === 'script' ? 'src' : '';
-            const attrValue = node.openingTag.attrs.filter(attr => attr.name === attrType)[0].value;
-            const { name, type } = parseFileName(attrValue);
-
-            if (!modelStateSchema[type]) return;
-            if (!modelStateSchema[type][name]) return;
-
-            const replacement: [string, string] =
-                type === 'css' ?
-                    [node.openingTag.raw,
-                    `<style>${modelStateSchema[type][name].model.getValue()}</style>`]
-                    :
-                    type === 'js' ?
-                        [`${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`,
-                        `<script>${modelStateSchema[type][name].model.getValue()}</script>`]
-                        :
-                        ['', ''];
-
-            srcHtml = srcHtml.replace(...replacement);
-        });
-
-        App.UI.pnlPreview.iframe.srcdoc =
-            srcHtml
-                //  transform relative platform paths to absolute paths
-                .replace(/(['"])\s*(\/resources\/)/g, '$1https://app.bsd.education$2')
-                //  remove editable markup
-                .replace(/#(BEGIN\s*|\s*END)_EDITABLE#/g, '');
-    };
-
-    if (now) return refresh();
-    else if (refreshTimer) clearTimeout(refreshTimer);
-
-    refreshTimer = setTimeout(refresh, refreshDelay);
-}
-
-//===== CODE OPERATIONS =====//
-
-function populateTabs(active: string) {
-    const { codeTabs } = App.UI;
-    const loadTabData = (tab: Tab) => {
-        const { mode } = parseStepJson().stepJson.files[tab.fullName];
-        const modeIcon = mode.replace(new RegExp(modeTypes.newContents), 'create').replace(new RegExp(modeTypes.modify), 'build');
-        const targetTabData = modelStateSchema[tab.type][tab.name];
-        const setCodeModelState = () => {
-            codeEditor.setModel(targetTabData.model);
-            codeEditor.restoreViewState(targetTabData.state);
-        };
-        const setDiffModelState = () => {
-            const codeWithAnswers = getTabModelCode(tab);
-
-            diffEditor.setModel({
-                original: targetTabData.model,
-                modified: monaco.editor.createModel(codeWithAnswers, langType[tab.type])
-            });
-        };
-
-        codeEditor ? setCodeModelState() : setDiffModelState();
-        App.UI.btnCodeMode.firstElementChild.innerText = modeIcon;
-        App.UI.codeTabs.active = tab;
-    };
-
-    el(codeTabs).remove(...codeTabs.children);
-
-    forEachSchemaFile((type, name) => {
-        const fullName = `${name}.${type}`;
-        const isActive = active === `active:${fullName}`;
-        const tab: Tab = el(codeTabs).addNew('span', { className: `tab${isActive ? ' active' : ''}`, innerText: fullName });
-
-        tab.name = name;
-        tab.type = type;
-        tab.fullName = fullName;
-        tab.onclick = () => {
-            const { stepTypeIsCode } = parseStepJson();
-
-            storeTabData();
-
-            if (diffEditor && !stepTypeIsCode) {
-                turnOffModelAnswers();
-            }
-
-            //  toggle the "active" class name on current and target tabs
-            codeTabs.active.classList.remove('active');
-            tab.classList.add('active');
-
-            loadTabData(tab);
-
-            (codeEditor || diffEditor).focus();
-        };
-
-        if (isActive) loadTabData(tab);
-    });
-
-    return { then: callback => callback() };
-}
-
-function turnOffModelAnswers() {
-    //  must dispose editor before creating another
-    const diffModel = diffEditor.getModel();
-
-    diffEditor.dispose();
-    diffEditor = null;
-
-    codeEditor = monaco.editor.create(el('#code-editor'), { theme: 'vs-dark' });
-    codeEditor.setModel(diffModel.original);
-
-    App.UI.btnModelAnswers.firstElementChild.classList.remove('active-green');
-}
-
-/**
- * - stores the model & state of the current tab in `modelStateSchema`
- */
-function storeTabData() {
-    const { name, type, fullName } = App.UI.codeTabs.active;
-
-    if (codeEditor) {
-        modelStateSchema[type][name] = {
-            model: codeEditor.getModel(),
-            state: codeEditor.saveViewState(),
-        };
-    }
-    else {
-        const stepIndex = activeStep - 1;
-        const codeWithAnswers = diffEditor.getModel().modified.getValue();
-        const { answers, tests } = answerAndTestFrom(codeWithAnswers, name, type);
-
-        stepList[stepIndex].files[fullName].answers = answers;
-        testList[stepIndex][fullName] = tests;
-    }
-}
-
-/**
- * - gets the value of `modelStateSchema[type][name].model` where `name` & `type` are determined by the specified tab
- * - might want to update `modelStateSchema[type][name]` before calling this function
- * @param tab HTML element reference to a tab
- * @returns the code content as a string
- */
-function getTabModelCode(tab: Tab) {
-    const { name, type, fullName } = tab;
-    const stepIndex = activeStep - 1;
-    const authorCode = modelStateSchema[type][name].model.getValue();
-
-    return authorCode.split(editablePattern.excludingMarkup).map((chunk: string, idx: number) => {
-        const answer = stepList[stepIndex].files[fullName].answers[idx];
-        return answer ? `${chunk}${answer}` : chunk;
-    }).join('');
-}
-
-function answerAndTestFrom(code: string, name: string, type: string) {
-    const answers = code.match(editablePattern.excludingMarkup) || [];
-    const tests = answers.map((answer, idx) => {
-        return { answer, name, type, editableIndex: idx };
-    });
-
-    return { answers, tests };
-}
-
-//===== GLOBAL =====//
-
-function forEachSchemaFile(callback: (type?: string, name?: string, modelState?: { model: monaco.editor.ITextModel, state: monaco.editor.IViewState }) => void) {
-    forEachSchemaType((type, files) => {
-        obj(files).forEachEntry((name, data) => callback(type, name, { model: data.model, state: data.state }));
-    });
-}
-
-function forEachSchemaType(callback: (type?: string, files?: Array<object>) => void) {
-    obj(modelStateSchema).forEachEntry((type, files) => callback(type, files));
-}
-
-function parseFileName(fileName: string) {
-    const [match, name, type] = fileName.match(/\/?(.*)\.(.*)$/);
-    return { match, name, type };
-}
 

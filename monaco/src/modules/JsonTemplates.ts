@@ -11,6 +11,12 @@ interface TestConfig {
     answer: string
 }
 
+interface FileConfig {
+    contents: string,
+    mode: 'new_contents' | 'modify',
+    annswers: [] | Array<string>
+}
+
 export function newTestJson(cfg: TestConfig) {
     const { name, type, stepId, testId, orderNo, editableIndex, answer } = cfg;
 
@@ -22,6 +28,14 @@ export function newTestJson(cfg: TestConfig) {
         'testFunction': `pass.if.${type.toLowerCase()}.editable(${editableIndex}).equivalent(\`${answer}\`);`,
         'failureMessage': ''
     };
+}
+
+export function newFileJson(override: FileConfig) {
+    return Object.assign({
+        'contents': '',
+        'mode': 'new_contents',
+        'answers': []
+    }, override);
 }
 
 export function newStepJson(override: StepJsonOverride) {
