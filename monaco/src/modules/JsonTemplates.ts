@@ -44,7 +44,6 @@ export function newStepJson(override: StepJsonOverride) {
         'type': 'code',
         'content': {
             'instructions': '',
-            'startTab': 'index.html'
         },
         'deleted': false,
         'stepId': (Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)) + 1).toString(),

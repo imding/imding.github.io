@@ -15,7 +15,7 @@ import InlineCode from './components/InlineCode';
 
 import { el, newEl, obj, richText } from './modules/Handy';
 
-import { newTestJson, newStepJson, newMissionJson } from './modules/JsonTemplates';
+import { newTestJson, newStepJson, newMissionJson, newFileJson } from './modules/JsonTemplates';
 import tooltip from './modules/Tooltip';
 import subMenu from './modules/SubMenu';
 import HTMLTree from './modules/HTMLTree';
@@ -56,6 +56,7 @@ const App = {
         btnModelAnswers: null,
         btnToggleOutput: null,
 
+        stepInfo: el('span', { id: 'step-info' }),
         codeTabs: el('div', { id: 'code-tabs' }),
         codeContainer: el('div', { id: 'code-editor' }),
     },
@@ -107,7 +108,8 @@ let diffEditor = null;
 let missionJson: MissionJson;
 let projectFiles = ['index.html', 'style.css', 'script.js'];
 let stepList = [];
-let activeStep = 0;
+let activeStep: number;
+let activeTab: HTMLElement;
 
 const stepCodeCache = {};
 
@@ -183,10 +185,6 @@ function init() {
     assembleAppUI();
     createMissionJson();
     createNewStep();
-    // createNewStep({
-    //     title: 'Instruction',
-    //     orderNo: 1000,
-    // });
 }
 
 
@@ -446,23 +444,52 @@ function createMissionJson(fromString?: string, override?: MissionJson) {
     stepList = obj(missionJson.steps)
         .filter('values', step => step.title !== 'Deleted by merging process')
         .sort((a: any, b: any) => a.orderNo - b.orderNo);
+
+    //  set activeStep to 1 if stepList.length is greater than 0
+    //  otherwise set activeStep to 0
+    activeStep = stepList.length ? 1 : 0;
 }
 
 //===== STEP OPERATIONS =====//
 
 /**
- * - create JSON object for each item in the `projectFile` array
+ * - pushes new step JSON to `stepList`
+ * - increases `activeStep` by 1
+ * - for each file in `projectFiles`:
+ *  - adds new file JSON to `stepList[activeStep - 1].files`
+ *  - creates new tab for the file (sets 'active' if it's the first tab)
  */
-function createNewStep() {
-    
+function createNewStep(override: StepJsonOverride = {}) {
+    //  insert new step JSON into stepList
+    stepList.push(newStepJson(override));
+    //  increase activeStep by 1
+    activeStep++;
 
+    //  populate step files using the structure of projectFiles
     projectFiles.forEach(fullName => {
         const { name, type }  = parseFileName(fullName);
-        //  create new tab
-        const tab = el(App.UI.codeTabs).addNew('span', { className: 'tab', innerText: `${name}.${type}` });
         
-        updateStepJson().file(fullName, codeTemplate[type]);
+        //  add default file JSON to new step
+        stepList[activeStep - 1].files[fullName] = newFileJson({
+            contents: codeTemplate[type],
+            mode: 'new_contents',
+            annswers: []
+        });
+
+        
+        //  create new tab
+        const active = App.UI.codeTabs.children.length === 0;
+        const tab = el(App.UI.codeTabs).addNew('span', { className: `${active ? 'active ' : ''}tab`, innerText: `${name}.${type}` });
+
+        tab.onclick = () => {
+
+        };
+
+        if (active) activeTab = tab;
     });
+
+    //  set code editor model for active tab
+    
 }
 
 function updateStepJson(stepNo: number = activeStep) {

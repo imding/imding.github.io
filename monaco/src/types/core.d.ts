@@ -67,7 +67,6 @@ interface StepJson {
         'type': 'code' | 'interactive' | 'text',
         'content': {
             'instructions': string,
-            'startTab': string
         },
         'deleted': boolean,
         'stepId': string,
