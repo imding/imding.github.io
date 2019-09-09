@@ -6,6 +6,18 @@
             "color": "gainsboro",
             "backgroundColor": "indigo",
             "isWholeLine": true,
+        },
+        {
+            "text": "PENDING",
+            "color": "gainsboro",
+            "backgroundColor": "royalblue",
+            "isWholeLine": true,
+        },
+        {
+            "text": "NOTES",
+            "color": "gainsboro",
+            "backgroundColor": "#252525",
+            "isWholeLine": true,
         }
     ],
 }

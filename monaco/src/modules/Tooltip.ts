@@ -38,7 +38,7 @@ export default function Tooltip(targets: Array<Tooltip>, cfg: TooltipConfig) {
             const { left, top, width } = tool.getBoundingClientRect();
             const containerPosition = {
                 left: `${left - tipContainer.offsetWidth - 5}px`,
-                top: `${top}px`,
+                top: `${Math.min(top, window.innerHeight - tipContainer.offsetHeight - 5)}px`,
             };
 
             if (cfg.placement === 'right') {

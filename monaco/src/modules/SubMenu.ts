@@ -50,18 +50,19 @@ export default function subMenu(scrollContainer: HTMLElement, groups: Array<SubM
                 tipsData.push({ tool: button, heading: tipHeading, tip });
             });
 
+            window.addEventListener('actionPanelScrolled', removeSubMenu);
+
             Tooltip(tipsData, cfg);
         };
         const removeSubMenu = () => {
             el(subMenuContainer).setStyle({ opacity: 0 });
             subMenuContainer.addEventListener('transitionend', () => document.body.removeChild(event.target as HTMLElement));
             subMenuContainer = null;
+
+            window.removeEventListener('actionPanelScrolled', removeSubMenu);
         };
 
         host.addEventListener('click', () => subMenuContainer ? removeSubMenu() : attachSubMenu());
-
-        // host.addEventListener('mouseout', () => {
-        //     if (subMenuContainer) removeSubMenu();
-        // });
+        host.addEventListener('scrolled', removeSubMenu);
     });
 }

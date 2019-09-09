@@ -812,7 +812,7 @@ function parseStepJson(stepNo: number = activeStep) {
         stepHasCode: /code|interactive/.test(stepList[stepIndex].type),
         stepTypeIsCode: stepList[stepIndex].type === 'code',
         stepHasEditableIn: (tab: Tab) => {
-            return editablePattern.includingMarkup.test(stepList[stepIndex].files[tab.fullName].contents);
+            return editablePattern.includingMarkup.test(stepList[stepIndex].files[tab.innerText].contents);
         }
     };
 }
@@ -874,7 +874,7 @@ function refreshOutput(now = true) {
 function populateTabs(active: string) {
     const { codeTabs } = App.UI;
     const loadTabData = (tab: Tab) => {
-        const { mode } = parseStepJson().stepJson.files[tab.fullName];
+        const { mode } = parseStepJson().stepJson.files[tab.innerText];
         const modeIcon = mode.replace(new RegExp(modeTypes.newContents), 'create').replace(new RegExp(modeTypes.modify), 'build');
         const targetTabData = modelStateSchema[tab.type][tab.name];
         const setCodeModelState = () => {
@@ -904,7 +904,6 @@ function populateTabs(active: string) {
 
         tab.name = name;
         tab.type = type;
-        tab.fullName = fullName;
         tab.onclick = () => {
             const { stepTypeIsCode } = parseStepJson();
 
@@ -971,12 +970,12 @@ function storeTabData() {
  * @returns the code content as a string
  */
 function getTabModelCode(tab: Tab) {
-    const { name, type, fullName } = tab;
+    const { name, type } = tab;
     const stepIndex = activeStep - 1;
     const authorCode = modelStateSchema[type][name].model.getValue();
 
     return authorCode.split(editablePattern.excludingMarkup).map((chunk: string, idx: number) => {
-        const answer = stepList[stepIndex].files[fullName].answers[idx];
+        const answer = stepList[stepIndex].files[tab.innerText].answers[idx];
         return answer ? `${chunk}${answer}` : chunk;
     }).join('');
 }

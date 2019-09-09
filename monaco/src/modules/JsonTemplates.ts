@@ -13,8 +13,8 @@ interface TestConfig {
 
 interface FileConfig {
     contents: string,
-    mode: 'new_contents' | 'modify',
-    annswers: [] | Array<string>
+    mode:  'new_contents' | 'modify',
+    answers: [] | Array<string>
 }
 
 export function newTestJson(cfg: TestConfig) {
@@ -52,7 +52,9 @@ export function newStepJson(override: StepJsonOverride) {
         'orderNo': 0,
         'refMissionUuid': null,
         'files': {},
-        'tests': {}
+        'tests': {},
+        //  custome properties
+        'model': {}
     }, override);
 }
 

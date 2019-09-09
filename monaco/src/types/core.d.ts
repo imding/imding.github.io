@@ -3,18 +3,15 @@ declare module "*.png" {
     export default content;
 }
 
+interface DiffEditorConfig {
+    tab?: Tab,
+    onFail?: () => any,
+    onSuccess?: () => any,
+}
+
 interface Tab extends HTMLElement {
     name: string,
     type: string,
-    fullName: string
-}
-
-interface Step {
-    
-}
-
-interface StepList {
-
 }
 
 interface MissionJson {
@@ -57,45 +54,52 @@ interface MissionJson {
         'serialControls': boolean,
         'imageUploadOnHtml': boolean
     },
-    'steps': StepJson | {}
+    'steps': StepJsonWithID | {}
 }
 
+interface StepJsonWithID {
+    [stepID: string]: StepJson
+}
 
 interface StepJson {
-    [stepID: string]: {
-        'title': string,
-        'type': 'code' | 'interactive' | 'text',
-        'content': {
-            'instructions': string,
-        },
-        'deleted': boolean,
-        'stepId': string,
-        'majorRevision': number,
-        'minorRevision': number,
-        'orderNo': number,
-        'refMissionUuid': null,
-        'files': FileJson | {},
-        'tests': TestJson | {}
-    }
+    'title': string,
+    'type': 'code' | 'interactive' | 'text',
+    'content': {
+        'instructions': string,
+    },
+    'deleted': boolean,
+    'stepId': string,
+    'majorRevision': number,
+    'minorRevision': number,
+    'orderNo': number,
+    'refMissionUuid': null,
+    'files': FileJson | {},
+    'tests': TestJsonWithID | {},
+    // custom properties
+    'model': {},
 }
 
 interface FileJson {
     [fileName: string]: {
         'contents': string,
-        'mode': string,
-        'answers': Array<string>
+        'mode': 'new_contents' | 'modify',
+        'answers': Array<string>,
+        //  custom properties
+        'transformedContents': string
     }
 }
 
+interface TestJsonWithID {
+    [testID: string]: TestJson
+}
+
 interface TestJson {
-    [testID: string]: {
-        'title': string,
-        'stepId': string,
-        'testId': string,
-        'orderNo': number,
-        'testFunction': string,
-        'failureMessage': string
-    }
+    'title': string,
+    'stepId': string,
+    'testId': string,
+    'orderNo': number,
+    'testFunction': string,
+    'failureMessage': string
 }
 
 interface MissionJsonOverride {
