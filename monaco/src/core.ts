@@ -125,9 +125,10 @@ let activeTab: Tab;
  *  - erased during step transition
  */
 const stepCache = {
-    text: {},
-    code: {},
-    interactive: {}
+    text: '',
+    new_contents: {},
+    modify: {},
+    interactive: {},
 };
 
 const editablePattern = {
@@ -149,9 +150,10 @@ const stepType: { code: 'code', interactive: 'interactive', text: 'text' } = {
     text: 'text'
 };
 
-const modeTypes: { newContents: 'new_contents', modify: 'modify' } = {
+const modeTypes: { newContents: 'new_contents', modify: 'modify', unchanged: 'leave_unchanged' } = {
     newContents: 'new_contents',
     modify: 'modify',
+    unchanged: 'leave_unchanged'
 };
 
 const iconNames = {
@@ -391,25 +393,17 @@ function assembleAppUI() {
             'create': {
                 tipHeading: 'use new content',
                 tip: 'define the content of the current code tab from scratch',
-                handler: () => {
-                    stepJson.files[activeTab.innerText].mode = modeTypes.newContents;
-                    App.UI.btnCodeMode.firstElementChild.innerText = iconNames[modeTypes.newContents];
-
-
-                }
+                handler: () => switchFileMode(modeTypes.newContents)
             },
             'build': {
                 tipHeading: 'modify content',
                 tip: 'the content of the current tab will be defined by step transition code',
-                handler: enableModifyContent
+                handler: () => switchFileMode(modeTypes.modify)
             },
             'lock': {
                 tipHeading: 'leave unchanged',
                 tip: 'the content of this code tab will be the same as the previous step',
-                handler: () => {
-                    stepJson.files[activeTab.innerText].mode = modeTypes.newContents;
-                    App.UI.btnCodeMode.firstElementChild.innerText = iconNames[modeTypes.newContents];
-                }
+                handler: () => switchFileMode(modeTypes.unchanged)
             }
         }
     }], {
@@ -471,7 +465,7 @@ function createMissionStructure(fromString?: string, override?: MissionJson) {
 
     //  FIXME: add custom properties to JSON.parse(fromString)
     missionJson = fromString ? JSON.parse(fromString) : newMissionJson(override);
-    console.log('missionJson', missionJson);
+    console.log('missionJson', { missionJson });
 
     stepList = obj(missionJson.steps)
         .filter('values', step => step.title !== 'Deleted by merging process')
@@ -535,6 +529,27 @@ function newStepListItem(placement?: number, override?: StepJsonOverride) {
     console.groupEnd();
 }
 
+function goToStep(stepNo: number) {
+    if (stepNo === activeStep) {
+        return console.warn('Skipped loading the current step');
+    }
+    else if (stepNo > activeStep && activeStep === stepList.length) {
+        return console.warn(`There is no step ${stepNo}`);
+    }
+    else if (stepNo < activeStep && activeStep === 1) {
+        return console.warn('This is the first step');
+    }
+
+    debugGroup('goToStep(', stepNo, ')');
+
+    stepList[activeStep - 1] = stepJson;
+    storeAnswers();
+    loadStep(activeStep = stepNo);
+    console.log(...richText(['activeStep', App.colors.code], ' is now '), stepNo);
+
+    console.groupEnd();
+}
+
 /**
  * - fetches step data from `stepList` array
  * - stores it in `stepJson` for use within the step
@@ -545,17 +560,26 @@ function newStepListItem(placement?: number, override?: StepJsonOverride) {
 function loadStep(stepNo: number) {
     debugGroup('loadStep(', stepNo, ')');
 
+    const { code } = App.colors;
     //  retrieve step data from stepList
     const idx = stepNo - 1;
 
     //  TODO: update instructions
+    codexEditor.isReady.then(() => {
+        codexEditor.blocks.clear();
+        codexEditor.blocks.insert('header', { text: `Step ${stepNo}` }, {}, 0);
+    });
 
     stepJson = stepList[idx];
-    
+    console.log(...richText('Fetched ', ['stepJson', code], ' from ', [`stepList[${idx}]`, code]), { stepJson });
+
+    obj(stepCache).forEachKey(key => stepCache[key] = {});
+    console.log(...richText('Cleared ', ['stepCache', code]));
+
     //  update code editor
     if (App.UI.btnStepType.firstElementChild.innerText !== iconNames[stepJson.type]) {
         App.UI.btnStepType.firstElementChild.innerText = iconNames[stepJson.type];
-        console.log(...richText('Changed ', ['btnStepType', App.colors.code], ' icon to ',[iconNames[stepJson.type], App.colors.string]));
+        console.log(...richText('Changed ', ['btnStepType', App.colors.code], ' icon to ', [`"${iconNames[stepJson.type]}"`, App.colors.string]));
     }
 
     loadTab();
@@ -581,35 +605,6 @@ function deleteStep(stepNo: number = activeStep) {
     console.groupEnd();
 }
 
-function goToStep(stepNo: number) {
-    debugGroup('goToStep(', stepNo, ')');
-
-    if (stepNo === activeStep) {
-        console.warn('Skipped loading the current step');
-    }
-    else if (stepNo > activeStep && activeStep === stepList.length) {
-        console.warn(`There is no step ${stepNo}`);
-    }
-    else if (stepNo < activeStep && activeStep === 1) {
-        console.warn('This is the first step');
-    }
-    else {
-        storeAnswers();
-        loadStep(activeStep = stepNo);
-        console.log(...richText(['activeStep', App.colors.code], ' is now '), stepNo);
-    }
-
-    console.groupEnd();
-}
-
-function updateStepJson() {
-    return {
-        files: () => {
-
-        }
-    };
-}
-
 function enableTextStep() {
     debugGroup('enabledTextStep()');
 
@@ -631,7 +626,7 @@ function enableCodeStep() {
 
     syncTabs();
     storeModelsToCache();
-    
+
     stepJson.type = stepType.code;
     console.log(...richText('Changed ', ['stepJson.type', App.colors.code], ' to ', [stepType.code, App.colors.string]));
 
@@ -647,7 +642,7 @@ function enableInteractiveStep() {
 
     syncTabs();
     storeModelsToCache();
-    
+
     stepJson.type = stepType.interactive;
     console.log(...richText('Changed ', ['stepJson.type', App.colors.code], ' to ', [stepType.interactive, App.colors.string]));
 
@@ -699,7 +694,6 @@ function switchTab() {
         console.log('Skipped loading the same tab');
     }
     else {
-        storeTransformedContents();
         storeAnswers();
         activeTab.classList.remove('active');
         activeTab = event.target as Tab;
@@ -721,19 +715,22 @@ function loadTab(tab?: Tab) {
     tab = tab || activeTab;
     tab.classList.add('active');
 
-    if (stepJson.files[tab.innerText]) {
+    if (stepJson.files[tab.innerText].contents) {
         if (App.UI.btnCodeMode.firstElementChild.innerText !== iconNames[stepJson.files[tab.innerText].mode]) {
             App.UI.btnCodeMode.firstElementChild.innerText = iconNames[stepJson.files[tab.innerText].mode];
-            console.log(...richText('Changed ', ['btnCodeMode', code], ' icon to ', [iconNames[stepJson.files[tab.innerText].mode], string]));
+            console.log(...richText('Changed ', ['btnCodeMode', code], ' icon to ', [`"${iconNames[stepJson.files[tab.innerText].mode]}"`, string]));
         }
     }
     else {
-        let lastContentStep = 0;
-        console.log(`The file "${tab.innerText}" doesn't exist on step `, activeStep, 'using code from step ', lastContentStep);
+        stepJson.model[tab.innerText] = resolveTabContent(activeStep - 1, tab.innerText);
+
+        App.UI.btnCodeMode.firstElementChild.innerText = iconNames[modeTypes.unchanged];
+        console.log(...richText('Changed ', ['btnCodeMode', code], ' icon to ', [`"${iconNames[modeTypes.unchanged]}"`, string]));
     }
 
     if (codeEditor) {
         codeEditor.setModel(stepJson.model[tab.innerText]);
+        codeEditor.updateOptions({ readOnly: !stepJson.files[tab.innerText].contents });
         console.log(...richText('Updated ', ['codeEditor', code], ' model to ', [`stepJson.model["${tab.innerText}"]`, code]));
     }
     else updateDiffEditor({
@@ -754,28 +751,130 @@ function syncTabs() {
     }
 }
 
-function enableModifyContent() {
-    debugGroup('enableModifyContent()');
+/**
+ * - backtracks from the currect step to the first step in the project
+ * - backtracking stops at the step where the `tabName` tab is in "new_contents" mode
+ * - traversed steps are stored in `stepChain`
+ * - iterates on `stepChain` to determine the content for `tabName` tab
+ * - updates `stepJson.model[tabName]` with resulting content
+ * - NOTES
+ *  - does not call `codeEditor.setModel()`
+ * @param tabName
+ */
+function resolveTabContent(cutoffStep: number, tabName: string) {
+    const { code, string } = App.colors;
 
-    if (activeStep === 1) {
-        console.warn('File contents must be manually defined for the first step');
+    debugGroup(...richText('resolveUnchangedContent(', [`"${tabName}"`, string], ')'));
+
+    const stepChain = [];
+
+    for (let i = cutoffStep - 1; i >= 0; i--) {
+        const stepFile = stepList[i].files[tabName];
+        stepChain.unshift(stepList[i]);
+
+        if (stepFile.contents) {
+            i = stepFile.mode === modeTypes.newContents ? 0 : i;
+        }
+
+        console.log(...richText([`"${tabName}"`, string], ` in step `, [`${i + 1}`, code], ' is in ', [`"${stepFile.contents ? stepFile.mode : modeTypes.unchanged}"`, string], ` mode${i ? ', backtracking...' : ''}`));
+    }
+
+    console.log(...richText('Iterating on ', ['stepChain', code], ' to determine ', [`"${tabName}"`, string], ' content in step ', [`${activeStep}`, code]));
+
+    let transformedContent: string = stepChain.shift().model[tabName].getValue();
+    let errorMessage: string;
+
+    const resolved = stepChain.every((step, idx) => {
+        if (!step.files[tabName].contents) return true;
+
+        const stepNo = activeStep - stepChain.length - idx;
+        const newContents = new Function('codeWithoutMarkup', removeJsComments(step.model[tabName].getValue()).trim());
+
+        try {
+            transformedContent = newContents(removeEditableMarkup(transformedContent));
+
+            if (typeof transformedContent !== 'string') {
+                errorMessage = `Transition logic in step ${stepNo} does not return a string`;
+            }
+        }
+        catch (err) {
+            errorMessage = `Transition logic in step ${stepNo} failed`;
+            console.warn(err);
+        }
+
+        return !errorMessage;
+    });
+
+    console.groupEnd();
+
+    if (resolved) {
+        return monaco.editor.createModel(transformedContent, langType[parseFileName(tabName).type]);
     }
     else {
-        stepJson.files[activeTab.innerText].mode = modeTypes.modify;
-        App.UI.btnCodeMode.firstElementChild.innerText = iconNames[modeTypes.modify];
-    
-        if (codeEditor) {
-            const cachedCode = stepCache[modeTypes.modify];
-    
-            stepCache[modeTypes.newContents] = codeEditor.getValue();
-    
-            const model = monaco.editor.createModel(cachedCode || codeTemplate.transition, langType.js);
-            codeEditor.setModel(model);
-            stepJson.model[activeTab.innerText] = model;
-    
-            debugGroup('Replaced code content with:').end(codeTemplate.transition);
-        }
+        return monaco.editor.createModel(errorMessage);
     }
+}
+
+function switchFileMode(mode: 'new_contents' | 'modify' | 'leave_unchanged') {
+    if (mode !== modeTypes.newContents && activeStep === 1) {
+        return console.warn('File contents must be manually defined for the first step');
+    }
+    else if (stepJson.type !== stepType.code) {
+        return console.warn(`The "${mode}" option is not compatible with ${stepJson.type} steps`);
+    }
+    else if (diffEditor) {
+        return console.warn('Disable "edit answer" mode before changing file mode');
+    }
+
+    debugGroup('switchFileMode()');
+
+    const { code, string } = App.colors;
+    const cacheCurrentModel = () => {
+        stepCache[stepJson.files[activeTab.innerText].mode][activeTab.innerText] = codeEditor.getModel();
+        debugGroup(...richText('Stored content in ', [`stepCache.${stepJson.files[activeTab.innerText].mode}["${activeTab.innerText}"]`, code])).end(codeEditor.getValue());
+    };
+
+    if (mode === modeTypes.unchanged) {
+        cacheCurrentModel();
+        stepJson.model[activeTab.innerText] = resolveTabContent(activeStep - 1, activeTab.innerText);
+        delete stepJson.files[activeTab.innerText].contents;
+    }
+    else {
+        if (stepCache[mode][activeTab.innerText]) {
+            console.log(...richText('Switching to ', [`"${mode}"`, string], ' with cache'));
+
+            stepJson.model[activeTab.innerText] = stepCache[mode][activeTab.innerText];
+            console.log(...richText([`stepJson.model["${activeTab.innerText}"]`, code], ' now using ', [`stepCache.${mode}["${activeTab.innerText}"]`, code]));
+        }
+        else {
+            console.log(...richText('Switching to ', [`"${mode}"`, string], ' without cache'));
+
+            if (mode === modeTypes.newContents) {
+                stepJson.model[activeTab.innerText] = monaco.editor.createModel(codeTemplate[activeTab.type], langType[activeTab.type]);
+                console.log(...richText([`stepJson.model["${activeTab.innerText}"]`, code], ' now using the default ', [`"${activeTab.type.toUpperCase()}"`], ' model'));
+            }
+            else {
+                stepJson.model[activeTab.innerText] = monaco.editor.createModel(codeTemplate.transition, langType.js);
+                console.log(...richText([`stepJson.model["${activeTab.innerText}"]`, code], ' now using the default "transition" model'));
+            }
+        }
+
+        if (!stepJson.files[activeTab.innerText].contents) {
+            stepJson.files[activeTab.innerText] = newFileJson({ mode });
+            console.log(...richText('Template contents have been transferred to ', [`stepJson.files["${activeTab.innerText}"]`, code]));
+        }
+        else {
+            cacheCurrentModel();
+        }
+
+        stepJson.files[activeTab.innerText].mode = mode;
+    }
+
+    codeEditor.setModel(stepJson.model[activeTab.innerText]);
+    console.log(...richText([`stepJson.model["${activeTab.innerText}"]`, code], ' is applied to the code editor'));
+
+    codeEditor.updateOptions({ readOnly: mode === modeTypes.unchanged });
+    App.UI.btnCodeMode.firstElementChild.innerText = iconNames[mode];
 
     console.groupEnd();
 }
@@ -821,16 +920,18 @@ function createCodeEditor() {
 function updateDiffEditor(cfg: DiffEditorConfig) {
     debugGroup('updateDiffEditor()');
 
+    const { code, string } = App.colors;
     const tab = cfg.tab || activeTab;
     const failCallback = cfg.onFail || (() => { });
     const successCallback = cfg.onSuccess || (() => { });
 
-    //  FIXME: need to strip comments from code editor content
-    let authorContent = stepJson.model[tab.innerText].getValue();
+    const original: monaco.editor.IModel =
+        stepJson.files[tab.innerText].mode === modeTypes.modify ?
+            resolveTabContent(activeStep, tab.innerText) :
+            stepJson.model[tab.innerText];
 
-    if (stepJson.files[tab.innerText].mode === modeTypes.modify) {
-        //  TODO: authorContent = getTransformedContents();
-    }
+    //  FIXME: need to strip all types of comments from code editor content
+    let authorContent = original.getValue();
 
     debugGroup(`Working from: "${tab.innerText}"`).end(authorContent);
 
@@ -851,7 +952,7 @@ function updateDiffEditor(cfg: DiffEditorConfig) {
         if (storedAnswers.length !== authorEditableContents.length) {
             //  clear the answers array if the number of editables don't match with the number of answers
             stepJson.files[tab.innerText].answers = [];
-            console.log(...richText('Cleared ', [`stepJson.files["${tab.innerText}"].answers`, App.colors.code]));
+            console.log(...richText('Cleared ', [`stepJson.files["${tab.innerText}"].answers`, code]));
         }
 
         authorEditableContents
@@ -867,8 +968,6 @@ function updateDiffEditor(cfg: DiffEditorConfig) {
                 }
             });
 
-        //  use the current editor model as the original model for the diff editor
-        const original = stepJson.model[tab.innerText];
         //  create modified model for the diff editor
         const modified = monaco.editor.createModel(codeChunks.join(''), langType[tab.type]);
 
@@ -890,7 +989,7 @@ function updateDiffEditor(cfg: DiffEditorConfig) {
 
 function removeDiffEditor() {
     debugGroup('removeDiffEditor()');
-    
+
     storeAnswers();
 
     diffEditor.dispose();
@@ -898,46 +997,6 @@ function removeDiffEditor() {
 
     //  remove highlight from button icon
     App.UI.btnModelAnswers.firstElementChild.classList.remove('active-green');
-
-    console.groupEnd();
-}
-
-function storeTransformedContents() {
-    debugGroup('storeTransformedContents()');
-
-    const transitionCode = removeJsComments(codeEditor.getValue()).trim();
-    const backtrackRange = stepList.splice(0, activeStep - 2);
-    const relevantSteps = [];
-
-    while (backtrackRange.length > 0) {
-        const step = backtrackRange.pop();
-        const file = step.files[activeTab.innerText];
-
-        if (step.type === stepType.interactive) {
-            backtrackRange.length = 0;
-        }
-        else if (!file) {
-            continue;
-        }
-        else {
-            relevantSteps.push(step);
-            
-            if (file.mode === modeTypes.newContents) {
-                backtrackRange.length = 0;
-            }
-        }
-    }
-
-    //  TODO: relevantSteps.reverse().forEach(step => eval(transitionCode));
-
-    console.log(relevantSteps);
-
-    console.groupEnd();
-}
-
-function getTransformedContents() {
-    debugGroup('getTransformedContents()');
-
 
     console.groupEnd();
 }
@@ -967,10 +1026,11 @@ function storeModelsToCache() {
     debugGroup('storeModelsToCache()');
 
     const { code } = App.colors;
-    
+
     obj(stepJson.model).forEachEntry((fullName, model) => {
-        stepCache[stepJson.type][fullName] = model;
-        debugGroup(...richText('Transferred ', [`stepJson.model["${fullName}"]`, code], ' to ', [`stepCache.${stepJson.type}`, code])).end((stepCache[stepJson.type]));
+        const cacheType = stepJson.type === stepType.code ? stepJson.files[fullName].mode : stepJson.type;
+        stepCache[cacheType][fullName] = model;
+        debugGroup(...richText('Transferred ', [`stepJson.model["${fullName}"]`, code], ' to ', [`stepCache.${cacheType}`, code])).end((stepCache[stepJson.type]));
 
         delete stepJson.model[fullName];
         console.log(...richText('Deleted ', [`stepJson.model["${fullName}"]`, code]));
@@ -983,9 +1043,11 @@ function loadModelsFromCache() {
     debugGroup('loadModelsFromCache()');
 
     missionFiles.forEach(fullName => {
-        if (stepCache[stepJson.type][fullName]) {
-            stepJson.model[fullName] = stepCache[stepJson.type][fullName];
-            console.log(...richText('Updated ', [`stepJson.model["${fullName}"]`, App.colors.code], ' using ', [`stepCache.code`, App.colors.code]));
+        const cacheType = stepJson.type === stepType.code ? stepJson.files[fullName].mode : stepJson.type;
+
+        if (stepCache[cacheType][fullName]) {
+            stepJson.model[fullName] = stepCache[cacheType][fullName];
+            console.log(...richText('Updated ', [`stepJson.model["${fullName}"]`, App.colors.code], ' using ', [`stepCache.${cacheType}`, App.colors.code]));
         }
         else {
             const { type } = parseFileName(fullName);
@@ -1042,6 +1104,10 @@ function debugGroup(...message: Array<any>) {
     };
 }
 
-function removeJsComments(code: string) {
-    return code.replace(/\/\/.*/g, '');
+function removeJsComments(content: string) {
+    return content.replace(/\s*\/\/.*/g, '');
 }
+
+function removeEditableMarkup(content) {
+    return content.replace(/#(BEGIN|END)_EDITABLE#/g, '');
+} 

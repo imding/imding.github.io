@@ -37,15 +37,17 @@ export default function subMenu(scrollContainer: HTMLElement, groups: Array<SubM
                 const { tipHeading, tip, handler } = item;
                 const button = newEl('div');
                 const icon = newEl('i', { className: 'material-icons', innerText: iconName });
-
-                button.append(icon);
-                subMenuContainer.append(button);
-                
-                button.onclick = (ev: MouseEvent) => {
+                const wrapperHandler = (ev: MouseEvent) => {
+                    button.removeEventListener('click', wrapperHandler);
                     button.removeTooltip(ev);
                     removeSubMenu();
                     handler();
                 };
+
+                button.append(icon);
+                subMenuContainer.append(button);
+                
+                button.addEventListener('click', wrapperHandler);
                 
                 tipsData.push({ tool: button, heading: tipHeading, tip });
             });

@@ -28,7 +28,7 @@ export default function Tooltip(targets: Array<Tooltip>, cfg: TooltipConfig) {
                 heading = newEl('h4', { className: 'tipHeading' });
                 body = newEl('div', { className: 'tip' });
 
-                cfg.dim.forEach(element => element.classList.toggle('dim'));
+                cfg.dim.forEach(element => element.classList.add('dim'));
                 tipContainer.append(heading, body);
             }
 
@@ -50,7 +50,7 @@ export default function Tooltip(targets: Array<Tooltip>, cfg: TooltipConfig) {
 
         tool.removeTooltip = (ev: MouseEvent) => {
             const remove = () => {
-                cfg.dim.forEach(element => element.classList.toggle('dim'));
+                cfg.dim.forEach(element => element.classList.remove('dim'));
                 tipContainer.parentNode.removeChild(tipContainer);
                 tipContainer = null;
             };

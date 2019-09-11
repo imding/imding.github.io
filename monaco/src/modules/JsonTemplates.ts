@@ -12,9 +12,9 @@ interface TestConfig {
 }
 
 interface FileConfig {
-    contents: string,
-    mode:  'new_contents' | 'modify',
-    answers: [] | Array<string>
+    contents?: string,
+    mode?: 'new_contents' | 'modify',
+    answers?: [] | Array<string>
 }
 
 export function newTestJson(cfg: TestConfig) {
