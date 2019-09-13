@@ -485,21 +485,22 @@ function createMissionStructure(fromString?: string, override?: MissionJson) {
                     step.model = {};
                     console.log(...richText('Initialised ', [`stepList[${idx}].model`, code]));
                 }
-    
+
                 //  TODO: sort files based on extension: html > css > js
-                obj(step.files).forEachEntry((fullName, stepData) => {
-                    console.log(...richText([`stepList[${idx}].model["${fullName}"]`, code], ` is ${step.model[fullName] ? '' : 'not '}found, file is in `, [`"${stepData.mode || fileMode.noChange}"`, string], ' mode'));
+                obj(step.files).forEachEntry((fullName, file) => {
+                    if (!file.mode) {
+                        step.files[fullName].mode = fileMode.noChange;
+                    }
+                    
+                    console.log(...richText([`stepList[${idx}].model["${fullName}"]`, code], ` is ${step.model[fullName] ? '' : 'not '}found, file is in `, [`"${file.mode}"`, string], ' mode'));
 
                     if (step.model[fullName]) return;
 
-                    if (stepData.mode && stepData.mode !== fileMode.noChange) {
+                    if (file.mode !== fileMode.noChange) {
                         step.model[fullName] = monaco.editor.createModel(
-                            stepData.contents, 
-                            langType[stepData.mode === fileMode.newContents ? parseFileName(fullName).type : 'js']);
+                            file.contents,
+                            langType[file.mode === fileMode.newContents ? parseFileName(fullName).type : 'js']);
                         console.log(...richText('Created new model for ', [`"${fullName}"`, string]));
-                    }
-                    else {
-                        //  TODO: handle "leave_unchanged"
                     }
                 });
             }
@@ -638,7 +639,7 @@ function loadStep(stepNo: number) {
     else if (stepJson.type = stepType.text) {
         enableTextStep();
     }
-    
+
     if (App.UI.btnStepType.firstElementChild.innerText !== iconNames[stepJson.type]) {
         App.UI.btnStepType.firstElementChild.innerText = iconNames[stepJson.type];
         console.log(...richText('Changed ', ['btnStepType', App.colors.code], ' icon to ', [`"${iconNames[stepJson.type]}"`, App.colors.string]));
@@ -780,12 +781,15 @@ function loadTab(tab: Tab = activeTab) {
     }
 
     if (stepJson.files[tab.innerText].contents) {
+        console.log(...richText([`stepJson.files["${tab.innerText}"]`, code], ' has contents, using ', [`stepJson.model["${tab.innerText}"]`, code]));
+
         if (App.UI.btnCodeMode.firstElementChild.innerText !== iconNames[stepJson.files[tab.innerText].mode]) {
             App.UI.btnCodeMode.firstElementChild.innerText = iconNames[stepJson.files[tab.innerText].mode];
             console.log(...richText('Changed ', ['btnCodeMode', code], ' icon to ', [`"${iconNames[stepJson.files[tab.innerText].mode]}"`, string]));
         }
     }
     else {
+        console.log(...richText([`stepJson.files["${tab.innerText}"]`, code], ' has no content, resolving...'));
         stepJson.model[tab.innerText] = resolveTabContent(activeStep - 1, tab.innerText);
 
         App.UI.btnCodeMode.firstElementChild.innerText = iconNames[fileMode.noChange];
@@ -794,14 +798,18 @@ function loadTab(tab: Tab = activeTab) {
 
     if (codeEditor) {
         codeEditor.setModel(stepJson.model[tab.innerText]);
-        codeEditor.updateOptions({ readOnly: !stepJson.files[tab.innerText].contents });
+        codeEditor.updateOptions({ readOnly: stepJson.files[tab.innerText].mode === fileMode.noChange });
         console.log(...richText('Updated ', ['codeEditor', code], ' model to ', [`stepJson.model["${tab.innerText}"]`, code]));
+    }
+    else if (diffEditor && stepJson.type === stepType.interactive) {
+        switchDiffToCode();
+        console.warn(...richText('Reverted to "code authoring mode" because "edit answers" is not compatible with ', [`"${stepJson.type}"`, string], ' steps'));
     }
     else updateDiffEditor({
         tab,
         onFail: () => {
-            removeDiffEditor();
-            createCodeEditor();
+            storeAnswers();
+            switchDiffToCode();
             console.warn(`Reverted to "code authoring mode" because the "${tab.innerText}" tab doesn't contain editable markup`);
         },
     });
@@ -825,7 +833,7 @@ function syncTabs() {
  *  - does not call `codeEditor.setModel()`
  * @param tabName
  */
-function resolveTabContent(cutoffStep: number, tabName: string) {
+function resolveTabContent(cutoffStep: number, tabName: string): monaco.editor.IModel {
     const { code, string } = App.colors;
 
     debugGroup(...richText('resolveTabContent(cutoffStep: ', [`${cutoffStep}`, code], ', tabName: ', [`"${tabName}"`, string], ')'));
@@ -836,7 +844,7 @@ function resolveTabContent(cutoffStep: number, tabName: string) {
         const step = stepList[i];
 
         stepChain.unshift(step);
-        
+
         if (step.type !== stepType.code) {
             console.log(...richText('Step ', [`${i + 1}`, code], ' is ', [`"${step.type}"`, string], ', backtracking...'));
         }
@@ -847,7 +855,7 @@ function resolveTabContent(cutoffStep: number, tabName: string) {
                     i = 0;
                 }
                 else {
-                    console.log(...richText([`"${tabName}"`, string], ' in step ', [`${i + 1}`, code], ' is in ', [`"${step.files[tabName].mode || fileMode.noChange}"`, string], ' mode, backtracking...'));
+                    console.log(...richText([`"${tabName}"`, string], ' in step ', [`${i + 1}`, code], ' is in ', [`"${step.files[tabName].mode}"`, string], ' mode, backtracking...'));
                 }
             }
             else {
@@ -856,13 +864,13 @@ function resolveTabContent(cutoffStep: number, tabName: string) {
         }
     }
 
-    console.log(...richText('Iterating on ', ['stepChain', code], ' to determine ', [`"${tabName}"`, string], ' content in step ', [`${activeStep}`, code]));
+    debugGroup(...richText('Iterating on ', ['stepChain', code], ' to determine ', [`"${tabName}"`, string], ' content in step ', [`${activeStep}`, code]));
 
     let transformedContent: string = stepChain.shift().model[tabName].getValue();
     let errorMessage: string;
 
     const resolved = stepChain.every((step, idx) => {
-        if (step.type !== stepType.code || !step.files[tabName].contents) return true;
+        if (step.type !== stepType.code || step.files[tabName].mode === fileMode.noChange) return true;
         
         const stepNo = activeStep - stepChain.length - idx;
         const newContents = new Function('codeWithoutMarkup', removeJsComments(step.model[tabName].getValue()).trim());
@@ -870,6 +878,7 @@ function resolveTabContent(cutoffStep: number, tabName: string) {
         try {
             //  TODO: add answers to transformedContent
             transformedContent = newContents(removeEditableMarkup(transformedContent));
+            debugGroup('Resolved content for step', stepNo).end(transformedContent);
 
             if (typeof transformedContent !== 'string') {
                 errorMessage = `Transition logic in step ${stepNo} does not return a string`;
@@ -883,6 +892,7 @@ function resolveTabContent(cutoffStep: number, tabName: string) {
         return !errorMessage;
     });
 
+    console.groupEnd();
     console.groupEnd();
 
     if (resolved) {
@@ -915,7 +925,6 @@ function switchFileMode(mode: SingleMode) {
     if (mode === fileMode.noChange) {
         cacheCurrentModel();
         stepJson.model[activeTab.innerText] = resolveTabContent(activeStep - 1, activeTab.innerText);
-        delete stepJson.files[activeTab.innerText].contents;
     }
     else {
         if (stepCache[mode][activeTab.innerText]) {
@@ -936,17 +945,13 @@ function switchFileMode(mode: SingleMode) {
                 console.log(...richText([`stepJson.model["${activeTab.innerText}"]`, code], ' now using the default "transition" model'));
             }
         }
-
-        if (!stepJson.files[activeTab.innerText].contents) {
-            stepJson.files[activeTab.innerText] = newFileJson({ mode });
-            console.log(...richText('Template contents have been transferred to ', [`stepJson.files["${activeTab.innerText}"]`, code]));
-        }
-        else {
+        
+        if (stepJson.files[activeTab.innerText].mode !== fileMode.noChange) {
             cacheCurrentModel();
         }
-
-        stepJson.files[activeTab.innerText].mode = mode;
     }
+
+    stepJson.files[activeTab.innerText].mode = mode;
 
     codeEditor.setModel(stepJson.model[activeTab.innerText]);
     console.log(...richText([`stepJson.model["${activeTab.innerText}"]`, code], ' is applied to the code editor'));
@@ -970,20 +975,32 @@ function toggleEditAnswers() {
         });
     }
     else {
-        removeDiffEditor();
-        createCodeEditor();
+        storeAnswers();
+        switchDiffToCode();
     }
 
     console.groupEnd();
 }
 
-function createCodeEditor() {
-    debugGroup('createCodeEditor(model)');
+function switchDiffToCode() {
+    debugGroup('switchDiffToCode()');
+
+    removeDiffEditor();
 
     codeEditor = monaco.editor.create(App.UI.codeContainer);
     codeEditor.setModel(stepJson.model[activeTab.innerText]);
+    console.log('Created', App.UI.codeContainer.firstElementChild);
 
     console.groupEnd();
+}
+
+function removeDiffEditor() {
+    console.log('Disposing', App.UI.codeContainer.firstElementChild);
+    diffEditor.dispose();
+    diffEditor = null;
+
+    //  remove highlight from button icon
+    App.UI.btnModelAnswers.firstElementChild.classList.remove('active-green');
 }
 
 /**
@@ -996,13 +1013,14 @@ function createCodeEditor() {
  * @param cfg - `{ tab, onFail, onSuccess }`
  */
 function updateDiffEditor(cfg: DiffEditorConfig) {
+    const { code, string } = App.colors;
+
     if (stepJson.type !== stepType.code) {
-        return console.warn(...richText(['"edit answer mode"', App.colors.string], ' is not compatible with ', [`"${stepJson.type}"`, App.colors.string], ' steps'));
+        return console.warn(...richText(['"edit answer mode"', string], ' is not compatible with ', [`"${stepJson.type}"`, string], ' steps'));
     }
 
     debugGroup('updateDiffEditor()');
 
-    const { code, string } = App.colors;
     const tab = cfg.tab || activeTab;
     const failCallback = cfg.onFail || (() => { });
     const successCallback = cfg.onSuccess || (() => { });
@@ -1019,13 +1037,25 @@ function updateDiffEditor(cfg: DiffEditorConfig) {
 
     let authorEditableContents = authorContent.match(editablePattern.excludingMarkup);
 
-    //  ensure code contains editable markup
+    //  handle code without editable region
     if (authorEditableContents === null) {
         authorEditableContents = [];
-        
+
         if (stepJson.files[tab.innerText].mode !== fileMode.modify) {
             return failCallback();
         }
+    }
+
+    //  handle "no_change" files
+    if (stepJson.files[tab.innerText].mode === fileMode.noChange) {
+
+
+        const prevSteps = Array.from(stepList).slice(0, activeStep - 2).reverse();
+        
+        prevSteps.some(step => {
+            if (step.type !== stepType.code) return;
+            return stepJson.files[tab.innerText].answers = step.files[tab.innerText].answers;
+        });
     }
 
     const storedAnswers = stepJson.files[tab.innerText].answers || [];
@@ -1067,20 +1097,6 @@ function updateDiffEditor(cfg: DiffEditorConfig) {
     diffEditor.setModel({ original, modified });
 
     successCallback();
-
-    console.groupEnd();
-}
-
-function removeDiffEditor() {
-    debugGroup('removeDiffEditor()');
-
-    storeAnswers();
-
-    diffEditor.dispose();
-    diffEditor = null;
-
-    //  remove highlight from button icon
-    App.UI.btnModelAnswers.firstElementChild.classList.remove('active-green');
 
     console.groupEnd();
 }
@@ -1161,6 +1177,11 @@ function disableCodePanel(message: string) {
             console.log(`Removed the "${tab.innerText}" tab`);
         }
     });
+
+    if (diffEditor) {
+        removeDiffEditor();
+        codeEditor = monaco.editor.create(App.UI.codeContainer);
+    }
 
     codeEditor.setModel(monaco.editor.createModel(message));
     codeEditor.updateOptions({ readOnly: true });
