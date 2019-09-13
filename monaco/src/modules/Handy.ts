@@ -215,7 +215,7 @@ export function richText(...segments: Array<string | [string, object?]>): Array<
         const [str, rule] = typeof item === 'string' ? [item, {}] : item;
         finalString += `%c${str}`;
 
-        Object.entries(Object.assign({ color: 'ghostwhite' }, rule)).forEach(style => {
+        Object.entries(Object.assign({ color: 'gainsboro' }, rule)).forEach(style => {
             const [prop, value] = style;
             styles.push(`${prop}: ${value};`);
         });

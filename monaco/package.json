@@ -11,10 +11,7 @@
   "author": "Ding",
   "license": "ISC",
   "dependencies": {
-    "monaco-editor": "^0.17.1",
-    "seedrandom": "^3.0.3",
-    "strip-comments": "^1.0.2",
-    "strip-html-comments": "^1.0.0"
+    "monaco-editor": "^0.17.1"
   },
   "devDependencies": {
     "@editorjs/code": "^2.4.1",

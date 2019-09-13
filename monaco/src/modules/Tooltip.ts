@@ -28,7 +28,7 @@ export default function Tooltip(targets: Array<Tooltip>, cfg: TooltipConfig) {
                 heading = newEl('h4', { className: 'tipHeading' });
                 body = newEl('div', { className: 'tip' });
 
-                cfg.dim.forEach(element => element.classList.toggle('dim'));
+                cfg.dim.forEach(element => element.classList.add('dim'));
                 tipContainer.append(heading, body);
             }
 
@@ -38,7 +38,7 @@ export default function Tooltip(targets: Array<Tooltip>, cfg: TooltipConfig) {
             const { left, top, width } = tool.getBoundingClientRect();
             const containerPosition = {
                 left: `${left - tipContainer.offsetWidth - 5}px`,
-                top: `${top}px`,
+                top: `${Math.min(top, window.innerHeight - tipContainer.offsetHeight - 5)}px`,
             };
 
             if (cfg.placement === 'right') {
@@ -50,8 +50,12 @@ export default function Tooltip(targets: Array<Tooltip>, cfg: TooltipConfig) {
 
         tool.removeTooltip = (ev: MouseEvent) => {
             const remove = () => {
-                cfg.dim.forEach(element => element.classList.toggle('dim'));
-                tipContainer.parentNode.removeChild(tipContainer);
+                cfg.dim.forEach(element => element.classList.remove('dim'));
+
+                if (tipContainer) {
+                    tipContainer.parentNode.removeChild(tipContainer);
+                }
+                
                 tipContainer = null;
             };
 

@@ -37,31 +37,36 @@ export default function subMenu(scrollContainer: HTMLElement, groups: Array<SubM
                 const { tipHeading, tip, handler } = item;
                 const button = newEl('div');
                 const icon = newEl('i', { className: 'material-icons', innerText: iconName });
-
-                button.append(icon);
-                subMenuContainer.append(button);
-                
-                button.onclick = (ev: MouseEvent) => {
+                const wrapperHandler = (ev: MouseEvent) => {
+                    button.removeEventListener('click', wrapperHandler);
                     button.removeTooltip(ev);
                     removeSubMenu();
                     handler();
                 };
+
+                button.append(icon);
+                subMenuContainer.append(button);
+                
+                button.addEventListener('click', wrapperHandler);
                 
                 tipsData.push({ tool: button, heading: tipHeading, tip });
             });
+
+            window.addEventListener('actionPanelScrolled', removeSubMenu);
 
             Tooltip(tipsData, cfg);
         };
         const removeSubMenu = () => {
             el(subMenuContainer).setStyle({ opacity: 0 });
-            subMenuContainer.addEventListener('transitionend', () => document.body.removeChild(event.target as HTMLElement));
+            window.removeEventListener('actionPanelScrolled', removeSubMenu);
+            subMenuContainer.addEventListener('transitionend', () => {
+                if ((event as TransitionEvent).propertyName === 'opacity') {
+                    document.body.removeChild(event.target as HTMLElement);
+                }
+            });
             subMenuContainer = null;
         };
 
         host.addEventListener('click', () => subMenuContainer ? removeSubMenu() : attachSubMenu());
-
-        // host.addEventListener('mouseout', () => {
-        //     if (subMenuContainer) removeSubMenu();
-        // });
     });
 }
