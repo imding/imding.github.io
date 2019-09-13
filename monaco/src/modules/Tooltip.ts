@@ -51,7 +51,11 @@ export default function Tooltip(targets: Array<Tooltip>, cfg: TooltipConfig) {
         tool.removeTooltip = (ev: MouseEvent) => {
             const remove = () => {
                 cfg.dim.forEach(element => element.classList.remove('dim'));
-                tipContainer.parentNode.removeChild(tipContainer);
+
+                if (tipContainer) {
+                    tipContainer.parentNode.removeChild(tipContainer);
+                }
+                
                 tipContainer = null;
             };
 

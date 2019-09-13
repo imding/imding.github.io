@@ -144,16 +144,16 @@ const codeTemplate = {
     transition: '// Transition:\nreturn `${codeWithoutMarkup}#BEGIN_EDITABLE##END_EDITABLE#`;\n// let output = codeWithoutMarkup; //.replace(/\s*<!--.*-->/g,\'\');\n// output = insertLine(output, \'key\', { line: \'\', offset: 0 });\n// output = makeEditableBlock(output, \'key\');\n// return output;'
 };
 
-const stepType: { code: 'code', interactive: 'interactive', text: 'text' } = {
+const stepType: StepType = {
     code: 'code',
     interactive: 'interactive',
     text: 'text'
 };
 
-const modeTypes: { newContents: 'new_contents', modify: 'modify', unchanged: 'leave_unchanged' } = {
+const fileMode: FileMode = {
     newContents: 'new_contents',
     modify: 'modify',
-    unchanged: 'leave_unchanged'
+    noChange: 'no_change'
 };
 
 const iconNames = {
@@ -162,7 +162,7 @@ const iconNames = {
     'interactive': 'extension',
     'new_contents': 'create',
     'modify': 'build',
-    'leave_unchanged': 'lock'
+    'no_change': 'lock'
 };
 
 const langType = {
@@ -393,17 +393,17 @@ function assembleAppUI() {
             'create': {
                 tipHeading: 'use new content',
                 tip: 'define the content of the current code tab from scratch',
-                handler: () => switchFileMode(modeTypes.newContents)
+                handler: () => switchFileMode(fileMode.newContents)
             },
             'build': {
                 tipHeading: 'modify content',
                 tip: 'the content of the current tab will be defined by step transition code',
-                handler: () => switchFileMode(modeTypes.modify)
+                handler: () => switchFileMode(fileMode.modify)
             },
             'lock': {
                 tipHeading: 'leave unchanged',
                 tip: 'the content of this code tab will be the same as the previous step',
-                handler: () => switchFileMode(modeTypes.unchanged)
+                handler: () => switchFileMode(fileMode.noChange)
             }
         }
     }], {
@@ -436,7 +436,7 @@ function assembleAppUI() {
 function registerTopLevelEvents() {
     const {
         pnlActions,
-        btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
+        btnOpenProject, btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
         btnModelAnswers
     } = App.UI;
 
@@ -445,6 +445,7 @@ function registerTopLevelEvents() {
         window.dispatchEvent(actionPanelScrolled);
     };
 
+    btnOpenProject.onclick = openProject;
     btnNewStep.onclick = createNewStep;
     btnDelStep.onclick = () => deleteStep();
     btnNextStep.onclick = () => goToStep(activeStep + 1);
@@ -454,6 +455,8 @@ function registerTopLevelEvents() {
     window.onresize = () => (codeEditor || diffEditor).layout();
 }
 
+//===== PROJECT OPERATIONS =====//
+
 /**
  * - creates a new `missionJson` object
  * - if `fromString` is passed, steps where `title === 'Deleted by merging process'` will be removed
@@ -461,22 +464,73 @@ function registerTopLevelEvents() {
  * @param override if provided, it will be merged into `missionJson`
  */
 function createMissionStructure(fromString?: string, override?: MissionJson) {
-    debugGroup('createMissionStructure(', fromString, override, ')');
+    debugGroup('createMissionStructure(fromString, override)');
+    debugGroup(...richText(['fromString', App.colors.code])).end(fromString);
+    debugGroup(...richText(['override', App.colors.code])).end(override);
+
+    const { code, string } = App.colors;
 
     //  FIXME: add custom properties to JSON.parse(fromString)
     missionJson = fromString ? JSON.parse(fromString) : newMissionJson(override);
-    console.log('missionJson', { missionJson });
+    console.log(...richText('Updated ', ['missionJson', code]), { missionJson });
 
     stepList = obj(missionJson.steps)
         .filter('values', step => step.title !== 'Deleted by merging process')
-        .sort((a: any, b: any) => a.orderNo - b.orderNo);
-    console.log('stepList', stepList);
+        .sort((a: any, b: any) => a.orderNo - b.orderNo)
+        .map((step, idx) => {
+            debugGroup(...richText('Step ', [`${idx + 1}`, code], ' is ', [`"${step.type}"`, string]));
 
-    //  set activeStep to 1 if stepList.length is greater than 0
-    //  otherwise set activeStep to 0
+            if (step.type === stepType.code || step.type === stepType.interactive) {
+                if (!step.model) {
+                    step.model = {};
+                    console.log(...richText('Initialised ', [`stepList[${idx}].model`, code]));
+                }
+    
+                //  TODO: sort files based on extension: html > css > js
+                obj(step.files).forEachEntry((fullName, stepData) => {
+                    console.log(...richText([`stepList[${idx}].model["${fullName}"]`, code], ` is ${step.model[fullName] ? '' : 'not '}found, file is in `, [`"${stepData.mode || fileMode.noChange}"`, string], ' mode'));
+
+                    if (step.model[fullName]) return;
+
+                    if (stepData.mode && stepData.mode !== fileMode.noChange) {
+                        step.model[fullName] = monaco.editor.createModel(
+                            stepData.contents, 
+                            langType[stepData.mode === fileMode.newContents ? parseFileName(fullName).type : 'js']);
+                        console.log(...richText('Created new model for ', [`"${fullName}"`, string]));
+                    }
+                    else {
+                        //  TODO: handle "leave_unchanged"
+                    }
+                });
+            }
+            else {
+                //  TODO: handle text steps
+            }
+
+            console.groupEnd();
+
+            return step;
+        });
+    console.log(...richText('Updated ', ['stepList', code]), stepList);
+
+    //  stepList array empty when no fromString is passed
+    //  for activeStep to be correctly synced it should be 0 to begin with
     activeStep = stepList.length ? 1 : 0;
 
     console.groupEnd();
+}
+
+function openProject() {
+    const fileInput = newEl('input', { type: 'file', accept: '.json' }) as HTMLInputElement;
+    fileInput.click();
+    fileInput.onchange = () => {
+        const reader = new FileReader();
+        reader.readAsText(fileInput.files[0], 'UTF-8');
+        reader.onload = () => {
+            createMissionStructure(reader.result as string);
+            loadStep(1);
+        };
+    };
 }
 
 //===== STEP OPERATIONS =====//
@@ -508,6 +562,7 @@ function newStepListItem(placement?: number, override?: StepJsonOverride) {
 
     //  insert new step JSON into stepList after the current step
     stepList.splice(placement, 0, newStepJson(override));
+
 
     //  populate step files using the structure of missionFiles
     missionFiles.forEach(fullName => {
@@ -577,12 +632,17 @@ function loadStep(stepNo: number) {
     console.log(...richText('Cleared ', ['stepCache', code]));
 
     //  update code editor
+    if (stepJson.type === stepType.code || stepJson.type === stepType.interactive) {
+        loadTab();
+    }
+    else if (stepJson.type = stepType.text) {
+        enableTextStep();
+    }
+    
     if (App.UI.btnStepType.firstElementChild.innerText !== iconNames[stepJson.type]) {
         App.UI.btnStepType.firstElementChild.innerText = iconNames[stepJson.type];
         console.log(...richText('Changed ', ['btnStepType', App.colors.code], ' icon to ', [`"${iconNames[stepJson.type]}"`, App.colors.string]));
     }
-
-    loadTab();
 
     console.groupEnd();
 }
@@ -707,13 +767,17 @@ function switchTab() {
  * - lodas the code content for the active tab
  * @param tab 
  */
-function loadTab(tab?: Tab) {
-    debugGroup('loadTab(', tab || activeTab, ')');
+function loadTab(tab: Tab = activeTab) {
+    debugGroup('loadTab(', tab, ')');
 
     const { code, string } = App.colors;
 
-    tab = tab || activeTab;
     tab.classList.add('active');
+
+    if (tab.innerText === 'disabled') {
+        createTabs();
+        tab = activeTab;
+    }
 
     if (stepJson.files[tab.innerText].contents) {
         if (App.UI.btnCodeMode.firstElementChild.innerText !== iconNames[stepJson.files[tab.innerText].mode]) {
@@ -724,8 +788,8 @@ function loadTab(tab?: Tab) {
     else {
         stepJson.model[tab.innerText] = resolveTabContent(activeStep - 1, tab.innerText);
 
-        App.UI.btnCodeMode.firstElementChild.innerText = iconNames[modeTypes.unchanged];
-        console.log(...richText('Changed ', ['btnCodeMode', code], ' icon to ', [`"${iconNames[modeTypes.unchanged]}"`, string]));
+        App.UI.btnCodeMode.firstElementChild.innerText = iconNames[fileMode.noChange];
+        console.log(...richText('Changed ', ['btnCodeMode', code], ' icon to ', [`"${iconNames[fileMode.noChange]}"`, string]));
     }
 
     if (codeEditor) {
@@ -764,19 +828,32 @@ function syncTabs() {
 function resolveTabContent(cutoffStep: number, tabName: string) {
     const { code, string } = App.colors;
 
-    debugGroup(...richText('resolveUnchangedContent(', [`"${tabName}"`, string], ')'));
+    debugGroup(...richText('resolveTabContent(cutoffStep: ', [`${cutoffStep}`, code], ', tabName: ', [`"${tabName}"`, string], ')'));
 
     const stepChain = [];
 
     for (let i = cutoffStep - 1; i >= 0; i--) {
-        const stepFile = stepList[i].files[tabName];
-        stepChain.unshift(stepList[i]);
+        const step = stepList[i];
 
-        if (stepFile.contents) {
-            i = stepFile.mode === modeTypes.newContents ? 0 : i;
+        stepChain.unshift(step);
+        
+        if (step.type !== stepType.code) {
+            console.log(...richText('Step ', [`${i + 1}`, code], ' is ', [`"${step.type}"`, string], ', backtracking...'));
         }
-
-        console.log(...richText([`"${tabName}"`, string], ` in step `, [`${i + 1}`, code], ' is in ', [`"${stepFile.contents ? stepFile.mode : modeTypes.unchanged}"`, string], ` mode${i ? ', backtracking...' : ''}`));
+        else {
+            if (step.files) {
+                if (step.files[tabName].mode === fileMode.newContents) {
+                    console.log(...richText([`"${tabName}"`, string], ' in step ', [`${i + 1}`, code], ' is in ', [`"${fileMode.newContents}"`, string], ' mode'));
+                    i = 0;
+                }
+                else {
+                    console.log(...richText([`"${tabName}"`, string], ' in step ', [`${i + 1}`, code], ' is in ', [`"${step.files[tabName].mode || fileMode.noChange}"`, string], ' mode, backtracking...'));
+                }
+            }
+            else {
+                alert('fix me');
+            }
+        }
     }
 
     console.log(...richText('Iterating on ', ['stepChain', code], ' to determine ', [`"${tabName}"`, string], ' content in step ', [`${activeStep}`, code]));
@@ -785,12 +862,13 @@ function resolveTabContent(cutoffStep: number, tabName: string) {
     let errorMessage: string;
 
     const resolved = stepChain.every((step, idx) => {
-        if (!step.files[tabName].contents) return true;
-
+        if (step.type !== stepType.code || !step.files[tabName].contents) return true;
+        
         const stepNo = activeStep - stepChain.length - idx;
         const newContents = new Function('codeWithoutMarkup', removeJsComments(step.model[tabName].getValue()).trim());
 
         try {
+            //  TODO: add answers to transformedContent
             transformedContent = newContents(removeEditableMarkup(transformedContent));
 
             if (typeof transformedContent !== 'string') {
@@ -815,12 +893,12 @@ function resolveTabContent(cutoffStep: number, tabName: string) {
     }
 }
 
-function switchFileMode(mode: 'new_contents' | 'modify' | 'leave_unchanged') {
-    if (mode !== modeTypes.newContents && activeStep === 1) {
+function switchFileMode(mode: SingleMode) {
+    if (mode !== fileMode.newContents && activeStep === 1) {
         return console.warn('File contents must be manually defined for the first step');
     }
     else if (stepJson.type !== stepType.code) {
-        return console.warn(`The "${mode}" option is not compatible with ${stepJson.type} steps`);
+        return console.warn(...richText('The ', [`"${mode}"`, App.colors.string], ' option is not compatible with ', [`"${stepJson.type}"`, App.colors.string], ' steps'));
     }
     else if (diffEditor) {
         return console.warn('Disable "edit answer" mode before changing file mode');
@@ -834,7 +912,7 @@ function switchFileMode(mode: 'new_contents' | 'modify' | 'leave_unchanged') {
         debugGroup(...richText('Stored content in ', [`stepCache.${stepJson.files[activeTab.innerText].mode}["${activeTab.innerText}"]`, code])).end(codeEditor.getValue());
     };
 
-    if (mode === modeTypes.unchanged) {
+    if (mode === fileMode.noChange) {
         cacheCurrentModel();
         stepJson.model[activeTab.innerText] = resolveTabContent(activeStep - 1, activeTab.innerText);
         delete stepJson.files[activeTab.innerText].contents;
@@ -849,7 +927,7 @@ function switchFileMode(mode: 'new_contents' | 'modify' | 'leave_unchanged') {
         else {
             console.log(...richText('Switching to ', [`"${mode}"`, string], ' without cache'));
 
-            if (mode === modeTypes.newContents) {
+            if (mode === fileMode.newContents) {
                 stepJson.model[activeTab.innerText] = monaco.editor.createModel(codeTemplate[activeTab.type], langType[activeTab.type]);
                 console.log(...richText([`stepJson.model["${activeTab.innerText}"]`, code], ' now using the default ', [`"${activeTab.type.toUpperCase()}"`], ' model'));
             }
@@ -873,7 +951,7 @@ function switchFileMode(mode: 'new_contents' | 'modify' | 'leave_unchanged') {
     codeEditor.setModel(stepJson.model[activeTab.innerText]);
     console.log(...richText([`stepJson.model["${activeTab.innerText}"]`, code], ' is applied to the code editor'));
 
-    codeEditor.updateOptions({ readOnly: mode === modeTypes.unchanged });
+    codeEditor.updateOptions({ readOnly: mode === fileMode.noChange });
     App.UI.btnCodeMode.firstElementChild.innerText = iconNames[mode];
 
     console.groupEnd();
@@ -889,7 +967,7 @@ function toggleEditAnswers() {
                 //  highlight button icon
                 App.UI.btnModelAnswers.firstElementChild.classList.add('active-green');
             }
-        })
+        });
     }
     else {
         removeDiffEditor();
@@ -918,6 +996,10 @@ function createCodeEditor() {
  * @param cfg - `{ tab, onFail, onSuccess }`
  */
 function updateDiffEditor(cfg: DiffEditorConfig) {
+    if (stepJson.type !== stepType.code) {
+        return console.warn(...richText(['"edit answer mode"', App.colors.string], ' is not compatible with ', [`"${stepJson.type}"`, App.colors.string], ' steps'));
+    }
+
     debugGroup('updateDiffEditor()');
 
     const { code, string } = App.colors;
@@ -926,7 +1008,7 @@ function updateDiffEditor(cfg: DiffEditorConfig) {
     const successCallback = cfg.onSuccess || (() => { });
 
     const original: monaco.editor.IModel =
-        stepJson.files[tab.innerText].mode === modeTypes.modify ?
+        stepJson.files[tab.innerText].mode === fileMode.modify ?
             resolveTabContent(activeStep, tab.innerText) :
             stepJson.model[tab.innerText];
 
@@ -939,50 +1021,52 @@ function updateDiffEditor(cfg: DiffEditorConfig) {
 
     //  ensure code contains editable markup
     if (authorEditableContents === null) {
+        authorEditableContents = [];
+        
+        if (stepJson.files[tab.innerText].mode !== fileMode.modify) {
+            return failCallback();
+        }
+    }
+
+    const storedAnswers = stepJson.files[tab.innerText].answers || [];
+    const codeChunks = authorContent.split(editablePattern.excludingMarkup);
+
+    //  get rid of editable markup with no content, i.e. #BEGIN_EDITABLE##END_EDITABLE#
+    authorEditableContents = authorEditableContents.filter((content: string) => content.length);
+
+    if (storedAnswers.length !== authorEditableContents.length) {
+        //  clear the answers array if the number of editables don't match with the number of answers
         stepJson.files[tab.innerText].answers = [];
-        return failCallback();
+        console.log(...richText('Cleared ', [`stepJson.files["${tab.innerText}"].answers`, code]));
     }
-    else {
-        const storedAnswers = stepJson.files[tab.innerText].answers;
-        const codeChunks = authorContent.split(editablePattern.excludingMarkup);
 
-        //  get rid of editable markup with no content, i.e. #BEGIN_EDITABLE##END_EDITABLE#
-        authorEditableContents = authorEditableContents.filter((content: string) => content.length);
+    authorEditableContents
+        //  insert either stored answer or author editable content into the nth editable region
+        .forEach((content: string, idx: number) => {
+            if (storedAnswers[idx] !== undefined) {
+                codeChunks[idx] += storedAnswers[idx];
+                console.log('Editable', idx, `using stored answer "${storedAnswers[idx]}"`);
+            }
+            else {
+                codeChunks[idx] += content;
+                console.log('Editable', idx, `using author editable content "${content}"`);
+            }
+        });
 
-        if (storedAnswers.length !== authorEditableContents.length) {
-            //  clear the answers array if the number of editables don't match with the number of answers
-            stepJson.files[tab.innerText].answers = [];
-            console.log(...richText('Cleared ', [`stepJson.files["${tab.innerText}"].answers`, code]));
-        }
+    //  create modified model for the diff editor
+    const modified = monaco.editor.createModel(codeChunks.join(''), langType[tab.type]);
 
-        authorEditableContents
-            //  insert either stored answer or author editable content into the nth editable region
-            .forEach((content: string, idx: number) => {
-                if (storedAnswers[idx] !== undefined) {
-                    codeChunks[idx] += storedAnswers[idx];
-                    console.log('Editable', idx, `using stored answer "${storedAnswers[idx]}"`);
-                }
-                else {
-                    codeChunks[idx] += content;
-                    console.log('Editable', idx, `using author editable content "${content}"`);
-                }
-            });
+    //  must empty codeContainer before adding diff editor to it
+    if (codeEditor) {
+        codeEditor.dispose();
+        codeEditor = null;
 
-        //  create modified model for the diff editor
-        const modified = monaco.editor.createModel(codeChunks.join(''), langType[tab.type]);
-
-        //  must empty codeContainer before adding diff editor to it
-        if (codeEditor) {
-            codeEditor.dispose();
-            codeEditor = null;
-
-            diffEditor = monaco.editor.createDiffEditor(App.UI.codeContainer);
-        }
-
-        diffEditor.setModel({ original, modified });
-
-        successCallback();
+        diffEditor = monaco.editor.createDiffEditor(App.UI.codeContainer);
     }
+
+    diffEditor.setModel({ original, modified });
+
+    successCallback();
 
     console.groupEnd();
 }
@@ -1023,6 +1107,8 @@ function storeAnswers() {
 }
 
 function storeModelsToCache() {
+    if (!stepJson.model) return;
+
     debugGroup('storeModelsToCache()');
 
     const { code } = App.colors;

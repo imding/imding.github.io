@@ -3,10 +3,25 @@ declare module "*.png" {
     export default content;
 }
 
+type SingleType = 'code' | 'interactive' | 'text';
+type SingleMode = 'new_contents' | 'modify' | 'no_change';
+
 interface DiffEditorConfig {
     tab?: Tab,
     onFail?: () => any,
     onSuccess?: () => any,
+}
+
+interface StepType {
+    code: 'code',
+    interactive: 'interactive',
+    text: 'text'
+}
+
+interface FileMode {
+    newContents: 'new_contents',
+    modify: 'modify',
+    noChange: 'no_change'
 }
 
 interface Tab extends HTMLElement {
