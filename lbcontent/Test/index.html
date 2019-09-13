@@ -1,28 +1,36 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <link href="style.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://app.bsd.education/resources/css/chessboard-0.3.0.css">
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div id="game">
-        <h1>Pong</h1>
+    <div id="board" class="board"></div>
+    <div class="info">
+        Search depth:
+        <select id="search-depth">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3" selected>3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
 
-
-        <div id="gameArea">
-            <div id="ball"></div>
-            <div id="playerPad"></div>
-            <div id="aiPad"></div>
-            <span id="playerScore">0</span>
-            <span id="aiScore">0</span>
+        <br>
+        <span>Positions evaluated: <span id="position-count"></span></span>
+        <br>
+        <span>Time: <span id="time"></span></span>
+        <br>
+        <span>Positions/s: <span id="positions-per-s"></span> </span>
+        <br>
+        <br>
+        <div id="move-history" class="move-history">
         </div>
-
-        <button id="playPause">PLAY</button>
-        <p>Move mouse in the game area to control your pad</p>
     </div>
-
+    <script src="https://app.bsd.education/resources/js/jquery-3.2.1.js"></script>
+    <script src="https://app.bsd.education/resources/js/chess.js"></script>
+    <script src="https://app.bsd.education/resources/js/chessboard-0.3.0.js"></script>
     <script src="script.js"></script>
 </body>
-
 </html>

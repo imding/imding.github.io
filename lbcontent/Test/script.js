@@ -1,250 +1,293 @@
+var board,
+    game = new Chess();
 
-var gameWidth = 500;
-var gameHeight = 400;
+/*The "AI" part starts here */
 
-var padWidth = 10;
-var padHeight = 80;
-var playerPadX = 10;
-var aiPadX = gameWidth - padWidth - playerPadX;
+var minimaxRoot = function (depth, game, isMaximisingPlayer) {
 
-var ballSize = 15;
-var ballX = (gameWidth - ballSize) / 2;
-var ballY = (gameHeight - ballSize) / 2;
+    var newGameMoves = game.ugly_moves();
+    var bestMove = -9999;
+    var bestMoveFound;
 
-var maxSpeed = 15;
-var speed = 10;
-var speedX = 6;
-var speedY = 8;
-
-var aiError = 60;
-var aiTurn;
-
-var playing = false;
-var paused = false;
-var lostBall = false;
-
-window.onload = initGame;
-
-function initGame() {
-    document.querySelectorAll('*').forEach(el => {
-        el.setPosition = (x, y) => {
-            el.style.left = `${x}px`;
-            el.style.top = `${(y)}px`;
-        };
-        el.setSize = (w, h) => {
-            el.style.width = `${w}px`;
-            el.style.height = `${Number.isFinite(h) ? h : w}px`;
+    for (var i = 0; i < newGameMoves.length; i++) {
+        var newGameMove = newGameMoves[i];
+        game.ugly_move(newGameMove);
+        var value = minimax(depth - 1, game, -10000, 10000, !isMaximisingPlayer);
+        game.undo();
+        if (value >= bestMove) {
+            bestMove = value;
+            bestMoveFound = newGameMove;
         }
+    }
+    return bestMoveFound;
+};
+
+var minimax = function (depth, game, alpha, beta, isMaximisingPlayer) {
+    positionCount++;
+    if (depth === 0) {
+        return -evaluateBoard(game.board());
+    }
+
+    var newGameMoves = game.ugly_moves();
+
+    if (isMaximisingPlayer) {
+        var bestMove = -9999;
+        for (var i = 0; i < newGameMoves.length; i++) {
+            game.ugly_move(newGameMoves[i]);
+            bestMove = Math.max(bestMove, minimax(depth - 1, game, alpha, beta, !isMaximisingPlayer));
+            game.undo();
+            alpha = Math.max(alpha, bestMove);
+            if (beta <= alpha) {
+                return bestMove;
+            }
+        }
+        return bestMove;
+    } else {
+        var bestMove = 9999;
+        for (var i = 0; i < newGameMoves.length; i++) {
+            game.ugly_move(newGameMoves[i]);
+            bestMove = Math.min(bestMove, minimax(depth - 1, game, alpha, beta, !isMaximisingPlayer));
+            game.undo();
+            beta = Math.min(beta, bestMove);
+            if (beta <= alpha) {
+                return bestMove;
+            }
+        }
+        return bestMove;
+    }
+};
+
+var evaluateBoard = function (board) {
+    var totalEvaluation = 0;
+    for (var i = 0; i < 8; i++) {
+        for (var j = 0; j < 8; j++) {
+            totalEvaluation = totalEvaluation + getPieceValue(board[i][j], i, j);
+        }
+    }
+    return totalEvaluation;
+};
+
+var reverseArray = function (array) {
+    return array.slice().reverse();
+};
+
+var pawnEvalWhite = [
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
+    [1.0, 1.0, 2.0, 3.0, 3.0, 2.0, 1.0, 1.0],
+    [0.5, 0.5, 1.0, 2.5, 2.5, 1.0, 0.5, 0.5],
+    [0.0, 0.0, 0.0, 2.0, 2.0, 0.0, 0.0, 0.0],
+    [0.5, -0.5, -1.0, 0.0, 0.0, -1.0, -0.5, 0.5],
+    [0.5, 1.0, 1.0, -2.0, -2.0, 1.0, 1.0, 0.5],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+];
+
+var pawnEvalBlack = reverseArray(pawnEvalWhite);
+
+var knightEval = [
+    [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0],
+    [-4.0, -2.0, 0.0, 0.0, 0.0, 0.0, -2.0, -4.0],
+    [-3.0, 0.0, 1.0, 1.5, 1.5, 1.0, 0.0, -3.0],
+    [-3.0, 0.5, 1.5, 2.0, 2.0, 1.5, 0.5, -3.0],
+    [-3.0, 0.0, 1.5, 2.0, 2.0, 1.5, 0.0, -3.0],
+    [-3.0, 0.5, 1.0, 1.5, 1.5, 1.0, 0.5, -3.0],
+    [-4.0, -2.0, 0.0, 0.5, 0.5, 0.0, -2.0, -4.0],
+    [-5.0, -4.0, -3.0, -3.0, -3.0, -3.0, -4.0, -5.0]
+];
+
+var bishopEvalWhite = [
+    [-2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0],
+    [-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0],
+    [-1.0, 0.0, 0.5, 1.0, 1.0, 0.5, 0.0, -1.0],
+    [-1.0, 0.5, 0.5, 1.0, 1.0, 0.5, 0.5, -1.0],
+    [-1.0, 0.0, 1.0, 1.0, 1.0, 1.0, 0.0, -1.0],
+    [-1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, -1.0],
+    [-1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, -1.0],
+    [-2.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -2.0]
+];
+
+var bishopEvalBlack = reverseArray(bishopEvalWhite);
+
+var rookEvalWhite = [
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5],
+    [-0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5],
+    [-0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5],
+    [-0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5],
+    [-0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5],
+    [-0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.5],
+    [0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0]
+];
+
+var rookEvalBlack = reverseArray(rookEvalWhite);
+
+var evalQueen = [
+    [-2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0],
+    [-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0],
+    [-1.0, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0, -1.0],
+    [-0.5, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0, -0.5],
+    [0.0, 0.0, 0.5, 0.5, 0.5, 0.5, 0.0, -0.5],
+    [-1.0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, -1.0],
+    [-1.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, -1.0],
+    [-2.0, -1.0, -1.0, -0.5, -0.5, -1.0, -1.0, -2.0]
+];
+
+var kingEvalWhite = [
+
+    [-3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+    [-3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+    [-3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+    [-3.0, -4.0, -4.0, -5.0, -5.0, -4.0, -4.0, -3.0],
+    [-2.0, -3.0, -3.0, -4.0, -4.0, -3.0, -3.0, -2.0],
+    [-1.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -1.0],
+    [2.0, 2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 2.0],
+    [2.0, 3.0, 1.0, 0.0, 0.0, 1.0, 3.0, 2.0]
+];
+
+var kingEvalBlack = reverseArray(kingEvalWhite);
+
+
+
+
+var getPieceValue = function (piece, x, y) {
+    if (piece === null) {
+        return 0;
+    }
+    var getAbsoluteValue = function (piece, isWhite, x, y) {
+        if (piece.type === 'p') {
+            return 10 + (isWhite ? pawnEvalWhite[y][x] : pawnEvalBlack[y][x]);
+        } else if (piece.type === 'r') {
+            return 50 + (isWhite ? rookEvalWhite[y][x] : rookEvalBlack[y][x]);
+        } else if (piece.type === 'n') {
+            return 30 + knightEval[y][x];
+        } else if (piece.type === 'b') {
+            return 30 + (isWhite ? bishopEvalWhite[y][x] : bishopEvalBlack[y][x]);
+        } else if (piece.type === 'q') {
+            return 90 + evalQueen[y][x];
+        } else if (piece.type === 'k') {
+            return 900 + (isWhite ? kingEvalWhite[y][x] : kingEvalBlack[y][x]);
+        }
+        throw 'Unknown piece type: ' + piece.type;
+    };
+
+    var absoluteValue = getAbsoluteValue(piece, piece.color === 'w', x, y);
+    return piece.color === 'w' ? absoluteValue : -absoluteValue;
+};
+
+
+/* board visualization and games state handling */
+
+var onDragStart = function (source, piece, position, orientation) {
+    if (game.in_checkmate() === true || game.in_draw() === true ||
+        piece.search(/^b/) !== -1) {
+        return false;
+    }
+};
+
+var makeBestMove = function () {
+    var bestMove = getBestMove(game);
+    game.ugly_move(bestMove);
+    board.position(game.fen());
+    renderMoveHistory(game.history());
+    if (game.game_over()) {
+        alert('Game over');
+    }
+};
+
+
+var positionCount;
+var getBestMove = function (game) {
+    if (game.game_over()) {
+        alert('Game over');
+    }
+
+    positionCount = 0;
+    var depth = parseInt($('#search-depth').find(':selected').text());
+
+    var d = new Date().getTime();
+    var bestMove = minimaxRoot(depth, game, true);
+    var d2 = new Date().getTime();
+    var moveTime = (d2 - d);
+    var positionsPerS = (positionCount * 1000 / moveTime);
+
+    $('#position-count').text(positionCount);
+    $('#time').text(moveTime / 1000 + 's');
+    $('#positions-per-s').text(positionsPerS);
+    return bestMove;
+};
+
+var renderMoveHistory = function (moves) {
+    var historyElement = $('#move-history').empty();
+    historyElement.empty();
+    for (var i = 0; i < moves.length; i = i + 2) {
+        historyElement.append('<span>' + moves[i] + ' ' + (moves[i + 1] ? moves[i + 1] : ' ') + '</span><br>');
+    }
+    historyElement.scrollTop(historyElement[0].scrollHeight);
+
+};
+
+var onDrop = function (source, target) {
+
+    var move = game.move({
+        from: source,
+        to: target,
+        promotion: 'q'
     });
 
-    var padStartingY = (gameHeight - padHeight) / 2;
-    
-    gameArea.setSize(gameWidth, gameHeight);
-    playerPad.setSize(padWidth, padHeight);
-    aiPad.setSize(padWidth, padHeight);
-    ball.setSize(ballSize);
-
-    playerPad.setPosition(playerPadX, padStartingY);
-    aiPad.setPosition(aiPadX, padStartingY);
-    ball.setPosition(ballX, ballY);
-
-    playPause.onclick = startGame;
-    gameArea.onmousemove = updatePlayerPad;
-}
-
-function startGame() {
-    if (playing) {
-        if (paused) {
-            playPause.innerText = 'PAUSE';
-        }
-        else {
-            playPause.innerText = 'RESUME';
-        }
-        paused = !paused;
-    }
-    else {
-        playing = true;
-        playPause.innerText = 'PAUSE';
-
-        randomizeSpeed();
-        randomizeDir();
-        render();
-    }   
-}
-
-function animatePong() {
-    ballX += speedX;
-    ballY += speedY;
-
-    checkWallRebound();
-    checkPadRebound();
-    updateAiPad();
-    checkLoss();
-
-    ball.setPosition(ballX, ballY);
-}
-
-function updatePlayerPad() {
-    if (playing && !paused) {
-        var mouseY = event.offsetY;
-
-        if (mouseY > 0 && mouseY < gameHeight) {
-            var playerPadY = mouseY - padHeight / 2;
-            playerPadY = Math.max(playerPadY, 5);
-            playerPadY = Math.min(playerPadY, gameHeight - padHeight - 5);
-            playerPad.setPosition(playerPadX, playerPadY);
-        }
-    }
-}
-
-function updateAiPad() {
-    if (aiTurn) {
-        //  determine whether ball has moved pass 80% across its container
-        var inRange = ballX > gameWidth * 0.8;
-
-        if (inRange) {
-            var maxTop = gameHeight - padHeight;
-            var distance = aiPadX - ballX - ballSize;
-            var eta = distance / speedX;
-            var estimate = ballY + speedY * eta;
-            var aiPadY = estimate - padHeight / 2;
-
-            aiPadY = aiPadY + randomRange(aiError, -aiError);
-            aiPadY = Math.max(aiPadY, 5);
-            aiPadY = Math.min(aiPadY, maxTop - 5);
-
-            aiPad.setPosition(aiPadX, aiPadY);
-            aiTurn = false;
-
-            console.log(`AI moves to ${Math.round(aiPadY)}px.`);
-        }
-    }
-}
-
-function checkWallRebound() {
-    var maxY = gameHeight - ballSize;
-
-    if (ballY < 0 || ballY > maxY) {
-        randomizeSpeed();
-        speedY *= -1;
-        ballY = ballY > 0 ? maxY : 0;
-    }
-}
-
-function checkPadRebound() {
-    //  check whether ball has moved passed the player pad
-    if (ballX <= playerPadX + padWidth) {
-        checkPadCollision(playerPad);
-    }
-    //  check whether ball has moved passed the AI pad
-    else if (ballX >= aiPadX - ballSize) {
-        checkPadCollision(aiPad);
-    }
-}
-
-function checkLoss() {
-    if (ballX <= -ballSize) {
-        aiScore.innerText = parseInt(aiScore.innerText) + 1;
-        aiError /= 0.9;
-        resetGame();
-    }
-    else if (ballX >= gameWidth) {
-        playerScore.innerText = parseInt(playerScore.innerText) + 1;
-        aiError *= 0.9;
-        resetGame();
-    }
-}
-
-function resetGame() {
-    ballX = (gameWidth - ballSize) / 2;
-    ballY = (gameHeight - ballSize) / 2;
-
-    playing = false;
-    lostBall = false;
-
-    playPause.innerText = 'PLAY';
-}
-
-function checkPadCollision(pad) {
-    var lowerTop = pad.offsetTop - ballSize;
-    var upperTop = pad.offsetTop + padHeight;
-    var contact = ballY >= lowerTop && ballY <= upperTop;
-    var ballRadius = ballSize / 2;
-    //  determine whether contact if a valid catch
-    var validCatch = ballY >= lowerTop + ballRadius && ballY <= upperTop - ballRadius;
-
-    if (contact) {
-        if (lostBall) {
-            //  reverse vertical movement
-            speedY *= -1;
-        }
-        else if (validCatch) {
-            randomizeSpeed();
-            //  reverse horizontal movement
-            speedX *= -1;
-
-            if (pad == playerPad) {
-                //  increase ball movement speed
-                speed += 0.2;
-                //  clamp at maximum speed
-                speed = Math.min(speed, maxSpeed);
-                //  correct any clipping by the player pad
-                ballX = playerPadX + padWidth;
-                aiTurn = true;
-            }
-            else if (pad == aiPad) {
-                //  correct any clipping by the AI pad
-                ballX = aiPadX - ballSize;
-            }
-        }
-    }
-    else {
-        lostBall = true;
-    }
-}
-
-function randomizeSpeed() {
-    //  store current vertical direction of the ball
-    var xDir = speedX / Math.abs(speedX);
-    var yDir = speedY / Math.abs(speedY);
-
-    speedX = xDir * randomize(speed / 1.5, 30);
-    speedY = yDir * Math.sqrt(speed ** 2 - speedX ** 2);
-}
-
-function randomizeDir() {
-    var randomDir = n => n * (Math.random() >= 0.5 ? 1 : -1);
-    speedX = randomDir(speedX);
-    speedY = randomDir(speedY);
-    aiTurn = speedX > 0;
-}
-
-var timePrevFrame = Date.now();
-
-function render() {
-    if (!playing) return;
-
-    var timeThisFrame = Date.now();
-    var elapsed = timeThisFrame - timePrevFrame;
-
-    if (elapsed > 33) {
-        timePrevFrame = timeThisFrame - (elapsed % 33);
-
-        if (!paused) {
-            requestAnimationFrame(animatePong);
-        }
+    removeGreySquares();
+    if (move === null) {
+        return 'snapback';
     }
 
-    requestAnimationFrame(render);
-}
+    renderMoveHistory(game.history());
+    window.setTimeout(makeBestMove, 250);
+};
 
-function randomize(n, perc) {
-    const sign = Math.random() >= 0.5 ? 1 : -1;
-    const noise = n * Math.random() * perc / 100;
-    return n + (noise * sign);
-}
+var onSnapEnd = function () {
+    board.position(game.fen());
+};
 
-function randomRange(min, max, int = false) {
-    const r = Math.random() * (max - min) + min;
-    return int ? Math.round(r) : r;
-}
+var onMouseoverSquare = function (square, piece) {
+    var moves = game.moves({
+        square: square,
+        verbose: true
+    });
+
+    if (moves.length === 0) return;
+
+    greySquare(square);
+
+    for (var i = 0; i < moves.length; i++) {
+        greySquare(moves[i].to);
+    }
+};
+
+var onMouseoutSquare = function (square, piece) {
+    removeGreySquares();
+};
+
+var removeGreySquares = function () {
+    $('#board .square-55d63').css('background', '');
+};
+
+var greySquare = function (square) {
+    var squareEl = $('#board .square-' + square);
+
+    var background = '#a9a9a9';
+    if (squareEl.hasClass('black-3c85d') === true) {
+        background = '#696969';
+    }
+
+    squareEl.css('background', background);
+};
+
+var cfg = {
+    draggable: true,
+    position: 'start',
+    onDragStart: onDragStart,
+    onDrop: onDrop,
+    onMouseoutSquare: onMouseoutSquare,
+    onMouseoverSquare: onMouseoverSquare,
+    onSnapEnd: onSnapEnd
+};
+board = ChessBoard('board', cfg);
