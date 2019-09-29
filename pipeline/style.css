@@ -70,6 +70,7 @@ body, #Root, .cardEditGroup, .sectionContainer, .contentInput {
 
 #Chart {
     align-items: center;
+    place-content: center;
     text-align: center;
     padding: 50px 50px 0 50px;
 }

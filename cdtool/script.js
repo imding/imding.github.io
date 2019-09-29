@@ -1329,7 +1329,7 @@ function generateJSON() {
         () => prompt('Please choose a publish status:\n1. author only\n2. internal\n3. Exclusive', 1),
         () => prompt('Please choose a core for this project:\n1. Web Development\n2. App Development\n3. Robotics and Hardware\n4. Video Game Development', 1),
         () => prompt('Project description:'),
-        () => prompt('Card image link', '/resources/bsdlogo.png')
+        () => prompt('Card image link', '/resources/project cards/project_placeholder.png')
     ]
         .map(input => {
             const answer = input();
