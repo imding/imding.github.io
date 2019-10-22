@@ -38,7 +38,7 @@ export function el(indicator: HTMLElement | string, attr?: object): any {
 
         const query = document.querySelector(indicator);
 
-        if (!query) console.warn(...richText([`el('${indicator}')`, blue], ' returned null.'));
+        if (!query) rt([`el('${indicator}')`, blue], ' returned null.');
         
         return query;
     }
@@ -207,12 +207,14 @@ export function range(min: number, max: number) {
 
 // ========== MISC ========== //
 
-export function richText(...segments: Array<string | [string, object?]>): Array<string> {
+export type RichText = Array<any | [string, object?]>;
+
+export function rt(...segments: RichText): Array<string> {
     let finalString = '';
     let styles = [];
 
     segments.forEach(item => {
-        const [str, rule] = typeof item === 'string' ? [item, {}] : item;
+        const [str, rule] = Array.isArray(item) ? item : [item, {}];
         finalString += `%c${str}`;
 
         Object.entries(Object.assign({ color: 'gainsboro' }, rule)).forEach(style => {

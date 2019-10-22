@@ -32,8 +32,6 @@ export default function subMenu(scrollContainer: HTMLElement, groups: Array<SubM
             });
 
             obj(items).forEachEntry((iconName: string, item: SubMenuButton) => {
-                if ((host.firstElementChild as HTMLElement).innerText === iconName) return;
-
                 const { tipHeading, tip, handler } = item;
                 const button = newEl('div');
                 const icon = newEl('i', { className: 'material-icons', innerText: iconName });

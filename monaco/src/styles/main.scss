@@ -127,9 +127,10 @@ body {
         }
 
         #actions-panel {
+            place-items: center;
             text-align: center;
             max-height: 100vh;
-            padding-top: 25px;
+            padding: 25px 0;
             grid-gap: 25px;
             background-color: #333;
 
@@ -147,9 +148,9 @@ body {
             h4 {
                 margin-bottom: 6px;
             }
-            
-            .action-unit:nth-last-child(1) {
-                margin-bottom: 30px;
+
+            .action-unit {
+                width: 100%;
             }
 
             .action-buttons {
