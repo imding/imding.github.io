@@ -1,4 +1,91 @@
+/* CSS */
+
+* {
+    margin: 0;
+    user-select: none;
+}
+
 body {
+    height: 100vh;
+    font-family: "Contrail One";
     background-color: white;
+}
+
+h1, h4 {
+    width: 100%;
     text-align: center;
+}
+
+h1 {
+    letter-spacing: 2px;
+}
+
+h4 {
+    opacity: 0.4;
+    padding-top: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: "Contrail One";
+    font-size: 16px;
+    background-color: dodgerblue;
+    cursor: pointer;
+    outline: none;
+}
+
+#musicApp, #heading, #grid, .trackContainers, #controls {
+    display: grid;
+}
+
+#musicApp {
+    height: 100%;
+    grid-template-rows: 15% 75% 10%;
+}
+
+#heading {
+    place-content: center;
+}
+
+#controls {
+    grid-auto-flow: column;
+    place-content: center;
+}
+
+#trackLabel {
+    width: 200px;
+    padding-top: 6px;
+    text-align: center;
+}
+
+.trackContainers {
+    grid-auto-flow: column;
+}
+
+.oneEighthButtons {
+    border-radius: 4px;
+    border: 1px solid white;
+    background-color: gainsboro;
+    cursor: pointer;
+    opacity: 0.8;
+    transition-property: opacity, background-color;
+    transition-duration: 0.1s;
+    transition-timing-function: ease-in-out;
+}
+
+.oneEighthButtons:hover {
+    opacity: 1;
+}
+
+.oneEighthButtons.active {
+    opacity: 1;
+    background-color: lightblue;
+}
+
+.oneEighthButtons.active.highlight {
+    opacity: 1;
+    background-color: crimson;
 }
