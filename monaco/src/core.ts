@@ -19,7 +19,7 @@ import { el, newEl, obj, RichText } from './components/Handy';
 import tooltip from './components/Tooltip';
 import subMenu from './components/SubMenu';
 import HTMLTree from './components/HTMLTree';
-import { WatchIgnorePlugin, debug, ContextReplacementPlugin } from 'webpack';
+import { WatchIgnorePlugin, debug, ContextReplacementPlugin, ExtendedAPIPlugin } from 'webpack';
 import { setPriority } from 'os';
 import { FILE } from 'dns';
 
@@ -130,7 +130,7 @@ function init() {
     resetApp();
     addFavIcon();
     assembleUI();
-    createNewStep(0).go();
+    createStep(0).go();
 
     console.groupEnd();
 
@@ -388,17 +388,17 @@ function assembleUI() {
             'assignment': {
                 tipHeading: 'text',
                 tip: 'text steps are ready-only and no interaction is required from the learner',
-                handler: () => { }
+                handler: () => setStepType(stepType.text)
             },
             'code': {
                 tipHeading: 'code',
                 tip: 'code steps can contain editables where the learner can write code',
-                handler: () => { }
+                handler: () => setStepType(stepType.code)
             },
             'extension': {
                 tipHeading: 'interactive',
                 tip: 'the code panel is hidden in interactive steps and the learner is expected to interact with the output',
-                handler: () => { }
+                handler: () => setStepType(stepType.interactive)
             }
         }
     }, {
@@ -480,7 +480,7 @@ function registerTopLevelEvents() {
 
     btnOpenProject.addEventListener('click', projectFromFile);
 
-    btnNewStep.addEventListener('click', () => createNewStep(activeStepNo).go());
+    btnNewStep.addEventListener('click', () => createStep(activeStepNo).go());
     btnDelStep.addEventListener('click', () => deleteStep(activeStepNo));
     btnNextStep.addEventListener('click', () => goToStep(activeStepNo + 1));
     btnPrevStep.addEventListener('click', () => goToStep(activeStepNo - 1));
@@ -584,7 +584,7 @@ function goToStep(targetStepNo: number) {
 function loadStepData(targetStepNo: number) {
     debugGroup('loadStepData(', targetStepNo, ')');
 
-    const { codeContainer, tabContainer, btnStepType, btnFileMode, btnModelAnswers } = App.UI;
+    const { tabContainer, btnStepType, btnFileMode, btnModelAnswers } = App.UI;
 
     if (tabContainer.children.length !== missionFiles.length) {
         removeTabs();
@@ -600,10 +600,10 @@ function loadStepData(targetStepNo: number) {
         const noChange = targetTab.mode === fileMode.noChange;
 
         if (codeEditor) {
-            updateAuthor(getAuthorModel(tabName, targetStepNo), noChange);
+            updateAuthorContent(getAuthorModel(tabName, targetStepNo), noChange);
         }
         else {
-            storeTabAnswers();
+            storeAnswers();
 
             if (targetStep.type === stepType.interactive) {
                 diffToAuthor(getAuthorModel(tabName, targetStepNo), false);
@@ -618,14 +618,12 @@ function loadStepData(targetStepNo: number) {
     }
     else if (targetStep.type === stepType.text) {
         if (diffEditor) {
-            storeTabAnswers();
+            storeAnswers();
             diffToAuthor();
             btnModelAnswers.firstElementChild.classList.remove('active-green');
         }
 
-        removeTabs();
-        addTab('Disabled', true);
-        updateAuthor(monaco.editor.createModel('Code editor is disabled for text steps'), true);
+        disableCodeEditor();
     }
 
     btnStepType.firstElementChild.innerText = iconNames[targetStep.type];
@@ -645,7 +643,7 @@ function loadStepData(targetStepNo: number) {
 
 //===== STEP OPERATIONS =====//
 
-function createNewStep(placement: number = activeStepNo - 1, newStepType: SingleType = stepType.code) {
+function createStep(placement: number = activeStepNo - 1, newStepType: SingleType = stepType.code) {
     debugGroup('createNewStep(placement:', placement, ', type:', newStepType, ')');
 
     const newStep: Step = {
@@ -713,6 +711,58 @@ function deleteStep(targetStepNo: number = activeStepNo) {
     console.groupEnd();
 }
 
+function setStepType(targetType: SingleType) {
+    debugGroup('setStepType(', [targetType, clr.string], ')');
+
+    if (diffEditor) {
+        diffToAuthor();
+        App.UI.btnModelAnswers.firstElementChild.classList.remove('active-green');
+    }
+
+    if (targetType === activeStep.type) {
+        warn('Step ', [activeStepNo, clr.code], ' is already ', [activeStep.type, clr.string]);
+    }
+    else {
+        if (targetType === stepType.code || targetType === stepType.interactive) {
+            const updateStepFile = (fileName: string) => {
+                const type = parseFileName(fileName).type;
+
+                activeStep[fileName] = {
+                    mode: fileMode.newContents,
+                    author: monaco.editor.createModel(codeTemplate[type], langType[type]),
+                    answers: []
+                };
+            };
+
+            if (activeStep.type === stepType.text) {
+                removeTabs();
+                missionFiles.forEach((fullName, idx) => {
+                    updateStepFile(fullName);
+                    addTab(fullName, !idx);
+                });
+                delete activeStep.text;
+            }
+            else {
+                missionFiles.forEach(fullName => updateStepFile(fullName));
+            }
+
+            updateAuthorContent(activeStep[activeTab.innerText].author, false);
+            activeStep.hasCode = true;
+        }
+        else if (targetType === stepType.text) {
+            activeStep.text = 'text step';
+            activeStep.hasCode = false;
+            missionFiles.forEach(fullName => delete activeStep[fullName]);
+            disableCodeEditor();
+        }
+
+        activeStep.type = targetType;
+        App.UI.btnStepType.firstElementChild.innerText = iconNames[targetType];
+    }
+
+    console.groupEnd();
+}
+
 function switchTab(evt: MouseEvent) {
     debugGroup('switchTab()');
 
@@ -726,10 +776,10 @@ function switchTab(evt: MouseEvent) {
         const targetFile = activeStep[targetTabName];
 
         if (codeEditor) {
-            updateAuthor(getAuthorModel(targetTabName), targetFile.mode === fileMode.noChange);
+            updateAuthorContent(getAuthorModel(targetTabName), targetFile.mode === fileMode.noChange);
         }
         else {
-            storeTabAnswers();
+            storeAnswers();
             diffEditor.setModel(getDiffModels(targetTabName));
         }
 
@@ -774,15 +824,70 @@ function diffToAuthor(model?: monaco.editor.IModel, readOnly?: boolean) {
     diffEditor = null;
     codeEditor = monaco.editor.create(App.UI.codeContainer);
 
-    if (model) updateAuthor(model, readOnly);
+    if (model) updateAuthorContent(model, readOnly);
 }
 
-function updateAuthor(model: monaco.editor.IModel, readOnly?: boolean) {
+function updateAuthorContent(model: monaco.editor.IModel, readOnly?: boolean) {
     codeEditor.setModel(model);
-    if (readOnly) codeEditor.updateOptions({ readOnly });
+    if (readOnly !== undefined) codeEditor.updateOptions({ readOnly });
+}
+
+function disableCodeEditor() {
+    removeTabs();
+    addTab('Disabled', true);
+    updateAuthorContent(monaco.editor.createModel('Code editor is disabled for text steps'), true);
 }
 
 //===== FILE OPERATIONS =====//
+
+function setFileMode(targetMode: SingleMode) {
+    debugGroup('setFileMode(', [targetMode, clr.string], ')');
+
+    if (activeStep.type === stepType.code) {
+        const currentMode = activeStep[activeTab.innerText].mode;
+
+        if (currentMode === targetMode) {
+            warn([activeTab.innerText, clr.string], ' tab is already in ', [targetMode, clr.string], ' mode.');
+        }
+        else if (activeStepNo === 1 && targetMode !== fileMode.newContents) {
+            warn([targetMode, clr.string], ' mode can not be applied to files in the first step');
+        }
+        else {
+            const newContents = targetMode === fileMode.newContents;
+            const noChange = targetMode === fileMode.noChange;
+            const type = langType[targetMode === fileMode.modify ? 'js' : activeTab.type];
+            let content = newContents ? codeTemplate[activeTab.type] : codeTemplate.transition;
+            let answers = [];
+
+            activeStep[activeTab.innerText].mode = targetMode;
+
+            if (noChange) {
+                const data = resolveAuthorContent();
+
+                content = data.resolvedContent;
+                answers = data.answers;
+            }
+
+            const model = monaco.editor.createModel(content, type);
+
+            activeStep[activeTab.innerText].author = model;
+            activeStep[activeTab.innerText].answers = answers;
+
+            if (diffEditor) {
+                diffToAuthor();
+                App.UI.btnModelAnswers.firstElementChild.classList.remove('active-green');
+            }
+
+            updateAuthorContent(model, noChange);
+            App.UI.btnFileMode.firstElementChild.innerText = iconNames[targetMode];
+        }
+    }
+    else {
+        warn('File mode options are not available for ', [activeStep.type, clr.string], ' steps');
+    }
+
+    console.groupEnd();
+}
 
 function toggleAnswerEditor() {
     debugGroup('toggleAnswerEditor()');
@@ -802,7 +907,7 @@ function toggleAnswerEditor() {
             btnModelAnswers.firstElementChild.classList.add('active-green');
         }
         else {
-            storeTabAnswers();
+            storeAnswers();
             diffToAuthor(getAuthorModel(), activeStep[activeTab.innerText].mode === fileMode.noChange);
             btnModelAnswers.firstElementChild.classList.remove('active-green');
         }
@@ -814,7 +919,7 @@ function toggleAnswerEditor() {
     console.groupEnd();
 }
 
-function storeTabAnswers(tabName: string = activeTab.innerText) {
+function storeAnswers(tabName: string = activeTab.innerText) {
     const { modified: modelWithAnswers } = diffEditor.getModel();
     const answers = modelWithAnswers.getValue().match(editablePattern.excludingMarkup) || [];
 
@@ -961,55 +1066,6 @@ function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepN
 
     console.groupEnd();
     return result;
-}
-
-function setFileMode(targetMode: SingleMode) {
-    debugGroup('setFileMode(', [targetMode, clr.string], ')');
-
-    if (activeStep.type === stepType.code) {
-        const currentMode = activeStep[activeTab.innerText].mode;
-
-        if (currentMode === targetMode) {
-            warn([activeTab.innerText, clr.string], ' tab is already in ', [targetMode, clr.string], ' mode.');
-        }
-        else if (activeStepNo === 1 && targetMode !== fileMode.newContents) {
-            warn([targetMode, clr.string], ' mode can not be applied to files in the first step');
-        }
-        else {
-            const newContents = targetMode === fileMode.newContents;
-            const noChange = targetMode === fileMode.noChange;
-            const type = langType[targetMode === fileMode.modify ? 'js' : activeTab.type];
-            let content = newContents ? codeTemplate[activeTab.type] : codeTemplate.transition;
-            let answers = [];
-
-            activeStep[activeTab.innerText].mode = targetMode;
-
-            if (noChange) {
-                const data = resolveAuthorContent();
-
-                content = data.resolvedContent;
-                answers = data.answers;
-            }
-
-            const model = monaco.editor.createModel(content, type);
-
-            activeStep[activeTab.innerText].author = model;
-            activeStep[activeTab.innerText].answers = answers;
-
-            if (diffEditor) {
-                diffToAuthor();
-                App.UI.btnModelAnswers.firstElementChild.classList.remove('active-green');
-            }
-
-            updateAuthor(model, noChange);
-            App.UI.btnFileMode.firstElementChild.innerText = iconNames[targetMode];
-        }
-    }
-    else {
-        warn('File mode options are not available for ', [activeStep.type, clr.string], ' steps');
-    }
-
-    console.groupEnd();
 }
 
 //===== CODE OPERATIONS =====//
