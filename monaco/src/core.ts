@@ -481,7 +481,7 @@ function registerTopLevelEvents() {
     btnOpenProject.addEventListener('click', projectFromFile);
 
     btnNewStep.addEventListener('click', () => createNewStep(activeStepNo).go());
-    btnDelStep.addEventListener('click', deleteStep);
+    btnDelStep.addEventListener('click', () => deleteStep(activeStepNo));
     btnNextStep.addEventListener('click', () => goToStep(activeStepNo + 1));
     btnPrevStep.addEventListener('click', () => goToStep(activeStepNo - 1));
 
@@ -600,23 +600,17 @@ function loadStepData(targetStepNo: number) {
         const noChange = targetTab.mode === fileMode.noChange;
 
         if (codeEditor) {
-            codeEditor.setModel(getAuthorModel(targetStepNo));
-            codeEditor.updateOptions({ readOnly: noChange });
+            updateAuthor(getAuthorModel(tabName, targetStepNo), noChange);
         }
         else {
             storeTabAnswers();
 
             if (targetStep.type === stepType.interactive) {
-                diffEditor.dispose();
-                diffEditor = null;
-
-                codeEditor = monaco.editor.create(codeContainer);
-                codeEditor.setModel(getAuthorModel(targetStepNo));
-
+                diffToAuthor(getAuthorModel(tabName, targetStepNo), false);
                 btnModelAnswers.firstElementChild.classList.remove('active-green');
             }
             else {
-                diffEditor.setModel(getDiffModels(targetStepNo));
+                diffEditor.setModel(getDiffModels(tabName, targetStepNo));
             }
         }
 
@@ -625,20 +619,13 @@ function loadStepData(targetStepNo: number) {
     else if (targetStep.type === stepType.text) {
         if (diffEditor) {
             storeTabAnswers();
-
-            diffEditor.dispose();
-            diffEditor = null;
-
-            codeEditor = monaco.editor.create(codeContainer);
-
+            diffToAuthor();
             btnModelAnswers.firstElementChild.classList.remove('active-green');
         }
 
         removeTabs();
         addTab('Disabled', true);
-
-        codeEditor.setModel(monaco.editor.createModel('Code editor is disabled for text steps'));
-        codeEditor.updateOptions({ readOnly: true });
+        updateAuthor(monaco.editor.createModel('Code editor is disabled for text steps'), true);
     }
 
     btnStepType.firstElementChild.innerText = iconNames[targetStep.type];
@@ -735,24 +722,24 @@ function switchTab(evt: MouseEvent) {
         warn('Skipped switching to the active tab.');
     }
     else {
+        const targetTabName = targetTab.innerText;
+        const targetFile = activeStep[targetTabName];
+
+        if (codeEditor) {
+            updateAuthor(getAuthorModel(targetTabName), targetFile.mode === fileMode.noChange);
+        }
+        else {
+            storeTabAnswers();
+            diffEditor.setModel(getDiffModels(targetTabName));
+        }
+
         activeTab.classList.remove('active');
         targetTab.classList.add('active');
 
         activeTab = targetTab;
 
-        const activeFile = activeStep[activeTab.innerText];
-
-        if (codeEditor) {
-            codeEditor.setModel(getAuthorModel());
-            codeEditor.updateOptions({ readOnly: activeFile.mode === fileMode.noChange });
-        }
-        else {
-            storeTabAnswers();
-            diffEditor.setModel(getDiffModels());
-        }
-
-        App.UI.btnFileMode.firstElementChild.innerText = iconNames[activeFile.mode];
-        log('Loaded ', [targetTab.innerText, clr.string], ' tab');
+        App.UI.btnFileMode.firstElementChild.innerText = iconNames[targetFile.mode];
+        log('Loaded ', [targetTabName, clr.string], ' tab');
     }
 
     console.groupEnd();
@@ -782,6 +769,19 @@ function removeTabs() {
     log('Cleared tabs.');
 }
 
+function diffToAuthor(model?: monaco.editor.IModel, readOnly?: boolean) {
+    diffEditor.dispose();
+    diffEditor = null;
+    codeEditor = monaco.editor.create(App.UI.codeContainer);
+
+    if (model) updateAuthor(model, readOnly);
+}
+
+function updateAuthor(model: monaco.editor.IModel, readOnly?: boolean) {
+    codeEditor.setModel(model);
+    if (readOnly) codeEditor.updateOptions({ readOnly });
+}
+
 //===== FILE OPERATIONS =====//
 
 function toggleAnswerEditor() {
@@ -803,13 +803,7 @@ function toggleAnswerEditor() {
         }
         else {
             storeTabAnswers();
-
-            diffEditor.dispose();
-            diffEditor = null;
-
-            codeEditor = monaco.editor.create(codeContainer);
-            codeEditor.setModel(getAuthorModel());
-
+            diffToAuthor(getAuthorModel(), activeStep[activeTab.innerText].mode === fileMode.noChange);
             btnModelAnswers.firstElementChild.classList.remove('active-green');
         }
     }
@@ -820,23 +814,23 @@ function toggleAnswerEditor() {
     console.groupEnd();
 }
 
-function storeTabAnswers() {
+function storeTabAnswers(tabName: string = activeTab.innerText) {
     const { modified: modelWithAnswers } = diffEditor.getModel();
     const answers = modelWithAnswers.getValue().match(editablePattern.excludingMarkup) || [];
 
     answers.forEach((answer: string, idx: number) => {
-        if (answer && answer.trim().length && answer !== activeStep[activeTab.innerText].answers[idx]) {
-            activeStep[activeTab.innerText].answers[idx] = answer;
+        if (answer && answer.trim().length && answer !== activeStep[tabName].answers[idx]) {
+            activeStep[tabName].answers[idx] = answer;
             log('Editable ', [idx, clr.code], ' answer updated: ', [`"${answer}"`, clr.string]);
         }
     });
 }
 
-function getAuthorModel(stepNo: number = activeStepNo, tabName: string = activeTab.innerText) {
+function getAuthorModel(tabName: string = activeTab.innerText, stepNo: number = activeStepNo) {
     const step = stepList[stepNo - 1];
 
     if (step[tabName].mode === fileMode.noChange) {
-        const content = resolveAuthorContent(stepNo).resolvedContent;
+        const content = resolveAuthorContent(tabName, stepNo).resolvedContent;
         const type = langType[parseFileName(tabName).type];
 
         return monaco.editor.createModel(content, type);
@@ -845,25 +839,26 @@ function getAuthorModel(stepNo: number = activeStepNo, tabName: string = activeT
     return step[tabName].author;
 }
 
-function getDiffModels(stepNo: number = activeStepNo) {
-    const { resolvedContent: authorTabContent, answers } = resolveAuthorContent(stepNo);
+function getDiffModels(tabName: string = activeTab.innerText, stepNo: number = activeStepNo) {
+    const { resolvedContent: authorTabContent, answers } = resolveAuthorContent(tabName, stepNo);
     const learnerContent = getLearnerView(authorTabContent, answers);
     const contentWithAnswers = insertAnswers(authorTabContent, answers);
+    const type = langType[parseFileName(tabName).type];
 
     return {
-        original: monaco.editor.createModel(learnerContent, langType[activeTab.type]),
-        modified: monaco.editor.createModel(contentWithAnswers, langType[activeTab.type])
+        original: monaco.editor.createModel(learnerContent, type),
+        modified: monaco.editor.createModel(contentWithAnswers, type)
     };
 }
 
-function resolveAuthorContent(targetStepNo: number = activeStepNo, tabName: string = activeTab.innerText) {
+function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepNo: number = activeStepNo) {
     debugGroup('resolveTabContent()');
 
     const activeFile: File = (targetStepNo === activeStepNo ? activeStep : stepList[targetStepNo - 1])[tabName];
     let result: { resolvedContent: string, answers: Array<string> | [] };
 
     if (activeFile.mode === fileMode.newContents) {
-        log('No resolution needed for step ', [activeStepNo, clr.code]);
+        log('No resolution needed for step ', [targetStepNo, clr.code]);
         result = { resolvedContent: activeFile.author.getValue(), answers: activeFile.answers };
     }
     else {
@@ -1001,9 +996,12 @@ function setFileMode(targetMode: SingleMode) {
             activeStep[activeTab.innerText].author = model;
             activeStep[activeTab.innerText].answers = answers;
 
-            codeEditor.setModel(model);
-            codeEditor.updateOptions({ readOnly: noChange });
+            if (diffEditor) {
+                diffToAuthor();
+                App.UI.btnModelAnswers.firstElementChild.classList.remove('active-green');
+            }
 
+            updateAuthor(model, noChange);
             App.UI.btnFileMode.firstElementChild.innerText = iconNames[targetMode];
         }
     }
@@ -1032,17 +1030,15 @@ function getLearnerView(content: string, answers: Array<string>) {
         const codeChunks = content.split(editablePattern.excludingMarkup);
 
         return codeChunks.map((chunk, idx) => {
-            const content = editableContents[idx];
+            const editableContent = editableContents[idx];
+            const meaningfulContent = editableContent && editableContent.trim().length;
+            const clearEditable = meaningfulContent && (answers[idx] === undefined || editableContent === answers[idx]);
 
-            if (content && content.trim() === (answers[idx] || '').trim()) {
-                return `${chunk}    `;
-            }
-            else return `${chunk}${content || ''}`;
+            return `${chunk}${clearEditable ? '    ' : editableContent || ''}`;
         }).join('');
     }
-    else {
-        return content;
-    }
+
+    return content;
 }
 
 function removeEditableMarkup(content: string) {
