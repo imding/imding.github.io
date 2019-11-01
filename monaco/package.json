@@ -11,8 +11,10 @@
   "author": "Ding",
   "license": "ISC",
   "dependencies": {
+    "asana": "^0.17.3",
     "dictionary-en-us": "^2.1.1",
-    "monaco-editor": "^0.17.1"
+    "monaco-editor": "^0.17.1",
+    "streamsaver": "^2.0.3"
   },
   "devDependencies": {
     "@editorjs/code": "^2.4.1",

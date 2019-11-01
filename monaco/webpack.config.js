@@ -44,6 +44,9 @@ module.exports = {
       }
     }]
   },
+  node: {
+    fs: 'empty'
+  },
   resolve: {
     modules: [path.join(__dirname, 'src'), 'node_modules'],
     extensions: ['.js', '.ts', '.scss']

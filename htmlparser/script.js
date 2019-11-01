@@ -1,8 +1,8 @@
 //  fix dash symbol in ##LINK##
 
 const
-    ti = ' <span class="red">hello</span> ',
-    li = ' <a href="google.com"> Click</a> ';
+    ti = ' <div class="box"></div> ',
+    li = ' class="box" ';
 
 let ctrl;
 
@@ -610,7 +610,7 @@ function compare(model, input) {
                     }
                 }
             }
-            else if (ln.type === 'text') {
+            else {
                 verdict = `"${ln.raw.trim()}" is not an element. You can create elements using tags.`;
             }
         }
@@ -763,6 +763,9 @@ function compare(model, input) {
     //    }                                                                   //
     // element.content follows the same structure                             //
     //========================================================================//
+
+    console.log(model, input);
+
     if (model.length !== input.length) {
         const
             modelElements = model.filter(e => e.type === 'element'),

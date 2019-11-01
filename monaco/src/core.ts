@@ -1,9 +1,11 @@
 //  https://basarat.gitbooks.io/typescript/content/docs/project/globals.html
 
 import './styles/main.scss';
-import content, * as favicon from './images/favicon.png';
+import * as streamSaver from 'streamsaver';
+import * as favicon from './images/favicon.png';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as moment from 'moment';
+import * as asana from 'asana';
 
 // import EditorJS from './components/editor';
 import Header from './components/CodeX/Header';
@@ -13,15 +15,12 @@ import List from './components/CodeX/List';
 import Code from './components/CodeX/Code';
 import InlineCode from './components/CodeX/InlineCode';
 
-import { el, newEl, obj, RichText } from './components/Handy';
+import { el, newEl, obj, RichText, uuidv4 } from './components/Handy';
 
-// import { newTestJson, newMissionJson, newFileJson } from './modules/JsonTemplates';
+import { newTestJson, newMissionJson, newFileJson, newStepJson } from './components/JsonTemplates';
 import tooltip from './components/Tooltip';
 import subMenu from './components/SubMenu';
 import HTMLTree from './components/HTMLTree';
-import { WatchIgnorePlugin, debug, ContextReplacementPlugin, ExtendedAPIPlugin } from 'webpack';
-import { setPriority } from 'os';
-import { FILE } from 'dns';
 
 // const { el, obj, richText } = require('./modules/Handy');
 const EditorJS = require('./components/CodeX/editor');
@@ -55,7 +54,8 @@ interface Step {
     type?: string,
     hasCode?: boolean,
     text?: string,
-    title?: string
+    title?: string,
+    stepId?: string
 }
 
 let missionJson: MissionJson;
@@ -80,7 +80,8 @@ const stepCache = {
 const editablePattern = {
     //  the 'positive lookbehind' syntax has limited compatibility
     excludingMarkup: /(?<=#BEGIN_EDITABLE#)[\s\S]*?(?=#END_EDITABLE#)/g,
-    includingMarkup: /#BEGIN_EDITABLE#([\s\S]*?)#END_EDITABLE#/g
+    includingMarkup: /#BEGIN_EDITABLE#([\s\S]*?)#END_EDITABLE#/g,
+    justMarkup: /#(BEGIN|END)_EDITABLE#/g
 };
 
 const codeTemplate = {
@@ -131,6 +132,8 @@ function init() {
     addFavIcon();
     assembleUI();
     createStep(0).go();
+
+    // initAsanaAPI();
 
     console.groupEnd();
 
@@ -224,6 +227,8 @@ function resetApp() {
     activeStep = {};
     activeStepNo = 0;
     activeTab = null;
+
+    missionJson = newMissionJson();
 }
 
 //===== LOAD FAVICON =====/
@@ -469,16 +474,18 @@ function assembleUI() {
 function registerTopLevelEvents() {
     const {
         pnlActions,
-        btnOpenProject, btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
-        btnModelAnswers
+        btnOpenProject, btnSaveProject,
+        btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
+        btnModelAnswers, btnToggleOutput
     } = App.UI;
 
-    pnlActions.onscroll = () => {
+    pnlActions.addEventListener('scroll', () => {
         const actionPanelScrolled = new Event('actionPanelScrolled');
         window.dispatchEvent(actionPanelScrolled);
-    };
+    });
 
     btnOpenProject.addEventListener('click', projectFromFile);
+    btnSaveProject.addEventListener('click', saveProjectToDisk);
 
     btnNewStep.addEventListener('click', () => createStep(activeStepNo).go());
     btnDelStep.addEventListener('click', () => deleteStep(activeStepNo));
@@ -486,6 +493,9 @@ function registerTopLevelEvents() {
     btnPrevStep.addEventListener('click', () => goToStep(activeStepNo - 1));
 
     btnModelAnswers.addEventListener('click', toggleAnswerEditor);
+    btnToggleOutput.addEventListener('click', toggleOutput);
+
+    codeEditor.onDidChangeModelContent(() => refreshOutput(false));
 
     window.onresize = () => (codeEditor || diffEditor).layout();
 }
@@ -503,14 +513,17 @@ function projectFromFile() {
             stepList = [];
             missionFiles = [];
 
-            obj(JSON.parse(reader.result as string).steps)
+            const mission = JSON.parse(reader.result as string);
+
+            obj(mission.steps)
                 .sort('values', (a, b) => a.orderNo - b.orderNo)
                 .forEach((step, idx) => {
                     const title = step.title;
                     const type = step.type;
                     const hasCode = type === stepType.code || type === stepType.interactive;
                     const orderNo = (idx + 1) * 1000;
-                    const stepObj: Step = { orderNo, hasCode, type, title };
+                    const stepId = step.stepId;
+                    const stepObj: Step = { orderNo, hasCode, type, title, stepId };
 
                     if (hasCode) {
                         const stepFiles = Object.entries(step.files) as Array<[string, any]>;
@@ -556,6 +569,7 @@ function projectFromFile() {
             const transform = (name: string) => parseFileName(name).type.replace('html', 'a').replace('css', 'b').replace('js', 'c');
 
             missionFiles = missionFiles.sort((a, b) => transform(a) < transform(b) ? -1 : 1);
+            missionJson.missionUuid = mission.missionUuid;
 
             loadStepData(1);
         };
@@ -639,6 +653,132 @@ function loadStepData(targetStepNo: number) {
 
     log('Loaded ', [activeTab.innerText, clr.string], ' tab');
     console.groupEnd();
+}
+
+function saveProjectToDisk() {
+    if (diffEditor) storeAnswers();
+
+    stepList[activeStepNo - 1] = activeStep;
+
+    missionJson.settings.lastModified = moment().format();
+
+    stepList.forEach((step, stepIndex) => {
+        const stepObj = newStepJson({
+            title: step.title,
+            stepId: step.stepId,
+            type: step.type as SingleType,
+            orderNo: step.orderNo
+        });
+
+        if (step.hasCode) {
+            missionFiles.forEach(fileName => {
+                const model = getDiffModels(fileName, stepIndex + 1);
+
+                stepObj.files[fileName] = {
+                    mode: step[fileName].mode,
+                    contents: model.original.getValue().trim()
+                };
+
+                if (step.type === stepType.code && step[fileName].answers.length > 0) {
+                    stepObj.files[fileName].answers = step[fileName].answers;
+                    stepObj.files[fileName].contentsWithAnswers = model.modified.getValue().trim();
+                }
+            });
+        }
+        
+        missionJson.steps[step.stepId] = stepObj;
+    });
+
+
+    const fileContent = JSON.stringify(missionJson);
+    const blob = new Blob([(fileContent)]);
+    const fileStream = streamSaver.createWriteStream(`${missionJson.settings.title}.json`, { size: blob.size });
+
+    new Response(fileContent).body
+        .pipeTo(fileStream)
+        .then(null, err => {
+            alert('Save failed');
+            console.log(err);
+        })
+}
+
+// export const asanaTaskSummaryDs = createDerivedState(
+//     {
+//         [createDerivedState.key]: 'asanaTaskSummaryDs',
+//     },
+//     async () => {
+//         // keep invoking asana API to get summary of all tasks
+//         // in batches of 100 items
+//     }
+// );
+
+
+// export const asanaMissionTasksDs = createDerivedState(
+//     {
+//         [createDerivedState.key]: 'asanaMissionTasksDs',
+//         missionUuid: createDerivedState.input.uuid,
+//         taskSummary: asanaTaskSummaryDs.auto(),
+//     },
+//     async ({ missionUuid, taskSummary }) => {
+//         // Look up the task summary to find the Asana IDs of all tasks
+//         // that relate to this missionUuid.
+//         // Repeatedly invoke the asana API to get details for each item.
+//         // Make sure to handle '429 Too Many Requests' rate limit responses.
+//     }
+// );
+
+// // Example usage
+// // --------------
+// const cache = this.services;
+
+// const summaryOfAllTasks = await asanaTaskSummaryDs.get({ cache });
+
+// // Notice how you don't bother specifying the taskSummary as a parameter. 
+// // It is automatically accessed via the 'auto' input.
+// const missionTasks = await asanaMissionTasksDs.get({ cache, missionUuid: 'abcd' });
+
+function initAsanaAPI() {
+    const deprecationHeaders = { "defaultHeaders": { "asana-enable": "new_sections,string_ids" } };
+    const asanaClient = asana.Client.create(deprecationHeaders).useAccessToken('0/f2986549b0f0906a2bbe501dabc38a61');
+
+    const workspaceId = '8691139927938';
+    let params = {
+        'projects.any': '379597955490248',
+        'sort_by': 'created_at',
+        // 'custom_fields.846373207670449.is_set': true,
+        'completed': false,
+        'limit': 100
+    };
+
+    let summaryList = [];
+
+    const searchWithParam = params => {
+        return asanaClient.tasks.searchInWorkspace(workspaceId, params).then(response => {
+            response.data.forEach(task => summaryList.push({
+                gid: task.gid,
+                // missionUuid: task.missionUuid,
+                name: task.name
+            }));
+
+            if (response.data.length === 100) {
+                const lastItemId = response.data[response.data.length - 1].gid;
+                
+                asanaClient.tasks.findById(lastItemId).then(taskDetail => {
+                    params['created_at.before'] = taskDetail.created_at;
+                    console.log(taskDetail.created_at);
+                    return searchWithParam(params);
+                });
+            }
+            else {
+                summaryList = summaryList.sort((a, b) => a.name > b.name ? 1 : -1);
+                console.log('Successfully fetched ', summaryList.length, ' items');
+                console.log(summaryList);
+                return summaryList;
+            }
+        });
+    };
+
+    return searchWithParam(params);
 }
 
 //===== STEP OPERATIONS =====//
@@ -823,8 +963,9 @@ function diffToAuthor(model?: monaco.editor.IModel, readOnly?: boolean) {
     diffEditor.dispose();
     diffEditor = null;
     codeEditor = monaco.editor.create(App.UI.codeContainer);
-
+    
     if (model) updateAuthorContent(model, readOnly);
+    codeEditor.onDidChangeModelContent(() => refreshOutput(false));
 }
 
 function updateAuthorContent(model: monaco.editor.IModel, readOnly?: boolean) {
@@ -836,6 +977,114 @@ function disableCodeEditor() {
     removeTabs();
     addTab('Disabled', true);
     updateAuthorContent(monaco.editor.createModel('Code editor is disabled for text steps'), true);
+}
+
+function toggleOutput() {
+    console.group('toggleOutput');
+
+    if (activeStep.hasCode) {
+        const { pnlPreview, btnToggleOutput } = App.UI;
+        
+        if (App.UI.pnlPreview.classList.contains('hidden')) {
+            pnlPreview.iframe = el(pnlPreview).addNew('iframe');
+            refreshOutput();
+            pnlPreview.classList.remove('hidden');
+            btnToggleOutput.firstElementChild.classList.add('active-blue');
+        }
+        else hideOutput();
+    }
+    else {
+        warn('The output panel is not available for ', [activeStep.type, clr.string], ' steps');
+    }
+
+    console.groupEnd();
+}
+
+function hideOutput() {
+    const { pnlPreview, btnToggleOutput } = App.UI;
+
+    el(pnlPreview).remove(pnlPreview.iframe);
+    pnlPreview.classList.add('hidden');
+    btnToggleOutput.firstElementChild.classList.remove('active-blue');
+}
+
+function refreshOutput(now: boolean = true) {
+    debugGroup('refreshOutput(now =', now, ')');
+
+    const { pnlPreview } = App.UI;
+
+    if (pnlPreview.iframe) {
+        const refresh = () => {
+            let srcHtml = getAuthorOrLearnerContent('index.html');
+            const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
+        
+            linkAndScript.forEach((node: any) => {
+                const tree = new HTMLTree(node);
+        
+                if (tree.error) {
+                    warn('Error: ', [tree.error, clr.string]);
+                }
+                else {
+                    node = tree[0];
+            
+                    const tagType = node.openingTag.tagName;
+                    const attrType = tagType === 'link' ? 'href' : tagType === 'script' ? 'src' : '';
+                    const attrValue = node.openingTag.attrs.filter(attr => attr.name === attrType)[0].value;
+                    const isPrivateFile = activeStep.hasOwnProperty(attrValue);
+                    const nodeRaw = `${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`;
+                    const { type } = parseFileName(attrValue);
+            
+                    if (isPrivateFile) {
+                        if (/^(css|js)$/.test(type)) {
+                            const isCss = type === 'css';
+                            const replaceTarget = isCss ? node.openingTag.raw : nodeRaw;
+                            const newTag = isCss ? 'style' : 'script';
+                            const content = getAuthorOrLearnerContent(attrValue).trim().split('\n').map(line => `\t\t\t${line}`).join('\n');
+            
+                            srcHtml = srcHtml.replace(replaceTarget, `<${newTag}>\n${content}\n\t\t</${newTag}>`);
+                        }
+                    }
+                    else {
+                        log([nodeRaw, clr.string], ' points to external file');
+                    }
+                }
+            });
+        
+            srcHtml = srcHtml
+                //  transform relative platform paths to absolute paths
+                .replace(/(['"])\s*(\/resources\/)/g, '$1https://app.bsd.education$2')
+                //  remove editable markup
+                .replace(editablePattern.justMarkup, '');
+        
+            pnlPreview.iframe.srcdoc = srcHtml;
+            log('Output panel refreshed');
+        };
+    
+        if (now) refresh();
+        else {
+            if (refreshTimer) clearTimeout(refreshTimer);
+            refreshTimer = setTimeout(refresh, refreshDelay);
+        }
+    }
+
+    console.groupEnd();
+}
+
+function getAuthorOrLearnerContent(tabName: string, stepNo: number = activeStepNo): string {
+    const isActive = activeTab.innerText === tabName;
+    let result: monaco.editor.IModel;
+
+    if (isActive) {
+        result = codeEditor || diffEditor.getModel().modified
+    }
+    else if (codeEditor) {
+        result = stepList[stepNo - 1][tabName].author;
+    }
+    else {
+        result = getDiffModels(tabName, stepNo).modified;
+    }
+
+    return result.getValue();
 }
 
 //===== FILE OPERATIONS =====//
@@ -903,6 +1152,8 @@ function toggleAnswerEditor() {
 
             diffEditor = monaco.editor.createDiffEditor(codeContainer);
             diffEditor.setModel(diffModels);
+            
+            setTimeout(() => diffEditor.onDidUpdateDiff(() => refreshOutput(false)), 100);
 
             btnModelAnswers.firstElementChild.classList.add('active-green');
         }
@@ -911,6 +1162,8 @@ function toggleAnswerEditor() {
             diffToAuthor(getAuthorModel(), activeStep[activeTab.innerText].mode === fileMode.noChange);
             btnModelAnswers.firstElementChild.classList.remove('active-green');
         }
+
+        refreshOutput();
     }
     else {
         warn('Answers editor is not available for ', [activeStep.type, clr.string], ' steps');
@@ -957,7 +1210,7 @@ function getDiffModels(tabName: string = activeTab.innerText, stepNo: number = a
 }
 
 function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepNo: number = activeStepNo) {
-    debugGroup('resolveTabContent()');
+    debugGroup('resolveTabContent(', [tabName, clr.string] ,')');
 
     const activeFile: File = (targetStepNo === activeStepNo ? activeStep : stepList[targetStepNo - 1])[tabName];
     let result: { resolvedContent: string, answers: Array<string> | [] };

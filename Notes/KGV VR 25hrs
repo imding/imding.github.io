@@ -1,0 +1,83 @@
+# Day 1
+-- Outcome
+static world with custom & imported models
+scene must express a theme
+
+-- Session 1
+welcome & student self intro
+favourite games (2D vs 3D)
+what is 3D space
+x, y, z axis and the right hand rule
+exercise: 3D vectors
+
+a box is at 0, 1, 0, I moved it down 2 units, and moved right 3 units, what's its position now?
+
+intro to A-Frame
+A-Frame setup in HTML
+A-Frame syntax for creating simple shapes (it's pseudo-HTML, <a-something></a-same>)
+
+workshop(20min): make 5 shapes and postion them in the scene.
+
+decompositing complex shapes
+
+reference images
+
+workshop: model a room/street/tanks
+
+-- Session 2
+color, metalness & roughness
+finding textures
+workshop: apply textures to objects in your scene (no more than 1hr)
+
+3rd party models on SketchFab
+signing up for GitHub account for file hosting
+importing models
+workshop: import some models into your scene
+
+# Day 2
+-- Session 1
+what's a tween
+adding simple animation to objects
+workshop: animate objects in your scene
+
+adding layered animation
+workshop: improve your animation
+
+-- Session 2
+interactive objects
+adding the camera object (with recticle)
+defining the look-at event
+workshop: make objects in your scene interactive
+
+general introduction to JavaScript (keyboard input & events)
+exercise: familiarise with variables and functions
+add & remove objects in the scene
+workshop: 
+
+# Day 3
+-- Session 1
+A-Frame components in JavaScript
+
+
+-- Session 2
+
+
+# Day 4
+-- Session 1
+adding sound
+
+-- Session 2
+game mechanics & assets
+pick a game: find the treasure OR escape the room
+find all the assets for your game
+can you find them on SketchFab? if not, can you model it? if not, chnage your design.
+
+# Day 5
+-- Session 1
+review of all relevant concepts
+provide code snippets
+workshop: create your game
+
+-- Session 2
+workshop continued
+presentation

@@ -1,60 +1,12 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <meta charset='UTF-8'>
-    <title>BSD CD Tool</title>
-    <link rel='icon' type='image/png' href='fav07.png'>
-    <link rel='stylesheet' href='../font-awesome-4.7.0/css/font-awesome.min.css'>
-    <link rel='stylesheet' href='style.css'>
-    <link rel='stylesheet' href='instructions.css'>
-    <!-- <script defer src='fontawesome-free-5.0.8/svg-with-js/js/fontawesome-all.js'></script> -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>PAT</title>
 </head>
-
 <body>
-    <div id='app' style='visibility: hidden'>
-        <button id='recover' class='fa fa-upload'></button>
-        <button id='load' class='fa fa-folder-open'></button>
-        <button id='convert' class='fa fa-pencil'></button>
-        <button id='save' class='fa fa-floppy-o'></button>
-        <button id='tips' class='fa fa-lightbulb-o'></button>
-
-        <button id='html'>HTML</button>
-        <button id='css'>CSS</button>
-        <button id='js'>JS</button>
-        <button id='run' class='fa fa-refresh'></button>
-
-        <textarea id='instruction'></textarea>
-
-        <div id='srcCode'>
-            <div id='codeEditor'></div>
-        </div>
-        <div id='stepLogic'>
-            <div id='logicEditor'></div>
-        </div>
-
-        <button id='dupPrev' class='fa fa-chevron-circle-right'></button>
-        <button id='prev' class='fa fa-arrow-left'></button>
-        <button id='add' class='fa fa-plus'></button>
-        <button id='delete' class='fa fa-trash'></button>
-        <button id='next' class='fa fa-arrow-right'></button>
-        <button id='dupNext' class='fa fa-chevron-circle-left'></button>
-
-        <input type='text' id='info' placeholder='Project Info'>
-    </div>
-
-    <!-- <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script> -->
-
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.8.0-rc10/beautify.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.8.0-rc10/beautify-css.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.8.0-rc10/beautify-html.js'></script>
-
-    <script src='ace-builds/src-noconflict/ace.js'></script>
-    <script src='ace-builds/src-noconflict/ext-language_tools.js'></script>
-
-    <script src='../Utility.js'></script>
-    <script src='HTMLTree.js'></script>
-    <script src='script.js'></script>
-</body>
-
+    <div id='root'></div>
+<script type="text/javascript" src="main.js?d6e6b9ce77911c21c294"></script></body>
 </html>

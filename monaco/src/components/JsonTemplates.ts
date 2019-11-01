@@ -52,9 +52,7 @@ export function newStepJson(override: StepJsonOverride) {
         'orderNo': 0,
         'refMissionUuid': null,
         'files': {},
-        'tests': {},
-        //  custome properties
-        'model': {}
+        'tests': {}
     }, override);
 }
 
@@ -73,7 +71,7 @@ export function userDetails() {
     };
 }
 
-export function newMissionJson(override: MissionJsonOverride) {
+export function newMissionJson(override: MissionJsonOverride = {}) {
     return Object.assign({
         'missionUuid': uuidv4(),
         'settings': {

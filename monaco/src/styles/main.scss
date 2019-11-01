@@ -130,10 +130,7 @@ body {
             place-items: center;
             text-align: center;
             max-height: 100vh;
-            padding: 25px 0;
-            grid-gap: 25px;
             background-color: #333;
-
             overflow-y: auto;
             
             &::-webkit-scrollbar {
@@ -151,6 +148,7 @@ body {
 
             .action-unit {
                 width: 100%;
+                padding: 20px 0;
             }
 
             .action-buttons {

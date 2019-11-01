@@ -59,13 +59,13 @@ export function el(indicator: HTMLElement | string, attr?: object): any {
     // };
 
     // return validParent() && {
-    //     addChild: (...arr: Array<HTMLElement | string>): void => {
-    //         arr.forEach(child => {
-    //             parent.appendChild(typeof child === 'string' ?
-    //                 document.createTextNode(child) : child
-    //             );
-    //         });
-    //     },
+        // addChild: (...arr: Array<HTMLElement | string>): void => {
+        //     arr.forEach(child => {
+        //         parent.appendChild(typeof child === 'string' ?
+        //             document.createTextNode(child) : child
+        //         );
+        //     });
+        // },
     //     getStyle: (prop: string): string | number => {
     //         return window.getComputedStyle(parent).getPropertyValue(prop);
     //     },
