@@ -85,7 +85,7 @@ const editablePattern = {
 };
 
 const codeTemplate = {
-    html: '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<link rel="stylesheet" href="style.css"/>\n\t</head>\n\t<body>\n\n\t\t<h1>Welcome to HTML</h1>\n\n\t\t#BEGIN_EDITABLE#    #END_EDITABLE#\n\n\t\t<script src="script.js"></script>\n\t</body>\n</html>',
+    html: '<!DOCTYPE html>\n<html>\n\n<head>\n\t<link rel="stylesheet" href="style.css" />\n</head>\n\n<body>\n\n\t<h1>Welcome to HTML</h1>\n\n\t#BEGIN_EDITABLE#    #END_EDITABLE#\n\n\t<script src="script.js"></script>\n</body>\n\n</html>',
     css: '/* CSS */\n\n* {\n\tmargin: 0;\n\tbox-sizing: border-box;\n\t#BEGIN_EDITABLE#    #END_EDITABLE#\n}\n',
     js: '// JavaScript\n\nwindow.onload = init;\n\nfunction init() {}\n',
     transition: '// Transition:\nreturn `${codeWithoutMarkup}#BEGIN_EDITABLE##END_EDITABLE#`;\n// let output = codeWithoutMarkup; //.replace(/\s*<!--.*-->/g,\'\');\n// output = insertLine(output, \'key\', { line: \'\', offset: 0 });\n// output = makeEditableBlock(output, \'key\');\n// return output;'
@@ -134,6 +134,39 @@ function init() {
     createStep(0).go();
 
     // initAsanaAPI();
+
+
+    // JS validation settings
+    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+        noSemanticValidation: false,
+        noSyntaxValidation: false
+    });
+
+    // JS compiler options
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+        target: monaco.languages.typescript.ScriptTarget.ES2016,
+        allowNonTsExtensions: true
+    });
+
+    //  CSS formatting provider
+    monaco.languages.registerDocumentFormattingEditProvider('css', {
+        async provideDocumentFormattingEdits(model, options, token) {
+            const prettier = await import('prettier/standalone');
+            const css = await import('prettier/parser-postcss');
+
+            return [{
+                text: prettier.format(model.getValue(), {
+                    parser: 'css',
+                    plugins: [css],
+                    tabWidth: 4
+                }),
+                range: model.getFullModelRange()
+            }];
+        }
+    });
+
+
+    codeEditor.focus();
 
     console.groupEnd();
 
@@ -466,8 +499,8 @@ function assembleUI() {
         },
     });
 
-    codeEditor = monaco.editor.create(codeContainer, { theme: 'vs-dark' });
-
+    codeEditor = monaco.editor.create(codeContainer, { theme: 'vs-dark', scrollBeyondLastLine: false, formatOnPaste: true });
+    
     registerTopLevelEvents();
 }
 
@@ -962,7 +995,7 @@ function removeTabs() {
 function diffToAuthor(model?: monaco.editor.IModel, readOnly?: boolean) {
     diffEditor.dispose();
     diffEditor = null;
-    codeEditor = monaco.editor.create(App.UI.codeContainer);
+    codeEditor = monaco.editor.create(App.UI.codeContainer, { scrollBeyondLastLine: false });
     
     if (model) updateAuthorContent(model, readOnly);
     codeEditor.onDidChangeModelContent(() => refreshOutput(false));
@@ -970,6 +1003,7 @@ function diffToAuthor(model?: monaco.editor.IModel, readOnly?: boolean) {
 
 function updateAuthorContent(model: monaco.editor.IModel, readOnly?: boolean) {
     codeEditor.setModel(model);
+    codeEditor.focus();
     if (readOnly !== undefined) codeEditor.updateOptions({ readOnly });
 }
 
@@ -1150,7 +1184,7 @@ function toggleAnswerEditor() {
             codeEditor.dispose();
             codeEditor = null;
 
-            diffEditor = monaco.editor.createDiffEditor(codeContainer);
+            diffEditor = monaco.editor.createDiffEditor(codeContainer, { scrollBeyondLastLine: false });
             diffEditor.setModel(diffModels);
             
             setTimeout(() => diffEditor.onDidUpdateDiff(() => refreshOutput(false)), 100);

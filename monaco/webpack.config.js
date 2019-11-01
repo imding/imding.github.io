@@ -60,7 +60,7 @@ module.exports = {
     }),
     new MonacoWebpackPlugin({
       output: './monaco/',
-      languages: ['javascript', 'css', 'html'],
+      languages: ['typescript', 'javascript', 'css', 'html'],
     })
   ],
 };
