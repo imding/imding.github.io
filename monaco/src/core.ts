@@ -40,6 +40,10 @@ let codexEditor = null;
 let codeEditor = null;
 let diffEditor = null;
 
+const asanaWorkspaceId = '8691139927938';
+const feedbackProjectId = '379597955490248';
+// const asanaClient = initAsanaAPI();
+
 //===== MEMORY MODULES =====//
 
 
@@ -133,9 +137,6 @@ function init() {
     assembleUI();
     createStep(0).go();
 
-    // initAsanaAPI();
-
-
     // JS validation settings
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
         noSemanticValidation: false,
@@ -195,6 +196,7 @@ function resetApp() {
             btnSaveProject: null,
             btnCopyJson: null,
             btnContinue: null,
+            btnTickets: null,
 
             btnNewStep: null,
             btnDelStep: null,
@@ -297,7 +299,8 @@ function assembleUI() {
                             btnOpenProject: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'folder_open' }) }],
                             btnSaveProject: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'save' }) }],
                             btnCopyJson: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'receipt' }) }],
-                            btnContinue: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'unarchive' }) }]
+                            btnContinue: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'unarchive' }) }],
+                            btnTickets: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'assignment_late' }) }]
                         }]
                     }],
                     stepUnit: [el('div', { className: 'action-unit' }), {
@@ -500,14 +503,14 @@ function assembleUI() {
     });
 
     codeEditor = monaco.editor.create(codeContainer, { theme: 'vs-dark', scrollBeyondLastLine: false, formatOnPaste: true });
-    
+
     registerTopLevelEvents();
 }
 
 function registerTopLevelEvents() {
     const {
         pnlActions,
-        btnOpenProject, btnSaveProject,
+        btnOpenProject, btnSaveProject, btnTickets,
         btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
         btnModelAnswers, btnToggleOutput
     } = App.UI;
@@ -519,6 +522,7 @@ function registerTopLevelEvents() {
 
     btnOpenProject.addEventListener('click', projectFromFile);
     btnSaveProject.addEventListener('click', saveProjectToDisk);
+    // btnTickets.addEventListener('click', fetchAsanaTickets);
 
     btnNewStep.addEventListener('click', () => createStep(activeStepNo).go());
     btnDelStep.addEventListener('click', () => deleteStep(activeStepNo));
@@ -618,6 +622,7 @@ function goToStep(targetStepNo: number) {
     else {
         //  write active step to step list
         if (activeStepNo) {
+            storeInstructions();
             stepList[activeStepNo - 1] = activeStep;
             log('Stored step ', [activeStepNo, clr.code], ' data');
         }
@@ -677,12 +682,15 @@ function loadStepData(targetStepNo: number) {
 
     codexEditor.isReady.then(() => {
         codexEditor.blocks.clear();
-        codexEditor.blocks.insert('header', { text: `Step ${targetStepNo}` }, {}, 0);
-        codexEditor.blocks.insert('header', { text: targetStep.title }, {}, 1);
+
+        const title = (targetStep.title && targetStep.title.trim().length) ? targetStep.title : `Step ${targetStepNo}`
+        codexEditor.blocks.insert('header', { text: title }, {}, 0);
     });
 
     activeStepNo = targetStepNo;
     activeStep = targetStep;
+
+    refreshOutput();
 
     log('Loaded ', [activeTab.innerText, clr.string], ' tab');
     console.groupEnd();
@@ -691,17 +699,21 @@ function loadStepData(targetStepNo: number) {
 function saveProjectToDisk() {
     if (diffEditor) storeAnswers();
 
+    storeInstructions();
     stepList[activeStepNo - 1] = activeStep;
 
     missionJson.settings.lastModified = moment().format();
 
     stepList.forEach((step, stepIndex) => {
         const stepObj = newStepJson({
-            title: step.title,
-            stepId: step.stepId,
             type: step.type as SingleType,
-            orderNo: step.orderNo
+            orderNo: (stepIndex + 1) * 1000
         });
+        const stepId = step.stepId || stepObj.stepId;
+        const stepTitle = stepList[stepIndex].title;
+
+        stepObj.stepId = stepId;
+        stepObj.title = (stepTitle && stepTitle.length) ? stepTitle : `Step ${stepIndex + 1}`;
 
         if (step.hasCode) {
             missionFiles.forEach(fileName => {
@@ -718,13 +730,13 @@ function saveProjectToDisk() {
                 }
             });
         }
-        
-        missionJson.steps[step.stepId] = stepObj;
+
+        missionJson.steps[stepId] = stepObj;
     });
 
 
     const fileContent = JSON.stringify(missionJson);
-    const blob = new Blob([(fileContent)]);
+    const blob = new Blob([fileContent]);
     const fileStream = streamSaver.createWriteStream(`${missionJson.settings.title}.json`, { size: blob.size });
 
     new Response(fileContent).body
@@ -772,52 +784,59 @@ function saveProjectToDisk() {
 
 function initAsanaAPI() {
     const deprecationHeaders = { "defaultHeaders": { "asana-enable": "new_sections,string_ids" } };
-    const asanaClient = asana.Client.create(deprecationHeaders).useAccessToken('0/f2986549b0f0906a2bbe501dabc38a61');
+    const client = asana.Client.create(deprecationHeaders).useAccessToken('0/f2986549b0f0906a2bbe501dabc38a61');
 
-    const workspaceId = '8691139927938';
-    let params = {
-        'projects.any': '379597955490248',
-        'sort_by': 'created_at',
-        // 'custom_fields.846373207670449.is_set': true,
-        'completed': false,
-        'limit': 100
-    };
+    client.webhooks.create(feedbackProjectId, );
 
-    let summaryList = [];
-
-    const searchWithParam = params => {
-        return asanaClient.tasks.searchInWorkspace(workspaceId, params).then(response => {
-            response.data.forEach(task => summaryList.push({
-                gid: task.gid,
-                // missionUuid: task.missionUuid,
-                name: task.name
-            }));
-
-            if (response.data.length === 100) {
-                const lastItemId = response.data[response.data.length - 1].gid;
-                
-                asanaClient.tasks.findById(lastItemId).then(taskDetail => {
-                    params['created_at.before'] = taskDetail.created_at;
-                    console.log(taskDetail.created_at);
-                    return searchWithParam(params);
-                });
-            }
-            else {
-                summaryList = summaryList.sort((a, b) => a.name > b.name ? 1 : -1);
-                console.log('Successfully fetched ', summaryList.length, ' items');
-                console.log(summaryList);
-                return summaryList;
-            }
-        });
-    };
-
-    return searchWithParam(params);
+    return client;
 }
+
+// function fetchAsanaTickets() {
+//     if (!asanaClient) return warn('Asana API is not initialised');
+
+//     let params = {
+//         'projects.any': feedbackProjectId,
+//         'sort_by': 'created_at',
+//         // 'custom_fields.846373207670449.is_set': true,
+//         'completed': false,
+//         'limit': 100
+//     };
+
+//     let summaryList = [];
+
+//     const searchWithParam = params => {
+//         return asanaClient.tasks.searchInWorkspace(asanaWorkspaceId, params).then(response => {
+//             response.data.forEach(task => summaryList.push({
+//                 gid: task.gid,
+//                 // missionUuid: task.missionUuid,
+//                 name: task.name
+//             }));
+
+//             if (response.data.length === 100) {
+//                 const lastItemId = response.data[response.data.length - 1].gid;
+
+//                 asanaClient.tasks.findById(lastItemId).then(taskDetail => {
+//                     params['created_at.before'] = taskDetail.created_at;
+//                     console.log(taskDetail.created_at);
+//                     return searchWithParam(params);
+//                 });
+//             }
+//             else {
+//                 summaryList = summaryList.sort((a, b) => a.name > b.name ? 1 : -1);
+//                 console.log('Successfully fetched ', summaryList.length, ' items');
+//                 console.log(summaryList);
+//                 return summaryList;
+//             }
+//         });
+//     };
+
+//     searchWithParam(params);
+// }
 
 //===== STEP OPERATIONS =====//
 
 function createStep(placement: number = activeStepNo - 1, newStepType: SingleType = stepType.code) {
-    debugGroup('createNewStep(placement:', placement, ', type:', newStepType, ')');
+    debugGroup('createStep(placement:', placement, ', type:', newStepType, ')');
 
     const newStep: Step = {
         type: newStepType,
@@ -968,6 +987,12 @@ function switchTab(evt: MouseEvent) {
     console.groupEnd();
 }
 
+function storeInstructions() {
+    const stepTitle = codexEditor.blocks.getBlockByIndex(0).innerText.trim();
+
+    activeStep.title = stepTitle.length ? stepTitle : `Step ${activeStepNo}`;
+}
+
 function addTab(label: string, active: boolean) {
     const tab = el(App.UI.tabContainer).addNew('span', { className: `${active ? 'active ' : ''}tab`, innerText: label });
 
@@ -996,7 +1021,7 @@ function diffToAuthor(model?: monaco.editor.IModel, readOnly?: boolean) {
     diffEditor.dispose();
     diffEditor = null;
     codeEditor = monaco.editor.create(App.UI.codeContainer, { scrollBeyondLastLine: false });
-    
+
     if (model) updateAuthorContent(model, readOnly);
     codeEditor.onDidChangeModelContent(() => refreshOutput(false));
 }
@@ -1018,7 +1043,7 @@ function toggleOutput() {
 
     if (activeStep.hasCode) {
         const { pnlPreview, btnToggleOutput } = App.UI;
-        
+
         if (App.UI.pnlPreview.classList.contains('hidden')) {
             pnlPreview.iframe = el(pnlPreview).addNew('iframe');
             refreshOutput();
@@ -1051,30 +1076,30 @@ function refreshOutput(now: boolean = true) {
         const refresh = () => {
             let srcHtml = getAuthorOrLearnerContent('index.html');
             const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
-        
+
             linkAndScript.forEach((node: any) => {
                 const tree = new HTMLTree(node);
-        
+
                 if (tree.error) {
                     warn('Error: ', [tree.error, clr.string]);
                 }
                 else {
                     node = tree[0];
-            
+
                     const tagType = node.openingTag.tagName;
                     const attrType = tagType === 'link' ? 'href' : tagType === 'script' ? 'src' : '';
                     const attrValue = node.openingTag.attrs.filter(attr => attr.name === attrType)[0].value;
                     const isPrivateFile = activeStep.hasOwnProperty(attrValue);
                     const nodeRaw = `${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`;
                     const { type } = parseFileName(attrValue);
-            
+
                     if (isPrivateFile) {
                         if (/^(css|js)$/.test(type)) {
                             const isCss = type === 'css';
                             const replaceTarget = isCss ? node.openingTag.raw : nodeRaw;
                             const newTag = isCss ? 'style' : 'script';
                             const content = getAuthorOrLearnerContent(attrValue).trim().split('\n').map(line => `\t\t\t${line}`).join('\n');
-            
+
                             srcHtml = srcHtml.replace(replaceTarget, `<${newTag}>\n${content}\n\t\t</${newTag}>`);
                         }
                     }
@@ -1083,17 +1108,17 @@ function refreshOutput(now: boolean = true) {
                     }
                 }
             });
-        
+
             srcHtml = srcHtml
                 //  transform relative platform paths to absolute paths
                 .replace(/(['"])\s*(\/resources\/)/g, '$1https://app.bsd.education$2')
                 //  remove editable markup
                 .replace(editablePattern.justMarkup, '');
-        
+
             pnlPreview.iframe.srcdoc = srcHtml;
             log('Output panel refreshed');
         };
-    
+
         if (now) refresh();
         else {
             if (refreshTimer) clearTimeout(refreshTimer);
@@ -1186,7 +1211,7 @@ function toggleAnswerEditor() {
 
             diffEditor = monaco.editor.createDiffEditor(codeContainer, { scrollBeyondLastLine: false });
             diffEditor.setModel(diffModels);
-            
+
             setTimeout(() => diffEditor.onDidUpdateDiff(() => refreshOutput(false)), 100);
 
             btnModelAnswers.firstElementChild.classList.add('active-green');
@@ -1244,7 +1269,7 @@ function getDiffModels(tabName: string = activeTab.innerText, stepNo: number = a
 }
 
 function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepNo: number = activeStepNo) {
-    debugGroup('resolveTabContent(', [tabName, clr.string] ,')');
+    debugGroup('resolveTabContent(', [tabName, clr.string], ')');
 
     const activeFile: File = (targetStepNo === activeStepNo ? activeStep : stepList[targetStepNo - 1])[tabName];
     let result: { resolvedContent: string, answers: Array<string> | [] };
