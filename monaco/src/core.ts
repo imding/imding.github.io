@@ -709,10 +709,15 @@ function saveProjectToDisk() {
             type: step.type as SingleType,
             orderNo: (stepIndex + 1) * 1000
         });
-        const stepId = step.stepId || stepObj.stepId;
         const stepTitle = stepList[stepIndex].title;
 
-        stepObj.stepId = stepId;
+        if (step.stepId) {
+            stepObj.stepId = step.stepId;
+        }
+        else {
+            step.stepId = stepObj.stepId;
+        }
+
         stepObj.title = (stepTitle && stepTitle.length) ? stepTitle : `Step ${stepIndex + 1}`;
 
         if (step.hasCode) {
@@ -731,9 +736,8 @@ function saveProjectToDisk() {
             });
         }
 
-        missionJson.steps[stepId] = stepObj;
+        missionJson.steps[stepObj.stepId] = stepObj;
     });
-
 
     const fileContent = JSON.stringify(missionJson);
     const blob = new Blob([fileContent]);
