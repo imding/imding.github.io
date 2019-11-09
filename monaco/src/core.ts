@@ -42,7 +42,7 @@ let diffEditor = null;
 
 const asanaWorkspaceId = '8691139927938';
 const feedbackProjectId = '379597955490248';
-// const asanaClient = initAsanaAPI();
+const asanaClient = initAsanaAPI();
 
 //===== MEMORY MODULES =====//
 
@@ -522,7 +522,7 @@ function registerTopLevelEvents() {
 
     btnOpenProject.addEventListener('click', projectFromFile);
     btnSaveProject.addEventListener('click', saveProjectToDisk);
-    // btnTickets.addEventListener('click', fetchAsanaTickets);
+    btnTickets.addEventListener('click', fetchAsanaTickets);
 
     btnNewStep.addEventListener('click', () => createStep(activeStepNo).go());
     btnDelStep.addEventListener('click', () => deleteStep(activeStepNo));
@@ -790,52 +790,52 @@ function initAsanaAPI() {
     const deprecationHeaders = { "defaultHeaders": { "asana-enable": "new_sections,string_ids" } };
     const client = asana.Client.create(deprecationHeaders).useAccessToken('0/f2986549b0f0906a2bbe501dabc38a61');
 
-    client.webhooks.create(feedbackProjectId, );
+    // client.webhooks.create(feedbackProjectId, );
 
     return client;
 }
 
-// function fetchAsanaTickets() {
-//     if (!asanaClient) return warn('Asana API is not initialised');
+function fetchAsanaTickets() {
+    if (!asanaClient) return warn('Asana API is not initialised');
 
-//     let params = {
-//         'projects.any': feedbackProjectId,
-//         'sort_by': 'created_at',
-//         // 'custom_fields.846373207670449.is_set': true,
-//         'completed': false,
-//         'limit': 100
-//     };
+    let params = {
+        'projects.any': feedbackProjectId,
+        'sort_by': 'created_at',
+        // 'custom_fields.846373207670449.is_set': true,
+        'completed': false,
+        'limit': 100
+    };
 
-//     let summaryList = [];
+    let summaryList = [];
 
-//     const searchWithParam = params => {
-//         return asanaClient.tasks.searchInWorkspace(asanaWorkspaceId, params).then(response => {
-//             response.data.forEach(task => summaryList.push({
-//                 gid: task.gid,
-//                 // missionUuid: task.missionUuid,
-//                 name: task.name
-//             }));
+    const searchWithParam = params => {
+        return asanaClient.tasks.searchInWorkspace(asanaWorkspaceId, params).then(response => {
+            response.data.forEach(task => summaryList.push({
+                gid: task.gid,
+                // missionUuid: task.missionUuid,
+                name: task.name
+            }));
 
-//             if (response.data.length === 100) {
-//                 const lastItemId = response.data[response.data.length - 1].gid;
+            if (response.data.length === 100) {
+                const lastItemId = response.data[response.data.length - 1].gid;
 
-//                 asanaClient.tasks.findById(lastItemId).then(taskDetail => {
-//                     params['created_at.before'] = taskDetail.created_at;
-//                     console.log(taskDetail.created_at);
-//                     return searchWithParam(params);
-//                 });
-//             }
-//             else {
-//                 summaryList = summaryList.sort((a, b) => a.name > b.name ? 1 : -1);
-//                 console.log('Successfully fetched ', summaryList.length, ' items');
-//                 console.log(summaryList);
-//                 return summaryList;
-//             }
-//         });
-//     };
+                asanaClient.tasks.findById(lastItemId).then(taskDetail => {
+                    params['created_at.before'] = taskDetail.created_at;
+                    console.log(taskDetail.created_at);
+                    return searchWithParam(params);
+                });
+            }
+            else {
+                summaryList = summaryList.sort((a, b) => a.name > b.name ? 1 : -1);
+                console.log('Successfully fetched ', summaryList.length, ' items');
+                console.log(summaryList);
+                return summaryList;
+            }
+        });
+    };
 
-//     searchWithParam(params);
-// }
+    searchWithParam(params);
+}
 
 //===== STEP OPERATIONS =====//
 
