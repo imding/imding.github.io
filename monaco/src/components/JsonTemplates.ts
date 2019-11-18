@@ -42,9 +42,7 @@ export function newStepJson(override: StepJsonOverride) {
     return Object.assign({
         'title': 'Untitled',
         'type': 'code',
-        'content': {
-            'instructions': '',
-        },
+        'content': {},
         'deleted': false,
         'stepId': (Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)) + 1).toString(),
         'majorRevision': 1,

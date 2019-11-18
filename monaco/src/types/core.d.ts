@@ -165,7 +165,8 @@ interface StepJsonOverride {
     'type'?: 'code' | 'interactive' | 'text',
     'content'?: {
         'instructions'?: string,
-        'startTab'?: string
+        'startTab'?: string,
+        'text'?: string,
     },
     'deleted'?: boolean,
     'stepId'?: string,

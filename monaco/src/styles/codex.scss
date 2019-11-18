@@ -1,17 +1,29 @@
 @mixin codex {
+    code {
+        color: #e8912d;
+        border: 1px solid rgba(232, 232, 232, 0.13);
+        border-radius: 3px;
+        padding: 2px 3px 1px;
+        background-color: rgba(232, 232, 232, 0.04);
+    }
+
     .codex-editor__redactor {
         margin: 0;
         padding-bottom: 100px;
     }
     
-    .ce-block--focused {
-        background-image: none;
+    .ce-block {
+        padding: 0 10px;
+        border-radius: 5px;
+
+        &:focus-within {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
     }
 
-    .ce-block--selected .ce-block__content {
-        animation: none;
-        box-shadow: none;
-        background-color: #333;
+    .ce-block--focused {
+        width: 100%;
+        background-image: none;
     }
 
     .ce-toolbox {
@@ -28,5 +40,12 @@
 
     .ce-header {
         padding: 20px 0;
+    }
+
+    .cdx-simple-image__picture {
+        img {
+            width: 100%;
+            border-radius: 5px;
+        }
     }
 }

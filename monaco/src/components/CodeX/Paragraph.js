@@ -84,6 +84,37 @@ export default class Paragraph {
 
         div.addEventListener('keyup', this.onKeyUp);
 
+        div.addEventListener('input', () => {
+            if (event.data === '`') {
+                const tickPair = div.innerText.match(/`([^`]+)`/);
+
+                if (tickPair) {
+                    const selection = window.getSelection();
+                    const nodeIndex = Array.from(div.childNodes).indexOf(selection.anchorNode);
+                    const isLastNode = div.lastChild === selection.anchorNode;
+                    const [term, content] = tickPair.map(string => string
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;'));
+                    
+                    div.innerHTML = div.innerHTML.replace(term, `<code class="inline-code">${content}</code>`);
+
+                    const codeNode = div.childNodes[Math.min(nodeIndex + 1, div.childNodes.length - 1)];
+                    this._setCursor(selection, codeNode.childNodes ? codeNode.childNodes[0] : codeNode, tickPair[1].length);
+
+                    if (isLastNode) {
+                        this._addSpaceAfterInlineCode();
+                    }
+                }
+            }
+        });
+
+        div.addEventListener('keydown', () => {
+            if (event.key === 'ArrowRight') {
+                this._addSpaceAfterInlineCode();
+            }
+        });
+
         return div;
     }
 
@@ -134,7 +165,7 @@ export default class Paragraph {
      */
     save(toolsContent) {
         return {
-            text: toolsContent.innerHTML
+            text: toolsContent.innerHTML.replace('&nbsp;', ' ').replace(/\s+?class="inline-code"/, '')
         };
     }
 
@@ -149,6 +180,31 @@ export default class Paragraph {
         };
 
         this.data = data;
+    }
+
+    _setCursor(selection, node, offset) {
+        const range = document.createRange();
+
+        range.setStart(node, offset);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    _addSpaceAfterInlineCode() {
+        const selection = window.getSelection();
+        const anchorNode = selection.anchorNode;
+        const tailNode = this._element.lastChild;
+        const isLastNode = tailNode === anchorNode.parentNode;
+
+        if (isLastNode) {
+            const isLastChar = selection.anchorOffset === anchorNode.length;
+
+            if (isLastChar) {
+                this._element.innerHTML = this._element.innerHTML + '&nbsp;';
+                this._setCursor(selection, this._element.lastChild, 1);
+            }
+        }
     }
 
     /**
@@ -168,6 +224,7 @@ export default class Paragraph {
         return {
             text: {
                 br: false,
+                font: false,
             }
         };
     }
@@ -210,4 +267,11 @@ export default class Paragraph {
             tags: ['P']
         };
     }
+
+    // static get toolbox() {
+    //     return {
+    //         title: 'Paragraph',
+    //         icon: '<svg width="17" height="15" xmlns="http://www.w3.org/2000/svg"><path d="m1.20358,12.36428l9.72856,0l0,-1.62143l-9.72856,0l0,1.62143zm0,-9.72856l0,1.62143l14.59284,0l0,-1.62143l-14.59284,0zm0,5.675l14.59284,0l0,-1.62143l-14.59284,0l0,1.62143z"/></svg>'
+    //     };
+    // }
 }

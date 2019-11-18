@@ -6,24 +6,23 @@ import * as favicon from './images/favicon.png';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as moment from 'moment';
 import * as asana from 'asana';
+import * as EditorJS from './components/CodeX/editor-dev';
 
-// import EditorJS from './components/editor';
 import Header from './components/CodeX/Header';
 import Paragraph from './components/CodeX/Paragraph';
-import SimpleImage from './components/CodeX/SimpleImage';
-import List from './components/CodeX/List';
-import Code from './components/CodeX/Code';
+import Image from './components/CodeX/Image';
 import InlineCode from './components/CodeX/InlineCode';
+import List from './components/CodeX/List';
+// import Code from './components/CodeX/Code';
 
 import { el, newEl, obj, RichText, uuidv4 } from './components/Handy';
-
 import { newTestJson, newMissionJson, newFileJson, newStepJson } from './components/JsonTemplates';
 import tooltip from './components/Tooltip';
 import subMenu from './components/SubMenu';
 import HTMLTree from './components/HTMLTree';
 
-// const { el, obj, richText } = require('./modules/Handy');
-const EditorJS = require('./components/CodeX/editor');
+
+// const EditorJS = require('@editorjs/editorjs');
 
 const consoleDebug = true;
 const consoleFold = false;
@@ -42,7 +41,7 @@ let diffEditor = null;
 
 const asanaWorkspaceId = '8691139927938';
 const feedbackProjectId = '379597955490248';
-const asanaClient = initAsanaAPI();
+// const asanaClient = initAsanaAPI();
 
 //===== MEMORY MODULES =====//
 
@@ -59,7 +58,12 @@ interface Step {
     hasCode?: boolean,
     text?: string,
     title?: string,
-    stepId?: string
+    stepId?: string,
+    content?: {
+        instructions?: string,
+        text?: string,
+        startTab?: string,
+    }
 }
 
 let missionJson: MissionJson;
@@ -165,7 +169,6 @@ function init() {
             }];
         }
     });
-
 
     codeEditor.focus();
 
@@ -494,11 +497,18 @@ function assembleUI() {
         holder: codexContainer,
         tools: {
             header: Header,
-            paragraph: Paragraph,
-            simpleImage: SimpleImage,
+            //  need to define tools as an object with `class` property
+            //  to access inline tools
+            paragraph: {
+                class: Paragraph
+            },
+            inlineCode: {
+                class: InlineCode,
+                shortcut: 'CMD+D'
+            },
+            image: Image,
             list: List,
-            code: Code,
-            inlineCode: InlineCode,
+            // code: Code,
         },
     });
 
@@ -522,7 +532,7 @@ function registerTopLevelEvents() {
 
     btnOpenProject.addEventListener('click', projectFromFile);
     btnSaveProject.addEventListener('click', saveProjectToDisk);
-    btnTickets.addEventListener('click', fetchAsanaTickets);
+    // btnTickets.addEventListener('click', fetchAsanaTickets);
 
     btnNewStep.addEventListener('click', () => createStep(activeStepNo).go());
     btnDelStep.addEventListener('click', () => deleteStep(activeStepNo));
@@ -556,11 +566,12 @@ function projectFromFile() {
                 .sort('values', (a, b) => a.orderNo - b.orderNo)
                 .forEach((step, idx) => {
                     const title = step.title;
+                    const content = step.content;
                     const type = step.type;
                     const hasCode = type === stepType.code || type === stepType.interactive;
                     const orderNo = (idx + 1) * 1000;
                     const stepId = step.stepId;
-                    const stepObj: Step = { orderNo, hasCode, type, title, stepId };
+                    const stepObj: Step = { orderNo, hasCode, type, title, stepId, content };
 
                     if (hasCode) {
                         const stepFiles = Object.entries(step.files) as Array<[string, any]>;
@@ -638,6 +649,7 @@ function loadStepData(targetStepNo: number) {
 
     const { tabContainer, btnStepType, btnFileMode, btnModelAnswers } = App.UI;
 
+    //  sync tabs with step data
     if (tabContainer.children.length !== missionFiles.length) {
         removeTabs();
         missionFiles.forEach((fullName, idx) => addTab(fullName, !idx));
@@ -647,6 +659,7 @@ function loadStepData(targetStepNo: number) {
     const tabName = activeTab.innerText;
     const addFileObject = () => stepList[targetStepNo - 1][tabName] = { mode: fileMode.noChange };
 
+    //  load code editor content
     if (targetStep.hasCode) {
         const targetTab = targetStep[activeTab.innerText] || addFileObject();
         const noChange = targetTab.mode === fileMode.noChange;
@@ -680,11 +693,26 @@ function loadStepData(targetStepNo: number) {
 
     btnStepType.firstElementChild.innerText = iconNames[targetStep.type];
 
+    //  load instructions
     codexEditor.isReady.then(() => {
-        codexEditor.blocks.clear();
+        const title = (targetStep.title && targetStep.title.trim().length) ? targetStep.title : `Title - Step ${targetStepNo}`
+        const body = new HTMLTree(targetStep.content.instructions);
+        const blocks = [{
+            type: 'header',
+            data: { text: title }
+        }];
 
-        const title = (targetStep.title && targetStep.title.trim().length) ? targetStep.title : `Step ${targetStepNo}`
-        codexEditor.blocks.insert('header', { text: title }, {}, 0);
+        body.forEach(node => {
+            if (node.openingTag.tagName === 'p') {
+                blocks.push({
+                    type: 'paragraph',
+                    data: { text: node.rawContent.trim() }
+                });
+            }
+        });
+
+        codexEditor.blocks.clear();
+        codexEditor.blocks.render({ blocks });
     });
 
     activeStepNo = targetStepNo;
@@ -700,6 +728,7 @@ function saveProjectToDisk() {
     if (diffEditor) storeAnswers();
 
     storeInstructions();
+
     stepList[activeStepNo - 1] = activeStep;
 
     missionJson.settings.lastModified = moment().format();
@@ -709,7 +738,6 @@ function saveProjectToDisk() {
             type: step.type as SingleType,
             orderNo: (stepIndex + 1) * 1000
         });
-        const stepTitle = stepList[stepIndex].title;
 
         if (step.stepId) {
             stepObj.stepId = step.stepId;
@@ -717,8 +745,6 @@ function saveProjectToDisk() {
         else {
             step.stepId = stepObj.stepId;
         }
-
-        stepObj.title = (stepTitle && stepTitle.length) ? stepTitle : `Step ${stepIndex + 1}`;
 
         if (step.hasCode) {
             missionFiles.forEach(fileName => {
@@ -735,6 +761,11 @@ function saveProjectToDisk() {
                 }
             });
         }
+
+        const stepTitle = stepList[stepIndex].title;
+
+        stepObj.title = (stepTitle && stepTitle.length) ? stepTitle : `Step ${stepIndex + 1}`;
+        stepObj.content = stepList[stepIndex].content;
 
         missionJson.steps[stepObj.stepId] = stepObj;
     });
@@ -795,47 +826,47 @@ function initAsanaAPI() {
     return client;
 }
 
-function fetchAsanaTickets() {
-    if (!asanaClient) return warn('Asana API is not initialised');
+// function fetchAsanaTickets() {
+//     if (!asanaClient) return warn('Asana API is not initialised');
 
-    let params = {
-        'projects.any': feedbackProjectId,
-        'sort_by': 'created_at',
-        // 'custom_fields.846373207670449.is_set': true,
-        'completed': false,
-        'limit': 100
-    };
+//     let params = {
+//         'projects.any': feedbackProjectId,
+//         'sort_by': 'created_at',
+//         // 'custom_fields.846373207670449.is_set': true,
+//         'completed': false,
+//         'limit': 100
+//     };
 
-    let summaryList = [];
+//     let summaryList = [];
 
-    const searchWithParam = params => {
-        return asanaClient.tasks.searchInWorkspace(asanaWorkspaceId, params).then(response => {
-            response.data.forEach(task => summaryList.push({
-                gid: task.gid,
-                // missionUuid: task.missionUuid,
-                name: task.name
-            }));
+//     const searchWithParam = params => {
+//         return asanaClient.tasks.findByWorkspace(asanaWorkspaceId, params).then(response => {
+//             response.data.forEach(task => summaryList.push({
+//                 gid: task.gid,
+//                 // missionUuid: task.missionUuid,
+//                 name: task.name
+//             }));
 
-            if (response.data.length === 100) {
-                const lastItemId = response.data[response.data.length - 1].gid;
+//             if (response.data.length === 100) {
+//                 const lastItemId = response.data[response.data.length - 1].gid;
 
-                asanaClient.tasks.findById(lastItemId).then(taskDetail => {
-                    params['created_at.before'] = taskDetail.created_at;
-                    console.log(taskDetail.created_at);
-                    return searchWithParam(params);
-                });
-            }
-            else {
-                summaryList = summaryList.sort((a, b) => a.name > b.name ? 1 : -1);
-                console.log('Successfully fetched ', summaryList.length, ' items');
-                console.log(summaryList);
-                return summaryList;
-            }
-        });
-    };
+//                 asanaClient.tasks.findById(lastItemId).then(taskDetail => {
+//                     params['created_at.before'] = taskDetail.created_at;
+//                     console.log(taskDetail.created_at);
+//                     return searchWithParam(params);
+//                 });
+//             }
+//             else {
+//                 summaryList = summaryList.sort((a, b) => a.name > b.name ? 1 : -1);
+//                 console.log('Successfully fetched ', summaryList.length, ' items');
+//                 console.log(summaryList);
+//                 return summaryList;
+//             }
+//         });
+//     };
 
-    searchWithParam(params);
-}
+//     searchWithParam(params);
+// }
 
 //===== STEP OPERATIONS =====//
 
@@ -844,12 +875,14 @@ function createStep(placement: number = activeStepNo - 1, newStepType: SingleTyp
 
     const newStep: Step = {
         type: newStepType,
-        orderNo: (placement + 1) * 1000
+        orderNo: (placement + 1) * 1000,
+        content: {}
     };
 
     if (newStepType === stepType.code || newStepType === stepType.interactive) {
         //  step is requried to be consistent with missionFiles
         newStep.hasCode = true;
+        newStep.content.instructions = '';
         //  initialise step files based on missionFiles
         missionFiles.forEach((fullName, idx) => {
             debugGroup('Iteration ', [idx, clr.code], ' on ', ['missionFiles', clr.code]);
@@ -861,7 +894,7 @@ function createStep(placement: number = activeStepNo - 1, newStepType: SingleTyp
             newStep[fullName] = {
                 author: model,
                 mode: fileMode.newContents,
-                answers: []
+                answers: [],
             };
 
             log('Set ', [fullName, clr.string], ' mode to ', [newStep[fullName].mode, clr.string]);
@@ -989,12 +1022,6 @@ function switchTab(evt: MouseEvent) {
     }
 
     console.groupEnd();
-}
-
-function storeInstructions() {
-    const stepTitle = codexEditor.blocks.getBlockByIndex(0).innerText.trim();
-
-    activeStep.title = stepTitle.length ? stepTitle : `Step ${activeStepNo}`;
 }
 
 function addTab(label: string, active: boolean) {
@@ -1151,6 +1178,22 @@ function getAuthorOrLearnerContent(tabName: string, stepNo: number = activeStepN
 }
 
 //===== FILE OPERATIONS =====//
+
+function storeInstructions(stepNo: number = activeStepNo) {
+    codexEditor.save().then(data => {
+        stepList[stepNo - 1].content.instructions = '';
+
+        data.blocks.forEach(block => {
+            if (block.type === 'header') {
+                const title = block.data.text.trim();
+                stepList[stepNo - 1].title = title.length ? title : `Step ${stepNo}`;
+            }
+            else if (block.type === 'paragraph') {
+                stepList[stepNo - 1].content.instructions += `<p>${block.data.text}</p>`;
+            }
+        });
+    });
+}
 
 function setFileMode(targetMode: SingleMode) {
     debugGroup('setFileMode(', [targetMode, clr.string], ')');

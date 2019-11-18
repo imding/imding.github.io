@@ -15,7 +15,7 @@ export default class InlineCode {
 
   /**
    */
-  constructor({api}) {
+  constructor({ api }) {
     this.api = api;
 
     /**
@@ -112,6 +112,20 @@ export default class InlineCode {
      * Expand (add) selection to highlighted block
      */
     this.api.selection.expandToTag(span);
+
+    const parent = range.commonAncestorContainer;
+
+    parent.childNodes.forEach(node => {
+      if (node.nodeType === 3 && node.data === '') {
+        parent.removeChild(node);
+      }
+    });
+
+    // const selection = window.getSelection();
+
+    // selection.removeAllRanges();
+    // range.collapse(false);
+    // selection.addRange(range);
   }
 
   /**
