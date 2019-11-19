@@ -99,6 +99,66 @@ body {
         /* code-panel width */ calc(100vw - 400px);
 }
 
+#settings-container {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 500px;
+    padding: 20px;
+    border-radius: 10px;
+    transform: translate(-50%, -50%);
+    background-color: #111;
+    
+    h1 {
+        grid-column: span 2;
+        color: silver;
+        text-align: center;
+    }
+    
+    p {
+        color: skyblue;
+        text-align: right;
+        align-self: center;
+        font-size: 12px;
+    }
+
+    input {
+        outline: none;
+        border: none;
+        border-radius: 5px;
+        padding: 3px 5px;
+        background-color: #333;
+        color: silver;
+    }
+
+    #settings-actions {
+        padding-top: 20px;
+        grid-column: span 2;
+        text-align: center;
+
+        button {
+            outline: none;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+        }
+
+        #save-settings {
+            margin-right: 50px;
+            background-color: lightgreen;
+        }
+
+        #cancel-settings {
+            background-color: indianred;
+        }
+    }
+}
+
 #left-panel {
     grid-template-rows: repeat(auto-fill, minmax(0, 100vh));
 

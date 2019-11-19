@@ -6,7 +6,7 @@ import * as favicon from './images/favicon.png';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as moment from 'moment';
 import * as asana from 'asana';
-import * as EditorJS from './components/CodeX/editor-dev';
+import * as EditorJS from './components/CodeX/editor';
 
 import Header from './components/CodeX/Header';
 import Paragraph from './components/CodeX/Paragraph';
@@ -15,8 +15,8 @@ import InlineCode from './components/CodeX/InlineCode';
 import List from './components/CodeX/List';
 // import Code from './components/CodeX/Code';
 
-import { el, newEl, obj, RichText, uuidv4 } from './components/Handy';
-import { newTestJson, newMissionJson, newFileJson, newStepJson } from './components/JsonTemplates';
+import { el, newEl, obj, RichText } from './components/Handy';
+import { newMissionJson, newStepJson } from './components/JsonTemplates';
 import tooltip from './components/Tooltip';
 import subMenu from './components/SubMenu';
 import HTMLTree from './components/HTMLTree';
@@ -221,6 +221,10 @@ function resetApp() {
             tabContainer: el('div', { id: 'code-tabs' }),
             codeContainer: el('div', { id: 'code-editor' }),
         },
+        settings: {
+            opened: false,
+            unsavedChanges: false,
+        },
         populate: (parent: HTMLElement, elements: object) => {
             debugGroup('Populating', parent);
 
@@ -368,6 +372,10 @@ function assembleUI() {
         tool: App.UI.btnContinue,
         heading: 'continue',
         tip: 'load a project from local storage, doing so will overwite the current project'
+    }, {
+        tool: App.UI.btnTickets,
+        heading: 'tickets',
+        tip: 'display issue tickets regarding this project'
     }, {
         tool: App.UI.btnNewStep,
         heading: 'new',
@@ -520,7 +528,7 @@ function assembleUI() {
 function registerTopLevelEvents() {
     const {
         pnlActions,
-        btnOpenProject, btnSaveProject, btnTickets,
+        btnProjectSettings, btnOpenProject, btnSaveProject, btnTickets,
         btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
         btnModelAnswers, btnToggleOutput
     } = App.UI;
@@ -530,7 +538,8 @@ function registerTopLevelEvents() {
         window.dispatchEvent(actionPanelScrolled);
     });
 
-    btnOpenProject.addEventListener('click', projectFromFile);
+    btnProjectSettings.addEventListener('click', toggleSettings);
+    btnOpenProject.addEventListener('click', openProjectFromJson);
     btnSaveProject.addEventListener('click', saveProjectToDisk);
     // btnTickets.addEventListener('click', fetchAsanaTickets);
 
@@ -549,7 +558,111 @@ function registerTopLevelEvents() {
 
 //===== PROJECT OPERATIONS =====//
 
-function projectFromFile() {
+function toggleSettings() {
+    const saveAndCloseSettings = () => {
+        const name = settings.inputs.projectName.value.trim();
+        const version = settings.inputs.projectVersion.value.trim();
+        const cardImage = settings.inputs.projectCard.value.trim();
+
+        if (/\d+\.\d+/.test(version)) {
+            const [majorRevision, minorRevision] = version.split('.');
+
+            if (majorRevision < missionJson.settings.majorRevision) {
+                return alert(`Major version number can not be smaller than ${missionJson.settings.majorRevision}`);
+            }
+            else if (majorRevision === missionJson.settings.majorRevision) {
+                if (minorRevision < missionJson.settings.minorRevision) {
+                    return alert(`Minor version number can not be smaller than ${missionJson.settings.minorRevision}`);
+                }
+            }
+
+            const title = name === '' ? 'Untitled' : name;
+
+            Object.assign(missionJson.settings, {
+                title,
+                missionName: title.toLowerCase().replace(/\s/g, '-').replace(/[^a-zA-z0-9-\s]/g, ''),
+                majorRevision,
+                minorRevision,
+                revision: `(${majorRevision},${minorRevision})`,
+                cardImage
+            });
+
+            settings.container.remove();
+
+            App.settings.opened = false;
+            App.settings.unsavedChanges = false;
+
+            App.UI.pnlCode.classList.remove('dim');
+        }
+        else return alert('Version number format should be [number].[number]');
+    };
+    const closeSettings = () => {
+        if (App.settings.unsavedChanges && confirm('"OK" to save changes, "CANCEL" to discard.')) {
+            return saveAndCloseSettings();
+        }
+
+        settings.container.remove();
+
+        App.settings.opened = false;
+
+        App.UI.pnlCode.classList.remove('dim');
+    };
+
+    if (App.root.querySelector('#settings-container')) {
+        return closeSettings();
+    }
+
+    const { title, majorRevision, minorRevision, cardImage } = missionJson.settings;
+    const settings = {
+        container: el('div', { id: 'settings-container' }),
+        inputs: {
+            projectName: el('input', { value: title }),
+            projectVersion: el('input', { value: `${majorRevision}.${minorRevision}` }),
+            projectCard: el('input', { value: cardImage }),
+        },
+        actionsPanel: el('div', { id: 'settings-actions' }),
+        btnSave: el('button', { id: 'save-settings', className: 'material-icons', innerText: 'check' }),
+        btnCancel: el('button', { id: 'cancel-settings', className: 'material-icons', innerText: 'close' })
+    };
+    const registerChange = () => {
+        if (App.settings.unsavedChanges) {
+            return removeInputListeners();
+        }
+
+        App.settings.unsavedChanges = true;
+    };
+    const removeInputListeners = () => {
+        for (const key in settings.inputs) {
+            settings.inputs[key].removeEventListener('input', registerChange);
+        }
+    };
+
+    settings.container.append(
+        el('p', { innerText: 'Project Name' }),
+        settings.inputs.projectName,
+        el('p', { innerText: 'Version' }),
+        settings.inputs.projectVersion,
+        el('p', { innerText: 'Card Image' }),
+        settings.inputs.projectCard,
+        settings.actionsPanel,
+    );
+
+    settings.actionsPanel.append(settings.btnSave, settings.btnCancel);
+
+    settings.btnSave.addEventListener('click', saveAndCloseSettings);
+    settings.btnCancel.addEventListener('click', closeSettings);
+
+    for (const key in settings.inputs) {
+        settings.inputs[key].addEventListener('input', registerChange);
+    }
+
+    App.root.append(settings.container);
+    App.settings.opened = true;
+
+    App.UI.pnlCode.classList.add('dim');
+}
+
+function openProjectFromJson() {
     const fileInput = newEl('input', { type: 'file', accept: '.json' }) as HTMLInputElement;
     fileInput.click();
     fileInput.onchange = () => {
