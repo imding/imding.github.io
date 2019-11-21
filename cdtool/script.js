@@ -24,10 +24,10 @@ const
     cssToken = ['##CSS##', '##CSS_E##', /##CSS##.*##CSS_E##/],
     jsToken = ['##JS##', '##JS_E##', /##JS##.*##JS_E##/],
     editableMarkup = ['#BEGIN_EDITABLE#', '#END_EDITABLE#'],
-    keyLearningMarkup = '#KEY_LEARNING#';
-locationToken = /(?:(\w+)\.)?(html|css|js)#([^#\n]+)#([-+]\d+)?/;
+    keyLearningMarkup = '#KEY_LEARNING#',
+    locationToken = /(?:(\w+)\.)?(html|css|js)#([^#\n]+)#([-+]\d+)?/,
 
-vDiv = document.createElement('div'),
+    vDiv = document.createElement('div'),
     hDiv = document.createElement('div'),
 
     vDivMin = 420,

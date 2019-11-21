@@ -1,3 +1,5 @@
+import { throws } from "assert";
+
 /**
  * CodeTool for Editor.js
  *
@@ -38,15 +40,18 @@ export default class CodeTool {
       baseClass: this.api.styles.block,
       input: this.api.styles.input,
       wrapper: 'ce-code',
-      textarea: 'ce-code__textarea'
+      textarea: 'ce-code__textarea',
+      select: 'ce-code__select'
     };
 
     this.nodes = {
       holder: null,
-      textarea: null
+      textarea: null,
+      select: null,
     };
 
     this.data = {
+      lang: data.lang || 'markup',
       code: data.code || ''
     };
 
@@ -60,6 +65,10 @@ export default class CodeTool {
    */
   drawView() {
     let wrapper = document.createElement('div'),
+      select = document.createElement('select'),
+      html = document.createElement('option'),
+      css = document.createElement('option'),
+      js = document.createElement('option'),
       textarea = document.createElement('textarea');
 
     wrapper.classList.add(this.CSS.baseClass, this.CSS.wrapper);
@@ -68,9 +77,19 @@ export default class CodeTool {
 
     textarea.placeholder = this.placeholder;
 
-    wrapper.appendChild(textarea);
+    html.value = 'markup';
+    html.innerText = 'HTML';
+    css.value = 'css';
+    css.innerText = 'CSS';
+    js.value = 'javascript';
+    js.innerText = 'JavaScript';
 
-    this.nodes.textarea = textarea;
+    select.append(html, css, js);
+    select.value = this.data.lang;
+    select.classList.add(this.CSS.select, this.CSS.input);
+
+    wrapper.append(select, textarea);
+    Object(this.nodes, { select, textarea });
 
     return wrapper;
   }
@@ -92,7 +111,8 @@ export default class CodeTool {
    */
   save(codeWrapper) {
     return {
-      code: codeWrapper.querySelector('textarea').value
+      lang: codeWrapper.querySelector('select').value,
+      code: codeWrapper.querySelector('textarea').value,
     };
   }
 
@@ -102,9 +122,7 @@ export default class CodeTool {
    */
   onPaste(event) {
     const content = event.detail.data;
-    this.data = {
-      code: content.textContent
-    };
+    this.data.code = content.textContent;
   }
 
   /**
@@ -124,6 +142,10 @@ export default class CodeTool {
 
     if (this.nodes.textarea) {
       this.nodes.textarea.textContent = data.code;
+    }
+
+    if (this.nodes.langOpts) {
+      this.nodes.langOpts.value = data.lang;
     }
   }
 

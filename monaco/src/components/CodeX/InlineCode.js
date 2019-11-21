@@ -60,6 +60,7 @@ export default class InlineCode {
     this.button.type = 'button';
     this.button.classList.add(this.iconClasses.base);
     this.button.innerHTML = this.toolboxIcon;
+    this.button.title = 'Inline Code Highlight';
 
     return this.button;
   }

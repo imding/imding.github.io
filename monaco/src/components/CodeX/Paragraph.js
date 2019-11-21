@@ -165,7 +165,7 @@ export default class Paragraph {
      */
     save(toolsContent) {
         return {
-            text: toolsContent.innerHTML.replace('&nbsp;', ' ').replace(/\s+?class="inline-code"/, '')
+            text: toolsContent.innerHTML.replace('&nbsp;', ' ')
         };
     }
 
@@ -225,6 +225,8 @@ export default class Paragraph {
             text: {
                 br: false,
                 font: false,
+                span: true,
+                code: true,
             }
         };
     }

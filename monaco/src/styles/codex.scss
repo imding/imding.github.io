@@ -1,6 +1,8 @@
 @mixin codex {
     code {
         color: #e8912d;
+        font-family: monaco;
+        font-size: 12px;
         border: 1px solid rgba(232, 232, 232, 0.13);
         border-radius: 3px;
         padding: 2px 3px 1px;
@@ -18,6 +20,39 @@
 
         &:focus-within {
             background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .ce-block__content {
+            ul {
+                list-style-position: inside;
+
+                li {
+                    margin-bottom: 10px;
+                }
+
+                li:last-child {
+                    margin: 0;
+                }
+            }
+
+            .ce-code__select {
+                margin-bottom: 5px;
+                width: 80px;
+            }
+
+            .glossary {
+                background-color: ghostwhite;
+                border-radius: 5px;
+                padding: 2px 6px;
+                font-weight: bold;
+                font-family: monaco;
+                font-size: 12px;
+                cursor: pointer;
+            }
+
+            .html-glossary { color: #e34848 }
+            .css-glossary { color: #368af6 }
+            .javascript-glossary { color: #ff9c17 }
         }
     }
 
@@ -44,7 +79,11 @@
 
     .cdx-simple-image__picture {
         img {
-            width: 100%;
+            display: block;
+            margin: auto;
+            width: auto;
+            max-width: 100%;
+            max-height: 15vh;
             border-radius: 5px;
         }
     }

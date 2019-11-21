@@ -13,14 +13,14 @@ import Paragraph from './components/CodeX/Paragraph';
 import Image from './components/CodeX/Image';
 import InlineCode from './components/CodeX/InlineCode';
 import List from './components/CodeX/List';
-// import Code from './components/CodeX/Code';
+import Code from './components/CodeX/Code';
+import { HtmlGlossary, CssGlossary, JsGlossary } from './components/CodeX/Glossary';
 
 import { el, newEl, obj, RichText } from './components/Handy';
 import { newMissionJson, newStepJson } from './components/JsonTemplates';
 import tooltip from './components/Tooltip';
 import subMenu from './components/SubMenu';
 import HTMLTree from './components/HTMLTree';
-
 
 // const EditorJS = require('@editorjs/editorjs');
 
@@ -45,7 +45,6 @@ const feedbackProjectId = '379597955490248';
 
 //===== MEMORY MODULES =====//
 
-
 interface File {
     author?: monaco.editor.IModel,
     mode?: string,
@@ -60,7 +59,7 @@ interface Step {
     title?: string,
     stepId?: string,
     content?: {
-        instructions?: string,
+        instructions?: any,
         text?: string,
         startTab?: string,
     }
@@ -126,6 +125,8 @@ const langType = {
     js: 'javascript'
 };
 
+const liveGlossaryLink = { html: {}, css: {}, javascript: {} };
+
 const refreshDelay = 800;
 let refreshTimer;
 
@@ -136,6 +137,7 @@ window.onload = init;
 function init() {
     console.groupCollapsed('Initialising app...');
 
+    pullGLossaryList();
     resetApp();
     addFavIcon();
     assembleUI();
@@ -515,8 +517,14 @@ function assembleUI() {
                 shortcut: 'CMD+D'
             },
             image: Image,
-            list: List,
-            // code: Code,
+            list: {
+                class: List,
+                inlineToolbar: true
+            },
+            code: Code,
+            htmlGlossary: HtmlGlossary,
+            cssGlossary: CssGlossary,
+            jsGlossary: JsGlossary,
         },
     });
 
@@ -530,7 +538,7 @@ function registerTopLevelEvents() {
         pnlActions,
         btnProjectSettings, btnOpenProject, btnSaveProject, btnTickets,
         btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
-        btnModelAnswers, btnToggleOutput
+        btnGetPrev, btnGetNext, btnModelAnswers, btnToggleOutput
     } = App.UI;
 
     pnlActions.addEventListener('scroll', () => {
@@ -548,6 +556,8 @@ function registerTopLevelEvents() {
     btnNextStep.addEventListener('click', () => goToStep(activeStepNo + 1));
     btnPrevStep.addEventListener('click', () => goToStep(activeStepNo - 1));
 
+    btnGetPrev.addEventListener('click', () => mirrorTabContent(activeStepNo - 1));
+    btnGetNext.addEventListener('click', () => mirrorTabContent(activeStepNo + 1));
     btnModelAnswers.addEventListener('click', toggleAnswerEditor);
     btnToggleOutput.addEventListener('click', toggleOutput);
 
@@ -559,6 +569,22 @@ function registerTopLevelEvents() {
 //===== PROJECT OPERATIONS =====//
 
 function toggleSettings() {
+    if (App.root.querySelector('#settings-container')) {
+        return alert('Settings window is already open');
+    }
+
+    const { title, majorRevision, minorRevision, cardImage } = missionJson.settings;
+    const settings = {
+        container: el('div', { id: 'settings-container' }),
+        inputs: {
+            projectName: el('input', { value: title }),
+            projectVersion: el('input', { value: `${majorRevision}.${minorRevision}` }),
+            projectCard: el('input', { value: cardImage }),
+        },
+        actionsPanel: el('div', { id: 'settings-actions' }),
+        btnSave: el('button', { id: 'save-settings', className: 'material-icons', innerText: 'check' }),
+        btnCancel: el('button', { id: 'cancel-settings', className: 'material-icons', innerText: 'close' })
+    };
     const saveAndCloseSettings = () => {
         const name = settings.inputs.projectName.value.trim();
         const version = settings.inputs.projectVersion.value.trim();
@@ -581,8 +607,8 @@ function toggleSettings() {
             Object.assign(missionJson.settings, {
                 title,
                 missionName: title.toLowerCase().replace(/\s/g, '-').replace(/[^a-zA-z0-9-\s]/g, ''),
-                majorRevision,
-                minorRevision,
+                majorRevision: Number(majorRevision),
+                minorRevision: Number(minorRevision),
                 revision: `(${majorRevision},${minorRevision})`,
                 cardImage
             });
@@ -606,23 +632,6 @@ function toggleSettings() {
         App.settings.opened = false;
 
         App.UI.pnlCode.classList.remove('dim');
-    };
-
-    if (App.root.querySelector('#settings-container')) {
-        return closeSettings();
-    }
-
-    const { title, majorRevision, minorRevision, cardImage } = missionJson.settings;
-    const settings = {
-        container: el('div', { id: 'settings-container' }),
-        inputs: {
-            projectName: el('input', { value: title }),
-            projectVersion: el('input', { value: `${majorRevision}.${minorRevision}` }),
-            projectCard: el('input', { value: cardImage }),
-        },
-        actionsPanel: el('div', { id: 'settings-actions' }),
-        btnSave: el('button', { id: 'save-settings', className: 'material-icons', innerText: 'check' }),
-        btnCancel: el('button', { id: 'cancel-settings', className: 'material-icons', innerText: 'close' })
     };
     const registerChange = () => {
         if (App.settings.unsavedChanges) {
@@ -731,6 +740,7 @@ function openProjectFromJson() {
 
             missionFiles = missionFiles.sort((a, b) => transform(a) < transform(b) ? -1 : 1);
             missionJson.missionUuid = mission.missionUuid;
+            missionJson.settings = mission.settings;
 
             loadStepData(1);
         };
@@ -746,9 +756,10 @@ function goToStep(targetStepNo: number) {
     else {
         //  write active step to step list
         if (activeStepNo) {
-            storeInstructions();
-            stepList[activeStepNo - 1] = activeStep;
-            log('Stored step ', [activeStepNo, clr.code], ' data');
+            syncActiveStepInstructions().then(() => {
+                stepList[activeStepNo - 1] = activeStep;
+                log('Stored step ', [activeStepNo, clr.code], ' data');
+            });
         }
 
         loadStepData(targetStepNo);
@@ -810,7 +821,7 @@ function loadStepData(targetStepNo: number) {
     codexEditor.isReady.then(() => {
         const title = (targetStep.title && targetStep.title.trim().length) ? targetStep.title : `Title - Step ${targetStepNo}`
         const body = new HTMLTree(targetStep.content.instructions);
-        const blocks = [{
+        const blocks: any = [{
             type: 'header',
             data: { text: title }
         }];
@@ -820,6 +831,26 @@ function loadStepData(targetStepNo: number) {
                 blocks.push({
                     type: 'paragraph',
                     data: { text: node.rawContent.trim() }
+                });
+            }
+            else if (node.openingTag.tagName === 'img') {
+                blocks.push({
+                    type: 'image',
+                    data: {
+                        stretched: false,
+                        url: node.openingTag.attrs.filter(attr => attr.name === 'src')[0].value,
+                        withBackground: false,
+                        withBorder: false
+                    }
+                });
+            }
+            else if (node.openingTag.tagName === 'ul') {
+                blocks.push({
+                    type: 'list',
+                    data: {
+                        style: 'unordered',
+                        items: node.content.map(item => item.content[0].rawContent)
+                    }
                 });
             }
         });
@@ -840,59 +871,129 @@ function loadStepData(targetStepNo: number) {
 function saveProjectToDisk() {
     if (diffEditor) storeAnswers();
 
-    storeInstructions();
+    const updateStepList = () => {
+        stepList[activeStepNo - 1] = activeStep;
+        stepList.forEach((step, stepIndex) => {
+            const stepObj = newStepJson({
+                type: step.type as SingleType,
+                orderNo: (stepIndex + 1) * 1000
+            });
 
-    stepList[activeStepNo - 1] = activeStep;
+            if (step.stepId) {
+                stepObj.stepId = step.stepId;
+            }
+            else {
+                step.stepId = stepObj.stepId;
+            }
 
-    missionJson.settings.lastModified = moment().format();
+            //  parse code data
+            if (step.hasCode) {
+                missionFiles.forEach(fileName => {
+                    const model = getDiffModels(fileName, stepIndex + 1);
+                    const { mode } = step[fileName];
+                    const contents = model.original.getValue().trim();
+                    const contentsWithAnswers = model.modified.getValue().trim();
 
-    stepList.forEach((step, stepIndex) => {
-        const stepObj = newStepJson({
-            type: step.type as SingleType,
-            orderNo: (stepIndex + 1) * 1000
+                    stepObj.files[fileName] = { mode, contents };
+
+                    if (step.type === stepType.code && contents !== contentsWithAnswers) {
+                        const answers = contentsWithAnswers.match(editablePattern.excludingMarkup);
+                        Object.assign(stepObj.files[fileName], { answers, contentsWithAnswers });
+                    }
+                });
+            }
+
+            //  parse instruction data
+            let stepContent = step.content;
+            const stepTitle = step.title;
+            const instructionBlocks = new HTMLTree(stepContent.instructions || '');
+
+            stepObj.title = (stepTitle && stepTitle.length) ? stepTitle : `Step ${stepIndex + 1}`;
+
+            instructionBlocks.forEach((block, blockIndex) => {
+                if (!block.content) return;
+                
+                const blockType = block.openingTag.tagName;
+
+                if (blockType === 'p') {
+                    //  parse block content to find <span class="glossary [type]-glossary">[key]</span> elements
+                    block.content.forEach(node => {
+                        //  check whether node is an element
+                        if (node.type !== 'element') return;
+                        
+                        const classAttrs = node.openingTag.attrs.map(attr => attr.name === 'class' && attr.value);
+    
+                        if (classAttrs.length === 0) return;
+    
+                        //  check whether there are multiple "class" attributes
+                        if (classAttrs.length > 1) {
+                            alert('Multiple "class" attributes found in instruction source code, check console for details');
+                            throw new Error(node);
+                        }
+    
+                        const [isGlossary, glossaryType, unexpected] = classAttrs[0].match(/glossary (html|css|javascript)-glossary/) || [null, null, null];
+                        
+                        if (unexpected) {
+                            alert('Unexpected 3rd value found in "class" attribute, check console for deatils');
+                            throw new Error(node);
+                        }
+    
+                        //  check whether element represents a glossary link
+                        if (!isGlossary) return;
+    
+                        const glossaryKey = node.rawContent.replace(/&lt;/, '<').replace(/&gt;/, '>');
+                        
+                        if (liveGlossaryLink[glossaryType].hasOwnProperty(glossaryKey)) {
+                            const target = `${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`;
+                            const result = `<a href='#glossary/${glossaryType}/${liveGlossaryLink[glossaryType][glossaryKey]}'>${node.rawContent}</a>`;
+                            stepContent.instructions = stepContent.instructions.replace(target, result);
+                        }
+                        else {
+                            const err = `On step ${stepIndex + 1}, paragraph ${blockIndex + 1}, "${glossaryKey}" is not a valid glossary name`;
+                            alert(err);
+                            goToStep(stepIndex + 1);
+                            throw new Error(err);
+                        }
+                    });
+                }
+                else if (blockType === 'img') {}
+                else if (blockType === 'ul') {}
+                else if (blockType === 'code') {}
+            });
+            
+            stepObj.content = stepContent;
+
+            missionJson.steps[stepObj.stepId] = stepObj;
+            missionJson.settings.lastModified = moment().format();
         });
 
-        if (step.stepId) {
-            stepObj.stepId = step.stepId;
-        }
-        else {
-            step.stepId = stepObj.stepId;
-        }
+        const fileContent = JSON.stringify(missionJson);
+        const blob = new Blob([fileContent]);
+        const fileStream = streamSaver.createWriteStream(`${missionJson.settings.title}.json`, { size: blob.size });
 
-        if (step.hasCode) {
-            missionFiles.forEach(fileName => {
-                const model = getDiffModels(fileName, stepIndex + 1);
+        new Response(fileContent).body
+            .pipeTo(fileStream)
+            .then(null, err => {
+                alert('Save failed');
+                console.log(err);
+            })
+    };
 
-                stepObj.files[fileName] = {
-                    mode: step[fileName].mode,
-                    contents: model.original.getValue().trim()
-                };
+    syncActiveStepInstructions().then(updateStepList);
+}
 
-                if (step.type === stepType.code && step[fileName].answers.length > 0) {
-                    stepObj.files[fileName].answers = step[fileName].answers;
-                    stepObj.files[fileName].contentsWithAnswers = model.modified.getValue().trim();
-                }
-            });
-        }
+async function pullGLossaryList() {
+    try {
+        const res = await fetch('https://glossary-api-r1.bsd.education/api/glossary/');
+        const json = await res.json();
 
-        const stepTitle = stepList[stepIndex].title;
-
-        stepObj.title = (stepTitle && stepTitle.length) ? stepTitle : `Step ${stepIndex + 1}`;
-        stepObj.content = stepList[stepIndex].content;
-
-        missionJson.steps[stepObj.stepId] = stepObj;
-    });
-
-    const fileContent = JSON.stringify(missionJson);
-    const blob = new Blob([fileContent]);
-    const fileStream = streamSaver.createWriteStream(`${missionJson.settings.title}.json`, { size: blob.size });
-
-    new Response(fileContent).body
-        .pipeTo(fileStream)
-        .then(null, err => {
-            alert('Save failed');
-            console.log(err);
-        })
+        json.data.forEach(g => liveGlossaryLink[g.category][g.term] = g.glossaryUuid);
+        log('Glossary list successfully updated.');
+    }
+    catch (err) {
+        alert('Failed to load glossary list, check console for details.');
+        warn(err);
+    }
 }
 
 // export const asanaTaskSummaryDs = createDerivedState(
@@ -929,15 +1030,6 @@ function saveProjectToDisk() {
 // // Notice how you don't bother specifying the taskSummary as a parameter. 
 // // It is automatically accessed via the 'auto' input.
 // const missionTasks = await asanaMissionTasksDs.get({ cache, missionUuid: 'abcd' });
-
-function initAsanaAPI() {
-    const deprecationHeaders = { "defaultHeaders": { "asana-enable": "new_sections,string_ids" } };
-    const client = asana.Client.create(deprecationHeaders).useAccessToken('0/f2986549b0f0906a2bbe501dabc38a61');
-
-    // client.webhooks.create(feedbackProjectId, );
-
-    return client;
-}
 
 // function fetchAsanaTickets() {
 //     if (!asanaClient) return warn('Asana API is not initialised');
@@ -980,6 +1072,15 @@ function initAsanaAPI() {
 
 //     searchWithParam(params);
 // }
+
+function initAsanaAPI() {
+    const deprecationHeaders = { "defaultHeaders": { "asana-enable": "new_sections,string_ids" } };
+    const client = asana.Client.create(deprecationHeaders).useAccessToken('0/f2986549b0f0906a2bbe501dabc38a61');
+
+    // client.webhooks.create(feedbackProjectId, );
+
+    return client;
+}
 
 //===== STEP OPERATIONS =====//
 
@@ -1032,7 +1133,7 @@ function deleteStep(targetStepNo: number = activeStepNo) {
     debugGroup('deleteStep(', targetStepNo, ')');
 
     if (stepList.length === 1) {
-        console.warn('Skipped deleting the only step');
+        warn('Skipped deleting the only step');
     }
     else {
         stepList.splice(targetStepNo - 1, 1);
@@ -1103,6 +1204,42 @@ function setStepType(targetType: SingleType) {
     }
 
     console.groupEnd();
+}
+
+function syncActiveStepInstructions(stepNo: number = activeStepNo) {
+    return codexEditor.save().then(data => {
+        stepList[stepNo - 1].content.instructions = '';
+
+        data.blocks.forEach(block => {
+            if (block.type === 'header') {
+                const title = block.data.text.trim();
+                stepList[stepNo - 1].title = title.length ? title : `Step ${stepNo}`;
+            }
+            else {
+                let blockHTML: string;
+
+                if (block.type === 'paragraph') {
+                    blockHTML = `<p>${block.data.text}</p>`;
+                }
+                else if (block.type === 'image') {
+                    blockHTML = `<img src="${block.data.url}" onclick="window.open('${block.data.url}', '_blank')" title="Click to open image in a new tab"  style="display: block; margin: auto; width: auto; max-width: 100%25; max-height: 15vh; border-radius: 5px; cursor: pointer" />`;
+                }
+                else if (block.type === 'list') {
+                    blockHTML = `<ul>${block.data.items.map((item: string) => `<li><p class="notes">${item}</p></li>`).join('')}</ul>`;
+                }
+                else if (block.type === 'code') {
+                    blockHTML = `<pre class="language-${block.data.lang}"><code>${block.data.code}</code></pre>`;
+                }
+                else {
+                    console.log(block);
+                }
+
+                stepList[stepNo - 1].content.instructions += blockHTML;
+            }
+        });
+
+        return { then: callback => callback() }
+    });
 }
 
 function switchTab(evt: MouseEvent) {
@@ -1198,6 +1335,7 @@ function toggleOutput() {
     }
     else {
         warn('The output panel is not available for ', [activeStep.type, clr.string], ' steps');
+        alert(`The output panel is not available for "${activeStep.type}" steps`);
     }
 
     console.groupEnd();
@@ -1226,6 +1364,7 @@ function refreshOutput(now: boolean = true) {
 
                 if (tree.error) {
                     warn('Error: ', [tree.error, clr.string]);
+                    alert('Failed parsing code, please check console for details');
                 }
                 else {
                     node = tree[0];
@@ -1292,22 +1431,6 @@ function getAuthorOrLearnerContent(tabName: string, stepNo: number = activeStepN
 
 //===== FILE OPERATIONS =====//
 
-function storeInstructions(stepNo: number = activeStepNo) {
-    codexEditor.save().then(data => {
-        stepList[stepNo - 1].content.instructions = '';
-
-        data.blocks.forEach(block => {
-            if (block.type === 'header') {
-                const title = block.data.text.trim();
-                stepList[stepNo - 1].title = title.length ? title : `Step ${stepNo}`;
-            }
-            else if (block.type === 'paragraph') {
-                stepList[stepNo - 1].content.instructions += `<p>${block.data.text}</p>`;
-            }
-        });
-    });
-}
-
 function setFileMode(targetMode: SingleMode) {
     debugGroup('setFileMode(', [targetMode, clr.string], ')');
 
@@ -1319,6 +1442,7 @@ function setFileMode(targetMode: SingleMode) {
         }
         else if (activeStepNo === 1 && targetMode !== fileMode.newContents) {
             warn([targetMode, clr.string], ' mode can not be applied to files in the first step');
+            alert(`"${targetMode}" mode can not be applied to files in the first step`);
         }
         else {
             const newContents = targetMode === fileMode.newContents;
@@ -1352,6 +1476,7 @@ function setFileMode(targetMode: SingleMode) {
     }
     else {
         warn('File mode options are not available for ', [activeStep.type, clr.string], ' steps');
+        alert(`File mode options are not available for "${activeStep.type}" steps`);
     }
 
     console.groupEnd();
@@ -1386,6 +1511,7 @@ function toggleAnswerEditor() {
     }
     else {
         warn('Answers editor is not available for ', [activeStep.type, clr.string], ' steps');
+        alert(`Answers editor is not available for "${activeStep.type}" steps`);
     }
 
     console.groupEnd();
@@ -1517,6 +1643,7 @@ function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepN
                     catch (err) {
                         errorMessage = err.toString();
                         warn(err);
+                        alert(`Failed resolving author content in the "${tabName}" tab, check console for details`);
                     }
 
                     return errorMessage;
@@ -1538,6 +1665,26 @@ function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepN
 
     console.groupEnd();
     return result;
+}
+
+function mirrorTabContent(targetStepNo: number) {
+    if (activeStep.type === stepType.text) {
+        return alert('Mirroring tab content is not available for text steps');
+    }
+
+    if (targetStepNo > stepList.length || targetStepNo < 1) {
+        return alert(`There is no step ${targetStepNo}`);
+    }
+
+    const getCodeFrom = (stepNo: number, dir: number) => {
+        if (stepList[stepNo - 1].type !== stepType.code && stepList[stepNo - 1].type !== stepType.interactive) {
+            return getCodeFrom(stepNo + dir, dir);
+        }
+
+        return stepList[stepNo - 1][activeTab.innerText].author.getValue().trim();
+    };
+
+    activeStep[activeTab.innerText].author.setValue(getCodeFrom(targetStepNo, targetStepNo > activeStepNo ? 1 : -1));
 }
 
 //===== CODE OPERATIONS =====//
