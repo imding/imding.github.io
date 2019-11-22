@@ -125,8 +125,6 @@ const langType = {
     js: 'javascript'
 };
 
-const liveGlossaryLink = { html: {}, css: {}, javascript: {} };
-
 const refreshDelay = 800;
 let refreshTimer;
 
@@ -137,7 +135,6 @@ window.onload = init;
 function init() {
     console.groupCollapsed('Initialising app...');
 
-    pullGLossaryList();
     resetApp();
     addFavIcon();
     assembleUI();
@@ -671,6 +668,50 @@ function toggleSettings() {
     App.UI.pnlCode.classList.add('dim');
 }
 
+function transformInstructionString(content) {
+    if (!content.instructions) return content;
+
+    content.instructions = new HTMLTree(content.instructions).map(node => {
+        const nodeType = node.openingTag.tagName;
+
+        if (nodeType === 'p') {
+            const text = node.rawContent
+                .replace(/<code>/g, '<code class="inline-code">')
+                .trim();
+
+            return {
+                type: 'paragraph',
+                data: { text }
+            };
+        }
+        else if (nodeType === 'img') {
+            return {
+                type: 'image',
+                data: {
+                    stretched: false,
+                    url: node.openingTag.attrs.filter(attr => attr.name === 'src')[0].value,
+                    withBackground: false,
+                    withBorder: false
+                }
+            }
+        }
+        else if (nodeType === 'ul') {
+            return {
+                type: 'list',
+                data: {
+                    style: 'unordered',
+                    items: node.content.map(item => item.content[0].rawContent)
+                }
+            }
+        }
+        else if (nodeType === 'code') {
+            console.log(node);
+        }
+    });
+
+    return content;
+}
+
 function openProjectFromJson() {
     const fileInput = newEl('input', { type: 'file', accept: '.json' }) as HTMLInputElement;
     fileInput.click();
@@ -688,7 +729,7 @@ function openProjectFromJson() {
                 .sort('values', (a, b) => a.orderNo - b.orderNo)
                 .forEach((step, idx) => {
                     const title = step.title;
-                    const content = step.content;
+                    const content = transformInstructionString(step.content);
                     const type = step.type;
                     const hasCode = type === stepType.code || type === stepType.interactive;
                     const orderNo = (idx + 1) * 1000;
@@ -756,7 +797,7 @@ function goToStep(targetStepNo: number) {
     else {
         //  write active step to step list
         if (activeStepNo) {
-            syncActiveStepInstructions().then(() => {
+            storeInstructions().then(() => {
                 stepList[activeStepNo - 1] = activeStep;
                 log('Stored step ', [activeStepNo, clr.code], ' data');
             });
@@ -820,43 +861,14 @@ function loadStepData(targetStepNo: number) {
     //  load instructions
     codexEditor.isReady.then(() => {
         const title = (targetStep.title && targetStep.title.trim().length) ? targetStep.title : `Title - Step ${targetStepNo}`
-        const body = new HTMLTree(targetStep.content.instructions);
-        const blocks: any = [{
-            type: 'header',
-            data: { text: title }
-        }];
-
-        body.forEach(node => {
-            if (node.openingTag.tagName === 'p') {
-                blocks.push({
-                    type: 'paragraph',
-                    data: { text: node.rawContent.trim() }
-                });
-            }
-            else if (node.openingTag.tagName === 'img') {
-                blocks.push({
-                    type: 'image',
-                    data: {
-                        stretched: false,
-                        url: node.openingTag.attrs.filter(attr => attr.name === 'src')[0].value,
-                        withBackground: false,
-                        withBorder: false
-                    }
-                });
-            }
-            else if (node.openingTag.tagName === 'ul') {
-                blocks.push({
-                    type: 'list',
-                    data: {
-                        style: 'unordered',
-                        items: node.content.map(item => item.content[0].rawContent)
-                    }
-                });
-            }
-        });
 
         codexEditor.blocks.clear();
-        codexEditor.blocks.render({ blocks });
+        codexEditor.blocks.render({
+            blocks: [{
+                type: 'header',
+                data: { text: title }
+            }, ...targetStep.content.instructions]
+        });
     });
 
     activeStepNo = targetStepNo;
@@ -870,6 +882,20 @@ function loadStepData(targetStepNo: number) {
 
 function saveProjectToDisk() {
     if (diffEditor) storeAnswers();
+
+    const getAttrValue = (attrName: string, node) => {
+        const targetAttr = node.openingTag.attrs.filter(attr => attr.name === attrName);
+
+        if (targetAttr.length === 0) {
+            return node.rawContent;
+        }
+        else if (targetAttr.length > 1) {
+            alert(`Multiple "${attrName}" attributes found in instruction source code, check console for details`);
+            throw new Error(node.openingTag.raw);
+        }
+
+        return targetAttr[0].value;
+    };
 
     const updateStepList = () => {
         stepList[activeStepNo - 1] = activeStep;
@@ -904,64 +930,52 @@ function saveProjectToDisk() {
             }
 
             //  parse instruction data
-            let stepContent = step.content;
+
             const stepTitle = step.title;
-            const instructionBlocks = new HTMLTree(stepContent.instructions || '');
+            const stepInstructions = step.content.instructions.map(block => {
+                if (block.type === 'paragraph') {
+                    const pTree = new HTMLTree(block.data.text);
+
+                    if (pTree.error) throw new Error(pTree.error);
+
+                    const pContent = pTree.map(node => {
+                        if (node.type === 'text') return node.rawCollapsed;
+
+                        if (node.type === 'element') {
+                            const classNames = getAttrValue('class', node);
+                            const glossaryLookup = classNames.match(/glossary (html|css|javascript)-glossary/);
+                            const inlineCodeLookup = classNames.match(/inline-code/);
+
+                            if (glossaryLookup) {
+                                const type = glossaryLookup[1];
+                                const accesskey = getAttrValue('accesskey', node);
+                                return `<a href='#glossary/${type}/${accesskey}'>${node.rawContent}</a>`;
+                            }
+                            else if (inlineCodeLookup) {
+                                return `<code>${node.rawContent}</code>`;
+                            }
+                            else return node.rawContent;
+                        }
+                    }).join(' ');
+
+                    return `<p>${pContent}</p>`;
+                }
+                else if (block.type === 'image') {
+                    return `<img src="${block.data.url}" onclick="window.open('${block.data.url}', '_blank')" title="Click to open image in a new tab"  style="display: block; margin: auto; width: auto; max-width: 100%25; max-height: 15vh; border-radius: 5px; cursor: pointer" />`;
+                }
+                else if (block.type === 'list') {
+                    return `<ul>${block.data.items.map((item: string) => `<li><p class="notes">${item}</p></li>`).join('')}</ul>`;
+                }
+            }).join('');
 
             stepObj.title = (stepTitle && stepTitle.length) ? stepTitle : `Step ${stepIndex + 1}`;
 
-            instructionBlocks.forEach((block, blockIndex) => {
-                if (!block.content) return;
-                
-                const blockType = block.openingTag.tagName;
-
-                if (blockType === 'p') {
-                    //  parse block content to find <span class="glossary [type]-glossary">[key]</span> elements
-                    block.content.forEach(node => {
-                        //  check whether node is an element
-                        if (node.type !== 'element') return;
-                        
-                        const classAttrs = node.openingTag.attrs.map(attr => attr.name === 'class' && attr.value);
-    
-                        if (classAttrs.length === 0) return;
-    
-                        //  check whether there are multiple "class" attributes
-                        if (classAttrs.length > 1) {
-                            alert('Multiple "class" attributes found in instruction source code, check console for details');
-                            throw new Error(node);
-                        }
-    
-                        const [isGlossary, glossaryType, unexpected] = classAttrs[0].match(/glossary (html|css|javascript)-glossary/) || [null, null, null];
-                        
-                        if (unexpected) {
-                            alert('Unexpected 3rd value found in "class" attribute, check console for deatils');
-                            throw new Error(node);
-                        }
-    
-                        //  check whether element represents a glossary link
-                        if (!isGlossary) return;
-    
-                        const glossaryKey = node.rawContent.replace(/&lt;/, '<').replace(/&gt;/, '>');
-                        
-                        if (liveGlossaryLink[glossaryType].hasOwnProperty(glossaryKey)) {
-                            const target = `${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`;
-                            const result = `<a href='#glossary/${glossaryType}/${liveGlossaryLink[glossaryType][glossaryKey]}'>${node.rawContent}</a>`;
-                            stepContent.instructions = stepContent.instructions.replace(target, result);
-                        }
-                        else {
-                            const err = `On step ${stepIndex + 1}, paragraph ${blockIndex + 1}, "${glossaryKey}" is not a valid glossary name`;
-                            alert(err);
-                            goToStep(stepIndex + 1);
-                            throw new Error(err);
-                        }
-                    });
-                }
-                else if (blockType === 'img') {}
-                else if (blockType === 'ul') {}
-                else if (blockType === 'code') {}
-            });
-            
-            stepObj.content = stepContent;
+            if (stepInstructions.trim().length) {
+                stepObj.content.instructions = stepInstructions;
+            }
+            else {
+                stepObj.content = step.content;
+            }
 
             missionJson.steps[stepObj.stepId] = stepObj;
             missionJson.settings.lastModified = moment().format();
@@ -979,22 +993,10 @@ function saveProjectToDisk() {
             })
     };
 
-    syncActiveStepInstructions().then(updateStepList);
+    storeInstructions().then(updateStepList);
 }
 
-async function pullGLossaryList() {
-    try {
-        const res = await fetch('https://glossary-api-r1.bsd.education/api/glossary/');
-        const json = await res.json();
 
-        json.data.forEach(g => liveGlossaryLink[g.category][g.term] = g.glossaryUuid);
-        log('Glossary list successfully updated.');
-    }
-    catch (err) {
-        alert('Failed to load glossary list, check console for details.');
-        warn(err);
-    }
-}
 
 // export const asanaTaskSummaryDs = createDerivedState(
 //     {
@@ -1096,7 +1098,7 @@ function createStep(placement: number = activeStepNo - 1, newStepType: SingleTyp
     if (newStepType === stepType.code || newStepType === stepType.interactive) {
         //  step is requried to be consistent with missionFiles
         newStep.hasCode = true;
-        newStep.content.instructions = '';
+        newStep.content.instructions = [];
         //  initialise step files based on missionFiles
         missionFiles.forEach((fullName, idx) => {
             debugGroup('Iteration ', [idx, clr.code], ' on ', ['missionFiles', clr.code]);
@@ -1206,37 +1208,18 @@ function setStepType(targetType: SingleType) {
     console.groupEnd();
 }
 
-function syncActiveStepInstructions(stepNo: number = activeStepNo) {
+function storeInstructions(stepNo: number = activeStepNo) {
     return codexEditor.save().then(data => {
-        stepList[stepNo - 1].content.instructions = '';
+        if (data.blocks[0].type !== 'header') {
+            stepList[stepNo - 1].title = `Step ${stepNo}`;
+        }
+        else {
+            const firstBlock = data.blocks.shift();
+            const title = firstBlock.data.text.trim();
+            stepList[stepNo - 1].title = title.length ? title : `Step ${stepNo}`;
+        }
 
-        data.blocks.forEach(block => {
-            if (block.type === 'header') {
-                const title = block.data.text.trim();
-                stepList[stepNo - 1].title = title.length ? title : `Step ${stepNo}`;
-            }
-            else {
-                let blockHTML: string;
-
-                if (block.type === 'paragraph') {
-                    blockHTML = `<p>${block.data.text}</p>`;
-                }
-                else if (block.type === 'image') {
-                    blockHTML = `<img src="${block.data.url}" onclick="window.open('${block.data.url}', '_blank')" title="Click to open image in a new tab"  style="display: block; margin: auto; width: auto; max-width: 100%25; max-height: 15vh; border-radius: 5px; cursor: pointer" />`;
-                }
-                else if (block.type === 'list') {
-                    blockHTML = `<ul>${block.data.items.map((item: string) => `<li><p class="notes">${item}</p></li>`).join('')}</ul>`;
-                }
-                else if (block.type === 'code') {
-                    blockHTML = `<pre class="language-${block.data.lang}"><code>${block.data.code}</code></pre>`;
-                }
-                else {
-                    console.log(block);
-                }
-
-                stepList[stepNo - 1].content.instructions += blockHTML;
-            }
-        });
+        stepList[stepNo - 1].content.instructions = data.blocks;
 
         return { then: callback => callback() }
     });

@@ -159,6 +159,8 @@ export default class List {
       style: {},
       items: {
         br: true,
+        span: true,
+        code: true,
       }
     };
   }
