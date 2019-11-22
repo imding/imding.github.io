@@ -4,7 +4,8 @@ const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
 
 module.exports = {
-    mode: 'development',
+    mode: 'production',
+    devtool: 'source-map',
     entry: './src/core.ts',
     devServer: {
         port: 8000

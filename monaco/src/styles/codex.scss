@@ -1,7 +1,7 @@
 @mixin codex {
     code {
         color: #e8912d;
-        font-family: monaco;
+        font-family: 'Monaco';
         font-size: 12px;
         border: 1px solid rgba(232, 232, 232, 0.13);
         border-radius: 3px;
@@ -45,7 +45,7 @@
                 border-radius: 5px;
                 padding: 2px 6px;
                 font-weight: bold;
-                font-family: monaco;
+                font-family: 'Monaco';
                 font-size: 12px;
                 cursor: pointer;
             }

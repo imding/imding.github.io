@@ -6,9 +6,9 @@
     src: url(../../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.eot); /* For IE6-8 */
     src: local('Material Icons'),
         local('MaterialIcons-Regular'),
-        url(../../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2) format('woff2'),
+        url(../../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf) format('truetype'),
         url(../../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff) format('woff'),
-        url(../../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.ttf) format('truetype');
+        url(../../node_modules/material-design-icons/iconfont/MaterialIcons-Regular.woff2) format('woff2');
 }
 
 @font-face {
@@ -19,6 +19,30 @@
     url(../fonts/ShareTechMono/ShareTechMono.ttf) format('truetype'), /* Safari, Android, iOS */
     url(../fonts/ShareTechMono/ShareTechMono.woff) format('woff'), /* Modern Browsers */
     url(../fonts/ShareTechMono/ShareTechMono.woff2) format('woff2'); /* Modern Browsers */
+    font-weight: normal;
+    font-style: normal;
+}
+
+// @font-face {
+//     font-family: 'Odibee Sans';
+//     src: url(../fonts/OdibeeSans/OdibeeSans-Regular.eot);
+//     src: local('Odibee Sans Regular'), local('OdibeeSans-Regular'),
+//         url(../fonts/OdibeeSans/OdibeeSans-Regular.eot?#iefix) format('embedded-opentype'),
+//         url(../fonts/OdibeeSans/OdibeeSans-Regular.ttf) format('truetype'),
+//         url(../fonts/OdibeeSans/OdibeeSans-Regular.woff) format('woff'),
+//         url(../fonts/OdibeeSans/OdibeeSans-Regular.woff2) format('woff2');
+//     font-weight: normal;
+//     font-style: normal;
+// }
+
+@font-face {
+    font-family: 'Monaco';
+    src: url(../fonts/Monaco/Monaco.eot);
+    src: local('Monaco'),
+        url(../fonts/Monaco/Monaco.eot?#iefix) format('embedded-opentype'),
+        url(../fonts/Monaco/Monaco.ttf) format('truetype'),
+        url(../fonts/Monaco/Monaco.woff) format('woff'),
+        url(../fonts/Monaco/Monaco.woff2) format('woff2');
     font-weight: normal;
     font-style: normal;
 }

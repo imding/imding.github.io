@@ -1,0 +1,24 @@
+@font-face {
+    font-family: 'Monaco';
+    src: url('Monaco.eot');
+    src: local('Monaco'),
+        url('Monaco.eot?#iefix') format('embedded-opentype'),
+        url('Monaco.woff2') format('woff2'),
+        url('Monaco.woff') format('woff'),
+        url('Monaco.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Odibee Sans';
+    src: url('OdibeeSans-Regular.eot');
+    src: local('Odibee Sans Regular'), local('OdibeeSans-Regular'),
+        url('OdibeeSans-Regular.eot?#iefix') format('embedded-opentype'),
+        url('OdibeeSans-Regular.woff2') format('woff2'),
+        url('OdibeeSans-Regular.woff') format('woff'),
+        url('OdibeeSans-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
