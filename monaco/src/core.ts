@@ -14,6 +14,7 @@ import Image from './components/CodeX/Image';
 import InlineCode from './components/CodeX/InlineCode';
 import List from './components/CodeX/List';
 import Code from './components/CodeX/Code';
+import Objective from './components/CodeX/Objective';
 import { HtmlGlossary, CssGlossary, JsGlossary } from './components/CodeX/Glossary';
 
 import { el, newEl, obj, RichText } from './components/Handy';
@@ -519,6 +520,12 @@ function assembleUI() {
                 inlineToolbar: true
             },
             code: Code,
+            objective: {
+                class: Objective,
+                config: {
+                    getTabs: () => Array.from(App.UI.tabContainer.querySelectorAll('.tab')),
+                },
+            },
             htmlGlossary: HtmlGlossary,
             cssGlossary: CssGlossary,
             jsGlossary: JsGlossary,
@@ -1333,12 +1340,12 @@ function hideOutput() {
 }
 
 function refreshOutput(now: boolean = true) {
-    debugGroup('refreshOutput(now =', now, ')');
-
     const { pnlPreview } = App.UI;
 
     if (pnlPreview.iframe) {
         const refresh = () => {
+            debugGroup('refreshOutput(now =', now, ')');
+
             let srcHtml = getAuthorOrLearnerContent('index.html');
             const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
 
@@ -1383,6 +1390,8 @@ function refreshOutput(now: boolean = true) {
 
             pnlPreview.iframe.srcdoc = srcHtml;
             log('Output panel refreshed');
+            
+            console.groupEnd();
         };
 
         if (now) refresh();
@@ -1391,8 +1400,6 @@ function refreshOutput(now: boolean = true) {
             refreshTimer = setTimeout(refresh, refreshDelay);
         }
     }
-
-    console.groupEnd();
 }
 
 function getAuthorOrLearnerContent(tabName: string, stepNo: number = activeStepNo): string {

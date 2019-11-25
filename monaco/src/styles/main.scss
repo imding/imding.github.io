@@ -266,6 +266,7 @@ body {
     #preview-panel {
         height: 225px;
         background-color: silver;
+        overflow: hidden;
 
         iframe {
             width: 1280px;

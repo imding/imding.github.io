@@ -66,7 +66,7 @@ async function pullGLossaryList(glossaryList = { html: {}, css: {}, javascript: 
         console.log('Glossary list successfully updated.');
     }
     catch (err) {
-        alert('Failed to load glossary list, check console for details.');
+        // alert('Failed to load glossary list, check console for details.');
         console.warn(err);
     }
 }

@@ -1,5 +1,3 @@
-import { throws } from "assert";
-
 /**
  * CodeTool for Editor.js
  *

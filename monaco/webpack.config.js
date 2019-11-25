@@ -1,10 +1,12 @@
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+
 const path = require('path');
+const cdtoolDir = 'C:\\Users\\Ding\\Desktop\\github\\imding.github.io\\cdtool\\v2';
 
 module.exports = {
-    mode: 'production',
+    mode: 'development',
     devtool: 'source-map',
     entry: './src/core.ts',
     devServer: {
@@ -13,7 +15,7 @@ module.exports = {
     output: {
         filename: 'main.js',
         chunkFilename: './chunks/[id].js',
-        path: path.resolve(__dirname, 'dist')
+        path: path.resolve(cdtoolDir)
     },
     module: {
         rules: [{
@@ -62,6 +64,6 @@ module.exports = {
         new MonacoWebpackPlugin({
             output: './monaco/',
             languages: ['typescript', 'javascript', 'css', 'html'],
-        })
+        }),
     ],
 };
