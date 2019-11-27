@@ -54,6 +54,52 @@
             .html-glossary { color: #e34848 }
             .css-glossary { color: #368af6 }
             .javascript-glossary { color: #ff9c17 }
+
+            .ce-objective-wrapper {
+                display: grid;
+                grid-template-columns: 2fr 3fr 50px;
+                grid-template-rows: 30px auto auto 30px;
+                gap: 10px;
+
+                select {
+                    padding: 0 5px;
+                }
+
+                button {
+                    border-radius: 5px;
+                    border: none;
+                    outline: none;
+                    cursor: pointer;
+                }
+
+                .auto-fill {
+                    color: ghostwhite;
+                    background-color: mediumpurple;
+                }
+
+                .auto-fill:active {
+                    opacity: 0.8;
+                }
+                
+                .test-container {
+                    height: 43px;
+                    border-radius: 5px;
+                    overflow: hidden;
+                }
+
+                .check-button {
+                    grid-column: 2;
+                }
+
+                .delete-button {
+                    color: ghostwhite;
+                    background-color: indianred;
+                }
+            }
+
+            .description-input, .test-container {
+                grid-column: span 3;
+            }
         }
     }
 

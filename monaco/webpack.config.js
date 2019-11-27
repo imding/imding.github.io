@@ -7,7 +7,7 @@ const cdtoolDir = 'C:\\Users\\Ding\\Desktop\\github\\imding.github.io\\cdtool\\v
 
 module.exports = {
     mode: 'development',
-    devtool: 'source-map',
+    // devtool: 'source-map',
     entry: './src/core.ts',
     devServer: {
         port: 8000

@@ -524,6 +524,12 @@ function assembleUI() {
                 class: Objective,
                 config: {
                     getTabs: () => Array.from(App.UI.tabContainer.querySelectorAll('.tab')),
+                    getCode: () => {
+                        const author = (codeEditor || diffEditor.getModel().original).getValue();
+
+                        return author;
+                    },
+                    monaco,
                 },
             },
             htmlGlossary: HtmlGlossary,
