@@ -746,6 +746,28 @@ function transformInstructionString(content) {
         return allBreak || allSpace;
     });
     const parseAndTransform = (string, mapping) => new HTMLTree(string).map(mapping).filter(node => node);
+    const transformGlossaryLink = string => {
+        const glossaryPattern = /^#glossary\/(html|css|javascript)\/(.*)$/;
+        const nodes = new HTMLTree(string).map(node => {
+            if (node.type === 'text') return node.raw;
+
+            if (node.openingTag.tagName === 'a') {
+                const hrefs = node.openingTag.attrs.filter(attr => attr.name === 'href');
+
+                if (hrefs.length === 0) return node.rawContent;
+                else if (hrefs.length > 1) {
+                    throw warn('Multiple "href" attribute found');
+                }
+
+                const details = hrefs[0].value.match(glossaryPattern);
+
+                return `<span class="${details[1]}-glossary glossary" accesskey="${details[2]}">${node.content[0].rawCollapsed}</span>`;
+            }
+            else return node.rawContent;
+        });
+
+        console.log(nodes);
+    };
 
     if (content.text) content.text = parseAndTransform(content.text, node => {
         const nodeType = node.openingTag.tagName;
@@ -795,7 +817,7 @@ function transformInstructionString(content) {
                 type: 'list',
                 data: {
                     style: 'unordered',
-                    items: node.content.map(item => item.content[0].rawContent)
+                    items: node.content.map(item => transformGlossaryLink(item.content[0].rawContent))
                 }
             }
         }
