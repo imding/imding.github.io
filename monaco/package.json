@@ -13,7 +13,7 @@
   "dependencies": {
     "asana": "^0.17.3",
     "dictionary-en-us": "^2.1.1",
-    "monaco-editor": "^0.17.1",
+    "monaco-editor": "^0.18.1",
     "prettier": "^1.18.2",
     "streamsaver": "^2.0.3"
   },
@@ -40,7 +40,6 @@
     "style-loader": "^0.23.1",
     "ts-loader": "^6.0.4",
     "typescript": "^3.6.3",
-    "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.39.2",
     "webpack-cli": "^3.3.6",
     "webpack-dev-server": "^3.7.2"

@@ -141,6 +141,63 @@ function init() {
     assembleUI();
     createStep(0).go();
 
+    function createDependencyProposals(range) {
+        // returning a static list of proposals, not even looking at the prefix (filtering is done by the Monaco editor),
+        // here you could do a server side lookup
+        return [
+            {
+                label: '#BEGIN_EDITABLE#  #END_EDITABLE#',
+                kind: monaco.languages.CompletionItemKind.Function,
+                documentation: "The Lodash library exported as Node.js modules.",
+                insertText: '#BEGIN_EDITABLE#  #END_EDITABLE#',
+                range
+            }
+        ];
+    }
+
+
+    monaco.languages.registerCompletionItemProvider('html', {
+        provideCompletionItems: function (model, position) {
+            
+            return {
+                suggestions: [
+                    {
+                        label: '#BEGIN_EDITABLE#  #END_EDITABLE#',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        documentation: "The Lodash library exported as Node.js modules.",
+                        insertText: '#BEGIN_EDITABLE#  #END_EDITABLE#',
+                        range: {
+                            startLineNumber: 1,
+                            startColumn: 1,
+                            endLineNumber: position.lineNumber,
+                            endColumn: position.column
+                        }
+                    }
+                ]
+            };
+        }
+    });
+
+    monaco.languages.html.htmlDefaults.setOptions({
+        format: {
+            tabSize: 4,
+            insertSpaces: false,
+            wrapLineLength: 0,
+            unformatted: '',
+            contentUnformatted: '',
+            indentInnerHtml: true,
+            preserveNewLines: true,
+            maxPreserveNewLines: 1,
+            indentHandlebars: true,
+            endWithNewline: true,
+            extraLiners: '',
+            wrapAttributes: 'auto',
+        },
+        suggest: {
+            '#BEGIN_EDITABLE#': true
+        }
+    });
+
     // JS validation settings
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
         noSemanticValidation: false,
@@ -169,6 +226,8 @@ function init() {
             }];
         }
     });
+
+
 
     codeEditor.focus();
 
@@ -522,14 +581,12 @@ function assembleUI() {
             code: Code,
             objective: {
                 class: Objective,
+                inlineToolbar: true,
                 config: {
                     getTabs: () => Array.from(App.UI.tabContainer.querySelectorAll('.tab')),
-                    getCode: () => {
-                        const author = (codeEditor || diffEditor.getModel().original).getValue();
-
-                        return author;
-                    },
-                    monaco,
+                    getActiveStep: () => activeStep,
+                    storeAnswers,
+                    editablePattern,
                 },
             },
             htmlGlossary: HtmlGlossary,
@@ -1396,7 +1453,7 @@ function refreshOutput(now: boolean = true) {
 
             pnlPreview.iframe.srcdoc = srcHtml;
             log('Output panel refreshed');
-            
+
             console.groupEnd();
         };
 

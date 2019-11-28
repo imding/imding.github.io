@@ -57,48 +57,36 @@
 
             .ce-objective-wrapper {
                 display: grid;
-                grid-template-columns: 2fr 3fr 50px;
-                grid-template-rows: 30px auto auto 30px;
-                gap: 10px;
+                grid-template-columns: auto 1fr 24px;
+                gap: 6px;
 
                 select {
                     padding: 0 5px;
+                    border: none;
+                    color: silver;
+                    background-color: rgba(0, 0, 0, 0.2);
                 }
 
                 button {
+                    padding: 3px;
                     border-radius: 5px;
                     border: none;
                     outline: none;
                     cursor: pointer;
                 }
 
-                .auto-fill {
+                button:active {
+                    opacity: 0.8;
+                }
+
+                .refresh-button {
                     color: ghostwhite;
                     background-color: mediumpurple;
                 }
 
-                .auto-fill:active {
-                    opacity: 0.8;
+                .description-input, .test-container {
+                    grid-column: span 3;
                 }
-                
-                .test-container {
-                    height: 43px;
-                    border-radius: 5px;
-                    overflow: hidden;
-                }
-
-                .check-button {
-                    grid-column: 2;
-                }
-
-                .delete-button {
-                    color: ghostwhite;
-                    background-color: indianred;
-                }
-            }
-
-            .description-input, .test-container {
-                grid-column: span 3;
             }
         }
     }
