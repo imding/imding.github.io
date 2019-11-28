@@ -227,8 +227,6 @@ function init() {
         }
     });
 
-
-
     codeEditor.focus();
 
     console.groupEnd();
@@ -738,97 +736,6 @@ function toggleSettings() {
     App.UI.pnlCode.classList.add('dim');
 }
 
-function transformInstructionString(content) {
-    const isEmpty = node => node.content.every(node => {
-        const allBreak = node.openingTag && /br/.test(node.openingTag.tagName);
-        const allSpace = node.type === 'text' && node.rawCollapsed.replace(/&nbsp;/g, '').length === 0;
-
-        return allBreak || allSpace;
-    });
-    const parseAndTransform = (string, mapping) => new HTMLTree(string).map(mapping).filter(node => node);
-    const transformGlossaryLink = string => {
-        const glossaryPattern = /^#glossary\/(html|css|javascript)\/(.*)$/;
-        const nodes = new HTMLTree(string).map(node => {
-            if (node.type === 'text') return node.raw;
-
-            if (node.openingTag.tagName === 'a') {
-                const hrefs = node.openingTag.attrs.filter(attr => attr.name === 'href');
-
-                if (hrefs.length === 0) return node.rawContent;
-                else if (hrefs.length > 1) {
-                    throw warn('Multiple "href" attribute found');
-                }
-
-                const details = hrefs[0].value.match(glossaryPattern);
-
-                return `<span class="${details[1]}-glossary glossary" accesskey="${details[2]}">${node.content[0].rawCollapsed}</span>`;
-            }
-            else return node.rawContent;
-        });
-
-        console.log(nodes);
-    };
-
-    if (content.text) content.text = parseAndTransform(content.text, node => {
-        const nodeType = node.openingTag.tagName;
-
-        if (nodeType === 'p') {
-            return isEmpty(node) ? null : {
-                type: 'paragraph',
-                data: { text: node.rawContent }
-            }
-        }
-        else if (nodeType === 'img') {
-            return {
-                type: 'image',
-                data: {
-                    stretched: false,
-                    url: node.openingTag.attrs.filter(attr => attr.name === 'src')[0].value,
-                    withBackground: false,
-                    withBorder: false
-                }
-            }
-        }
-
-        return;
-    })
-    else content.instructions = parseAndTransform(content.instructions, node => {
-        const nodeType = node.openingTag.tagName;
-
-        if (nodeType === 'p') {
-            return isEmpty(node) ? null : {
-                type: 'paragraph',
-                data: { text: node.rawContent.replace(/<code>/g, '<code class="inline-code">').trim() }
-            };
-        }
-        else if (nodeType === 'img') {
-            return {
-                type: 'image',
-                data: {
-                    stretched: false,
-                    url: node.openingTag.attrs.filter(attr => attr.name === 'src')[0].value,
-                    withBackground: false,
-                    withBorder: false
-                }
-            }
-        }
-        else if (nodeType === 'ul') {
-            return {
-                type: 'list',
-                data: {
-                    style: 'unordered',
-                    items: node.content.map(item => transformGlossaryLink(item.content[0].rawContent))
-                }
-            }
-        }
-        else if (nodeType === 'code') {
-            console.log(node);
-        }
-    });
-
-    return content;
-}
-
 function openProjectFromJson() {
     const fileInput = newEl('input', { type: 'file', accept: '.json' }) as HTMLInputElement;
     fileInput.click();
@@ -841,58 +748,164 @@ function openProjectFromJson() {
             missionFiles = [];
 
             const mission = JSON.parse(reader.result as string);
+            //  FIXME: obj().sort() shouldn't convert object to array
+            const missionSteps = obj(mission.steps).sort('values', (a, b) => a.orderNo - b.orderNo).filter(step => !step.deleted);
+            console.log(missionSteps);
+            const transformContentObject = content => {
+                const glossaryPattern = /^#glossary\/(html|css|javascript)\/(.*)$/;
+                const isEmpty = node => node.content.every(node => {
+                    const allBreak = node.openingTag && /br/.test(node.openingTag.tagName);
+                    const allSpace = node.type === 'text' && node.rawCollapsed.replace(/&nbsp;/g, '').length === 0;
 
-            obj(mission.steps)
-                .sort('values', (a, b) => a.orderNo - b.orderNo)
-                .forEach((step, idx) => {
-                    const title = step.title;
-                    const content = transformInstructionString(step.content);
-                    const type = step.type;
-                    const hasCode = type === stepType.code || type === stepType.interactive;
-                    const orderNo = (idx + 1) * 1000;
-                    const stepId = step.stepId;
-                    const stepObj: Step = { orderNo, hasCode, type, title, stepId, content };
+                    return allBreak || allSpace;
+                });
+                const parseAndTransform = (string, mapping) => new HTMLTree(string).map(mapping).filter(node => node);
+                const transformString = string => {
+                    const nodes = new HTMLTree(string).map(node => {
+                        if (node.type === 'text') return node.raw;
 
-                    if (hasCode) {
-                        const stepFiles = Object.entries(step.files) as Array<[string, any]>;
+                        const tagName = node.openingTag.tagName;
+                        const rawNode = `${node.openingTag.raw}${node.isVoid ? '' : `${node.rawContent}${node.closingTag.raw}`}`;
 
-                        if (stepFiles.length > missionFiles.length) {
-                            missionFiles = stepFiles.map(entry => entry[0]);
+                        if (tagName === 'a') {
+                            const hrefs = node.openingTag.attrs.filter(attr => attr.name === 'href');
+
+                            if (hrefs.length === 0) return node.rawContent;
+                            else if (hrefs.length > 1) {
+                                throw warn('Multiple "href" attribute found');
+                            }
+
+                            const details = hrefs[0].value.match(glossaryPattern);
+
+                            if (details) {
+                                //  IMPORTANT: class name led by "glossary" followed by "[type]-glossary"
+                                return `<span class="glossary ${details[1]}-glossary" accesskey="${details[2]}">${node.content[0].rawCollapsed}</span>`;
+                            }
+                            else return rawNode;
                         }
+                        else if (tagName === 'code') {
+                            return `<code class="inline-code">${node.rawContent}</code>`;
+                        }
+                        else return rawNode;
+                    });
 
-                        stepFiles.forEach(file => {
-                            const [fileName, fileData] = file;
-                            const fileObj: File = { mode: fileData.mode || fileMode.newContents };
+                    return nodes.join('');
+                };
+                const transformImage = node => ({
+                    stretched: false,
+                    url: getAttrValue('src', node),
+                    withBackground: false,
+                    withBorder: false
+                });
 
-                            fileData.answers = fileData.answers || [];
-                            fileData.contents = fileData.contents || fileData.contentsWithAnswers;
+                if (content.text) content.text = parseAndTransform(content.text, node => {
+                    const nodeType = node.openingTag.tagName;
 
-                            if (fileObj.mode === fileMode.newContents) {
-                                const content = insertAnswers(fileData.contents, fileData.answers);
-                                const type = langType[parseFileName(fileName).type];
+                    if (nodeType === 'p') {
+                        return isEmpty(node) ? null : {
+                            type: 'paragraph',
+                            data: { text: node.rawContent }
+                        }
+                    }
+                    else if (nodeType === 'img') {
+                        return {
+                            type: 'image',
+                            data: transformImage(node)
+                        }
+                    }
 
-                                fileObj.author = monaco.editor.createModel(content, type);
+                    return;
+                })
+                else content.instructions = parseAndTransform(content.instructions, node => {
+                    const nodeType = node.openingTag.tagName;
+
+                    if (nodeType === 'p') {
+                        return isEmpty(node) ? null : {
+                            type: 'paragraph',
+                            data: { text: transformString(node.rawContent) }
+                        };
+                    }
+                    else if (nodeType === 'img') {
+                        return {
+                            type: 'image',
+                            data: transformImage(node)
+                        }
+                    }
+                    else if (nodeType === 'ul') {
+                        return {
+                            type: 'list',
+                            data: {
+                                style: 'unordered',
+                                items: node.content.map(item => transformString(item.content[0].rawContent || item.content[0].rawCollapsed))
                             }
-                            else if (fileObj.mode === fileMode.modify) {
-                                fileObj.author = monaco.editor.createModel(fileData.contents, langType.js);
-                            }
+                        }
+                    }
+                    else if (nodeType === 'code') {
+                        console.log(node);
+                    }
+                });
 
-                            if (step.type === stepType.code) {
-                                fileObj.answers = fileData.answers;
-                            }
-                            else {
-                                fileObj.author = monaco.editor.createModel(fileData.contents, langType[parseFileName(fileName).type]);
-                            }
+                return content;
+            };
 
-                            stepObj[fileName] = fileObj;
+            missionSteps.forEach((step, idx) => {
+                const title = step.title;
+                const content = transformContentObject(step.content);
+                const type = step.type;
+                const hasCode = type === stepType.code || type === stepType.interactive;
+                const orderNo = (idx + 1) * 1000;
+                const stepId = step.stepId;
+                const stepObj: Step = { orderNo, hasCode, type, title, stepId, content };
+
+                if (hasCode) {
+                    const stepFiles = Object.entries(step.files) as Array<[string, any]>;
+
+                    if (stepFiles.length > missionFiles.length) {
+                        missionFiles = stepFiles.map(entry => entry[0]);
+                    }
+                    else if (stepFiles.length < missionFiles.length) {
+                        const fileNames = stepFiles.map(fileData => fileData[0]);
+
+                        missionFiles.forEach(fileName => {
+                            if (!fileNames.includes(fileName)) {
+                                stepFiles.push([fileName, { mode: fileMode.noChange }]);
+                            }
                         });
                     }
-                    else if (type === stepType.text) {
-                        stepObj.text = step.content.text;
-                    }
 
-                    stepList.push(stepObj);
-                });
+                    stepFiles.forEach(file => {
+                        const [fileName, fileData] = file;
+                        const fileObj: File = { mode: fileData.mode || fileMode.newContents };
+
+                        fileData.answers = fileData.answers || [];
+                        fileData.contents = fileData.contents || fileData.contentsWithAnswers;
+
+                        if (fileObj.mode === fileMode.newContents) {
+                            const content = insertAnswers(fileData.contents, fileData.answers);
+                            const type = langType[parseFileName(fileName).type];
+
+                            fileObj.author = monaco.editor.createModel(content, type);
+                        }
+                        else if (fileObj.mode === fileMode.modify) {
+                            fileObj.author = monaco.editor.createModel(fileData.contents, langType.js);
+                        }
+
+                        if (step.type === stepType.code) {
+                            fileObj.answers = fileData.answers;
+                        }
+                        else {
+                            fileObj.author = monaco.editor.createModel(fileData.contents, langType[parseFileName(fileName).type]);
+                        }
+
+                        stepObj[fileName] = fileObj;
+                    });
+                }
+                else if (type === stepType.text) {
+                    stepObj.text = step.content.text;
+                }
+
+                stepList.push(stepObj);
+            });
 
             const transform = (name: string) => parseFileName(name).type.replace('html', 'a').replace('css', 'b').replace('js', 'c');
 
@@ -997,23 +1010,57 @@ function loadStepData(targetStepNo: number) {
     console.groupEnd();
 }
 
+function getAttrValue(attrName: string, node) {
+    const targetAttr = node.openingTag.attrs.filter(attr => attr.name === attrName);
+
+    if (targetAttr.length === 0) {
+        return '';
+    }
+    else if (targetAttr.length > 1) {
+        alert(`Multiple "${attrName}" attributes found in instruction source code, check console for details`);
+        throw new Error(node.openingTag.raw);
+    }
+
+    return targetAttr[0].value;
+}
+
 function saveProjectToDisk() {
     if (diffEditor) storeAnswers();
 
-    const getAttrValue = (attrName: string, node) => {
-        const targetAttr = node.openingTag.attrs.filter(attr => attr.name === attrName);
+    const transformInstructionBlock = text => {
+        const tree = new HTMLTree(text);
 
-        if (targetAttr.length === 0) {
-            return node.rawContent;
-        }
-        else if (targetAttr.length > 1) {
-            alert(`Multiple "${attrName}" attributes found in instruction source code, check console for details`);
-            throw new Error(node.openingTag.raw);
-        }
+        if (tree.error) throw new Error(tree.error);
 
-        return targetAttr[0].value;
+        return tree.map(node => {
+            if (node.type === 'text') return node.raw;
+
+            if (node.type === 'element') {
+                const tagName = node.openingTag.tagName;
+                const className = getAttrValue('class', node);
+                const glossaryLookup = tagName === 'span' && className.match(/^glossary (html|css|javascript)-glossary$/);
+
+                if (glossaryLookup) {
+                    const type = glossaryLookup[1];
+                    const accesskey = getAttrValue('accesskey', node);
+                    return `<a href='#glossary/${type}/${accesskey}'>${node.rawContent}</a>`;
+                }
+                else if (tagName === 'code' && className.match(/^inline-code$/)) {
+                    return `<code>${node.rawContent}</code>`;
+                }
+                else if (tagName === 'a') {
+                    const target = getAttrValue('target', node);
+
+                    if (!/^_blank$/.test(target)) {
+                        const attrs = node.openingTag.attrs.filter(attr => attr.name !== 'target').map(attr => attr.raw).join('');
+                        return `<a${attrs} target="_blank">${node.rawContent}</a>`;
+                    }
+                }
+                else return `${node.openingTag.raw}${node.isVoid ? '' : `${node.rawContent}${node.closingTag.raw}`}`;
+            }
+        })
+        .join('');
     };
-
     const updateStepList = () => {
         stepList[activeStepNo - 1] = activeStep;
         stepList.forEach((step, stepIndex) => {
@@ -1047,52 +1094,29 @@ function saveProjectToDisk() {
             }
 
             //  parse instruction data
-
             const stepTitle = step.title;
             const stepInstructions = step.content.instructions.map(block => {
                 if (block.type === 'paragraph') {
-                    const pTree = new HTMLTree(block.data.text);
-
-                    if (pTree.error) throw new Error(pTree.error);
-
-                    const pContent = pTree.map(node => {
-                        if (node.type === 'text') return node.rawCollapsed;
-
-                        if (node.type === 'element') {
-                            const classNames = getAttrValue('class', node);
-                            const glossaryLookup = classNames.match(/glossary (html|css|javascript)-glossary/);
-                            const inlineCodeLookup = classNames.match(/inline-code/);
-
-                            if (glossaryLookup) {
-                                const type = glossaryLookup[1];
-                                const accesskey = getAttrValue('accesskey', node);
-                                return `<a href='#glossary/${type}/${accesskey}'>${node.rawContent}</a>`;
-                            }
-                            else if (inlineCodeLookup) {
-                                return `<code>${node.rawContent}</code>`;
-                            }
-                            else return node.rawContent;
-                        }
-                    }).join(' ');
-
-                    return `<p>${pContent}</p>`;
+                    return `<p>${transformInstructionBlock(block.data.text)}</p>`;
                 }
                 else if (block.type === 'image') {
-                    return `<img src="${block.data.url}" onclick="window.open('${block.data.url}', '_blank')" title="Click to open image in a new tab"  style="display: block; margin: auto; width: auto; max-width: 100%25; max-height: 15vh; border-radius: 5px; cursor: pointer" />`;
+                    const getImageAttrs = url => `src="${url}" onclick="window.open('${url}', '_blank')" title="Click to open image in a new tab" style="display: block; margin: auto; width: auto; max-width: 100%25; max-height: 15vh; border-radius: 5px; cursor: pointer"`;
+                    return `<img ${getImageAttrs(block.data.url)}/>`;
                 }
                 else if (block.type === 'list') {
-                    return `<ul>${block.data.items.map((item: string) => `<li><p class="notes">${item}</p></li>`).join('')}</ul>`;
+                    return `<ul>${block.data.items.map((item: string) => `<li><p class="notes">${transformInstructionBlock(item)}</p></li>`).join('')}</ul>`;
                 }
             }).join('');
 
             stepObj.title = (stepTitle && stepTitle.length) ? stepTitle : `Step ${stepIndex + 1}`;
 
-            if (stepInstructions.trim().length) {
-                stepObj.content.instructions = stepInstructions;
-            }
-            else {
-                stepObj.content = step.content;
-            }
+            stepObj.content[step.hasCode ? 'instructions' : 'text'] = stepInstructions;
+            // if (stepInstructions.trim().length) {
+            //     stepObj.content.instructions = stepInstructions;
+            // }
+            // else {
+            //     stepObj.content = step.content;
+            // }
 
             missionJson.steps[stepObj.stepId] = stepObj;
             missionJson.settings.lastModified = moment().format();
@@ -1112,8 +1136,6 @@ function saveProjectToDisk() {
 
     storeInstructions().then(updateStepList);
 }
-
-
 
 // export const asanaTaskSummaryDs = createDerivedState(
 //     {
@@ -1708,7 +1730,10 @@ function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepN
 
                     return code.join('\n');
                 }
-            }
+            };
+            const lockEverything = (code: string) => {
+                return `${removeEditableMarkup(code)}#BEGIN_EDITABLE##END_EDITABLE#`;
+            };
 
             result = {
                 resolvedContent: staticContent.author.getValue(),
@@ -1721,12 +1746,12 @@ function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepN
 
                 if (step[tabName].mode === fileMode.modify) {
                     const transitionLogic = step[tabName].author.getValue();
-                    const applyTransition = new Function('codeWithoutMarkup', 'insertLine', transitionLogic);
+                    const applyTransition = new Function('codeWithoutMarkup', 'insertLine', 'lockEverything', transitionLogic);
 
                     debugGroup('Resolving ', [tabName, clr.string], ' tab in step ', [stepNo, clr.code]).end(transitionLogic);
 
                     try {
-                        resolvedContent = applyTransition(removeEditableMarkup(resolvedContent), insertLine);
+                        resolvedContent = applyTransition(removeEditableMarkup(resolvedContent), insertLine, lockEverything);
 
                         if (idx < relevantSteps.length - 1) {
                             resolvedContent = insertAnswers(resolvedContent, answers);
