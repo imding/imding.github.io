@@ -93,8 +93,8 @@ const editablePattern = {
 };
 
 const codeTemplate = {
-    html: '<!DOCTYPE html>\n<html>\n\n<head>\n\t<link rel="stylesheet" href="style.css" />\n</head>\n\n<body>\n\n\t<h1>Welcome to HTML</h1>\n\n\t#BEGIN_EDITABLE#    #END_EDITABLE#\n\n\t<script src="script.js"></script>\n</body>\n\n</html>',
-    css: '/* CSS */\n\n* {\n\tmargin: 0;\n\tbox-sizing: border-box;\n\t#BEGIN_EDITABLE#    #END_EDITABLE#\n}\n',
+    html: '<!DOCTYPE html>\n<html>\n\n\t<head>\n\t\t<link rel="stylesheet" href="style.css" />\n\t</head>\n\n\t<body>\n\n\t\t<h1>Welcome to HTML</h1>\n\n\t\t<script src="script.js"></script>\n\n\t</body>\n\n</html>\n',
+    css: '/* CSS */\n\n* {\n\tmargin: 0;\n\tbox-sizing: border-box;\n}\n',
     js: '// JavaScript\n\nwindow.onload = init;\n\nfunction init() {}\n',
     transition: '// Transition:\nreturn `${codeWithoutMarkup}#BEGIN_EDITABLE##END_EDITABLE#`;\n// let output = codeWithoutMarkup; //.replace(/\s*<!--.*-->/g,\'\');\n// output = insertLine(output, \'key\', { line: \'\', offset: 0 });\n// output = makeEditableBlock(output, \'key\');\n// return output;'
 };
@@ -158,7 +158,7 @@ function init() {
 
     monaco.languages.registerCompletionItemProvider('html', {
         provideCompletionItems: function (model, position) {
-            
+
             return {
                 suggestions: [
                     {
@@ -739,19 +739,44 @@ function toggleSettings() {
 }
 
 function transformInstructionString(content) {
-    if (!content.instructions) return content;
+    const isEmpty = node => node.content.every(node => {
+        const allBreak = node.openingTag && /br/.test(node.openingTag.tagName);
+        const allSpace = node.type === 'text' && node.rawCollapsed.replace(/&nbsp;/g, '').length === 0;
 
-    content.instructions = new HTMLTree(content.instructions).map(node => {
+        return allBreak || allSpace;
+    });
+    const parseAndTransform = (string, mapping) => new HTMLTree(string).map(mapping).filter(node => node);
+
+    if (content.text) content.text = parseAndTransform(content.text, node => {
         const nodeType = node.openingTag.tagName;
 
         if (nodeType === 'p') {
-            const text = node.rawContent
-                .replace(/<code>/g, '<code class="inline-code">')
-                .trim();
-
-            return {
+            return isEmpty(node) ? null : {
                 type: 'paragraph',
-                data: { text }
+                data: { text: node.rawContent }
+            }
+        }
+        else if (nodeType === 'img') {
+            return {
+                type: 'image',
+                data: {
+                    stretched: false,
+                    url: node.openingTag.attrs.filter(attr => attr.name === 'src')[0].value,
+                    withBackground: false,
+                    withBorder: false
+                }
+            }
+        }
+
+        return;
+    })
+    else content.instructions = parseAndTransform(content.instructions, node => {
+        const nodeType = node.openingTag.tagName;
+
+        if (nodeType === 'p') {
+            return isEmpty(node) ? null : {
+                type: 'paragraph',
+                data: { text: node.rawContent.replace(/<code>/g, '<code class="inline-code">').trim() }
             };
         }
         else if (nodeType === 'img') {
@@ -937,7 +962,7 @@ function loadStepData(targetStepNo: number) {
             blocks: [{
                 type: 'header',
                 data: { text: title }
-            }, ...targetStep.content.instructions]
+            }, ...(targetStep.content.instructions || targetStep.content.text)]
         });
     });
 
