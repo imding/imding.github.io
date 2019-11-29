@@ -3,24 +3,24 @@
     {
       "bufferView": 2,
       "componentType": 5126,
-      "count": 16422,
+      "count": 10199,
       "max": [
-        2.0000040531158447,
-        0.075631000101566315,
-        1.8306260108947754
+        10,
+        10,
+        9.9999990463256836
       ],
       "min": [
-        1.9999999949504854e-06,
-        -1.9243700504302979,
-        -0.1693740040063858
+        -9.9999961853027344,
+        -10,
+        -9.999995231628418
       ],
       "type": "VEC3"
     },
     {
       "bufferView": 2,
-      "byteOffset": 197064,
+      "byteOffset": 122388,
       "componentType": 5126,
-      "count": 16422,
+      "count": 10199,
       "max": [
         1,
         1,
@@ -36,17 +36,17 @@
     {
       "bufferView": 3,
       "componentType": 5126,
-      "count": 16422,
+      "count": 10199,
       "max": [
         1,
+        0.015707101672887802,
         1,
-        0.012281846255064011,
         1
       ],
       "min": [
         -1,
+        -0.015707101672887802,
         -1,
-        -0.012297357432544231,
         1
       ],
       "type": "VEC4"
@@ -54,23 +54,143 @@
     {
       "bufferView": 1,
       "componentType": 5126,
-      "count": 16422,
+      "count": 10199,
       "max": [
-        1.2262790203094482,
-        0.99765098094940186
+        0.99999934434890747,
+        1
       ],
       "min": [
-        -0.0034970000851899385,
-        -0.0026110000908374786
+        -0,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 81592,
+      "componentType": 5126,
+      "count": 10199,
+      "max": [
+        0.99999934434890747,
+        1
+      ],
+      "min": [
+        -0,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 163184,
+      "componentType": 5126,
+      "count": 10199,
+      "max": [
+        0.99999934434890747,
+        1
+      ],
+      "min": [
+        -0,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 244776,
+      "componentType": 5126,
+      "count": 10199,
+      "max": [
+        0.99999934434890747,
+        1
+      ],
+      "min": [
+        -0,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 326368,
+      "componentType": 5126,
+      "count": 10199,
+      "max": [
+        0.99999934434890747,
+        1
+      ],
+      "min": [
+        -0,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 407960,
+      "componentType": 5126,
+      "count": 10199,
+      "max": [
+        0.99999934434890747,
+        1
+      ],
+      "min": [
+        -0,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 489552,
+      "componentType": 5126,
+      "count": 10199,
+      "max": [
+        0.99999934434890747,
+        1
+      ],
+      "min": [
+        -0,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 571144,
+      "componentType": 5126,
+      "count": 10199,
+      "max": [
+        0.99999934434890747,
+        1
+      ],
+      "min": [
+        -0,
+        0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 652736,
+      "componentType": 5126,
+      "count": 10199,
+      "max": [
+        0.99999934434890747,
+        1
+      ],
+      "min": [
+        -0,
+        0
       ],
       "type": "VEC2"
     },
     {
       "bufferView": 0,
       "componentType": 5125,
-      "count": 97536,
+      "count": 59400,
       "max": [
-        16421
+        10198
       ],
       "min": [
         0
@@ -80,42 +200,42 @@
   ],
   "asset": {
     "extras": {
-      "author": "kongle (https://sketchfab.com/minecraftnorge)",
-      "license": "CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)",
-      "source": "https://sketchfab.com/models/63d902b12fd14868b4dc2f19dc21d7c2",
-      "title": "Earth"
+      "author": "numonegames (https://sketchfab.com/numonegames)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/models/1efc55f19bfd4c8eb5462fc0ab8a0d32",
+      "title": "EARTH"
     },
-    "generator": "Sketchfab-3.20.7",
+    "generator": "Sketchfab-3.37.1",
     "version": "2.0"
   },
   "bufferViews": [
     {
       "buffer": 0,
-      "byteLength": 390144,
+      "byteLength": 237600,
       "byteOffset": 0,
       "name": "floatBufferViews",
       "target": 34963
     },
     {
       "buffer": 0,
-      "byteLength": 131376,
-      "byteOffset": 390144,
+      "byteLength": 734328,
+      "byteOffset": 237600,
       "byteStride": 8,
       "name": "floatBufferViews",
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 394128,
-      "byteOffset": 521520,
+      "byteLength": 244776,
+      "byteOffset": 971928,
       "byteStride": 12,
       "name": "floatBufferViews",
       "target": 34962
     },
     {
       "buffer": 0,
-      "byteLength": 262752,
-      "byteOffset": 915648,
+      "byteLength": 163184,
+      "byteOffset": 1216704,
       "byteStride": 16,
       "name": "floatBufferViews",
       "target": 34962
@@ -123,13 +243,13 @@
   ],
   "buffers": [
     {
-      "byteLength": 1178400,
+      "byteLength": 1379888,
       "uri": "scene.bin"
     }
   ],
   "images": [
     {
-      "uri": "textures/moon_baseColor.jpg"
+      "uri": "textures/Material_99_baseColor.png"
     }
   ],
   "materials": [
@@ -140,7 +260,7 @@
         0,
         0
       ],
-      "name": "moon",
+      "name": "Material_99",
       "pbrMetallicRoughness": {
         "baseColorFactor": [
           1,
@@ -153,21 +273,30 @@
           "texCoord": 0
         },
         "metallicFactor": 0,
-        "roughnessFactor": 0.59999999999999998
+        "roughnessFactor": 0
       }
     }
   ],
   "meshes": [
     {
+      "name": "root_Material_99_0",
       "primitives": [
         {
           "attributes": {
             "NORMAL": 1,
             "POSITION": 0,
             "TANGENT": 2,
-            "TEXCOORD_0": 3
+            "TEXCOORD_0": 3,
+            "TEXCOORD_1": 4,
+            "TEXCOORD_2": 5,
+            "TEXCOORD_3": 6,
+            "TEXCOORD_4": 7,
+            "TEXCOORD_5": 8,
+            "TEXCOORD_6": 9,
+            "TEXCOORD_7": 10,
+            "TEXCOORD_8": 11
           },
-          "indices": 4,
+          "indices": 12,
           "material": 0,
           "mode": 4
         }
@@ -197,11 +326,65 @@
       "children": [
         3
       ],
-      "name": "earth.obj.cleaner"
+      "matrix": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "name": "36515b2b38a944258757339a352517f8.fbx"
+    },
+    {
+      "children": [
+        4
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        5
+      ],
+      "name": "root"
+    },
+    {
+      "children": [
+        6
+      ],
+      "matrix": [
+        -0.022951515391469002,
+        -0.0038222414441406762,
+        -0.010676058009266855,
+        0,
+        -0.001387040667759016,
+        0.024867188149405337,
+        -0.0059210723522077858,
+        0,
+        0.011254503728873815,
+        -0.0047300566373980803,
+        -0.022501610316792754,
+        0,
+        0.0083705401048064232,
+        0.075000040233135223,
+        0.25600016117095947,
+        1
+      ],
+      "name": ""
     },
     {
       "mesh": 0,
-      "name": ""
+      "name": "root_Material_99_0"
     }
   ],
   "samplers": [
