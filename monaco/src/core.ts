@@ -126,8 +126,9 @@ const langType = {
     js: 'javascript'
 };
 
-const refreshDelay = 800;
-let refreshTimer;
+let pkey;
+let altKey;
+let focus;
 
 //===== INIT APP =====//
 
@@ -273,6 +274,7 @@ function resetApp() {
             btnFileMode: null,
             btnModelAnswers: null,
             btnToggleOutput: null,
+            btnRefreshOutput: null,
 
             stepInfo: el('span', { id: 'step-info' }),
             tabContainer: el('div', { id: 'code-tabs' }),
@@ -392,7 +394,8 @@ function assembleUI() {
                             btnGetNext: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'chevron_left' }) }],
                             btnFileMode: [el('div', {}), { icon: el('i', { className: 'material-icons' }) }],
                             btnModelAnswers: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'spellcheck' }) }],
-                            btnToggleOutput: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'visibility' }) }]
+                            btnToggleOutput: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'visibility' }) }],
+                            btnRefreshOutput: [el('div', { className: 'hidden' }), { icon: el('i', { className: 'material-icons', innerText: 'autorenew' }) }]
                         }]
                     }]
                 }]
@@ -485,6 +488,10 @@ function assembleUI() {
         tool: App.UI.btnToggleOutput,
         heading: 'output',
         tip: 'show and hide the code output preview panel'
+    }, {
+        tool: App.UI.btnRefreshOutput,
+        heading: 'refresh',
+        tip: 'reevaluate the code and refresh the output'
     }], {
         dim: [App.UI.codexContainer]
     });
@@ -600,10 +607,10 @@ function assembleUI() {
 
 function registerTopLevelEvents() {
     const {
-        pnlActions,
+        pnlActions, pnlPreview,
         btnProjectSettings, btnOpenProject, btnSaveProject, btnTickets,
         btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
-        btnGetPrev, btnGetNext, btnModelAnswers, btnToggleOutput
+        btnGetPrev, btnGetNext, btnModelAnswers, btnToggleOutput, btnRefreshOutput
     } = App.UI;
 
     pnlActions.addEventListener('scroll', () => {
@@ -625,10 +632,60 @@ function registerTopLevelEvents() {
     btnGetNext.addEventListener('click', () => mirrorTabContent(activeStepNo + 1));
     btnModelAnswers.addEventListener('click', toggleAnswerEditor);
     btnToggleOutput.addEventListener('click', toggleOutput);
-
-    codeEditor.onDidChangeModelContent(() => refreshOutput(false));
+    btnRefreshOutput.addEventListener('click', refreshOutput);
 
     window.onresize = () => (codeEditor || diffEditor).layout();
+    window.onkeydown = (event: KeyboardEvent) => {
+        // disable F5 key
+        if (/F5|ControlLeft/.test(event.code)) {
+            event.preventDefault();
+            return;
+        }
+    
+        // handle right alt key
+        else if (event.code == 'AltRight' && !altKey) {
+            altKey = true;
+            focus = document.activeElement;
+            focus.blur();
+        }
+    
+        // handles shortcut combos
+        if (altKey && event.code != pkey) {
+            event.preventDefault();
+    
+            switch (event.code) {
+                case 'Digit0': break;
+                case 'Digit1': break;
+                case 'Digit2': break;
+                
+                case 'Slash': break;
+                case 'KeyN': btnNewStep.click(); break;
+                case 'KeyP': pnlPreview.classList.contains('hidden') ? toggleOutput() : refreshOutput(); break;
+                case 'KeyL': break;
+                case 'KeyK': break;
+                case 'KeyI': break;
+                case 'KeyO': break;
+                case 'KeyG': break;
+                case 'Backspace': hideOutput(); break;
+                case 'BracketLeft': btnPrevStep.click(); break;
+                case 'BracketRight': btnNextStep.click(); break;
+                case 'Minus': activeTab.previousElementSibling && (activeTab.previousElementSibling as HTMLElement).click(); break;
+                case 'Equal': activeTab.nextElementSibling && (activeTab.nextElementSibling as HTMLElement).click(); break;
+                case 'Period': btnGetPrev.click(); break;
+                case 'Comma': btnGetNext.click(); break;
+                case 'Backslash': break;
+            }
+    
+            // LIST OF KEYS TO ALLOW REPEATED PRESS
+            pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal|Backslash/, '');
+        }
+    };
+    window.onkeyup = (event: KeyboardEvent) => {
+        if (event.code === 'AltRight') {
+            focus.focus();
+            altKey = false;
+        }
+    };
 }
 
 //===== PROJECT OPERATIONS =====//
@@ -1426,7 +1483,6 @@ function diffToAuthor(model?: monaco.editor.IModel, readOnly?: boolean) {
     codeEditor = monaco.editor.create(App.UI.codeContainer, { scrollBeyondLastLine: false });
 
     if (model) updateAuthorContent(model, readOnly);
-    codeEditor.onDidChangeModelContent(() => refreshOutput(false));
 }
 
 function updateAuthorContent(model: monaco.editor.IModel, readOnly?: boolean) {
@@ -1445,12 +1501,15 @@ function toggleOutput() {
     console.group('toggleOutput');
 
     if (activeStep.hasCode) {
-        const { pnlPreview, btnToggleOutput } = App.UI;
+        const { pnlPreview, btnToggleOutput, btnRefreshOutput } = App.UI;
 
         if (App.UI.pnlPreview.classList.contains('hidden')) {
-            pnlPreview.iframe = el(pnlPreview).addNew('iframe');
-            refreshOutput();
             pnlPreview.classList.remove('hidden');
+            pnlPreview.iframe = el(pnlPreview).addNew('iframe');
+            
+            refreshOutput();
+            
+            btnRefreshOutput.classList.remove('hidden');
             btnToggleOutput.firstElementChild.classList.add('active-blue');
         }
         else hideOutput();
@@ -1464,74 +1523,67 @@ function toggleOutput() {
 }
 
 function hideOutput() {
-    const { pnlPreview, btnToggleOutput } = App.UI;
+    const { pnlPreview, btnToggleOutput, btnRefreshOutput } = App.UI;
 
     el(pnlPreview).remove(pnlPreview.iframe);
     pnlPreview.classList.add('hidden');
+    btnRefreshOutput.classList.add('hidden');
     btnToggleOutput.firstElementChild.classList.remove('active-blue');
 }
 
-function refreshOutput(now: boolean = true) {
+function refreshOutput() {
     const { pnlPreview } = App.UI;
+    
+    if (!pnlPreview.iframe) return;
+    
+    debugGroup('refreshOutput()');
+    
+    let srcHtml = getAuthorOrLearnerContent('index.html');
+    const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
 
-    if (pnlPreview.iframe) {
-        const refresh = () => {
-            debugGroup('refreshOutput(now =', now, ')');
+    linkAndScript.forEach((node: any) => {
+        const tree = new HTMLTree(node);
 
-            let srcHtml = getAuthorOrLearnerContent('index.html');
-            const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
-
-            linkAndScript.forEach((node: any) => {
-                const tree = new HTMLTree(node);
-
-                if (tree.error) {
-                    warn('Error: ', [tree.error, clr.string]);
-                    alert('Failed parsing code, please check console for details');
-                }
-                else {
-                    node = tree[0];
-
-                    const tagType = node.openingTag.tagName;
-                    const attrType = tagType === 'link' ? 'href' : tagType === 'script' ? 'src' : '';
-                    const attrValue = node.openingTag.attrs.filter(attr => attr.name === attrType)[0].value;
-                    const isPrivateFile = activeStep.hasOwnProperty(attrValue);
-                    const nodeRaw = `${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`;
-                    const { type } = parseFileName(attrValue);
-
-                    if (isPrivateFile) {
-                        if (/^(css|js)$/.test(type)) {
-                            const isCss = type === 'css';
-                            const replaceTarget = isCss ? node.openingTag.raw : nodeRaw;
-                            const newTag = isCss ? 'style' : 'script';
-                            const content = getAuthorOrLearnerContent(attrValue).trim().split('\n').map(line => `\t\t\t${line}`).join('\n');
-
-                            srcHtml = srcHtml.replace(replaceTarget, `<${newTag}>\n${content}\n\t\t</${newTag}>`);
-                        }
-                    }
-                    else {
-                        log([nodeRaw, clr.string], ' points to external file');
-                    }
-                }
-            });
-
-            srcHtml = srcHtml
-                //  transform relative platform paths to absolute paths
-                .replace(/(['"])\s*(\/resources\/)/g, '$1https://app.bsd.education$2')
-                //  remove editable markup
-                .replace(editablePattern.justMarkup, '');
-
-            pnlPreview.iframe.srcdoc = srcHtml;
-            log('Output panel refreshed');
-
-            console.groupEnd();
-        };
-
-        if (now) refresh();
-        else {
-            if (refreshTimer) clearTimeout(refreshTimer);
-            refreshTimer = setTimeout(refresh, refreshDelay);
+        if (tree.error) {
+            warn('Error: ', [tree.error, clr.string]);
+            alert('Failed parsing code, please check console for details');
         }
-    }
+        else {
+            node = tree[0];
+
+            const tagType = node.openingTag.tagName;
+            const attrType = tagType === 'link' ? 'href' : tagType === 'script' ? 'src' : '';
+            const attrValue = node.openingTag.attrs.filter(attr => attr.name === attrType)[0].value;
+            const isPrivateFile = activeStep.hasOwnProperty(attrValue);
+            const nodeRaw = `${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`;
+            const { type } = parseFileName(attrValue);
+
+            if (isPrivateFile) {
+                if (/^(css|js)$/.test(type)) {
+                    const isCss = type === 'css';
+                    const replaceTarget = isCss ? node.openingTag.raw : nodeRaw;
+                    const newTag = isCss ? 'style' : 'script';
+                    const content = getAuthorOrLearnerContent(attrValue).trim().split('\n').map(line => `\t\t\t${line}`).join('\n');
+
+                    srcHtml = srcHtml.replace(replaceTarget, `<${newTag}>\n${content}\n\t\t</${newTag}>`);
+                }
+            }
+            else {
+                log([nodeRaw, clr.string], ' points to external file');
+            }
+        }
+    });
+
+    srcHtml = srcHtml
+        //  transform relative platform paths to absolute paths
+        .replace(/(['"])\s*(\/resources\/)/g, '$1https://app.bsd.education$2')
+        //  remove editable markup
+        .replace(editablePattern.justMarkup, '');
+
+    pnlPreview.iframe.srcdoc = srcHtml;
+    log('Output panel refreshed');
+
+    console.groupEnd();
 }
 
 function getAuthorOrLearnerContent(tabName: string, stepNo: number = activeStepNo): string {
@@ -1618,8 +1670,6 @@ function toggleAnswerEditor() {
 
             diffEditor = monaco.editor.createDiffEditor(codeContainer, { scrollBeyondLastLine: false });
             diffEditor.setModel(diffModels);
-
-            setTimeout(() => diffEditor.onDidUpdateDiff(() => refreshOutput(false)), 100);
 
             btnModelAnswers.firstElementChild.classList.add('active-green');
         }

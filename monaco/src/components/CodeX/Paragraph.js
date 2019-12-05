@@ -13,6 +13,9 @@
  * @description Tool's input and output data format
  * @property {String} text — Paragraph's content. Can include HTML tags: <a><b><i>
  */
+
+import { inputHandler, deleteHandler } from './keyboardHandler';
+
 export default class Paragraph {
     /**
      * Default placeholder for Paragraph Tool
@@ -76,44 +79,15 @@ export default class Paragraph {
      * @private
      */
     drawView() {
-        let div = document.createElement('DIV');
+        const div = document.createElement('DIV');
 
         div.classList.add(this._CSS.wrapper, this._CSS.block);
         div.contentEditable = true;
         div.dataset.placeholder = this._placeholder;
 
         div.addEventListener('keyup', this.onKeyUp);
-
-        div.addEventListener('input', () => {
-            if (event.data === '`') {
-                const tickPair = div.innerText.match(/`([^`]+)`/);
-
-                if (tickPair) {
-                    const selection = window.getSelection();
-                    const nodeIndex = Array.from(div.childNodes).indexOf(selection.anchorNode);
-                    const isLastNode = div.lastChild === selection.anchorNode;
-                    const [term, content] = tickPair.map(string => string
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;'));
-                    
-                    div.innerHTML = div.innerHTML.replace(term, `<code class="inline-code">${content}</code>`);
-
-                    const codeNode = div.childNodes[Math.min(nodeIndex + 1, div.childNodes.length - 1)];
-                    this._setCursor(selection, codeNode.childNodes ? codeNode.childNodes[0] : codeNode, tickPair[1].length);
-
-                    if (isLastNode) {
-                        this._addSpaceAfterInlineCode();
-                    }
-                }
-            }
-        });
-
-        div.addEventListener('keydown', () => {
-            if (event.key === 'ArrowRight') {
-                this._addSpaceAfterInlineCode();
-            }
-        });
+        div.addEventListener('input', inputHandler);
+        div.addEventListener('keydown', deleteHandler);
 
         return div;
     }
@@ -180,31 +154,6 @@ export default class Paragraph {
         };
 
         this.data = data;
-    }
-
-    _setCursor(selection, node, offset) {
-        const range = document.createRange();
-
-        range.setStart(node, offset);
-        range.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(range);
-    }
-
-    _addSpaceAfterInlineCode() {
-        const selection = window.getSelection();
-        const anchorNode = selection.anchorNode;
-        const tailNode = this._element.lastChild;
-        const isLastNode = tailNode === anchorNode.parentNode;
-
-        if (isLastNode) {
-            const isLastChar = selection.anchorOffset === anchorNode.length;
-
-            if (isLastChar) {
-                this._element.innerHTML = this._element.innerHTML + '&nbsp;';
-                this._setCursor(selection, this._element.lastChild, 1);
-            }
-        }
     }
 
     /**
