@@ -4,6 +4,8 @@
  * @property {array} items - li elements
  */
 
+import { inputHandler, deleteHandler } from './keyboardHandler';
+
 /**
  * List Tool for the Editor.js 2.0
  */
@@ -39,13 +41,13 @@ export default class List {
    *   config - user config for Tool
    *   api - Editor.js API
    */
-  constructor({data, config, api}) {
+  constructor({ data, config, api }) {
     /**
      * HTML nodes
      * @private
      */
     this._elements = {
-      wrapper : null,
+      wrapper: null,
     };
 
     this.settings = [
@@ -68,7 +70,7 @@ export default class List {
      * @type {ListData}
      * */
     this._data = {
-      style: this.settings.find( tune => tune.default === true ).name,
+      style: this.settings.find(tune => tune.default === true).name,
       items: []
     };
 
@@ -88,30 +90,47 @@ export default class List {
       contentEditable: true
     });
 
+    const newItem = (content = '') => {
+      return this._make('li', this.CSS.item, { innerHTML: content });
+    };
+
     // fill with data
     if (this._data.items.length) {
-      this._data.items.forEach( item => {
-        this._elements.wrapper.appendChild(this._make('li', this.CSS.item, {
-          innerHTML: item
-        }));
-      });
-    } else {
-      this._elements.wrapper.appendChild(this._make('li', this.CSS.item));
+      this._data.items.forEach(item => this._elements.wrapper.appendChild(newItem(item)));
+    }
+    else {
+      this._elements.wrapper.appendChild(newItem());
     }
 
     // detect keydown on the last item to escape List
-    this._elements.wrapper.addEventListener('keydown', (event) => {
-      const [ENTER, BACKSPACE] = [13, 8]; // key codes
-
-      switch (event.keyCode) {
-        case ENTER:
-          this.getOutofList(event);
-          break;
-        case BACKSPACE:
-          this.backspace(event);
-          break;
+    this._elements.wrapper.addEventListener('input', inputHandler);
+    this._elements.wrapper.addEventListener('keydown', event => {
+      if (event.code === 'Enter') {
+        const isLastItem = this.currentItem === Array.from(event.target.children).pop();
+        const isEmpty = this.currentItem.innerText.trim().length === 0;
+        
+        if (isLastItem && isEmpty) {
+          event.preventDefault();
+          console.log(this.api);
+          this.currentItem.remove();
+          this.api.blocks.insert();
+        }
       }
-    }, false);
+      else deleteHandler(event);
+    });
+    // this._elements.wrapper.addEventListener('keydown', event => {
+
+      // const [ENTER, BACKSPACE] = [13, 8]; // key codes
+
+      // switch (event.keyCode) {
+      //   case ENTER:
+      //     this.getOutofList(event);
+      //     break;
+      //   case BACKSPACE:
+      //     this.backspace(event);
+      //     break;
+      // }
+    // });
 
     return this._elements.wrapper;
   }
@@ -144,7 +163,7 @@ export default class List {
        */
       import: (string) => {
         return {
-          items: [ string ],
+          items: [string],
           style: 'unordered'
         };
       }
@@ -170,9 +189,9 @@ export default class List {
    * @public
    */
   renderSettings() {
-    const wrapper = this._make('div', [ this.CSS.settingsWrapper ], {});
+    const wrapper = this._make('div', [this.CSS.settingsWrapper], {});
 
-    this.settings.forEach( (item) => {
+    this.settings.forEach((item) => {
       const itemEl = this._make('div', this.CSS.settingsButton, {
         innerHTML: item.icon
       });
@@ -183,7 +202,7 @@ export default class List {
         // clear other buttons
         const buttons = itemEl.parentNode.querySelectorAll('.' + this.CSS.settingsButton);
 
-        Array.from(buttons).forEach( button => button.classList.remove(this.CSS.settingsButtonActive));
+        Array.from(buttons).forEach(button => button.classList.remove(this.CSS.settingsButtonActive));
 
         // mark active
         itemEl.classList.toggle(this.CSS.settingsButtonActive);
@@ -257,7 +276,7 @@ export default class List {
       listData = {};
     }
 
-    this._data.style = listData.style || this.settings.find( tune => tune.default === true ).name;
+    this._data.style = listData.style || this.settings.find(tune => tune.default === true).name;
     this._data.items = listData.items || [];
 
     const oldView = this._elements.wrapper;
@@ -315,7 +334,7 @@ export default class List {
    * Returns current List item by the caret position
    * @return {Element}
    */
-  get currentItem(){
+  get currentItem() {
     let currentNode = window.getSelection().anchorNode;
 
     if (currentNode.nodeType !== Node.ELEMENT_NODE) {
@@ -342,12 +361,13 @@ export default class List {
 
     const lastItem = items[items.length - 1];
     const currentItem = this.currentItem;
+    const _ = undefined;
 
     /** Prevent Default li generation if item is empty */
     if (currentItem === lastItem && !lastItem.textContent.trim().length) {
       /** Insert New Block and set caret */
       currentItem.parentElement.removeChild(currentItem);
-      this.api.blocks.insertNewBlock();
+      this.api.blocks.insert();
       event.preventDefault();
       event.stopPropagation();
     }
@@ -377,7 +397,7 @@ export default class List {
    * Select LI content by CMD+A
    * @param {KeyboardEvent} event
    */
-  selectItem(event){
+  selectItem(event) {
     event.preventDefault();
 
     const selection = window.getSelection(),
@@ -398,10 +418,10 @@ export default class List {
    * @returns {ListData}
    */
   pasteHandler(element) {
-    const {tagName: tag} = element;
+    const { tagName: tag } = element;
     let type;
 
-    switch(tag) {
+    switch (tag) {
       case 'OL':
         type = 'ordered';
         break;
@@ -416,7 +436,7 @@ export default class List {
     };
 
     if (tag === 'LI') {
-      data.items = [ element.innerHTML ];
+      data.items = [element.innerHTML];
     } else {
       const items = Array.from(element.querySelectorAll('LI'));
 

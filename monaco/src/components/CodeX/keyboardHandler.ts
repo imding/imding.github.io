@@ -64,7 +64,7 @@ export function deleteHandler(event: KeyboardEvent) {
     else if (event.code === 'Backspace') {
         const atEdge = anchorOffset === 1;
         const forwardDelete = isCode(anchorNode.parentNode) && atEdge;
-        const backwardDelete = anchorNode.nodeValue.startsWith('\u200B') && atEdge;
+        const backwardDelete = anchorNode.nodeValue && anchorNode.nodeValue.startsWith('\u200B') && atEdge;
 
         if (forwardDelete || backwardDelete) event.preventDefault();
     }
