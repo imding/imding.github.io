@@ -51,7 +51,9 @@ const localGlossaryList = {
         'if': '2ed56671-86c8-4799-a423-5d7f549ec659',
         'prompt': 'f5359b15-9a4d-48d3-acb5-3d1a60db49a2',
         'variable': 'ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52',
-    }
+    },
+    py: {},
+    general: {}
 };
 
 async function pullGLossaryList(glossaryList = { html: {}, css: {}, javascript: {}}) {
@@ -68,6 +70,8 @@ async function pullGLossaryList(glossaryList = { html: {}, css: {}, javascript: 
     catch (err) {
         // alert('Failed to load glossary list, check console for details.');
         console.warn(err);
+        console.warn('Falling back to previsouly stored glossary list.');
+        glossaryList = JSON.parse(localStorage.getItem('glossary'));
     }
 }
 

@@ -6,7 +6,7 @@ import * as favicon from './images/favicon.png';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as moment from 'moment';
 import * as asana from 'asana';
-import * as EditorJS from './components/CodeX/editor';
+import * as EditorJS from './components/CodeX/editor-dev';
 
 import Header from './components/CodeX/Header';
 import Paragraph from './components/CodeX/Paragraph';
@@ -93,7 +93,7 @@ const editablePattern = {
 };
 
 const codeTemplate = {
-    html: '<!DOCTYPE html>\n<html>\n\n\t<head>\n\t\t<link rel="stylesheet" href="style.css" />\n\t</head>\n\n\t<body>\n\n\t\t<h1>Welcome to HTML</h1>\n\n\t\t<script src="script.js"></script>\n\n\t</body>\n\n</html>\n',
+    html: '<!DOCTYPE html>\n<html>\n\n\t<head>\n\t\t<link rel="stylesheet" href="style.css" />\n\t</head>\n\n\t<body>\n\n\t\t#BEGIN_EDITABLE#<h1>Welcome to HTML</h1>#END_EDITABLE#\n\n\t\t<script src="script.js"></script>\n\n\t</body>\n\n</html>\n',
     css: '/* CSS */\n\n* {\n\tmargin: 0;\n\tbox-sizing: border-box;\n}\n',
     js: '// JavaScript\n\nwindow.onload = init;\n\nfunction init() {}\n',
     transition: '// Transition:\nreturn `${codeWithoutMarkup}#BEGIN_EDITABLE##END_EDITABLE#`;\n// let output = codeWithoutMarkup; //.replace(/\s*<!--.*-->/g,\'\');\n// output = insertLine(output, \'key\', { line: \'\', offset: 0 });\n// output = makeEditableBlock(output, \'key\');\n// return output;'
@@ -142,42 +142,24 @@ function init() {
     assembleUI();
     createStep(0).go();
 
-    function createDependencyProposals(range) {
-        // returning a static list of proposals, not even looking at the prefix (filtering is done by the Monaco editor),
-        // here you could do a server side lookup
-        return [
-            {
-                label: '#BEGIN_EDITABLE#  #END_EDITABLE#',
-                kind: monaco.languages.CompletionItemKind.Function,
-                documentation: "The Lodash library exported as Node.js modules.",
-                insertText: '#BEGIN_EDITABLE#  #END_EDITABLE#',
-                range
-            }
-        ];
-    }
-
-
-    monaco.languages.registerCompletionItemProvider('html', {
-        provideCompletionItems: function (model, position) {
-
-            return {
-                suggestions: [
-                    {
-                        label: '#BEGIN_EDITABLE#  #END_EDITABLE#',
-                        kind: monaco.languages.CompletionItemKind.Function,
-                        documentation: "The Lodash library exported as Node.js modules.",
-                        insertText: '#BEGIN_EDITABLE#  #END_EDITABLE#',
-                        range: {
-                            startLineNumber: 1,
-                            startColumn: 1,
-                            endLineNumber: position.lineNumber,
-                            endColumn: position.column
-                        }
-                    }
-                ]
-            };
-        }
+    const registerCompletion = lang => monaco.languages.registerCompletionItemProvider(lang, {
+        provideCompletionItems: (model, position) => ({
+            suggestions: [{
+                label: 'Editable',
+                kind: monaco.languages.CompletionItemKind.Text,
+                insertText: '#BEGIN_EDITABLE# ${1:content} #END_EDITABLE#',
+                range: {
+                    startLineNumber: position.lineNumber,
+                    startColumn: position.column - 1,
+                    endLineNumber: 0,
+                    endColumn: 0
+                },
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+            }]
+        })
     });
+
+    ['html', 'css', 'javascript'].forEach(lang => registerCompletion(lang));
 
     monaco.languages.html.htmlDefaults.setOptions({
         format: {
@@ -193,9 +175,6 @@ function init() {
             endWithNewline: true,
             extraLiners: '',
             wrapAttributes: 'auto',
-        },
-        suggest: {
-            '#BEGIN_EDITABLE#': true
         }
     });
 
@@ -419,7 +398,7 @@ function assembleUI() {
     }, {
         tool: App.UI.btnOpenProject,
         heading: 'open',
-        tip: 'open project from a JSON file containing a valid mission data structure'
+        tip: 'open JSON file containing a valid mission data structure'
     }, {
         tool: App.UI.btnSaveProject,
         heading: 'save',
@@ -427,11 +406,11 @@ function assembleUI() {
     }, {
         tool: App.UI.btnCopyJson,
         heading: 'copy json',
-        tip: 'can be used with the "Import JSON" feature on the BSD Online'
+        tip: 'produce input data for the "Import JSON" feature on BSD Online'
     }, {
         tool: App.UI.btnContinue,
         heading: 'continue',
-        tip: 'load a project from local storage, doing so will overwite the current project'
+        tip: 'load a project from browser local storage, this will overwite the current project'
     }, {
         tool: App.UI.btnTickets,
         heading: 'tickets',
@@ -447,27 +426,27 @@ function assembleUI() {
     }, {
         tool: App.UI.btnNextStep,
         heading: 'next',
-        tip: 'show the next step'
+        tip: 'display the next step'
     }, {
         tool: App.UI.btnPrevStep,
         heading: 'previous',
-        tip: 'show the previous step'
+        tip: 'display the previous step'
     }, {
         tool: App.UI.btnStepType,
         heading: 'type',
-        tip: 'click to change the type of the current step'
+        tip: 'change the current step type'
     }, {
         tool: App.UI.btnStepOrder,
         heading: 'order',
-        tip: 'click to view and rearrange the order of steps'
+        tip: 'view and rearrange the order of steps'
     }, {
         tool: App.UI.btnTemplates,
         heading: 'templates',
-        tip: 'click to choose a template'
+        tip: 'insert a template into the instruction panel'
     }, {
         tool: App.UI.btnObjectives,
         heading: 'generate objectives',
-        tip: 'click to generate objective tests using model answers'
+        tip: 'insert objectives into the instruction panel'
     }, {
         tool: App.UI.btnGetPrev,
         heading: 'get previous',
@@ -479,7 +458,7 @@ function assembleUI() {
     }, {
         tool: App.UI.btnFileMode,
         heading: 'mode',
-        tip: 'click to choose the method by which the code for the current tab is defined'
+        tip: 'choose the method by which the code for the current tab is defined'
     }, {
         tool: App.UI.btnModelAnswers,
         heading: 'edit answers',
@@ -590,6 +569,7 @@ function assembleUI() {
                 config: {
                     getTabs: () => Array.from(App.UI.tabContainer.querySelectorAll('.tab')),
                     getActiveStep: () => activeStep,
+                    getActiveTab: () => activeTab.innerText,
                     storeAnswers,
                     editablePattern,
                 },
@@ -641,23 +621,23 @@ function registerTopLevelEvents() {
             event.preventDefault();
             return;
         }
-    
+
         // handle right alt key
         else if (event.code == 'AltRight' && !altKey) {
             altKey = true;
             focus = document.activeElement;
             focus.blur();
         }
-    
+
         // handles shortcut combos
         if (altKey && event.code != pkey) {
             event.preventDefault();
-    
+
             switch (event.code) {
                 case 'Digit0': break;
                 case 'Digit1': break;
                 case 'Digit2': break;
-                
+
                 case 'Slash': break;
                 case 'KeyN': btnNewStep.click(); break;
                 case 'KeyP': pnlPreview.classList.contains('hidden') ? toggleOutput() : refreshOutput(); break;
@@ -675,7 +655,7 @@ function registerTopLevelEvents() {
                 case 'Comma': btnGetNext.click(); break;
                 case 'Backslash': break;
             }
-    
+
             // LIST OF KEYS TO ALLOW REPEATED PRESS
             pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal|Backslash/, '');
         }
@@ -1116,7 +1096,7 @@ function saveProjectToDisk() {
                 else return `${node.openingTag.raw}${node.isVoid ? '' : `${node.rawContent}${node.closingTag.raw}`}`;
             }
         })
-        .join('');
+            .join('');
     };
     const updateStepList = () => {
         stepList[activeStepNo - 1] = activeStep;
@@ -1300,7 +1280,7 @@ function createStep(placement: number = activeStepNo - 1, newStepType: SingleTyp
             debugGroup('Iteration ', [idx, clr.code], ' on ', ['missionFiles', clr.code]);
 
             const { type: newFileType } = parseFileName(fullName);
-            const content = codeTemplate[newFileType].replace(editablePattern.excludingMarkup, ` step ${placement + 1} ${newFileType} `);
+            const content = codeTemplate[newFileType];//.replace(editablePattern.excludingMarkup, ` step ${placement + 1} ${newFileType} `);
             const model = monaco.editor.createModel(content, langType[newFileType]);
 
             newStep[fullName] = {
@@ -1415,6 +1395,8 @@ function storeInstructions(stepNo: number = activeStepNo) {
             stepList[stepNo - 1].title = title.length ? title : `Step ${stepNo}`;
         }
 
+        console.log(data.blocks);
+
         stepList[stepNo - 1].content.instructions = data.blocks;
 
         return { then: callback => callback() }
@@ -1506,9 +1488,9 @@ function toggleOutput() {
         if (App.UI.pnlPreview.classList.contains('hidden')) {
             pnlPreview.classList.remove('hidden');
             pnlPreview.iframe = el(pnlPreview).addNew('iframe');
-            
+
             refreshOutput();
-            
+
             btnRefreshOutput.classList.remove('hidden');
             btnToggleOutput.firstElementChild.classList.add('active-blue');
         }
@@ -1533,11 +1515,11 @@ function hideOutput() {
 
 function refreshOutput() {
     const { pnlPreview } = App.UI;
-    
+
     if (!pnlPreview.iframe) return;
-    
+
     debugGroup('refreshOutput()');
-    
+
     let srcHtml = getAuthorOrLearnerContent('index.html');
     const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
 

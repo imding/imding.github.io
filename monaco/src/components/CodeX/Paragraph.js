@@ -219,10 +219,10 @@ export default class Paragraph {
         };
     }
 
-    // static get toolbox() {
-    //     return {
-    //         title: 'Paragraph',
-    //         icon: '<svg width="17" height="15" xmlns="http://www.w3.org/2000/svg"><path d="m1.20358,12.36428l9.72856,0l0,-1.62143l-9.72856,0l0,1.62143zm0,-9.72856l0,1.62143l14.59284,0l0,-1.62143l-14.59284,0zm0,5.675l14.59284,0l0,-1.62143l-14.59284,0l0,1.62143z"/></svg>'
-    //     };
-    // }
+    static get toolbox() {
+        return {
+            title: 'Paragraph',
+            icon: '<svg width="17" height="15" xmlns="http://www.w3.org/2000/svg"><path d="m1.20358,12.36428l9.72856,0l0,-1.62143l-9.72856,0l0,1.62143zm0,-9.72856l0,1.62143l14.59284,0l0,-1.62143l-14.59284,0zm0,5.675l14.59284,0l0,-1.62143l-14.59284,0l0,1.62143z"/></svg>'
+        };
+    }
 }

@@ -41,7 +41,7 @@ export default class List {
    *   config - user config for Tool
    *   api - Editor.js API
    */
-  constructor({ data, config, api }) {
+  constructor({ data, api }) {
     /**
      * HTML nodes
      * @private
@@ -106,30 +106,42 @@ export default class List {
     this._elements.wrapper.addEventListener('input', inputHandler);
     this._elements.wrapper.addEventListener('keydown', event => {
       if (event.code === 'Enter') {
-        const isLastItem = this.currentItem === Array.from(event.target.children).pop();
+        const children = Array.from(event.target.children);
+        const isFirstItem = this.currentItem === children[0];
+        const isLastItem = this.currentItem === children.pop();
         const isEmpty = this.currentItem.innerText.trim().length === 0;
-        
-        if (isLastItem && isEmpty) {
+
+        if (!isFirstItem && isLastItem && isEmpty) {
           event.preventDefault();
-          console.log(this.api);
+
+          const { getBlockByIndex, getCurrentBlockIndex, getBlocksCount, insert } = this.api.blocks;
+          const nextBlock = () => getBlockByIndex(currentBlockIndex + 1);
+          const currentBlockIndex = getCurrentBlockIndex();
+          const requireNewBlock = getBlocksCount() === currentBlockIndex + 1 || nextBlock().innerText.trim().length;
+
           this.currentItem.remove();
-          this.api.blocks.insert();
+
+          if (requireNewBlock) {
+            insert();
+          }
+
+          nextBlock().querySelector('.cdx-block').focus();
         }
       }
       else deleteHandler(event);
     });
     // this._elements.wrapper.addEventListener('keydown', event => {
 
-      // const [ENTER, BACKSPACE] = [13, 8]; // key codes
+    // const [ENTER, BACKSPACE] = [13, 8]; // key codes
 
-      // switch (event.keyCode) {
-      //   case ENTER:
-      //     this.getOutofList(event);
-      //     break;
-      //   case BACKSPACE:
-      //     this.backspace(event);
-      //     break;
-      // }
+    // switch (event.keyCode) {
+    //   case ENTER:
+    //     this.getOutofList(event);
+    //     break;
+    //   case BACKSPACE:
+    //     this.backspace(event);
+    //     break;
+    // }
     // });
 
     return this._elements.wrapper;

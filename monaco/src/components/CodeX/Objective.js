@@ -1,8 +1,9 @@
 
 export default class Objective {
-    constructor({ api, config }) {
+    constructor({ api, config, data }) {
         this.api = api;
         this.config = config;
+        this.data = data;
     }
 
     static get toolbox() {
@@ -13,7 +14,7 @@ export default class Objective {
     }
 
     render() {
-        const { getActiveStep, getTabs, editablePattern } = this.config;
+        const { getActiveStep, getTabs, getActiveTab, editablePattern } = this.config;
         const activeStep = getActiveStep();
 
         if (!/code|interactive/.test(activeStep.type)) {
@@ -29,45 +30,72 @@ export default class Objective {
         const descriptionInput = document.createElement('div');
         const testContainer = document.createElement('div');
         const getTest = () => {
-            return `pass.if.${fileSelect.value.split('.')[1]}.editable(${editableSelect.selectedIndex}).equivalent(\`${editableSelect.selectedOptions[0].value.trim()}\`);`;
+            const index = editableSelect.selectedIndex;
+            
+            if (index < 0) return '//\tNo editable selected';
+
+            const type = fileSelect.value.split('.').pop();
+            const answer = editableSelect.value;
+
+            return `//\tExpectations:\npass.if.${type}.editable(${index}).equivalent(\`${answer}\`);`;
         };
         const getDescription = () => {
-            return `On ${fileSelect.value.split('.')[1].toUpperCase()} line ##("${fileSelect.value}","key")+0##, type "${editableSelect.selectedOptions[0].value.trim()}".`;
+            const file = fileSelect.value;
+            const type = file.split('.').pop();
+            const answer = editableSelect.value;
+
+            return `On ${type.toUpperCase()} line ##("${file}","key")+0##, enter "${answer}".`;
         };
-        const getSelectedTabContent = tabName => {
-            return activeStep[tabName].author.getValue();
-        };
-        const extractEditables = () => getTabs().forEach(tab => {
-            const fileOption = document.createElement('option');
-            const tabName = tab.innerText;
+        const updateEditableOptions = (tabName = fileSelect.value, menuOnly) => {
+            const selectedTabEditables = activeStep[tabName].author.getValue().match(editablePattern.excludingMarkup);
 
-            fileOption.value = tabName;
-            fileOption.innerText = tabName;
-            fileSelect.append(fileOption);
+            editableSelect.innerHTML = '';
 
-            if (tab.classList.contains('active')) {
-                fileSelect.value = tabName;
+            if (selectedTabEditables) {
+                selectedTabEditables
+                    .forEach((editableContent, index) => {
+                        const editableOption = document.createElement('option');
 
-                const fileType = tabName.split('.').pop();
-                const selectedTabEditables = getSelectedTabContent(tabName).match(editablePattern.excludingMarkup);
+                        editableOption.value = editableContent.trim();
+                        editableOption.innerText = `#${index}: ${editableContent}`;
+                        editableSelect.append(editableOption);
+                    });
 
+                if (menuOnly) return;
 
-                if (selectedTabEditables) {
-                    selectedTabEditables
-                        .forEach((editableContent, index) => {
-                            const editableOption = document.createElement('option');
+                editableSelect.value = this.data.editableOption || selectedTabEditables[0].trim();
+                this.data.editableOption = editableSelect.value;
 
-                            editableOption.value = editableContent;
-                            editableOption.innerText = `#${index}: ${editableContent}`;
-                            editableSelect.append(editableOption);
-                        });
+                descriptionInput.innerText = this.data.title || getDescription();
+                this.data.title = descriptionInput.innerText;
 
-                    descriptionInput.innerText = getDescription(tabName, fileType, selectedTabEditables[0]);
-                }    
-
-                console.log(selectedTabEditables);
+                testEditor && testEditor.setValue(this.data.testFunction || getTest());
+                //  this.data.testFunction update handled by onDidChangeModelContent
             }
-        });
+            else if (menuOnly) return;
+            else clearContent();
+        };
+        const updateFileOptions = () => {
+            getTabs().forEach(tab => {
+                const fileOption = document.createElement('option');
+                const tabName = tab.innerText;
+
+                fileOption.value = tabName;
+                fileOption.innerText = tabName;
+                fileSelect.append(fileOption);
+            });
+
+            fileSelect.value = this.data.fileOption || getActiveTab();
+            this.data.fileOption = fileSelect.value;
+        };
+        const clearContent = () => {
+            descriptionInput.innerText = 'No editable selected';
+            testEditor && testEditor.setValue(getTest());
+
+            this.data.editableOption = null;
+            this.data.title = null;
+            this.data.testFunction = null;
+        };
         const attachMonacoEditor = () => {
             const resizeTestEditor = () => {
                 const lines = testEditor.getValue().split('\n').length;
@@ -77,10 +105,12 @@ export default class Objective {
                     testEditor.layout();
                     testEditor.lines = lines;
                 }
+
+                this.data.testFunction = testEditor.getValue();
             };
 
             testEditor = monaco.editor.create(testContainer, {
-                value: `//  Expectations:\n${getTest()}`,
+                value: this.data.testFunction || getTest(),
                 language: 'javascript',
                 minimap: { enabled: false },
                 scrollbar: {
@@ -103,37 +133,62 @@ export default class Objective {
 
         fileSelect.classList.add(this.api.styles.input);
         fileSelect.title = 'Pick a file for this test';
-        
+
         editableSelect.classList.add(this.api.styles.input);
         editableSelect.title = 'Pick the editable region for this test';
-        
+
         refreshButton.classList.add('material-icons', 'md-18', 'refresh-button');
         refreshButton.title = 'Refresh the file & editable dropdown list';
         refreshButton.innerText = 'autorenew';
-        
+
         descriptionInput.classList.add('description-input', this.api.styles.input);
         descriptionInput.contentEditable = true;
-        
+
         testContainer.classList.add('test-container');
+
+        fileSelect.addEventListener('change', () => {
+            const fileOption = event.target.selectedOptions[0].innerText;
+
+            updateEditableOptions(fileOption);
+            this.data.fileOption = fileOption;
+        });
 
         editableSelect.addEventListener('change', () => {
             descriptionInput.innerText = getDescription();
-            testEditor.setValue(`//  Expectations:\n${getTest()}`);
-        });
-        
-        refreshButton.addEventListener('click', () => {
-            fileSelect.innerHTML = '';
-            editableSelect.innerHTML = '';
-            extractEditables();
+            this.data.title = descriptionInput.innerText;
+            this.data.editableOption = editableSelect.value;
+            
+            testEditor.setValue(getTest());
+            //  this.data.testFunction update handled by onDidChangeModelContent
         });
 
-        extractEditables();
+        refreshButton.addEventListener('click', () => {
+            updateEditableOptions(undefined, true);
+            editableSelect.value = null;
+            // clearContent();
+        });
+
+        descriptionInput.addEventListener('input', () => {
+            this.data.title = descriptionInput.innerText;
+        });
+
+        updateFileOptions();
+        updateEditableOptions();
+
         setTimeout(attachMonacoEditor, 100);
 
         return wrapper;
     }
 
-    save() { }
+    save() {
+        return this.data;
+    }
 
-    // sanitize() { }
+    static get sanitize() {
+        return {
+            title: true,
+            editableOption: true,
+            testFunction: true
+        };
+    }
 }

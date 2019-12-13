@@ -12,28 +12,16 @@
 }
 
 @font-face {
-    font-family: 'Share-Tech-Mono';
-    src: url(../fonts/ShareTechMono/ShareTechMono.eot);
-    /* IE9 Compat Modes */
-    src: url(../fonts/ShareTechMono/ShareTechMono.eot?#iefix) format('embedded-opentype'), /* IE6-IE8 */
-    url(../fonts/ShareTechMono/ShareTechMono.ttf) format('truetype'), /* Safari, Android, iOS */
-    url(../fonts/ShareTechMono/ShareTechMono.woff) format('woff'), /* Modern Browsers */
-    url(../fonts/ShareTechMono/ShareTechMono.woff2) format('woff2'); /* Modern Browsers */
+    font-family: 'Share Tech';
+    src: url(../fonts/ShareTech/ShareTech-Regular.eot);
+    src: local('Share Tech'),
+        url(../fonts/ShareTech/ShareTech-Regular.eot#iefix) format('embedded-opentype'),
+        url(../fonts/ShareTech/ShareTech-Regular.woff) format('woff'),
+        url(../fonts/ShareTech/ShareTech-Regular.woff2) format('woff2'),
+        url(../fonts/ShareTech/ShareTech-Regular.ttf) format('truetype');
     font-weight: normal;
     font-style: normal;
 }
-
-// @font-face {
-//     font-family: 'Odibee Sans';
-//     src: url(../fonts/OdibeeSans/OdibeeSans-Regular.eot);
-//     src: local('Odibee Sans Regular'), local('OdibeeSans-Regular'),
-//         url(../fonts/OdibeeSans/OdibeeSans-Regular.eot?#iefix) format('embedded-opentype'),
-//         url(../fonts/OdibeeSans/OdibeeSans-Regular.ttf) format('truetype'),
-//         url(../fonts/OdibeeSans/OdibeeSans-Regular.woff) format('woff'),
-//         url(../fonts/OdibeeSans/OdibeeSans-Regular.woff2) format('woff2');
-//     font-weight: normal;
-//     font-style: normal;
-// }
 
 @font-face {
     font-family: 'Monaco';
@@ -119,7 +107,7 @@ body {
 
 #root {
     height: 100vh;
-    font-family: 'Share-Tech-Mono';
+    font-family: 'Share Tech';
     user-select: none;
     overflow: hidden;
     grid-template-rows: 100vh;
@@ -198,7 +186,6 @@ body {
 
         #codex-editor {
             padding: 5px;
-            color: whitesmoke;
             font-family: 'Arial';
             transition: opacity 0.2s ease-in-out;
             overflow: hidden auto;

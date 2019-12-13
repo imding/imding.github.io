@@ -11,6 +11,7 @@
 
     .codex-editor__redactor {
         margin: 0;
+        color: whitesmoke;
         padding-bottom: 100px;
     }
     
@@ -24,7 +25,7 @@
 
         .ce-block__content {
             ul {
-                list-style-position: inside;
+                padding-left: 20px;
 
                 li {
                     margin-bottom: 10px;
