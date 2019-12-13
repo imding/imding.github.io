@@ -246,7 +246,10 @@ class Utility {
                 alert('Type mismatch: 2nd argument of halt() must be a function.');
             }
         
-            alert(message);
+            if (confirm(`${message} Ignore?`)) {
+                return;
+            }
+
             throw new Error(message);
         };
 

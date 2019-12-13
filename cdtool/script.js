@@ -277,10 +277,11 @@ async function pullGLossaryList() {
         const json = await res.json();
 
         json.data.forEach(g => liveGlossaryLink[g.category][g.term] = g.glossaryUuid);
-        alert('Glossary list successfully updated.');
+        console.warn('Glossary list successfully updated.');
     }
     catch (err) {
-        alert(err);
+        console.warn('Failed to fetch glossary list.');
+        console.error(err);
     }
 }
 
@@ -424,12 +425,12 @@ function autoObjectiveText() {
 
                 el.content.forEach(content => {
                     if (content.type === 'text') {
-                        ot += `, and add the text *${content.raw}* between the tags`;
+                        ot += ` and add the text *${content.raw}* between the tags`;
                     }
                 });
             }
 
-            taInstruction.value += `${ot}.`;
+            taInstruction.value += `${ot}.\n`;
         });
     }
 }
