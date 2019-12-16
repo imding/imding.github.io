@@ -1,6 +1,7 @@
 //  https://basarat.gitbooks.io/typescript/content/docs/project/globals.html
 
 import './styles/main.scss';
+import * as esprima from 'esprima';
 import * as streamSaver from 'streamsaver';
 import * as favicon from './images/favicon.png';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
@@ -63,7 +64,8 @@ interface Step {
         instructions?: any,
         text?: string,
         startTab?: string,
-    }
+    },
+    tests?: any
 }
 
 let missionJson: MissionJson;
@@ -787,7 +789,6 @@ function openProjectFromJson() {
             const mission = JSON.parse(reader.result as string);
             //  FIXME: obj().sort() shouldn't convert object to array
             const missionSteps = obj(mission.steps).sort('values', (a, b) => a.orderNo - b.orderNo).filter(step => !step.deleted);
-            console.log(missionSteps);
             const transformContentObject = content => {
                 const glossaryPattern = /^#glossary\/(html|css|javascript)\/(.*)$/;
                 const isEmpty = node => node.content.every(node => {
@@ -886,13 +887,12 @@ function openProjectFromJson() {
             };
 
             missionSteps.forEach((step, idx) => {
-                const title = step.title;
+                const { title, type, stepId } = step;
                 const content = transformContentObject(step.content);
-                const type = step.type;
                 const hasCode = type === stepType.code || type === stepType.interactive;
                 const orderNo = (idx + 1) * 1000;
-                const stepId = step.stepId;
-                const stepObj: Step = { orderNo, hasCode, type, title, stepId, content };
+                const tests = Object.values(step.tests);
+                const stepObj: Step = { orderNo, hasCode, type, title, stepId, content, tests };
 
                 if (hasCode) {
                     const stepFiles = Object.entries(step.files) as Array<[string, any]>;
@@ -1028,14 +1028,189 @@ function loadStepData(targetStepNo: number) {
     //  load instructions
     codexEditor.isReady.then(() => {
         const title = (targetStep.title && targetStep.title.trim().length) ? targetStep.title : `Title - Step ${targetStepNo}`
+        const blocks = [{
+            type: 'header',
+            data: { text: title }
+        }, ...(targetStep.content.instructions || targetStep.content.text)];
+        const extractFrom = (object, cf) => {
+            const re = string => new RegExp(`^(${string})$`);
+            const response: any = {};
+
+            object = object || {};
+
+            if (cf.argument) {
+                const arg = cf.argument.of;
+                const argFound = arg && re(arg).test(object.callee.property.name);
+
+                if (argFound) {
+                    const condition = cf.argument.if;
+                    const fulfilsTest = !condition || Object.entries(condition).every(([key, val]) => {
+                        if (key === 'length') {
+                            return val === object.arguments.length;
+                        }
+                        warn(`The "${key}: ${val}" rule is not handled`);
+                        return;
+                    });
+
+                    if (fulfilsTest) {
+                        const argArray = object.arguments
+                            .map(arg => {
+                                if (arg.type === 'Literal') {
+                                    return arg.value;
+                                }
+                                else if (arg.type === 'TemplateLiteral') {
+                                    if (arg.expressions.length === 0) {
+                                        return arg.quasis[0].value.raw;
+                                    }
+                                    warn('Failed to extrat answer. Template literal contains expression.');
+                                }
+                                return;
+                            })
+                            .filter(arg => arg);
+
+                        if (argArray && argArray.length) response.argument = argArray;
+                        delete cf.argument;
+                    }
+                }
+            }
+            if (cf.hasName && object.property && re(cf.hasName).test(object.property.name)) {
+                response.hasName = object.property.name;
+                delete cf.hasName;
+            }
+
+            const nextObject = object.object || object.callee.object;
+            const nextConfig = Object.keys(cf)[0];
+
+            if (nextConfig) {
+                if (nextObject) Object.assign(response, extractFrom(nextObject, cf));
+                else {
+                    warn(`Unable to extract ${nextConfig} from object:`);
+                    warn(object);
+                    return null;
+                }
+            }
+            return Object.keys(response).length ? response : null;
+        };
+
+
+        (targetStep.tests || [])
+            .filter(test => test.orderNo >= 0)
+            .sort((a, b) => a.orderNo - b.orderNo)
+            .forEach(test => {
+                const { title, testFunction } = test;
+                const testTree = esprima.parseScript(testFunction);
+                const passSyntax = testTree.body.reduce((acc, node) => {
+                    const cutTail = () => {
+                        const { type } = node;
+
+                        if (type === 'ExpressionStatement') {
+                            const expType = node.expression.type;
+
+                            node = node.expression;
+                            return { type, expType };
+                        }
+                        if (type === 'CallExpression') {
+                            const { arguments: args } = node;
+
+                            if (args.length === 1) {
+                                const { callee } = node;
+
+                                if (args[0].type === 'Literal') {
+                                    node = callee.object;
+                                    return {
+                                        type,
+                                        name: callee.property.name,
+                                        arg: typeof args[0].value === 'string' ? args[0].raw : args[0].value
+                                    };
+                                }
+                                else if (args[0].type === 'TemplateLiteral') {
+                                    if (args[0].expressions.length === 0) {
+                                        node = callee.object;
+                                        return {
+                                            type,
+                                            name: callee.property.name,
+                                            arg: args[0].quasis[0].value.raw
+                                        };
+                                    }
+                                }
+                            }
+                        }
+                        else if (type === 'MemberExpression') {
+                            const { object, property } = node;
+
+                            node = object;
+
+                            return {
+                                type,
+                                name: property.name,
+                            };
+                        }
+                        else if (type === 'Identifier') {
+                            const details = { type, name: node.name };
+
+                            node = null;
+
+                            return details;
+                        }
+                    };
+                    let chunk = cutTail();
+                    //  FIXME: handle undefined return value
+                    
+                    if (chunk.type === 'ExpressionStatement' && chunk.expType === 'CallExpression') {
+                        chunk = cutTail();
+
+                        if (chunk.type === 'CallExpression') {
+                            if (chunk.name === 'equivalent') {
+                                const answer = chunk.arg;
+                                const findEditableIndex = () => {
+                                    const { type, name, arg } = cutTail();
+                                    return type === 'CallExpression' && name === 'editable' ? arg : findEditableIndex();
+                                };
+                                const editableIndex = findEditableIndex();
+    
+                                if (Number.isInteger(editableIndex)) {
+                                    const validFile = string => {
+                                        const re = new RegExp(`^(${missionFiles.map(name => name.split('.')[1]).join('|')})$`);
+                                        return re.test(string);
+                                    };
+    
+                                    chunk = cutTail();
+    
+                                    if (chunk.type === 'MemberExpression' && validFile(chunk.name) ) {
+                                        const file = chunk.name;
+                                        acc.push({ file, editableIndex, answer });
+                                    }
+                                }
+                            }
+                            else if (chunk.name === 'on') {
+                                if (/^(pass|fail)$/.test(cutTail().name)) {
+                                    acc.push({ live: true });
+                                }
+                            }
+                        }
+                    }
+
+                    return acc;
+                }, []);
+
+                if (passSyntax.length) {
+                    const { live, file, editableIndex, answer } = passSyntax[0];
+                    const objective: any = {
+                        type: 'objective',
+                        data: { live, title, testFunction }
+                    };
+    
+                    if (!live) {
+                        objective.data.fileOption = missionFiles.filter(name => name.endsWith(file))[0];
+                        objective.data.editableOption = `#${editableIndex}: ${answer}`;
+                    }
+    
+                    blocks.push(objective);
+                }
+            });
 
         codexEditor.blocks.clear();
-        codexEditor.blocks.render({
-            blocks: [{
-                type: 'header',
-                data: { text: title }
-            }, ...(targetStep.content.instructions || targetStep.content.text)]
-        });
+        codexEditor.blocks.render({ blocks });
     });
 
     activeStepNo = targetStepNo;
@@ -1143,11 +1318,14 @@ function saveProjectToDisk() {
                 else if (block.type === 'list') {
                     return `<ul>${block.data.items.map((item: string) => `<li><p class="notes">${transformInstructionBlock(item)}</p></li>`).join('')}</ul>`;
                 }
+                else console.log(block);
             }).join('');
 
             stepObj.title = (stepTitle && stepTitle.length) ? stepTitle : `Step ${stepIndex + 1}`;
-
             stepObj.content[step.hasCode ? 'instructions' : 'text'] = stepInstructions;
+
+            // console.log(stepInstructions);
+
             // if (stepInstructions.trim().length) {
             //     stepObj.content.instructions = stepInstructions;
             // }
@@ -1395,9 +1573,7 @@ function storeInstructions(stepNo: number = activeStepNo) {
             stepList[stepNo - 1].title = title.length ? title : `Step ${stepNo}`;
         }
 
-        console.log(data.blocks);
-
-        stepList[stepNo - 1].content.instructions = data.blocks;
+        stepList[stepNo - 1].content.instructions = data.blocks.filter(block => block.type !== 'objective');
 
         return { then: callback => callback() }
     });

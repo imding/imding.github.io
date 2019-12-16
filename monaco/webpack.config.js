@@ -3,11 +3,12 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const path = require('path');
-const cdtoolDir = 'C:\\Users\\Ding\\Desktop\\github\\imding.github.io\\cdtool\\v2';
+// const cdtoolDir = 'C:\\Users\\Ding\\Desktop\\github\\imding.github.io\\cdtool\\v2';
+const cdtoolDir = '/Users/dare/Documents/GitHub/imding.github.io/cdtool/v2';
 
 module.exports = {
     mode: 'development',
-    // devtool: 'source-map',
+    devtool: 'source-map',
     entry: './src/core.ts',
     devServer: {
         port: 8000

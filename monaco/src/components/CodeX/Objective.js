@@ -47,23 +47,28 @@ export default class Objective {
             return `On ${type.toUpperCase()} line ##("${file}","key")+0##, enter "${answer}".`;
         };
         const updateEditableOptions = (tabName = fileSelect.value, menuOnly) => {
-            const selectedTabEditables = activeStep[tabName].author.getValue().match(editablePattern.excludingMarkup);
-
             editableSelect.innerHTML = '';
+
+            if (this.data.live) {
+                descriptionInput.innerText = this.data.title;
+                return;
+            }
+
+            const selectedTabEditables = activeStep[tabName].author.getValue().match(editablePattern.excludingMarkup);
 
             if (selectedTabEditables) {
                 selectedTabEditables
                     .forEach((editableContent, index) => {
                         const editableOption = document.createElement('option');
 
-                        editableOption.value = editableContent.trim();
-                        editableOption.innerText = `#${index}: ${editableContent}`;
+                        editableOption.innerText = `#${index}: ${editableContent.trim()}`;
+                        editableOption.value = editableOption.innerText;
                         editableSelect.append(editableOption);
                     });
 
                 if (menuOnly) return;
 
-                editableSelect.value = this.data.editableOption || selectedTabEditables[0].trim();
+                editableSelect.value = this.data.editableOption || `#0: ${selectedTabEditables[0].trim()}`;
                 this.data.editableOption = editableSelect.value;
 
                 descriptionInput.innerText = this.data.title || getDescription();
@@ -72,20 +77,21 @@ export default class Objective {
                 testEditor && testEditor.setValue(this.data.testFunction || getTest());
                 //  this.data.testFunction update handled by onDidChangeModelContent
             }
-            else if (menuOnly) return;
-            else clearContent();
+            else if (!menuOnly) clearContent();
         };
         const updateFileOptions = () => {
-            getTabs().forEach(tab => {
-                const fileOption = document.createElement('option');
-                const tabName = tab.innerText;
+            getTabs()
+                .concat(({ innerText: 'Live' }))
+                .forEach(tab => {
+                    const fileOption = document.createElement('option');
+                    const tabName = tab.innerText;
 
-                fileOption.value = tabName;
-                fileOption.innerText = tabName;
-                fileSelect.append(fileOption);
-            });
+                    fileOption.value = tabName;
+                    fileOption.innerText = tabName;
+                    fileSelect.append(fileOption);
+                });
 
-            fileSelect.value = this.data.fileOption || getActiveTab();
+            fileSelect.value = (this.data.live ? 'Live' : this.data.fileOption) || getActiveTab();
             this.data.fileOption = fileSelect.value;
         };
         const clearContent = () => {
@@ -174,6 +180,8 @@ export default class Objective {
 
         updateFileOptions();
         updateEditableOptions();
+
+        // if (this.data.title) console.log(this.data);
 
         setTimeout(attachMonacoEditor, 100);
 
