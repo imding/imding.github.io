@@ -9,10 +9,13 @@
         background-color: rgba(232, 232, 232, 0.04);
     }
 
+    .ce-inline-toolbar {
+        transition: none;
+    }
+
     .codex-editor__redactor {
         margin: 0;
         color: whitesmoke;
-        padding-bottom: 100px;
     }
     
     .ce-block {

@@ -1,3 +1,5 @@
+import { inputHandler, deleteHandler } from './keyboardHandler';
+import HTMLTree from '../HTMLTree';
 
 export default class Objective {
     constructor({ api, config, data }) {
@@ -14,10 +16,10 @@ export default class Objective {
     }
 
     render() {
-        const { getActiveStep, getTabs, getActiveTab, editablePattern } = this.config;
+        const { getActiveStep, getTabs, getActiveTab, getDiffModels, editablePattern, stepType, fileMode } = this.config;
         const activeStep = getActiveStep();
 
-        if (!/code|interactive/.test(activeStep.type)) {
+        if (activeStep.type !== stepType.code && activeStep.type !== stepType.interactive) {
             return alert(`Objectives can't be added to ${activeStep.type} steps`);
         }
 
@@ -35,26 +37,47 @@ export default class Objective {
             if (index < 0) return '//\tNo editable selected';
 
             const type = fileSelect.value.split('.').pop();
-            const answer = editableSelect.value;
+            const answer = editableSelect.value.replace(/^#\d+:\s*/, '');
 
             return `//\tExpectations:\npass.if.${type}.editable(${index}).equivalent(\`${answer}\`);`;
         };
-        const getDescription = () => {
+        const fillDescription = () => {
             const file = fileSelect.value;
             const type = file.split('.').pop();
-            const answer = editableSelect.value;
+            const answer = editableSelect.value.replace(/^#\d+:\s*/, '');
+            const description = `On <strong>${type.toUpperCase()} line ##("${file}","key")+0##</strong>, enter <code class="syntax">${answer}</code>.`;
 
-            return `On ${type.toUpperCase()} line ##("${file}","key")+0##, enter "${answer}".`;
+            descriptionInput.innerHTML = '';
+
+            new HTMLTree(description).forEach(node => {
+                if (node.type === 'text') {
+                    descriptionInput.append(node.raw);
+                }
+                else if (node.type === 'element') {
+                    const el = document.createElement(node.openingTag.tagName);
+                    const content = node.content[0];
+
+                    if (content.type === 'element') {
+                        el.innerText = `${content.openingTag.raw}${content.rawContent}${content.closingTag.raw}`;
+                    }
+                    else {
+                        el.innerText = node.content[0].rawCollapsed;
+                    }
+
+                    node.openingTag.attrs.forEach(attr => el.setAttribute(attr.name, attr.value));
+                    descriptionInput.append(el);
+                }
+            });
         };
         const updateEditableOptions = (tabName = fileSelect.value, menuOnly) => {
             editableSelect.innerHTML = '';
 
             if (this.data.live) {
-                descriptionInput.innerText = this.data.title;
+                descriptionInput.innerHTML = this.data.title;
                 return;
             }
 
-            const selectedTabEditables = activeStep[tabName].author.getValue().match(editablePattern.excludingMarkup);
+            const selectedTabEditables = getDiffModels(tabName).modified.getValue().match(editablePattern.excludingMarkup);
 
             if (selectedTabEditables) {
                 selectedTabEditables
@@ -71,8 +94,8 @@ export default class Objective {
                 editableSelect.value = this.data.editableOption || `#0: ${selectedTabEditables[0].trim()}`;
                 this.data.editableOption = editableSelect.value;
 
-                descriptionInput.innerText = this.data.title || getDescription();
-                this.data.title = descriptionInput.innerText;
+                this.data.title ? descriptionInput.innerHTML = this.data.title : fillDescription();
+                this.data.title = descriptionInput.innerHTML;
 
                 testEditor && testEditor.setValue(this.data.testFunction || getTest());
                 //  this.data.testFunction update handled by onDidChangeModelContent
@@ -160,8 +183,8 @@ export default class Objective {
         });
 
         editableSelect.addEventListener('change', () => {
-            descriptionInput.innerText = getDescription();
-            this.data.title = descriptionInput.innerText;
+            fillDescription();
+            this.data.title = descriptionInput.innerHTML;
             this.data.editableOption = editableSelect.value;
             
             testEditor.setValue(getTest());
@@ -175,8 +198,10 @@ export default class Objective {
         });
 
         descriptionInput.addEventListener('input', () => {
-            this.data.title = descriptionInput.innerText;
+            this.data.title = descriptionInput.innerHTML;
+            inputHandler(event);
         });
+        descriptionInput.addEventListener('keydown', deleteHandler);
 
         updateFileOptions();
         updateEditableOptions();
@@ -194,8 +219,8 @@ export default class Objective {
 
     static get sanitize() {
         return {
-            title: true,
             editableOption: true,
+            title: true,
             testFunction: true
         };
     }

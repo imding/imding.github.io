@@ -7,7 +7,7 @@ import * as favicon from './images/favicon.png';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
 import * as moment from 'moment';
 import * as asana from 'asana';
-import * as EditorJS from './components/CodeX/editor-dev';
+import * as EditorJS from './components/CodeX/editor';
 
 import Header from './components/CodeX/Header';
 import Paragraph from './components/CodeX/Paragraph';
@@ -27,7 +27,7 @@ import HTMLTree from './components/HTMLTree';
 // const EditorJS = require('@editorjs/editorjs');
 
 const consoleDebug = true;
-const consoleFold = false;
+const consoleFold = true;
 const clr = {
     code: { color: 'dodgerblue' },
     string: { color: 'darkorange' },
@@ -85,6 +85,11 @@ const stepCache = {
     new_contents: {},
     modify: {},
     interactive: {},
+};
+
+const bsdMarkup = {
+    any: /##ANY##/,
+    string: /##STRING##/
 };
 
 const editablePattern = {
@@ -572,7 +577,9 @@ function assembleUI() {
                     getTabs: () => Array.from(App.UI.tabContainer.querySelectorAll('.tab')),
                     getActiveStep: () => activeStep,
                     getActiveTab: () => activeTab.innerText,
-                    storeAnswers,
+                    getDiffModels,
+                    stepType,
+                    fileMode,
                     editablePattern,
                 },
             },
@@ -590,7 +597,7 @@ function assembleUI() {
 function registerTopLevelEvents() {
     const {
         pnlActions, pnlPreview,
-        btnProjectSettings, btnOpenProject, btnSaveProject, btnTickets,
+        btnProjectSettings, btnOpenProject, btnSaveProject, btnCopyJson, btnTickets,
         btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
         btnGetPrev, btnGetNext, btnModelAnswers, btnToggleOutput, btnRefreshOutput
     } = App.UI;
@@ -603,6 +610,7 @@ function registerTopLevelEvents() {
     btnProjectSettings.addEventListener('click', toggleSettings);
     btnOpenProject.addEventListener('click', openProjectFromJson);
     btnSaveProject.addEventListener('click', saveProjectToDisk);
+    btnCopyJson.addEventListener('click', copyMissionJson);
     // btnTickets.addEventListener('click', fetchAsanaTickets);
 
     btnNewStep.addEventListener('click', () => createStep(activeStepNo).go());
@@ -789,8 +797,39 @@ function openProjectFromJson() {
             const mission = JSON.parse(reader.result as string);
             //  FIXME: obj().sort() shouldn't convert object to array
             const missionSteps = obj(mission.steps).sort('values', (a, b) => a.orderNo - b.orderNo).filter(step => !step.deleted);
-            const transformContentObject = content => {
+            const transformString = string => {
                 const glossaryPattern = /^#glossary\/(html|css|javascript)\/(.*)$/;
+                const nodes = new HTMLTree(string).map(node => {
+                    if (node.type === 'text') return node.raw;
+
+                    const tagName = node.openingTag.tagName;
+                    const rawNode = `${node.openingTag.raw}${node.isVoid ? '' : `${node.rawContent}${node.closingTag.raw}`}`;
+
+                    if (tagName === 'a') {
+                        const hrefs = node.openingTag.attrs.filter(attr => attr.name === 'href');
+
+                        if (hrefs.length === 0) return node.rawContent;
+                        else if (hrefs.length > 1) {
+                            throw warn('Multiple "href" attribute found');
+                        }
+
+                        const details = hrefs[0].value.match(glossaryPattern);
+
+                        if (details) {
+                            //  IMPORTANT: class name led by "glossary" followed by "[type]-glossary"
+                            return `<span class="glossary ${details[1]}-glossary" accesskey="${details[2]}">${node.content[0].rawCollapsed}</span>`;
+                        }
+                        else return rawNode;
+                    }
+                    else if (tagName === 'code') {
+                        return `<code class="syntax">${node.rawContent}</code>`;
+                    }
+                    else return rawNode;
+                });
+
+                return nodes.join('');
+            };
+            const transformContentObject = content => {
                 const isEmpty = node => node.content.every(node => {
                     const allBreak = node.openingTag && /br/.test(node.openingTag.tagName);
                     const allSpace = node.type === 'text' && node.rawCollapsed.replace(/&nbsp;/g, '').length === 0;
@@ -798,37 +837,6 @@ function openProjectFromJson() {
                     return allBreak || allSpace;
                 });
                 const parseAndTransform = (string, mapping) => new HTMLTree(string).map(mapping).filter(node => node);
-                const transformString = string => {
-                    const nodes = new HTMLTree(string).map(node => {
-                        if (node.type === 'text') return node.raw;
-
-                        const tagName = node.openingTag.tagName;
-                        const rawNode = `${node.openingTag.raw}${node.isVoid ? '' : `${node.rawContent}${node.closingTag.raw}`}`;
-
-                        if (tagName === 'a') {
-                            const hrefs = node.openingTag.attrs.filter(attr => attr.name === 'href');
-
-                            if (hrefs.length === 0) return node.rawContent;
-                            else if (hrefs.length > 1) {
-                                throw warn('Multiple "href" attribute found');
-                            }
-
-                            const details = hrefs[0].value.match(glossaryPattern);
-
-                            if (details) {
-                                //  IMPORTANT: class name led by "glossary" followed by "[type]-glossary"
-                                return `<span class="glossary ${details[1]}-glossary" accesskey="${details[2]}">${node.content[0].rawCollapsed}</span>`;
-                            }
-                            else return rawNode;
-                        }
-                        else if (tagName === 'code') {
-                            return `<code class="inline-code">${node.rawContent}</code>`;
-                        }
-                        else return rawNode;
-                    });
-
-                    return nodes.join('');
-                };
                 const transformImage = node => ({
                     stretched: false,
                     url: getAttrValue('src', node),
@@ -885,14 +893,146 @@ function openProjectFromJson() {
 
                 return content;
             };
+            const transformTests = tests => {
+                const objectiveBlocks = tests
+                    .filter(test => test.orderNo >= 0)
+                    .sort((a, b) => a.orderNo - b.orderNo)
+                    .map(test => {
+                        const { title, testFunction } = test;
+                        const testTree = esprima.parseScript(testFunction);
+                        const passSyntax = testTree.body.reduce((acc, node) => {
+                            const cutTail = () => {
+                                const { type } = node;
+
+                                if (type === 'ExpressionStatement') {
+                                    const expType = node.expression.type;
+
+                                    node = node.expression;
+                                    return { type, expType };
+                                }
+                                if (type === 'CallExpression') {
+                                    const { arguments: args } = node;
+
+                                    if (args.length === 1) {
+                                        const { callee } = node;
+
+                                        if (args[0].type === 'Literal') {
+                                            node = callee.object;
+                                            return {
+                                                type,
+                                                name: callee.property.name,
+                                                arg: typeof args[0].value === 'string' ? args[0].raw : args[0].value
+                                            };
+                                        }
+                                        else if (args[0].type === 'TemplateLiteral') {
+                                            if (args[0].expressions.length === 0) {
+                                                node = callee.object;
+                                                return {
+                                                    type,
+                                                    name: callee.property.name,
+                                                    arg: args[0].quasis[0].value.raw
+                                                };
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (type === 'MemberExpression') {
+                                    const { object, property } = node;
+
+                                    node = object;
+
+                                    return {
+                                        type,
+                                        name: property.name,
+                                    };
+                                }
+                                else if (type === 'Identifier') {
+                                    const details = { type, name: node.name };
+
+                                    node = null;
+
+                                    return details;
+                                }
+                                else return ({});
+                            };
+                            let chunk = cutTail();
+
+                            if (chunk.type === 'ExpressionStatement' && chunk.expType === 'CallExpression') {
+                                chunk = cutTail();
+
+                                if (chunk.type === 'CallExpression') {
+                                    const checkLiveTest = () => {
+                                        if (chunk.name === 'on') {
+                                            if (/^(pass|fail)$/.test(cutTail().name)) {
+                                                acc.push({ live: true });
+                                            }
+                                        }
+                                    };
+
+                                    if (chunk.name === 'equivalent') {
+                                        const answer = chunk.arg;
+                                        const findEditableIndex = () => {
+                                            const { type, name, arg } = cutTail();
+                                            return type === 'CallExpression' && name === 'editable' ? arg : findEditableIndex();
+                                        };
+                                        const editableIndex = findEditableIndex();
+
+                                        if (Number.isInteger(editableIndex)) {
+                                            const validFile = string => {
+                                                const re = new RegExp(`^(${missionFiles.map(name => name.split('.')[1]).join('|')})$`);
+                                                return re.test(string);
+                                            };
+
+                                            chunk = cutTail();
+
+                                            if (chunk.type === 'MemberExpression' && validFile(chunk.name)) {
+                                                const file = chunk.name;
+                                                acc.push({ file, editableIndex, answer });
+                                            }
+                                        }
+                                    }
+                                    else if (chunk.name === 'var') {
+                                        chunk = cutTail();
+                                        checkLiveTest();
+                                    }
+                                    else checkLiveTest();
+                                }
+                            }
+
+                            return acc;
+                        }, []);
+
+                        if (passSyntax.length) {
+                            const { live, file, editableIndex, answer } = passSyntax[0];
+                            const objective: any = {
+                                type: 'objective',
+                                data: { live, title: transformString(title), testFunction }
+                            };
+
+                            if (!live) {
+                                objective.data.fileOption = missionFiles.filter(name => name.endsWith(file))[0];
+
+                                //  avoid setting editable option to string containing BSD specific markup
+                                if (Object.values(bsdMarkup).every(markup => !markup.test(answer))) {
+                                    objective.data.editableOption = `#${editableIndex}: ${answer}`;
+                                }
+                            }
+
+                            return objective;
+                        }
+
+                        return;
+                    });
+
+                return objectiveBlocks;
+            };
 
             missionSteps.forEach((step, idx) => {
                 const { title, type, stepId } = step;
                 const content = transformContentObject(step.content);
                 const hasCode = type === stepType.code || type === stepType.interactive;
                 const orderNo = (idx + 1) * 1000;
-                const tests = Object.values(step.tests);
-                const stepObj: Step = { orderNo, hasCode, type, title, stepId, content, tests };
+                const stepObj: Step = { orderNo, hasCode, type, title, stepId, content };
 
                 if (hasCode) {
                     const stepFiles = Object.entries(step.files) as Array<[string, any]>;
@@ -936,6 +1076,8 @@ function openProjectFromJson() {
 
                         stepObj[fileName] = fileObj;
                     });
+
+                    stepObj.tests = transformTests(Object.values(step.tests));
                 }
                 else if (type === stepType.text) {
                     stepObj.text = step.content.text;
@@ -1032,182 +1174,8 @@ function loadStepData(targetStepNo: number) {
             type: 'header',
             data: { text: title }
         }, ...(targetStep.content.instructions || targetStep.content.text)];
-        const extractFrom = (object, cf) => {
-            const re = string => new RegExp(`^(${string})$`);
-            const response: any = {};
 
-            object = object || {};
-
-            if (cf.argument) {
-                const arg = cf.argument.of;
-                const argFound = arg && re(arg).test(object.callee.property.name);
-
-                if (argFound) {
-                    const condition = cf.argument.if;
-                    const fulfilsTest = !condition || Object.entries(condition).every(([key, val]) => {
-                        if (key === 'length') {
-                            return val === object.arguments.length;
-                        }
-                        warn(`The "${key}: ${val}" rule is not handled`);
-                        return;
-                    });
-
-                    if (fulfilsTest) {
-                        const argArray = object.arguments
-                            .map(arg => {
-                                if (arg.type === 'Literal') {
-                                    return arg.value;
-                                }
-                                else if (arg.type === 'TemplateLiteral') {
-                                    if (arg.expressions.length === 0) {
-                                        return arg.quasis[0].value.raw;
-                                    }
-                                    warn('Failed to extrat answer. Template literal contains expression.');
-                                }
-                                return;
-                            })
-                            .filter(arg => arg);
-
-                        if (argArray && argArray.length) response.argument = argArray;
-                        delete cf.argument;
-                    }
-                }
-            }
-            if (cf.hasName && object.property && re(cf.hasName).test(object.property.name)) {
-                response.hasName = object.property.name;
-                delete cf.hasName;
-            }
-
-            const nextObject = object.object || object.callee.object;
-            const nextConfig = Object.keys(cf)[0];
-
-            if (nextConfig) {
-                if (nextObject) Object.assign(response, extractFrom(nextObject, cf));
-                else {
-                    warn(`Unable to extract ${nextConfig} from object:`);
-                    warn(object);
-                    return null;
-                }
-            }
-            return Object.keys(response).length ? response : null;
-        };
-
-
-        (targetStep.tests || [])
-            .filter(test => test.orderNo >= 0)
-            .sort((a, b) => a.orderNo - b.orderNo)
-            .forEach(test => {
-                const { title, testFunction } = test;
-                const testTree = esprima.parseScript(testFunction);
-                const passSyntax = testTree.body.reduce((acc, node) => {
-                    const cutTail = () => {
-                        const { type } = node;
-
-                        if (type === 'ExpressionStatement') {
-                            const expType = node.expression.type;
-
-                            node = node.expression;
-                            return { type, expType };
-                        }
-                        if (type === 'CallExpression') {
-                            const { arguments: args } = node;
-
-                            if (args.length === 1) {
-                                const { callee } = node;
-
-                                if (args[0].type === 'Literal') {
-                                    node = callee.object;
-                                    return {
-                                        type,
-                                        name: callee.property.name,
-                                        arg: typeof args[0].value === 'string' ? args[0].raw : args[0].value
-                                    };
-                                }
-                                else if (args[0].type === 'TemplateLiteral') {
-                                    if (args[0].expressions.length === 0) {
-                                        node = callee.object;
-                                        return {
-                                            type,
-                                            name: callee.property.name,
-                                            arg: args[0].quasis[0].value.raw
-                                        };
-                                    }
-                                }
-                            }
-                        }
-                        else if (type === 'MemberExpression') {
-                            const { object, property } = node;
-
-                            node = object;
-
-                            return {
-                                type,
-                                name: property.name,
-                            };
-                        }
-                        else if (type === 'Identifier') {
-                            const details = { type, name: node.name };
-
-                            node = null;
-
-                            return details;
-                        }
-                    };
-                    let chunk = cutTail();
-                    //  FIXME: handle undefined return value
-                    
-                    if (chunk.type === 'ExpressionStatement' && chunk.expType === 'CallExpression') {
-                        chunk = cutTail();
-
-                        if (chunk.type === 'CallExpression') {
-                            if (chunk.name === 'equivalent') {
-                                const answer = chunk.arg;
-                                const findEditableIndex = () => {
-                                    const { type, name, arg } = cutTail();
-                                    return type === 'CallExpression' && name === 'editable' ? arg : findEditableIndex();
-                                };
-                                const editableIndex = findEditableIndex();
-    
-                                if (Number.isInteger(editableIndex)) {
-                                    const validFile = string => {
-                                        const re = new RegExp(`^(${missionFiles.map(name => name.split('.')[1]).join('|')})$`);
-                                        return re.test(string);
-                                    };
-    
-                                    chunk = cutTail();
-    
-                                    if (chunk.type === 'MemberExpression' && validFile(chunk.name) ) {
-                                        const file = chunk.name;
-                                        acc.push({ file, editableIndex, answer });
-                                    }
-                                }
-                            }
-                            else if (chunk.name === 'on') {
-                                if (/^(pass|fail)$/.test(cutTail().name)) {
-                                    acc.push({ live: true });
-                                }
-                            }
-                        }
-                    }
-
-                    return acc;
-                }, []);
-
-                if (passSyntax.length) {
-                    const { live, file, editableIndex, answer } = passSyntax[0];
-                    const objective: any = {
-                        type: 'objective',
-                        data: { live, title, testFunction }
-                    };
-    
-                    if (!live) {
-                        objective.data.fileOption = missionFiles.filter(name => name.endsWith(file))[0];
-                        objective.data.editableOption = `#${editableIndex}: ${answer}`;
-                    }
-    
-                    blocks.push(objective);
-                }
-            });
+        (targetStep.tests || []).forEach(test => blocks.push(test));
 
         codexEditor.blocks.clear();
         codexEditor.blocks.render({ blocks });
@@ -1236,7 +1204,7 @@ function getAttrValue(attrName: string, node) {
     return targetAttr[0].value;
 }
 
-function saveProjectToDisk() {
+function updateMissionJson(callback) {
     if (diffEditor) storeAnswers();
 
     const transformInstructionBlock = text => {
@@ -1324,19 +1292,38 @@ function saveProjectToDisk() {
             stepObj.title = (stepTitle && stepTitle.length) ? stepTitle : `Step ${stepIndex + 1}`;
             stepObj.content[step.hasCode ? 'instructions' : 'text'] = stepInstructions;
 
-            // console.log(stepInstructions);
+            //  parse test data
+            const getUniqueId = uniqueCheck => {
+                const id = (Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER - 1)) + 1).toString();
+                return uniqueCheck(id) ? id : getUniqueId(uniqueCheck);
+            };
 
-            // if (stepInstructions.trim().length) {
-            //     stepObj.content.instructions = stepInstructions;
-            // }
-            // else {
-            //     stepObj.content = step.content;
-            // }
+            step.tests.forEach((test, testIndex) => {
+                const testId = getUniqueId(id => !stepObj.tests.hasOwnProperty(id));
+
+                stepObj.tests[testId] = {
+                    title: test.data.title,
+                    stepId: step.stepId,
+                    testId,
+                    orderNo: (testIndex + 1) * 1000,
+                    testFunction: test.data.testFunction,
+                    failureMessage: ""
+                };
+            });
 
             missionJson.steps[stepObj.stepId] = stepObj;
             missionJson.settings.lastModified = moment().format();
         });
+    };
 
+    storeInstructions().then(() => {
+        updateStepList();
+        callback();
+    });
+}
+
+function saveProjectToDisk() {
+    updateMissionJson(() => {
         const fileContent = JSON.stringify(missionJson);
         const blob = new Blob([fileContent]);
         const fileStream = streamSaver.createWriteStream(`${missionJson.settings.title}.json`, { size: blob.size });
@@ -1347,9 +1334,22 @@ function saveProjectToDisk() {
                 alert('Save failed');
                 console.log(err);
             })
-    };
+    });
+}
 
-    storeInstructions().then(updateStepList);
+function copyMissionJson() {
+    updateMissionJson(() => {
+        const json = JSON.stringify(missionJson);
+
+        navigator.clipboard.writeText(json).then(
+            () => {
+                log('Async: Copying to clipboard was successful!');
+            },
+            err => {
+                alert('Copy failed, please find mission JSON in the console.');
+                log(json);
+            });
+    });
 }
 
 // export const asanaTaskSummaryDs = createDerivedState(
@@ -1573,7 +1573,16 @@ function storeInstructions(stepNo: number = activeStepNo) {
             stepList[stepNo - 1].title = title.length ? title : `Step ${stepNo}`;
         }
 
-        stepList[stepNo - 1].content.instructions = data.blocks.filter(block => block.type !== 'objective');
+        const { instructions, tests } = data.blocks.reduce((acc, block) => {
+            if (block.type === 'objective') {
+                acc.tests.push(block);
+            }
+            else acc.instructions.push(block);
+            return acc;
+        }, { instructions: [], tests: [] });
+
+        stepList[stepNo - 1].content.instructions = instructions;
+        stepList[stepNo - 1].tests = tests;
 
         return { then: callback => callback() }
     });
