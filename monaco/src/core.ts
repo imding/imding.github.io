@@ -1743,7 +1743,7 @@ function refreshOutput() {
 
     srcHtml = srcHtml
         //  transform relative platform paths to absolute paths
-        .replace(/(['"])\s*(\/resources\/)/g, '$1https://app.bsd.education$2')
+        .replace(/(['"])\s*(\/resources\/)/g, '$1https://cors.siuling.workers.dev/?https://app.bsd.education$2')
         //  remove editable markup
         .replace(editablePattern.justMarkup, '');
 
