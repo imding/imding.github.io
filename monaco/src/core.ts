@@ -1732,7 +1732,7 @@ function refreshOutput() {
                     const newTag = isCss ? 'style' : 'script';
                     const content = getAuthorOrLearnerContent(attrValue).trim().split('\n').map(line => `\t\t\t${line}`).join('\n');
 
-                    srcHtml = srcHtml.replace(replaceTarget, `<${newTag}>\n${content}\n\t\t</${newTag}>`);
+                    srcHtml = srcHtml.split(replaceTarget).join(`<${newTag}>\n${content}\n\t\t</${newTag}>`);
                 }
             }
             else {
