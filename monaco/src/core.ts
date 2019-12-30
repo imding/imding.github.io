@@ -234,6 +234,7 @@ function resetApp() {
         UI: {
             codexContainer: el('div', { id: 'codex-editor' }),
 
+            pnlLeft: el('section', { id: 'left-panel' }),
             pnlPreview: el('section', { id: 'preview-panel', className: 'hidden' }),
             pnlActions: el('section', { id: 'actions-panel' }),
             pnlCode: el('section', { id: 'code-panel' }),
@@ -261,11 +262,13 @@ function resetApp() {
             btnModelAnswers: null,
             btnToggleOutput: null,
             btnRefreshOutput: null,
+            btnToggleOutputSize: null,
 
             stepInfo: el('span', { id: 'step-info' }),
             tabContainer: el('div', { id: 'code-tabs' }),
             codeContainer: el('div', { id: 'code-editor' }),
         },
+        output: { large: false },
         settings: {
             opened: false,
             unsavedChanges: false,
@@ -340,7 +343,7 @@ function assembleUI() {
     debugGroup('assembleUI()');
 
     App.populate(el('#root') as HTMLElement, {
-        pnlLeft: [el('section', { id: 'left-panel' }), {
+        pnlLeft: [self, {
             pnlTopLeft: [el('section', { id: 'top-left-panel' }), {
                 codexContainer: self,
                 pnlActions: [self, {
@@ -381,7 +384,8 @@ function assembleUI() {
                             btnFileMode: [el('div', {}), { icon: el('i', { className: 'material-icons' }) }],
                             btnModelAnswers: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'spellcheck' }) }],
                             btnToggleOutput: [el('div', {}), { icon: el('i', { className: 'material-icons', innerText: 'visibility' }) }],
-                            btnRefreshOutput: [el('div', { className: 'hidden' }), { icon: el('i', { className: 'material-icons', innerText: 'autorenew' }) }]
+                            btnRefreshOutput: [el('div', { className: 'hidden' }), { icon: el('i', { className: 'material-icons active-blue mini', innerText: 'autorenew' }) }],
+                            btnToggleOutputSize: [el('div', { className: 'hidden' }), { icon: el('i', { className: 'material-icons active-blue mini', innerText: 'zoom_in' }) }],
                         }]
                     }]
                 }]
@@ -478,6 +482,10 @@ function assembleUI() {
         tool: App.UI.btnRefreshOutput,
         heading: 'refresh',
         tip: 'reevaluate the code and refresh the output'
+    }, {
+        tool: App.UI.btnToggleOutputSize,
+        heading: 'adjust size',
+        tip: 'adjust the size of the output window'
     }], {
         dim: [App.UI.codexContainer]
     });
@@ -599,7 +607,7 @@ function registerTopLevelEvents() {
         pnlActions, pnlPreview,
         btnProjectSettings, btnOpenProject, btnSaveProject, btnCopyJson, btnTickets,
         btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
-        btnGetPrev, btnGetNext, btnModelAnswers, btnToggleOutput, btnRefreshOutput
+        btnGetPrev, btnGetNext, btnModelAnswers, btnToggleOutput, btnRefreshOutput, btnToggleOutputSize
     } = App.UI;
 
     pnlActions.addEventListener('scroll', () => {
@@ -623,6 +631,7 @@ function registerTopLevelEvents() {
     btnModelAnswers.addEventListener('click', toggleAnswerEditor);
     btnToggleOutput.addEventListener('click', toggleOutput);
     btnRefreshOutput.addEventListener('click', refreshOutput);
+    btnToggleOutputSize.addEventListener('click', toggleOutputSize);
 
     window.onresize = () => (codeEditor || diffEditor).layout();
     window.onkeydown = (event: KeyboardEvent) => {
@@ -649,6 +658,7 @@ function registerTopLevelEvents() {
                 case 'Digit2': break;
 
                 case 'Slash': break;
+                case 'KeyM': toggleOutputSize(); break;
                 case 'KeyN': btnNewStep.click(); break;
                 case 'KeyP': pnlPreview.classList.contains('hidden') ? toggleOutput() : refreshOutput(); break;
                 case 'KeyL': break;
@@ -667,7 +677,7 @@ function registerTopLevelEvents() {
             }
 
             // LIST OF KEYS TO ALLOW REPEATED PRESS
-            pkey = event.code.replace(/KeyP|KeyL|KeyI|BracketLeft|BracketRight|Minus|Equal|Backslash/, '');
+            pkey = event.code.replace(/KeyP|KeyL|KeyI|KeyM|BracketLeft|BracketRight|Minus|Equal|Backslash/, '');
         }
     };
     window.onkeyup = (event: KeyboardEvent) => {
@@ -1668,16 +1678,21 @@ function toggleOutput() {
     console.group('toggleOutput');
 
     if (activeStep.hasCode) {
-        const { pnlPreview, btnToggleOutput, btnRefreshOutput } = App.UI;
+        const { pnlPreview, btnToggleOutput, btnRefreshOutput, btnToggleOutputSize } = App.UI;
 
-        if (App.UI.pnlPreview.classList.contains('hidden')) {
+        if (pnlPreview.classList.contains('hidden')) {
             pnlPreview.classList.remove('hidden');
             pnlPreview.iframe = el(pnlPreview).addNew('iframe');
 
             refreshOutput();
 
             btnRefreshOutput.classList.remove('hidden');
+            btnToggleOutputSize.classList.remove('hidden');
             btnToggleOutput.firstElementChild.classList.add('active-blue');
+
+            if (App.output.large) {
+                (codeEditor || diffEditor).layout();
+            }
         }
         else hideOutput();
     }
@@ -1689,19 +1704,30 @@ function toggleOutput() {
     console.groupEnd();
 }
 
-function hideOutput() {
-    const { pnlPreview, btnToggleOutput, btnRefreshOutput } = App.UI;
+function toggleOutputSize() {
+    const { pnlPreview, pnlLeft, pnlCode, btnToggleOutputSize } = App.UI;
 
-    el(pnlPreview).remove(pnlPreview.iframe);
+    App.output.large = !App.output.large;
+    (App.output.large ? pnlCode : pnlLeft).appendChild(pnlPreview);
+    (codeEditor || diffEditor).layout();
+
+    btnToggleOutputSize.firstElementChild.innerText = `zoom_${App.output.large ? 'out' : 'in'}`;
+}
+
+function hideOutput() {
+    const { pnlPreview, btnToggleOutput, btnRefreshOutput, btnToggleOutputSize } = App.UI;
+
+    pnlPreview.iframe.remove();
     pnlPreview.classList.add('hidden');
     btnRefreshOutput.classList.add('hidden');
+    btnToggleOutputSize.classList.add('hidden');
     btnToggleOutput.firstElementChild.classList.remove('active-blue');
+
+    if (App.output.large) (codeEditor || diffEditor).layout();
 }
 
 function refreshOutput() {
-    const { pnlPreview } = App.UI;
-
-    if (!pnlPreview.iframe) return;
+    if (!App.UI.pnlPreview.iframe) return;
 
     debugGroup('refreshOutput()');
 
@@ -1747,7 +1773,7 @@ function refreshOutput() {
         //  remove editable markup
         .replace(editablePattern.justMarkup, '');
 
-    pnlPreview.iframe.srcdoc = srcHtml;
+    App.UI.pnlPreview.iframe.srcdoc = srcHtml;
     log('Output panel refreshed');
 
     console.groupEnd();
