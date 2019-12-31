@@ -1,5 +1,5 @@
 
-import { uuidv4 } from './Handy';
+import { uuidv4, uid } from './Handy';
 
 interface TestConfig {
     name: string,
@@ -75,7 +75,7 @@ export function newMissionJson(override: MissionJsonOverride = {}) {
         'settings': {
             'revision': '(1,0)',
             'level': 1,
-            'title': 'Untitled',
+            'title': uid('Project'),
             'description': '',
             'duration': null,
             'type': 'project',
@@ -108,7 +108,8 @@ export function newMissionJson(override: MissionJsonOverride = {}) {
             'missionVideo': '',
             'sandboxDefault': false,
             'serialControls': false,
-            'imageUploadOnHtml': false
+            'imageUploadOnHtml': false,
+            'autoSave': false
         },
         'steps': {}
     }, override);

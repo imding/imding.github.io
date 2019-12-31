@@ -18,7 +18,7 @@ import Code from './components/CodeX/Code';
 import Objective from './components/CodeX/Objective';
 import { HtmlGlossary, CssGlossary, JsGlossary } from './components/CodeX/Glossary';
 
-import { el, newEl, obj, RichText } from './components/Handy';
+import { el, newEl, obj, RichText, uid, decamelise } from './components/Handy';
 import { newMissionJson, newStepJson } from './components/JsonTemplates';
 import tooltip from './components/Tooltip';
 import subMenu from './components/SubMenu';
@@ -133,6 +133,9 @@ const langType = {
     js: 'javascript'
 };
 
+const cachePrefix = 'mission:';
+const cacheInterval = 100;
+
 let pkey;
 let altKey;
 let focus;
@@ -215,6 +218,10 @@ function init() {
     });
 
     codeEditor.focus();
+
+    setInterval(() => {
+        if (missionJson.settings.autoSave) cacheProject();
+    }, cacheInterval * 1000);
 
     console.groupEnd();
 
@@ -605,7 +612,7 @@ function assembleUI() {
 function registerTopLevelEvents() {
     const {
         pnlActions, pnlPreview,
-        btnProjectSettings, btnOpenProject, btnSaveProject, btnCopyJson, btnTickets,
+        btnProjectSettings, btnOpenProject, btnSaveProject, btnCopyJson, btnContinue, btnTickets,
         btnNewStep, btnDelStep, btnNextStep, btnPrevStep,
         btnGetPrev, btnGetNext, btnModelAnswers, btnToggleOutput, btnRefreshOutput, btnToggleOutputSize
     } = App.UI;
@@ -619,6 +626,7 @@ function registerTopLevelEvents() {
     btnOpenProject.addEventListener('click', openProjectFromJson);
     btnSaveProject.addEventListener('click', saveProjectToDisk);
     btnCopyJson.addEventListener('click', copyMissionJson);
+    btnContinue.addEventListener('click', loadFromCache);
     // btnTickets.addEventListener('click', fetchAsanaTickets);
 
     btnNewStep.addEventListener('click', () => createStep(activeStepNo).go());
@@ -701,7 +709,12 @@ function toggleSettings() {
         inputs: {
             projectName: el('input', { value: title }),
             projectVersion: el('input', { value: `${majorRevision}.${minorRevision}` }),
-            projectCard: el('input', { value: cardImage }),
+            projectCard: el('input', { value: cardImage })
+        },
+        togglesContainer: el('div', { id: 'toggles-container' }),
+        toggles: {
+            autoSave: el('div', { className: 'material-icons toggle' }),
+            searchable: el('div', { className: 'material-icons toggle' })
         },
         actionsPanel: el('div', { id: 'settings-actions' }),
         btnSave: el('button', { id: 'save-settings', className: 'material-icons', innerText: 'check' }),
@@ -724,7 +737,7 @@ function toggleSettings() {
                 }
             }
 
-            const title = name === '' ? 'Untitled' : name;
+            const title = name === '' ? uid('Project') : name;
 
             Object.assign(missionJson.settings, {
                 title,
@@ -768,6 +781,22 @@ function toggleSettings() {
         }
     };
 
+    for (const key in settings.toggles) {
+        const toggleContainer = el('div', { className: 'toggle-item' });
+
+        toggleContainer.append(
+            el('p', { innerText: decamelise(key) }),
+            settings.toggles[key]
+        );
+        settings.togglesContainer.append(toggleContainer);
+
+        settings.toggles[key].innerText = `check_box${missionJson.settings[key] ? '' : '_outline_blank'}`
+        settings.toggles[key].addEventListener('click', () => {
+            missionJson.settings[key] = !missionJson.settings[key];
+            settings.toggles[key].innerText = `check_box${missionJson.settings[key] ? '' : '_outline_blank'}`;
+        });
+    }
+
     settings.container.append(
         el('p', { innerText: 'Project Name' }),
         settings.inputs.projectName,
@@ -775,11 +804,11 @@ function toggleSettings() {
         settings.inputs.projectVersion,
         el('p', { innerText: 'Card Image' }),
         settings.inputs.projectCard,
+        settings.togglesContainer,
         settings.actionsPanel,
     );
 
     settings.actionsPanel.append(settings.btnSave, settings.btnCancel);
-
     settings.btnSave.addEventListener('click', saveAndCloseSettings);
     settings.btnCancel.addEventListener('click', closeSettings);
 
@@ -789,7 +818,6 @@ function toggleSettings() {
 
     App.root.append(settings.container);
     App.settings.opened = true;
-
     App.UI.pnlCode.classList.add('dim');
 }
 
@@ -800,311 +828,312 @@ function openProjectFromJson() {
         const reader = new FileReader();
 
         reader.readAsText(fileInput.files[0], 'UTF-8');
-        reader.onload = () => {
-            stepList = [];
-            missionFiles = [];
+        reader.onload = () => parseAndLoadJson(JSON.parse(reader.result as string));
+    };
+}
 
-            const mission = JSON.parse(reader.result as string);
-            //  FIXME: obj().sort() shouldn't convert object to array
-            const missionSteps = obj(mission.steps).sort('values', (a, b) => a.orderNo - b.orderNo).filter(step => !step.deleted);
-            const transformString = string => {
-                const glossaryPattern = /^#glossary\/(html|css|javascript)\/(.*)$/;
-                const nodes = new HTMLTree(string).map(node => {
-                    if (node.type === 'text') return node.raw;
+function parseAndLoadJson(mission) {
+    stepList = [];
+    missionFiles = [];
 
-                    const tagName = node.openingTag.tagName;
-                    const rawNode = `${node.openingTag.raw}${node.isVoid ? '' : `${node.rawContent}${node.closingTag.raw}`}`;
+    //  FIXME: obj().sort() shouldn't convert object to array
+    const missionSteps = obj(mission.steps).sort('values', (a, b) => a.orderNo - b.orderNo).filter(step => !step.deleted);
+    const transformString = string => {
+        const glossaryPattern = /^#glossary\/(html|css|javascript)\/(.*)$/;
+        const nodes = new HTMLTree(string).map(node => {
+            if (node.type === 'text') return node.raw;
 
-                    if (tagName === 'a') {
-                        const hrefs = node.openingTag.attrs.filter(attr => attr.name === 'href');
+            const tagName = node.openingTag.tagName;
+            const rawNode = `${node.openingTag.raw}${node.isVoid ? '' : `${node.rawContent}${node.closingTag.raw}`}`;
 
-                        if (hrefs.length === 0) return node.rawContent;
-                        else if (hrefs.length > 1) {
-                            throw warn('Multiple "href" attribute found');
+            if (tagName === 'a') {
+                const hrefs = node.openingTag.attrs.filter(attr => attr.name === 'href');
+
+                if (hrefs.length === 0) return node.rawContent;
+                else if (hrefs.length > 1) {
+                    throw warn('Multiple "href" attribute found');
+                }
+
+                const details = hrefs[0].value.match(glossaryPattern);
+
+                if (details) {
+                    //  IMPORTANT: class name led by "glossary" followed by "[type]-glossary"
+                    return `<span class="glossary ${details[1]}-glossary" accesskey="${details[2]}">${node.content[0].rawCollapsed}</span>`;
+                }
+                else return rawNode;
+            }
+            else if (tagName === 'code') {
+                return `<code class="syntax">${node.rawContent}</code>`;
+            }
+            else return rawNode;
+        });
+
+        return nodes.join('');
+    };
+    const transformContentObject = content => {
+        const isEmpty = node => node.content.every(node => {
+            const allBreak = node.openingTag && /br/.test(node.openingTag.tagName);
+            const allSpace = node.type === 'text' && node.rawCollapsed.replace(/&nbsp;/g, '').length === 0;
+
+            return allBreak || allSpace;
+        });
+        const parseAndTransform = (string, mapping) => new HTMLTree(string).map(mapping).filter(node => node);
+        const transformImage = node => ({
+            stretched: false,
+            url: getAttrValue('src', node),
+            withBackground: false,
+            withBorder: false
+        });
+
+        if (content.text) content.text = parseAndTransform(content.text, node => {
+            const nodeType = node.openingTag.tagName;
+
+            if (nodeType === 'p') {
+                return isEmpty(node) ? null : {
+                    type: 'paragraph',
+                    data: { text: node.rawContent }
+                }
+            }
+            else if (nodeType === 'img') {
+                return {
+                    type: 'image',
+                    data: transformImage(node)
+                }
+            }
+
+            return;
+        })
+        else content.instructions = parseAndTransform(content.instructions, node => {
+            const nodeType = node.openingTag.tagName;
+
+            if (nodeType === 'p') {
+                return isEmpty(node) ? null : {
+                    type: 'paragraph',
+                    data: { text: transformString(node.rawContent) }
+                };
+            }
+            else if (nodeType === 'img') {
+                return {
+                    type: 'image',
+                    data: transformImage(node)
+                }
+            }
+            else if (nodeType === 'ul') {
+                return {
+                    type: 'list',
+                    data: {
+                        style: 'unordered',
+                        items: node.content.map(item => transformString(item.content[0].rawContent || item.content[0].rawCollapsed))
+                    }
+                }
+            }
+            else if (nodeType === 'code') {
+                console.log(node);
+            }
+        });
+
+        return content;
+    };
+    const transformTests = tests => {
+        const objectiveBlocks = tests
+            .filter(test => test.orderNo >= 0)
+            .sort((a, b) => a.orderNo - b.orderNo)
+            .map(test => {
+                const { title, testFunction } = test;
+                const testTree = esprima.parseScript(testFunction);
+                const passSyntax = testTree.body.reduce((acc, node) => {
+                    const cutTail = () => {
+                        const { type } = node;
+
+                        if (type === 'ExpressionStatement') {
+                            const expType = node.expression.type;
+
+                            node = node.expression;
+                            return { type, expType };
                         }
+                        if (type === 'CallExpression') {
+                            const { arguments: args } = node;
 
-                        const details = hrefs[0].value.match(glossaryPattern);
+                            if (args.length === 1) {
+                                const { callee } = node;
 
-                        if (details) {
-                            //  IMPORTANT: class name led by "glossary" followed by "[type]-glossary"
-                            return `<span class="glossary ${details[1]}-glossary" accesskey="${details[2]}">${node.content[0].rawCollapsed}</span>`;
-                        }
-                        else return rawNode;
-                    }
-                    else if (tagName === 'code') {
-                        return `<code class="syntax">${node.rawContent}</code>`;
-                    }
-                    else return rawNode;
-                });
-
-                return nodes.join('');
-            };
-            const transformContentObject = content => {
-                const isEmpty = node => node.content.every(node => {
-                    const allBreak = node.openingTag && /br/.test(node.openingTag.tagName);
-                    const allSpace = node.type === 'text' && node.rawCollapsed.replace(/&nbsp;/g, '').length === 0;
-
-                    return allBreak || allSpace;
-                });
-                const parseAndTransform = (string, mapping) => new HTMLTree(string).map(mapping).filter(node => node);
-                const transformImage = node => ({
-                    stretched: false,
-                    url: getAttrValue('src', node),
-                    withBackground: false,
-                    withBorder: false
-                });
-
-                if (content.text) content.text = parseAndTransform(content.text, node => {
-                    const nodeType = node.openingTag.tagName;
-
-                    if (nodeType === 'p') {
-                        return isEmpty(node) ? null : {
-                            type: 'paragraph',
-                            data: { text: node.rawContent }
-                        }
-                    }
-                    else if (nodeType === 'img') {
-                        return {
-                            type: 'image',
-                            data: transformImage(node)
-                        }
-                    }
-
-                    return;
-                })
-                else content.instructions = parseAndTransform(content.instructions, node => {
-                    const nodeType = node.openingTag.tagName;
-
-                    if (nodeType === 'p') {
-                        return isEmpty(node) ? null : {
-                            type: 'paragraph',
-                            data: { text: transformString(node.rawContent) }
-                        };
-                    }
-                    else if (nodeType === 'img') {
-                        return {
-                            type: 'image',
-                            data: transformImage(node)
-                        }
-                    }
-                    else if (nodeType === 'ul') {
-                        return {
-                            type: 'list',
-                            data: {
-                                style: 'unordered',
-                                items: node.content.map(item => transformString(item.content[0].rawContent || item.content[0].rawCollapsed))
-                            }
-                        }
-                    }
-                    else if (nodeType === 'code') {
-                        console.log(node);
-                    }
-                });
-
-                return content;
-            };
-            const transformTests = tests => {
-                const objectiveBlocks = tests
-                    .filter(test => test.orderNo >= 0)
-                    .sort((a, b) => a.orderNo - b.orderNo)
-                    .map(test => {
-                        const { title, testFunction } = test;
-                        const testTree = esprima.parseScript(testFunction);
-                        const passSyntax = testTree.body.reduce((acc, node) => {
-                            const cutTail = () => {
-                                const { type } = node;
-
-                                if (type === 'ExpressionStatement') {
-                                    const expType = node.expression.type;
-
-                                    node = node.expression;
-                                    return { type, expType };
-                                }
-                                if (type === 'CallExpression') {
-                                    const { arguments: args } = node;
-
-                                    if (args.length === 1) {
-                                        const { callee } = node;
-
-                                        if (args[0].type === 'Literal') {
-                                            node = callee.object;
-                                            return {
-                                                type,
-                                                name: callee.property.name,
-                                                arg: typeof args[0].value === 'string' ? args[0].raw : args[0].value
-                                            };
-                                        }
-                                        else if (args[0].type === 'TemplateLiteral') {
-                                            if (args[0].expressions.length === 0) {
-                                                node = callee.object;
-                                                return {
-                                                    type,
-                                                    name: callee.property.name,
-                                                    arg: args[0].quasis[0].value.raw
-                                                };
-                                            }
-                                        }
-                                    }
-                                }
-                                else if (type === 'MemberExpression') {
-                                    const { object, property } = node;
-
-                                    node = object;
-
+                                if (args[0].type === 'Literal') {
+                                    node = callee.object;
                                     return {
                                         type,
-                                        name: property.name,
+                                        name: callee.property.name,
+                                        arg: typeof args[0].value === 'string' ? args[0].raw : args[0].value
                                     };
                                 }
-                                else if (type === 'Identifier') {
-                                    const details = { type, name: node.name };
-
-                                    node = null;
-
-                                    return details;
-                                }
-                                else return ({});
-                            };
-                            let chunk = cutTail();
-
-                            if (chunk.type === 'ExpressionStatement' && chunk.expType === 'CallExpression') {
-                                chunk = cutTail();
-
-                                if (chunk.type === 'CallExpression') {
-                                    const checkLiveTest = () => {
-                                        if (chunk.name === 'on') {
-                                            if (/^(pass|fail)$/.test(cutTail().name)) {
-                                                acc.push({ live: true });
-                                            }
-                                        }
-                                    };
-
-                                    if (chunk.name === 'equivalent') {
-                                        const answer = chunk.arg;
-                                        const findEditableIndex = () => {
-                                            const { type, name, arg } = cutTail();
-                                            return type === 'CallExpression' && name === 'editable' ? arg : findEditableIndex();
+                                else if (args[0].type === 'TemplateLiteral') {
+                                    if (args[0].expressions.length === 0) {
+                                        node = callee.object;
+                                        return {
+                                            type,
+                                            name: callee.property.name,
+                                            arg: args[0].quasis[0].value.raw
                                         };
-                                        const editableIndex = findEditableIndex();
-
-                                        if (Number.isInteger(editableIndex)) {
-                                            const validFile = string => {
-                                                const re = new RegExp(`^(${missionFiles.map(name => name.split('.')[1]).join('|')})$`);
-                                                return re.test(string);
-                                            };
-
-                                            chunk = cutTail();
-
-                                            if (chunk.type === 'MemberExpression' && validFile(chunk.name)) {
-                                                const file = chunk.name;
-                                                acc.push({ file, editableIndex, answer });
-                                            }
-                                        }
                                     }
-                                    else if (chunk.name === 'var') {
-                                        chunk = cutTail();
-                                        checkLiveTest();
-                                    }
-                                    else checkLiveTest();
                                 }
                             }
+                        }
+                        else if (type === 'MemberExpression') {
+                            const { object, property } = node;
 
-                            return acc;
-                        }, []);
+                            node = object;
 
-                        if (passSyntax.length) {
-                            const { live, file, editableIndex, answer } = passSyntax[0];
-                            const objective: any = {
-                                type: 'objective',
-                                data: { live, title: transformString(title), testFunction }
+                            return {
+                                type,
+                                name: property.name,
+                            };
+                        }
+                        else if (type === 'Identifier') {
+                            const details = { type, name: node.name };
+
+                            node = null;
+
+                            return details;
+                        }
+                        else return ({});
+                    };
+                    let chunk = cutTail();
+
+                    if (chunk.type === 'ExpressionStatement' && chunk.expType === 'CallExpression') {
+                        chunk = cutTail();
+
+                        if (chunk.type === 'CallExpression') {
+                            const checkLiveTest = () => {
+                                if (chunk.name === 'on') {
+                                    if (/^(pass|fail)$/.test(cutTail().name)) {
+                                        acc.push({ live: true });
+                                    }
+                                }
                             };
 
-                            if (!live) {
-                                objective.data.fileOption = missionFiles.filter(name => name.endsWith(file))[0];
+                            if (chunk.name === 'equivalent') {
+                                const answer = chunk.arg;
+                                const findEditableIndex = () => {
+                                    const { type, name, arg } = cutTail();
+                                    return type === 'CallExpression' && name === 'editable' ? arg : findEditableIndex();
+                                };
+                                const editableIndex = findEditableIndex();
 
-                                //  avoid setting editable option to string containing BSD specific markup
-                                if (Object.values(bsdMarkup).every(markup => !markup.test(answer))) {
-                                    objective.data.editableOption = `#${editableIndex}: ${answer}`;
+                                if (Number.isInteger(editableIndex)) {
+                                    const validFile = string => {
+                                        const re = new RegExp(`^(${missionFiles.map(name => name.split('.')[1]).join('|')})$`);
+                                        return re.test(string);
+                                    };
+
+                                    chunk = cutTail();
+
+                                    if (chunk.type === 'MemberExpression' && validFile(chunk.name)) {
+                                        const file = chunk.name;
+                                        acc.push({ file, editableIndex, answer });
+                                    }
                                 }
                             }
-
-                            return objective;
-                        }
-
-                        return;
-                    });
-
-                return objectiveBlocks;
-            };
-
-            missionSteps.forEach((step, idx) => {
-                const { title, type, stepId } = step;
-                const content = transformContentObject(step.content);
-                const hasCode = type === stepType.code || type === stepType.interactive;
-                const orderNo = (idx + 1) * 1000;
-                const stepObj: Step = { orderNo, hasCode, type, title, stepId, content };
-
-                if (hasCode) {
-                    const stepFiles = Object.entries(step.files) as Array<[string, any]>;
-
-                    if (stepFiles.length > missionFiles.length) {
-                        missionFiles = stepFiles.map(entry => entry[0]);
-                    }
-                    else if (stepFiles.length < missionFiles.length) {
-                        const fileNames = stepFiles.map(fileData => fileData[0]);
-
-                        missionFiles.forEach(fileName => {
-                            if (!fileNames.includes(fileName)) {
-                                stepFiles.push([fileName, { mode: fileMode.noChange }]);
+                            else if (chunk.name === 'var') {
+                                chunk = cutTail();
+                                checkLiveTest();
                             }
-                        });
+                            else checkLiveTest();
+                        }
                     }
 
-                    stepFiles.forEach(file => {
-                        const [fileName, fileData] = file;
-                        const fileObj: File = { mode: fileData.mode || fileMode.newContents };
+                    return acc;
+                }, []);
 
-                        fileData.answers = fileData.answers || [];
-                        fileData.contents = fileData.contents || fileData.contentsWithAnswers;
+                if (passSyntax.length) {
+                    const { live, file, editableIndex, answer } = passSyntax[0];
+                    const objective: any = {
+                        type: 'objective',
+                        data: { live, title: transformString(title), testFunction }
+                    };
 
-                        if (fileObj.mode === fileMode.newContents) {
-                            const content = insertAnswers(fileData.contents, fileData.answers);
-                            const type = langType[parseFileName(fileName).type];
+                    if (!live) {
+                        objective.data.fileOption = missionFiles.filter(name => name.endsWith(file))[0];
 
-                            fileObj.author = monaco.editor.createModel(content, type);
+                        //  avoid setting editable option to string containing BSD specific markup
+                        if (Object.values(bsdMarkup).every(markup => !markup.test(answer))) {
+                            objective.data.editableOption = `#${editableIndex}: ${answer}`;
                         }
-                        else if (fileObj.mode === fileMode.modify) {
-                            fileObj.author = monaco.editor.createModel(fileData.contents, langType.js);
-                        }
+                    }
 
-                        if (step.type === stepType.code) {
-                            fileObj.answers = fileData.answers;
-                        }
-                        else {
-                            fileObj.author = monaco.editor.createModel(fileData.contents, langType[parseFileName(fileName).type]);
-                        }
-
-                        stepObj[fileName] = fileObj;
-                    });
-
-                    stepObj.tests = transformTests(Object.values(step.tests));
-                }
-                else if (type === stepType.text) {
-                    stepObj.text = step.content.text;
+                    return objective;
                 }
 
-                stepList.push(stepObj);
+                return;
             });
 
-            const transform = (name: string) => parseFileName(name).type.replace('html', 'a').replace('css', 'b').replace('js', 'c');
-
-            missionFiles = missionFiles.sort((a, b) => transform(a) < transform(b) ? -1 : 1);
-            missionJson.missionUuid = mission.missionUuid;
-            missionJson.settings = mission.settings;
-
-            loadStepData(1);
-        };
+        return objectiveBlocks;
     };
+
+    missionSteps.forEach((step, idx) => {
+        const { title, type, stepId } = step;
+        const content = transformContentObject(step.content);
+        const hasCode = type === stepType.code || type === stepType.interactive;
+        const orderNo = (idx + 1) * 1000;
+        const stepObj: Step = { orderNo, hasCode, type, title, stepId, content };
+
+        if (hasCode) {
+            const stepFiles = Object.entries(step.files) as Array<[string, any]>;
+
+            if (stepFiles.length > missionFiles.length) {
+                missionFiles = stepFiles.map(entry => entry[0]);
+            }
+            else if (stepFiles.length < missionFiles.length) {
+                const fileNames = stepFiles.map(fileData => fileData[0]);
+
+                missionFiles.forEach(fileName => {
+                    if (!fileNames.includes(fileName)) {
+                        stepFiles.push([fileName, { mode: fileMode.noChange }]);
+                    }
+                });
+            }
+
+            stepFiles.forEach(file => {
+                const [fileName, fileData] = file;
+                const fileObj: File = { mode: fileData.mode || fileMode.newContents };
+
+                fileData.answers = fileData.answers || [];
+                fileData.contents = fileData.contents || fileData.contentsWithAnswers;
+
+                if (fileObj.mode === fileMode.newContents) {
+                    const content = insertAnswers(fileData.contents, fileData.answers);
+                    const type = langType[parseFileName(fileName).type];
+
+                    fileObj.author = monaco.editor.createModel(content, type);
+                }
+                else if (fileObj.mode === fileMode.modify) {
+                    fileObj.author = monaco.editor.createModel(fileData.contents, langType.js);
+                }
+
+                if (step.type === stepType.code) {
+                    fileObj.answers = fileData.answers;
+                }
+                else {
+                    fileObj.author = monaco.editor.createModel(fileData.contents, langType[parseFileName(fileName).type]);
+                }
+
+                stepObj[fileName] = fileObj;
+            });
+
+            stepObj.tests = transformTests(Object.values(step.tests));
+        }
+        else if (type === stepType.text) {
+            stepObj.text = step.content.text;
+        }
+
+        stepList.push(stepObj);
+    });
+
+    const transform = (name: string) => parseFileName(name).type.replace('html', 'a').replace('css', 'b').replace('js', 'c');
+
+    missionFiles = missionFiles.sort((a, b) => transform(a) < transform(b) ? -1 : 1);
+    missionJson.missionUuid = mission.missionUuid;
+    missionJson.settings = mission.settings;
+
+    loadStepData(1);
 }
 
 function goToStep(targetStepNo: number) {
@@ -1116,6 +1145,10 @@ function goToStep(targetStepNo: number) {
     else {
         //  write active step to step list
         if (activeStepNo) {
+            if (codeEditor) {
+                activeStep[activeTab.innerText].viewState = codeEditor.saveViewState();
+            }
+
             storeInstructions().then(() => {
                 stepList[activeStepNo - 1] = activeStep;
                 log('Stored step ', [activeStepNo, clr.code], ' data');
@@ -1149,7 +1182,7 @@ function loadStepData(targetStepNo: number) {
         const noChange = targetTab.mode === fileMode.noChange;
 
         if (codeEditor) {
-            updateAuthorContent(getAuthorModel(tabName, targetStepNo), noChange);
+            updateAuthorContent(getAuthorModel(tabName, targetStepNo), targetStep[tabName].viewState, noChange);
         }
         else {
             storeAnswers();
@@ -1345,6 +1378,60 @@ function saveProjectToDisk() {
                 console.log(err);
             })
     });
+}
+
+function cacheProject() {
+    updateMissionJson(() => {
+        localStorage.setItem(cachePrefix + missionJson.missionUuid, JSON.stringify(missionJson));
+    });
+}
+
+function loadFromCache() {
+    const cachedMissions = [];
+    
+    Object.entries(localStorage).forEach(([key, val]) => {
+        if (key.startsWith(cachePrefix)) {
+            cachedMissions.push(JSON.parse(val));
+        }
+    });
+
+    if (cachedMissions.length) {
+        const continueDialogue = {
+            container: el('div', { id: 'continue-dialogue-container' }),
+            btnClose: el('button', { id:'btnCloseContinueDialogue', className: 'material-icons', innerText: 'close' })
+        };
+        const closeDialogue = () => {
+            continueDialogue.container.remove();
+            App.UI.pnlCode.classList.remove('dim');
+        };
+        const loadAndCloseDialogue = mission => {
+            parseAndLoadJson(mission);
+            closeDialogue();
+        };
+        const removeItem = (item, uuid) => {
+            item.remove();
+            localStorage.removeItem(cachePrefix + uuid);
+        };
+
+        cachedMissions.sort((a, b) => a.settings.lastModified > b.settings.lastModified ? -1 : 1).forEach(mission => {
+            const missionItem = el('div', { className: 'mission-item' });
+            const missionName = el('p', { innerText: mission.settings.title });
+            const lastModified = el('p', { innerText: moment(mission.settings.lastModified).fromNow() });
+            const btnLoad = el('button', { className: 'load-mission material-icons', innerText: 'check_circle' });
+            const btnRemove = el('button', { className: 'remove-mission material-icons', innerText: 'remove_circle' });
+
+            continueDialogue.container.append(missionItem);
+            missionItem.append(missionName, lastModified, btnLoad, btnRemove);
+            btnLoad.addEventListener('click', () => loadAndCloseDialogue(mission));
+            btnRemove.addEventListener('click', () => removeItem(missionItem, mission.missionUuid));
+        });
+
+        continueDialogue.container.append(continueDialogue.btnClose);
+        continueDialogue.btnClose.addEventListener('click', closeDialogue);
+
+        App.root.append(continueDialogue.container);
+        App.UI.pnlCode.classList.add('dim');
+    }
 }
 
 function copyMissionJson() {
@@ -1555,7 +1642,7 @@ function setStepType(targetType: SingleType) {
                 missionFiles.forEach(fullName => updateStepFile(fullName));
             }
 
-            updateAuthorContent(activeStep[activeTab.innerText].author, false);
+            updateAuthorContent(activeStep[activeTab.innerText].author, activeStep[activeTab.innerText].viewState, false);
             activeStep.hasCode = true;
         }
         else if (targetType === stepType.text) {
@@ -1611,7 +1698,8 @@ function switchTab(evt: MouseEvent) {
         const targetFile = activeStep[targetTabName];
 
         if (codeEditor) {
-            updateAuthorContent(getAuthorModel(targetTabName), targetFile.mode === fileMode.noChange);
+            activeStep[activeTab.innerText].viewState = codeEditor.saveViewState();
+            updateAuthorContent(getAuthorModel(targetTabName), targetFile.viewState, targetFile.mode === fileMode.noChange);
         }
         else {
             storeAnswers();
@@ -1659,11 +1747,12 @@ function diffToAuthor(model?: monaco.editor.IModel, readOnly?: boolean) {
     diffEditor = null;
     codeEditor = monaco.editor.create(App.UI.codeContainer, { scrollBeyondLastLine: false });
 
-    if (model) updateAuthorContent(model, readOnly);
+    if (model) updateAuthorContent(model, activeStep[activeTab.innerText].viewState, readOnly);
 }
 
-function updateAuthorContent(model: monaco.editor.IModel, readOnly?: boolean) {
+function updateAuthorContent(model: monaco.editor.IModel, state: monaco.editor.IViewState, readOnly?: boolean) {
     codeEditor.setModel(model);
+    codeEditor.restoreViewState(state);
     codeEditor.focus();
     if (readOnly !== undefined) codeEditor.updateOptions({ readOnly });
 }
@@ -1671,7 +1760,7 @@ function updateAuthorContent(model: monaco.editor.IModel, readOnly?: boolean) {
 function disableCodeEditor() {
     removeTabs();
     addTab('Disabled', true);
-    updateAuthorContent(monaco.editor.createModel('Code editor is disabled for text steps'), true);
+    updateAuthorContent(monaco.editor.createModel('Code editor is disabled for text steps'), null, true);
 }
 
 function toggleOutput() {
@@ -1837,7 +1926,7 @@ function setFileMode(targetMode: SingleMode) {
                 App.UI.btnModelAnswers.firstElementChild.classList.remove('active-green');
             }
 
-            updateAuthorContent(model, noChange);
+            updateAuthorContent(model, null, noChange);
             App.UI.btnFileMode.firstElementChild.innerText = iconNames[targetMode];
         }
     }

@@ -67,7 +67,8 @@ interface MissionJson {
         'missionVideo': string,
         'sandboxDefault': boolean,
         'serialControls': boolean,
-        'imageUploadOnHtml': boolean
+        'imageUploadOnHtml': boolean,
+        'autoSave': boolean
     },
     'steps': StepJsonWithID | {}
 }

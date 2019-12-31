@@ -193,6 +193,22 @@ export function uuidv4() {
     });
 };
 
+//  unique id with or without a prefix
+export function uid(prefix, connector = '-') {
+    // non-zero random scalar
+    const nzrs = () => Math.random() || this.nzrs();
+
+    // random string
+    const rs = `${prefix ? `${prefix}${connector}` : ''}${nzrs().toString(36).slice(-3)}`;
+
+    if (Array.from(document.documentElement.getElementsByTagName('*')).some(el => prefix ? el.id == rs : el.id.endsWith(`${connector}${rs}`))) return this.uid(prefix, connector);
+    return rs;
+}
+
+export function decamelise(str) {
+    return str.replace(/^[a-z]|([A-Z]|\d+)/g, (v, i) => i ? ' ' + v.toUpperCase() : v.toUpperCase());
+}
+
 // ========== ANIMEJS ========== //
 
 export function animate(timeline: object, arg: object) { }
