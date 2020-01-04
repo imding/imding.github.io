@@ -20,7 +20,10 @@ module.exports = {
     },
     module: {
         rules: [{
-            test: /\.(sa|sc|c)ss$/,
+            test: /\.css$/,
+            use: ['style-loader', 'css-loader']
+        }, {
+            test: /\.(sa|sc)ss$/,
             use: ['style-loader', 'css-loader', 'sass-loader',]
         }, {
             test: /\.ts$/,

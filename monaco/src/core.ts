@@ -133,6 +133,15 @@ const langType = {
     js: 'javascript'
 };
 
+const editorOpts: any = {
+    multiCursorModifier: 'ctrlCmd',
+    fontFamily: 'Fira Code',
+    // fontWeight: '400',
+    fontLigatures: true,
+    scrollBeyondLastLine: false,
+    formatOnPaste: true
+}
+
 const cachePrefix = 'mission:';
 const cacheInterval = 100;
 
@@ -604,7 +613,8 @@ function assembleUI() {
         },
     });
 
-    codeEditor = monaco.editor.create(codeContainer, { theme: 'vs-dark', scrollBeyondLastLine: false, formatOnPaste: true });
+    codeEditor = monaco.editor.create(codeContainer, { theme: 'vs-dark' });
+    codeEditor.updateOptions(editorOpts);
 
     registerTopLevelEvents();
 }
@@ -1145,7 +1155,8 @@ function goToStep(targetStepNo: number) {
     else {
         //  write active step to step list
         if (activeStepNo) {
-            if (codeEditor) {
+            //  FIXME: skip text steps
+            if (activeStep.type !== stepType.text && codeEditor) {
                 activeStep[activeTab.innerText].viewState = codeEditor.saveViewState();
             }
 
@@ -1745,7 +1756,8 @@ function removeTabs() {
 function diffToAuthor(model?: monaco.editor.IModel, readOnly?: boolean) {
     diffEditor.dispose();
     diffEditor = null;
-    codeEditor = monaco.editor.create(App.UI.codeContainer, { scrollBeyondLastLine: false });
+    codeEditor = monaco.editor.create(App.UI.codeContainer);
+    codeEditor.updateOptions(editorOpts);
 
     if (model) updateAuthorContent(model, activeStep[activeTab.innerText].viewState, readOnly);
 }
@@ -1950,7 +1962,7 @@ function toggleAnswerEditor() {
             codeEditor.dispose();
             codeEditor = null;
 
-            diffEditor = monaco.editor.createDiffEditor(codeContainer, { scrollBeyondLastLine: false });
+            diffEditor = monaco.editor.createDiffEditor(codeContainer, editorOpts);
             diffEditor.setModel(diffModels);
 
             btnModelAnswers.firstElementChild.classList.add('active-green');
