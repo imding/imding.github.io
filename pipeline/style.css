@@ -131,7 +131,7 @@ body, #Root, .cardEditGroup, .sectionContainer, .contentInput {
 .Card {
     position: sticky;
     width: 350px;
-    padding: 15px 6px 10px 15px;
+    padding: 15px 6px 100px 15px;
     box-sizing: border-box;
     border-radius: 8px 8px 0 0;
     background: #4C5869;
