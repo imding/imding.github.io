@@ -136,7 +136,6 @@ const langType = {
 const editorOpts: any = {
     multiCursorModifier: 'ctrlCmd',
     fontFamily: 'Fira Code',
-    // fontWeight: '400',
     fontLigatures: true,
     scrollBeyondLastLine: false,
     formatOnPaste: true
@@ -1834,8 +1833,9 @@ function refreshOutput() {
 
     let srcHtml = getAuthorOrLearnerContent('index.html');
     const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
+    const attrTypes = { link: 'href', script: 'src' };
 
-    linkAndScript.forEach((node: any) => {
+    linkAndScript && linkAndScript.forEach((node: any) => {
         const tree = new HTMLTree(node);
 
         if (tree.error) {
@@ -1846,24 +1846,30 @@ function refreshOutput() {
             node = tree[0];
 
             const tagType = node.openingTag.tagName;
-            const attrType = tagType === 'link' ? 'href' : tagType === 'script' ? 'src' : '';
-            const attrValue = node.openingTag.attrs.filter(attr => attr.name === attrType)[0].value;
-            const isPrivateFile = activeStep.hasOwnProperty(attrValue);
-            const nodeRaw = `${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`;
-            const { type } = parseFileName(attrValue);
+            const refAttr = node.openingTag.attrs.filter(attr => attr.name === attrTypes[tagType]);
 
-            if (isPrivateFile) {
-                if (/^(css|js)$/.test(type)) {
-                    const isCss = type === 'css';
-                    const replaceTarget = isCss ? node.openingTag.raw : nodeRaw;
-                    const newTag = isCss ? 'style' : 'script';
-                    const content = getAuthorOrLearnerContent(attrValue).trim().split('\n').map(line => `\t\t\t${line}`).join('\n');
-
-                    srcHtml = srcHtml.split(replaceTarget).join(`<${newTag}>\n${content}\n\t\t</${newTag}>`);
+            if (refAttr.length === 1) {
+                const attrValue = refAttr[0].value;
+                const isPrivateFile = activeStep.hasOwnProperty(attrValue);
+                const nodeRaw = `${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`;
+                const { type } = parseFileName(attrValue);
+    
+                if (isPrivateFile) {
+                    if (/^(css|js)$/.test(type)) {
+                        const isCss = type === 'css';
+                        const replaceTarget = isCss ? node.openingTag.raw : nodeRaw;
+                        const newTag = isCss ? 'style' : 'script';
+                        const content = getAuthorOrLearnerContent(attrValue).trim().split('\n').map(line => `\t\t\t${line}`).join('\n');
+    
+                        srcHtml = srcHtml.split(replaceTarget).join(`<${newTag}>\n${content}\n\t\t</${newTag}>`);
+                    }
+                }
+                else {
+                    log([nodeRaw, clr.string], ' points to external file');
                 }
             }
             else {
-                log([nodeRaw, clr.string], ' points to external file');
+                log('Multiple ', [attrTypes[tagType], clr.code], ' attributes found.');
             }
         }
     });

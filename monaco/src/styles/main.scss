@@ -38,8 +38,9 @@
 @font-face {
     font-family: 'Fira Code';
     src: local('Fira Code'),
-        url(../fonts/Fira/FiraCode-Regular.woff2) format('woff2-variations'),
-        url(../fonts/Fira/FiraCode-Regular.woff) format('woff-variations');
+        url(../fonts/Fira/FiraCode-Regular.ttf) format('truetype'),
+        url(../fonts/Fira/FiraCode-Regular.woff2) format('woff2'),
+        url(../fonts/Fira/FiraCode-Regular.woff) format('woff');
     font-weight: 400;
     font-style: normal;
 }

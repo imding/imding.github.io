@@ -88,6 +88,38 @@ class Pipeline {
             ],
         };
 
+        this.iconNames = {
+            p: 'text',
+            img: 'image',
+            audio: 'audio',
+            video: 'video',
+            code: 'code'
+        };
+
+        this.placeholder = {
+            p: 'Text content',
+            img: 'Image link',
+            audio: 'Audio link',
+            video: 'Video link',
+            code: 'Code'
+        };
+
+        this.iconColor = {
+            p: 'skyblue',
+            img: 'goldenrod',
+            audio: 'lightcoral',
+            video: 'mediumaquamarine',
+            code: 'plum'
+        };
+
+        this.attrName = {
+            p: 'html',
+            img: 'src',
+            audio: 'src',
+            video: 'src',
+            code: 'code'
+        };
+
         if (window.firebase.firestore) {
             const config = {
                 apiKey: 'AIzaSyBsuGNus_E4va5nZbPQ5ITlvaFHhI99XpA',
@@ -312,6 +344,11 @@ class Pipeline {
                             item.appendChild(newElement('img', { src: content.src }));
                         }
 
+                        else if (content.type == 'audio') {
+                            content.src = content.src.replace(/^#/, `data/${this.name}/`);
+                            item = newElement('audio', { controls: true, src: content.src });
+                        }
+
                         else if (content.type == 'video') {
                             content.src = content.src.replace(/^#/, `data/${this.name}/`);
                             item = newElement('video', { controls: true, loop: true });
@@ -319,8 +356,7 @@ class Pipeline {
                         }
 
                         else if (content.type == 'code') {
-                            item = newElement('code');
-                            item.textContent = content.code;
+                            item = newElement('code', { textContent: content.code });
                             item.onclick = () => {
                                 const selection = window.getSelection(), rangeObj = document.createRange();
 
@@ -666,19 +702,27 @@ class Pipeline {
                     cardEditGroup.addSectionGroup = section => {
                         const
                             sectionEditGroup = newElement('div', { className: 'sectionEditGroup' }),
-                            newParagraphButton = newElement('i', { className: 'newContentButton newParagraphButton fa fa-plus-square fa-lg' }),
-                            newImageButton = newElement('i', { className: 'newContentButton newImageButton fa fa-plus-square fa-lg' }),
-                            newVideoButton = newElement('i', { className: 'newContentButton newVideoButton fa fa-plus-square fa-lg' }),
-                            newCodeButton = newElement('i', { className: 'newContentButton newCodeButton fa fa-plus-square fa-lg' }),
+                            newParagraphButton = newElement('i', { className: 'newContentButton fa fa-plus-square fa-lg' }),
+                            newImageButton = newElement('i', { className: 'newContentButton fa fa-plus-square fa-lg' }),
+                            newAudioButton = newElement('i', { className: 'newContentButton fa fa-plus-square fa-lg' }),
+                            newVideoButton = newElement('i', { className: 'newContentButton fa fa-plus-square fa-lg' }),
+                            newCodeButton = newElement('i', { className: 'newContentButton fa fa-plus-square fa-lg' }),
                             removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
                             dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
-                            newContent = (type, key) => {
-                                sectionEditGroup.addContentInput({ type: type, [key]: '' });
+                            newContent = type => {
+                                sectionEditGroup.addContentInput({ type, [this.attrName[type]]: '' });
                                 appendButtons();
                             },
                             appendButtons = () => {
+                                sCss(newParagraphButton, { color: this.iconColor['p'] });
+                                sCss(newImageButton, { color: this.iconColor['img'] });
+                                sCss(newAudioButton, { color: this.iconColor['audio'] });
+                                sCss(newVideoButton, { color: this.iconColor['video'] });
+                                sCss(newCodeButton, { color: this.iconColor['code'] });
+
                                 sectionEditGroup.appendChild(newParagraphButton);
                                 sectionEditGroup.appendChild(newImageButton);
+                                sectionEditGroup.appendChild(newAudioButton);
                                 sectionEditGroup.appendChild(newVideoButton);
                                 sectionEditGroup.appendChild(newCodeButton);
                             };
@@ -686,11 +730,10 @@ class Pipeline {
                         sectionEditGroup.addContentInput = item => {
                             const
                                 itemEditGroup = newElement('div', { className: 'itemEditGroup' }),
-                                typeToggle = newElement('i', { className: `typeToggle fa fa-fw fa-file-${item.type == 'p' ? 'text' : item.type == 'img' ? 'image' : item.type == 'video' ? 'video' : 'code'}-o` }),
-                                contentInput = newElement('textarea', { placeholder: `${item.type == 'p' ? 'Content' : item.type == 'img' ? 'Image link' : item.type == 'video' ? 'Video link' : 'Code'}`, className: 'editor contentInput' }),
+                                typeToggle = newElement('i', { className: `typeToggle fa fa-fw fa-file-${this.iconNames[item.type]}-o` }),
+                                contentInput = newElement('textarea', { placeholder: this.placeholder[item.type], className: 'editor contentInput' }),
                                 removeIcon = newElement('i', { className: 'fa fa-trash fa-fw' }),
-                                dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' }),
-                                type = item.type == 'p' ? 'html' : (item.type == 'img' || item.type == 'video') ? 'src' : 'code';
+                                dragIcon = newElement('i', { className: 'fa fa-unsorted fa-fw' });
 
                             //  resize function for every <textarea>
                             contentInput.resize = () => {
@@ -704,20 +747,31 @@ class Pipeline {
                             itemEditGroup.appendChild(removeIcon);
                             itemEditGroup.appendChild(dragIcon);
 
-                            sCss(typeToggle, { color: item.type == 'p' ? 'skyblue' : item.type == 'img' ? 'goldenrod' : item.type == 'video' ? 'mediumaquamarine' : 'plum' });
+                            typeToggle.type = item.type;
+                            typeToggle.icon = this.iconNames[item.type];
+                            typeToggle.color = this.iconColor[item.type];
+                            sCss(typeToggle, { color: typeToggle.color });
 
                             typeToggle.onclick = () => {
-                                const
-                                    isP = typeToggle.classList.contains('fa-file-text-o'),
-                                    isImg = typeToggle.classList.contains('fa-file-image-o'),
-                                    isVid = typeToggle.classList.contains('fa-file-video-o');
+                                const nextToggle = () => {
+                                    const data = { type: Object.keys(this.iconNames), icon: Object.values(this.iconNames), color: Object.values(this.iconColor) };
+                                    const next = key => {
+                                        const entry = data[key];
+                                        return entry[entry.indexOf(typeToggle[key]) + 1] || entry[0];
+                                    };
 
-                                typeToggle.classList.remove(`fa-file-${isP ? 'text' : isImg ? 'image' : isVid ? 'video' : 'code'}-o`);
-                                typeToggle.classList.add(`fa-file-${isP ? 'image' : isImg ? 'video' : isVid ? 'code' : 'text'}-o`);
-                                sCss(typeToggle, { color: isP ? 'goldenrod' : isImg ? 'mediumaquamarine' : isVid ? 'plum' : 'skyblue' });
+                                    return { newType: next('type'), newIcon: next('icon'), newColor: next('color') };
+                                };
+                                const { newType, newIcon, newColor } = nextToggle();
+
+                                typeToggle.classList.remove(`fa-file-${typeToggle.icon}-o`);
+                                typeToggle.classList.add(`fa-file-${newIcon}-o`);
+                                contentInput.placeholder = this.placeholder[newType];
+                                sCss(typeToggle, { color: newColor });
+                                Object.assign(typeToggle, { type: newType, icon: newIcon, color: newColor });
                             };
 
-                            contentInput.value = item[type];
+                            contentInput.value = item[this.attrName[item.type]];
                             contentInput.onfocus = () => this.ruler.matchStyle(contentInput);
                             contentInput.oninput = contentInput.resize;
 
@@ -755,10 +809,11 @@ class Pipeline {
 
                         dragIcon.onmousedown = () => setActiveNodeIn(deckEditor);
 
-                        newParagraphButton.onclick = () => newContent('p', 'html');
-                        newImageButton.onclick = () => newContent('img', 'src');
-                        newVideoButton.onclick = () => newContent('video', 'src');
-                        newCodeButton.onclick = () => newContent('code', 'code');
+                        newParagraphButton.onclick = () => newContent('p');
+                        newImageButton.onclick = () => newContent('img');
+                        newAudioButton.onclick = () => newContent('audio');
+                        newVideoButton.onclick = () => newContent('video');
+                        newCodeButton.onclick = () => newContent('code');
                     };
 
                     deckEditGroup.appendChild(cardEditGroup);
@@ -864,12 +919,12 @@ class Pipeline {
                         cards = deckEditor.activeDeck.el.querySelectorAll('.cardEditGroup'),
                         objFrom = inputGroup => {
                             const
-                                ttcl = inputGroup.querySelector('.typeToggle').classList,
-                                type = ttcl.contains('fa-file-text-o') ? 'p' : ttcl.contains('fa-file-image-o') ? 'img' : ttcl.contains('fa-file-video-o') ? 'video' : 'code',
-                                key = type == 'p' ? 'html' : (type == 'img' || type == 'video') ? 'src' : 'code';
+                                typeToggle = inputGroup.querySelector('.typeToggle'),
+                                type = inputGroup.querySelector('.typeToggle').type,
+                                key = this.attrName[type];
 
                             return {
-                                type: type,
+                                type,
                                 [key]: this.toMarkup(inputGroup.querySelector('.contentInput').value),
                             };
                         };
