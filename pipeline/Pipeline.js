@@ -283,10 +283,10 @@ class Pipeline {
         if (!(name || '').trim().length) throw new Error('the newNode() method expects a name');
 
         const node = {
-            //  index: Object.keys(this.chart.nodes).length,
             self: newElement('div', { className: `Node ${parent ? 'Inner ' : ''}Active`, textContent: name.replace(/^[^\w]+|[^\w]+$/, '') }),
             deck: {
                 self: newElement('div', { id: `${camelise(name)}`, className: 'Deck' }),
+                cards: [],
                 offset: 0,
                 scroll: 0,
             },
@@ -295,41 +295,48 @@ class Pipeline {
                     self: newElement('div', { className: 'Card' }),
                     title: newElement('h4', { textContent: cf.title || 'Card Title' }),
                     sections: [],
+                    collapsibleSections: []
+                };
+                const addToggle = (parent, iniState, altState) => {
+                    const toggleIcon = newElement('i', { className: `fa fa-${iniState.name}` });
+    
+                    parent.append(toggleIcon);
+                    parent.onmouseenter = () => sCss(toggleIcon, { opacity: 0.4 });
+                    parent.onmouseleave = () => sCss(toggleIcon, { opacity: 0.2 });
+                    parent.onclick = () => {
+                        const isDefault = toggleIcon.classList.contains(`fa-${iniState.name}`);
+                        toggleIcon.className = `fa fa-${(isDefault ? altState : iniState).name}`;
+                        (isDefault ? iniState : altState).fn();
+                    };
+    
+                    return toggleIcon;
                 };
 
                 card.self.appendChild(card.title);
                 node.deck.self.appendChild(card.self);
+                node.deck.cards.push(card);
 
                 cf.sections.forEach(section => {
                     const _section = { title: null, content: [] };
                     let sectionContainer;
 
                     if (section.title) {
-                        const clickIndicator = newElement('i', { className: 'fa fa-window-maximize' });
-
                         _section.title = newElement('h5', { textContent: section.title });
-                        _section.title.appendChild(clickIndicator);
-                        card.self.appendChild(_section.title);
-
-                        _section.title.onmouseenter = () => sCss(clickIndicator, { opacity: 0.4 });
-                        _section.title.onmouseleave = () => sCss(clickIndicator, { opacity: 0.2 });
-                        _section.title.onclick = () => {
-                            if (clickIndicator.classList.contains('fa-window-maximize')) {
-                                clickIndicator.className = 'fa fa-window-minimize';
-                                sCss(sectionContainer, { height: sectionContainer.fullHeight });
-                            }
-                            else {
-                                clickIndicator.className = 'fa fa-window-maximize';
+                        _section.title.icon = addToggle(_section.title, {
+                            name: 'window-minimize',
+                            fn: () => {
+                                sectionContainer.fullHeight = `${gCss(sectionContainer).height}px`;
                                 sCss(sectionContainer, { height: 0 });
                             }
-                        };
+                        }, {
+                            name: 'window-maximize',
+                            fn: () => sCss(sectionContainer, { height: sectionContainer.fullHeight })
+                        });
+                        
+                        card.self.appendChild(_section.title);
 
                         sectionContainer = newElement('div', { className: 'sectionContainer' });
-
-                        if (Object.prototype.hasOwnProperty.call(node.deck, 'toBeCollapsed')) {
-                            node.deck.toBeCollapsed.push(sectionContainer);
-                        }
-                        else node.deck.toBeCollapsed = [sectionContainer];
+                        card.collapsibleSections.push({ title: _section.title, container: sectionContainer });
                     }
 
                     section.content.forEach(content => {
@@ -395,10 +402,7 @@ class Pipeline {
                             };
                         }
 
-                        sectionContainer ?
-                            sectionContainer.appendChild(item) :
-                            card.self.appendChild(item);
-
+                        (sectionContainer || card.self).appendChild(item);
                         _section.content.push(item);
                     });
 
@@ -406,6 +410,23 @@ class Pipeline {
 
                     if (sectionContainer) card.self.appendChild(sectionContainer);
                 });
+
+                if (card.collapsibleSections.length) {
+                    sCss(card.title, { cursor: 'pointer' });
+                    addToggle(card.title, {
+                        name: 'compress',
+                        fn: () => card.collapsibleSections.forEach(section => {
+                            const { title } = section;
+                            if (title.icon.classList.contains('fa-window-minimize')) title.click();
+                        })
+                    }, {
+                        name: 'expand',
+                        fn: () => card.collapsibleSections.forEach(section => {
+                            const { title } = section;
+                            if (title.icon.classList.contains('fa-window-maximize')) title.click();
+                        })
+                    });
+                }
             },
         };
 
@@ -444,17 +465,6 @@ class Pipeline {
             this.activeNode = node;
             this.chart.updateOffset();
 
-            //  collapse all titled sections within a deck
-            if (Object.prototype.hasOwnProperty.call(node.deck, 'toBeCollapsed')) {
-                node.deck.toBeCollapsed.forEach(sc => {
-                    const fh = `${gCss(sc).height}px`;
-                    sCss(sc, { height: 0 });
-                    sc.fullHeight = fh;
-                });
-
-                delete node.deck.toBeCollapsed;
-            }
-
             //  snap adjust everything after new deck is displayed
             sCss(this.chart.self, { transition: 'none' });
             sCss(this.activeNode.deck.self, { transition: 'none' });
@@ -462,6 +472,13 @@ class Pipeline {
             this.autoScroll(this.activeNode.deck.scroll, this.activeNode.deck);
             setTimeout(() => sCss(this.chart.self, { transition: 'left 0.2s ease-out' }, 0));
             setTimeout(() => sCss(this.activeNode.deck.self, { transition: 'left 0.2s ease-out' }, 0));
+
+            node.deck.cards.forEach(card => {
+                card.collapsibleSections.forEach(section => {
+                    const { container } = section;
+                    sCss(container, { height: `${container.offsetHeight}px` });
+                });
+            });
         };
 
         return node;

@@ -45,7 +45,7 @@ audio {
     outline: none;
 }
 
-#cPanel, .fa-window-minimize, .fa-window-maximize, .fa-diamond {
+#cPanel, .fa-window-minimize, .fa-window-maximize, .fa-expand, .fa-compress, .fa-diamond {
     position: absolute;
 }
 
@@ -149,6 +149,10 @@ body, #Root, .cardEditGroup, .sectionContainer, .contentInput {
 
 .Card:nth-child(even) {
     background: #424E61;
+}
+
+.sectionContainer {
+    transition: height 0.2s ease;
 }
 
 /* scroll bar */
@@ -257,7 +261,7 @@ h5 {
     background-image: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
 
-h5>.fa-window-maximize, h5>.fa-window-minimize {
+h5>.fa-window-maximize, h5>.fa-window-minimize, h4>.fa-expand, h4>.fa-compress {
     top: 6px;
     right: 10px;
     background-color: rgba(0, 0, 0, 0.2);
