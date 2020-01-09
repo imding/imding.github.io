@@ -41,49 +41,68 @@ class Pipeline {
         };
 
         this.templates = {
-            lesson_plan: [
+            'Technovator': [
                 {
                     title: 'Overview',
                     sections: [
                         { title: 'Activities', content: [{ type: 'p', html: '' }] },
                         { title: 'Learning Objectives', content: [{ type: 'p', html: '' }] },
-                    ],
+                        {
+                            title: 'Segments',
+                            content: [
+                                { type: 'p', html: 'Review (5 mins)' },
+                                { type: 'p', html: 'SEGMENT NAME (0 mins)' },
+                                { type: 'p', html: 'Activity: NAME (0 mins)' },
+                                { type: 'p', html: 'Recap (5 mins)' }
+                            ]
+                        }
+                    ]
                 }, {
                     title: 'Review',
-                    sections: [
-                        { content: [{ type: 'p', html: '' }] },
-                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em::5 minutes]' }] },
-                    ],
+                    sections: [{
+                        content: [
+                            { type: 'p', html: 'What is ...?' },
+                            { type: 'p', html: 'How does ...?' }
+                        ]
+                    }, {
+                        title: 'Answers',
+                        content: [
+                            { type: 'p', html: '' },
+                            { type: 'p', html: '' }
+                        ]
+                    }]
                 }, {
-                    title: 'Engage',
-                    sections: [
-                        { content: [{ type: 'p', html: '' }] },
-                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em::5 minutes]' }] },
-                    ],
+                    title: 'SEGMENT NAME',
+                    sections: [{
+                        content: [
+                            { type: 'p', html: '' },
+                            { type: 'p', html: '' }]
+                    }]
                 }, {
-                    title: 'Explain',
-                    sections: [
-                        { content: [{ type: 'p', html: '' }] },
-                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em::5 minutes]' }] },
-                    ],
-                }, {
-                    title: 'Activity',
+                    title: 'Activity: NAME',
                     sections: [{
                         content: [
                             { type: 'p', html: 'Goal: Students will ' },
-                            { type: 'p', html: 'Duration: [em::40 minutes]' },
-                            { type: 'p', html: 'Mode: Individual work' },
+                            { type: 'p', html: 'Mode: Individual work' }
                         ]
                     }, {
-                        title: 'Notes',
-                        content: [{ type: 'p', html: '' }],
-                    }],
+                        title: 'Directions',
+                        content: [{ type: 'p', html: '' }]
+                    }]
                 }, {
-                    title: 'Wrap Up',
-                    sections: [
-                        { content: [{ type: 'p', html: '' }] },
-                        { title: 'Notes', content: [{ type: 'p', html: 'Recommended duration: [em::5 minutes]' }] },
-                    ],
+                    title: 'Recap',
+                    sections: [{
+                        content: [
+                            { type: 'p', html: 'What is ...?' },
+                            { type: 'p', html: 'How does ...?' }
+                        ]
+                    }, {
+                        title: 'Answers',
+                        content: [
+                            { type: 'p', html: '' },
+                            { type: 'p', html: '' }
+                        ]
+                    }]
                 }
             ],
         };
@@ -151,7 +170,7 @@ class Pipeline {
         };
 
         sCss(this.ruler, { wordBreak: 'break-word' });
-        
+
         document.body.appendChild(this.ruler);
 
         window.onresize = () => {
@@ -307,7 +326,9 @@ class Pipeline {
 
                         sectionContainer = newElement('div', { className: 'sectionContainer' });
 
-                        if (node.deck.hasOwnProperty('toBeCollapsed')) node.deck.toBeCollapsed.push(sectionContainer);
+                        if (Object.prototype.hasOwnProperty.call(node.deck, 'toBeCollapsed')) {
+                            node.deck.toBeCollapsed.push(sectionContainer);
+                        }
                         else node.deck.toBeCollapsed = [sectionContainer];
                     }
 
@@ -324,7 +345,7 @@ class Pipeline {
 
                             sCss(item, { marginTop: '10px' });
 
-                            if (!content.hasOwnProperty('bullet')) content.bullet = true;
+                            if (!Object.prototype.hasOwnProperty.call(content, 'bullet')) content.bullet = true;
 
                             while (this.markup.deco.test(escHTML)) {
                                 const
@@ -388,7 +409,7 @@ class Pipeline {
             },
         };
 
-        if (this.chart.nodes.hasOwnProperty(node.deck.self.id)) {
+        if (Object.prototype.hasOwnProperty.call(this.chart.nodes, node.deck.self.id)) {
             alert(`the ${name.replace(/^>> /, '')} node already exists.`);
             return false;
         }
@@ -424,7 +445,7 @@ class Pipeline {
             this.chart.updateOffset();
 
             //  collapse all titled sections within a deck
-            if (node.deck.hasOwnProperty('toBeCollapsed')) {
+            if (Object.prototype.hasOwnProperty.call(node.deck, 'toBeCollapsed')) {
                 node.deck.toBeCollapsed.forEach(sc => {
                     const fh = `${gCss(sc).height}px`;
                     sCss(sc, { height: 0 });
@@ -517,6 +538,7 @@ class Pipeline {
                 editor.startDrag();
             },
             moveActiveNodeIn = editor => {
+                //  FIXME: enable moving groups
                 let target;
 
                 event.path.some(e => {
@@ -529,11 +551,10 @@ class Pipeline {
 
                 if (!target || !event.movementY) return;
 
-                event.movementY > 0 ?
-                    target.parentNode.insertBefore(editor.active, target.nextElementSibling) :
-                    target.parentNode.insertBefore(editor.active, target);
+                target.parentNode.insertBefore(editor.active, event.movementY > 0 ? target.nextElementSibling : target);
             },
             dropActiveNodeIn = editor => {
+                //  FIXME: enable dropping groups
                 editor.active.classList.remove('dim');
                 sCss(cPanel, { cursor: 'default' });
 
@@ -653,7 +674,7 @@ class Pipeline {
                         if (!isShell) {
                             const key = camelise(nodeNameInput.value.trim());
 
-                            if (this.decksData.hasOwnProperty(key)) {
+                            if (Object.prototype.hasOwnProperty.call(this.decksData, 'key')) {
                                 delete this.decksData[key];
                             }
                         }
@@ -840,7 +861,7 @@ class Pipeline {
 
                     minMaxIcon.onclick = () => {
                         //  get and store the fully expanded height of the card edit group
-                        if (!cardEditGroup.hasOwnProperty('fullHeight')) {
+                        if (!Object.prototype.hasOwnProperty.call(cardEditGroup, 'fullHeight')) {
                             cardEditGroup.fullHeight = `${gCss(cardEditGroup).height}px`;
                             //  convert 'auto' height to '0px' format ( prep for transition )
                             sCss(cardEditGroup, { height: cardEditGroup.fullHeight });
@@ -919,7 +940,6 @@ class Pipeline {
                         cards = deckEditor.activeDeck.el.querySelectorAll('.cardEditGroup'),
                         objFrom = inputGroup => {
                             const
-                                typeToggle = inputGroup.querySelector('.typeToggle'),
                                 type = inputGroup.querySelector('.typeToggle').type,
                                 key = this.attrName[type];
 
@@ -1139,7 +1159,7 @@ class Pipeline {
                     }),
                     verifyDecks = () => {
                         return Object.entries(remote.decksData).length == initDecksData.length && initDecksData.every(deck => {
-                            return remote.decksData.hasOwnProperty(deck[0]) && verifyCards(deck[1], remote.decksData[deck[0]]);
+                            return Object.prototype.hasOwnProperty.call(remote.decksData, deck[0]) && verifyCards(deck[1], remote.decksData[deck[0]]);
                         });
                     },
                     verifyCards = (initCards, remoteCards) => {
@@ -1164,7 +1184,7 @@ class Pipeline {
                         return initContent.length == remoteContent.length && initContent.every((content, l) => {
                             return Object.entries(content).every(kvp => {
                                 const
-                                    matchingKey = remoteContent[l].hasOwnProperty(kvp[0]),
+                                    matchingKey = Object.prototype.hasOwnProperty.call(remoteContent[l], kvp[0]),
                                     matchingValue = kvp[1] == remoteContent[l][kvp[0]];
 
                                 return matchingKey && matchingValue;
