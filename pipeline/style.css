@@ -45,7 +45,7 @@ audio {
     outline: none;
 }
 
-#cPanel, .fa-window-minimize, .fa-window-maximize, .fa-expand, .fa-compress, .fa-diamond {
+#cPanel, .fa-window-minimize, .fa-window-maximize, h4>.fa-expand, h4>.fa-compress, .fa-diamond {
     position: absolute;
 }
 
@@ -91,7 +91,7 @@ body, #Root, .cardEditGroup, .sectionContainer, .contentInput {
     left: 0;
     grid-gap: 14px;
     grid-auto-flow: column;
-    transition: left 0.2s ease-out;
+    transition: left 0.05s ease;
 }
 
 /* node styles */
