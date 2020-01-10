@@ -91,7 +91,6 @@ body, #Root, .cardEditGroup, .sectionContainer, .contentInput {
     left: 0;
     grid-gap: 14px;
     grid-auto-flow: column;
-    transition: left 0.05s ease;
 }
 
 /* node styles */

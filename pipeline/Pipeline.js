@@ -470,8 +470,8 @@ class Pipeline {
             sCss(this.activeNode.deck.self, { transition: 'none' });
             this.autoScroll(event.clientX, this.chart);
             this.autoScroll(this.activeNode.deck.scroll, this.activeNode.deck);
-            setTimeout(() => sCss(this.chart.self, { transition: 'left 0.2s ease-out' }, 0));
-            setTimeout(() => sCss(this.activeNode.deck.self, { transition: 'left 0.2s ease-out' }, 0));
+            setTimeout(() => sCss(this.chart.self, { transition: 'left 0.1s ease' }, 0));
+            setTimeout(() => sCss(this.activeNode.deck.self, { transition: 'left 0.1s ease' }, 0));
 
             node.deck.cards.forEach(card => {
                 card.collapsibleSections.forEach(section => {
