@@ -45,11 +45,11 @@ audio {
     outline: none;
 }
 
-#cPanel, .fa-window-minimize, .fa-window-maximize, h4>.fa-expand, h4>.fa-compress, .fa-diamond {
+#cPanel, .fa-window-minimize, .fa-window-maximize, h4>.fa-expand, h4>.fa-compress, .fa-diamond, .broken-image>p {
     position: absolute;
 }
 
-#Chart, .Active, .Deck, h5, .cardEditGroup {
+#Chart, .Active, .Deck, h5, .cardEditGroup, .broken-image {
     position: relative;
 }
 
@@ -152,6 +152,14 @@ body, #Root, .cardEditGroup, .sectionContainer, .contentInput {
 
 .sectionContainer {
     transition: height 0.2s ease;
+}
+
+.broken-image>p {
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 11px;
+    color: dimgray;
 }
 
 /* scroll bar */

@@ -369,7 +369,20 @@ class Pipeline {
                         else if (content.type == 'img') {
                             content.src = content.src.replace(/^#/, `data/${this.name}/`);
                             item = newElement('a', { href: content.src, target: '_blank' });
-                            item.appendChild(newElement('img', { src: content.src }));
+
+                            const imgElement = newElement('img', { src: content.src });
+
+                            imgElement.onerror = () => {
+                                const linkElement = imgElement.parentNode;
+
+                                imgElement.src = 'img/image-placeholder.png';
+                                item = newElement('div', { className: 'broken-image' });
+                                item.append(imgElement, newElement('p', { textContent: content.src.split('/').pop() }));
+                                linkElement.parentNode.insertBefore(item, linkElement);
+                                linkElement.remove();
+                            };
+
+                            item.appendChild(imgElement);
                         }
 
                         else if (content.type == 'audio') {
