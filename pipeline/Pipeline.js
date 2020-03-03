@@ -58,20 +58,6 @@ class Pipeline {
                         }
                     ]
                 }, {
-                    title: 'Review',
-                    sections: [{
-                        content: [
-                            { type: 'p', html: 'What is ...?' },
-                            { type: 'p', html: 'How does ...?' }
-                        ]
-                    }, {
-                        title: 'Answers',
-                        content: [
-                            { type: 'p', html: '' },
-                            { type: 'p', html: '' }
-                        ]
-                    }]
-                }, {
                     title: 'SEGMENT NAME',
                     sections: [{
                         content: [
