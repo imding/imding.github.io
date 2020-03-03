@@ -1828,9 +1828,9 @@ function hideOutput() {
 
 function insertCrossOrigin(codeString: string = '') {
     const dom = (new DOMParser).parseFromString(codeString, 'text/html');
-    const imgTags = dom.querySelectorAll('img');
+    const assetTags = dom.querySelectorAll('img, audio, video') as NodeListOf<HTMLImageElement|HTMLAudioElement|HTMLVideoElement>;
 
-    imgTags.forEach(tag => tag.crossOrigin = tag.crossOrigin || 'anonymous');
+    assetTags.forEach(asset => asset.crossOrigin = asset.crossOrigin || 'anonymous');
     
     return dom.documentElement.outerHTML;
 }
