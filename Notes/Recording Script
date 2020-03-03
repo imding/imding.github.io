@@ -1,0 +1,110 @@
+Hi, welcome to another BSD video tutorial.
+
+This is the first of a 3-part video series that will walk you through the process of creating a tower model.
+
+As we've previously determined, the tower model is made of levels and each level is largely the same, our goal is to create the shapes found in one level and duplicate them to make up the tower.
+
+There are 3 shapes in each level - the arch, the columns and the body. In this video, we'll create the arch shape.
+
+The arch shape can be created by subtracting a star shape from a cylinder. The star in this case is known as the negative shape, because its actual shape is only used to create negative volume in another object.
+
+The star can be created by adding 6 elongated boxes and rotating everything by 30 degrees after each addition.
+
+=====
+
+We can begin by first adding a box into the graph, you can preview the result by clicking the "Play" button up here.
+
+To customize the box, click the arrow on the block. change the width to 30, because we want it to be long, length to 2.5 and height to 3, this will make it thin.
+
+We can preview again to see our single stick.
+
+Now we need to rotate the stick by 30 degrees because we want to have 6 of these evenly distributed across a full circle.
+
+Grab the "Rotate" block from the "Modify" group and attach it to the box block. 
+
+You can step through the blocks to see what the effect of each by clicking the "Step" button up here.
+
+To make 5 more sticks, we can make use of the "Repeat" block, drag and drop it into the graph from the "Control" category and make it run 6 times.
+
+Preview again. By default, the rotate block only affects the last added object, we need to add a "Select all in Object" block so the rotation applies to all the boxes.
+
+=====
+
+Now we have the star shape, let's turn it into a negative shape using the "Create Group" block, you can find it in the "Modify" category.
+
+Set the group type to negative shape by clicking the grey stripes icon.
+
+Next, add a "Cylinder" block, change the height to 5 and sides to 60. If you zoom in close you will see the curvature of the cylinder is approximated by these flat planes, by default 20 of them, increasing it to 60 will give us a smoother cylinder.
+
+Use another "create group" to get the combined result.
+
+Preview again. You can see cylinder now has a negative volume in the shape of the star.
+
+Attach a "Move" block to align the star with the bottom of the cylinder.
+
+Attach another "move" block so the top surface of the combined shape is aligned with the grid plane. We'll see why this is important later.
+
+Finally, add a "Create new object" block to the top of our blocks. This will save the combined shape into a variable that can be duplicated later. Give it name of "arch".
+
+=====
+
+In part 1 of this video series, we looked at how to create the arch of one tower level. In the 2nd part of this series, we'll walkthrough the process of creating the columns.
+
+Let's begin by adding a new "create new object" block, this time calling it "columns".
+
+The star shape in the arch object created 12 triangular extrusions on the cylinder, so we'll need 12 columns, 1 for each extrusion.
+
+Let's add the "repeat" block and make it run 12 times.
+
+Inside the loop, add a "cylinder" block, set its radius to 0.5 and height to 1. having a height of 1 makes it easier to resize later.
+
+We want the columns to be placed close to the outer rim of the cylinder, we can do this using the "move" block.
+
+We know the radius of the arch object is 10, moving the newly added cylinder by 8.5 units on the x-axis should bring it closer to the outer rim.
+
+click run to preview. 
+
+In order to make the columns go round the cylinder, we need to apply a rotation after adding each column, similar to how we created the star shape.
+
+Grab a "rotate" block and add it after the "move" block and change the axis to z and the rotation amount to 30 degrees.
+
+preview again.
+
+The columns 
+
+=====
+
+Hi, in the previous 2 videos, we went through the process of creating the arch object and the columns object and stored them in variables.
+
+In this final part of the series, we'll be using the two objects to assemble the entire tower model.
+
+let's begin by adding a "Create new object" block.
+
+Having learned how the "select all in object" block works, it's much easier to move everthing up as we create the tower from top to bottom.
+
+Let's create the main body of the tower's top level using a "cylinder" block, set its radius to 7 and height to 14.
+
+Move it up by half its height so the bottom surface is sitting directly on the grid plane.
+
+To make use of the arch object we created before, use the "add copy of object" block, we can find the model variable in the "data" category, drag and drop "arch" into the "add copy of object" block.
+
+This makes a new copy of the arch object, leaving the original untouched.
+
+Because the main body is 14 units tall, we need to move the arch object 14 units up as well.
+
+Here you can see the top surfaces of the arch object and the main body are aligned perfectly, this is why we moved the arch object down when we created it, so its center point, or pivot, is located at the middle of its top surface.
+
+To continue building the top level of the tower, make a new copy of the columns object.
+
+Use a "scale" block to make it 14 units tall.
+
+Here we benefit from making the columns have a height of 1 unit initially, if it were 20 as it would've been by default, we would need to do extra calculation to make it 14 now.
+
+After scaling it, we also need to move it up by half its height.
+
+=====
+
+We're done with the top level of the tower.
+
+If we go back to the reference image
+

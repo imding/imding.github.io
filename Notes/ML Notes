@@ -1,0 +1,10 @@
+### GANs
+Generative Adversarial Networks consists of 2 components:
+1. Discriminator
+2. Generator
+
+Take cat pictures as an example.
+
+The generator would generate a 2D array of pixel data based on some arbitrary noise, the discriminator would assign a scalar value between 0 and 1 to indicate whether it thinks the data represents a total forgery of a cat image or a real photo of a cat, this rating influences how the generator generates its next cat image.
+
+The network achieves its maximum efficiency when the generator always generates cat images that looks like real cats, and the discriminator always outputs 0.5, indicating it's 50/50 whether the cat image is fake or real. At this point, the discriminator can be discarded and the generator is kept for its ability to create realistic cat images.

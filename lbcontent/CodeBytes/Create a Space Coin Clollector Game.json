@@ -1,0 +1,663 @@
+{
+  "missionUuid": "479e6ade-f589-442e-abda-0d6bbf41c8d5",
+  "settings": {
+    "revision": "(0,32)",
+    "level": 6,
+    "title": "1. Create a Space Coin Collector Game",
+    "description": "Learn how to build your first game using Phaser. you will learn to code and create a Space Coin Collector Game!\n\n\n",
+    "duration": null,
+    "type": "project",
+    "status": "exclusive",
+    "tenant": "bsd",
+    "resources": [],
+    "searchable": true,
+    "recommended": false,
+    "tags": [],
+    "missionName": "create-a-space-coin-collector-game",
+    "majorRevision": 0,
+    "minorRevision": 35,
+    "changeInfo": "(4f20505c-e524-4d03-8524-c033cfbb6c5a,\"2020-02-25 07:10:42.139655\")",
+    "objectivesVersion": 2,
+    "cardImage": "/img-proj/22b04250-b43b-468d-8858-2ada6a11f0ab/10a6fda0b429ddb3a271330e8e31cc8e-Screen Shot 2017-10-23 at 6.02.01 PM.png",
+    "authorName": "Mo Qureshi",
+    "authorId": "4f20505c-e524-4d03-8524-c033cfbb6c5a",
+    "ownerId": "8e0c75f3-23ee-44a7-b8ac-df556ac9c05a",
+    "createdDate": "2020-02-10T16:20:26.567Z",
+    "ownerName": "Bob Roncesvalles",
+    "ownerEmail": "br@bsd.education",
+    "lastModified": "2020-02-25T07:10:42.139Z",
+    "atEnd": "portfolio",
+    "cardLinks": [],
+    "webOutput": true,
+    "mobileView": {
+      "mobileViewEnabled": false
+    },
+    "bodyLocking": null,
+    "consoleType": null,
+    "codeUnlocked": null,
+    "missionVideo": "",
+    "sandboxDefault": null,
+    "imageUploadOnHtml": true
+  },
+  "steps": {
+    "7370144197912781": {
+      "title": "Introduction",
+      "type": "interactive",
+      "content": {
+        "instructions": "<p>In this project you will learn how to create a coin collection game using a JavaScript framework called Phaser.</p>\n<p>Go ahead and try out the coin collection game below! Use the arrow keys to move the character.&nbsp;</p>"
+      },
+      "deleted": false,
+      "stepId": "7370144197912781",
+      "majorRevision": 0,
+      "minorRevision": 2,
+      "orderNo": 500,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "<!DOCTYPE html>\n<html>\n    <head>\n        <link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"/>\n    </head>\n    <body>\n\n      <!-- game area -->\n      <div id=\"screen\"></div>\n\n      <!-- link to phaser.js -->\n      <script src=\"https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.min.js\"></script>\n      <script type=\"text/javascript\" src=\"script.js\"></script>\n    </body>\n</html>\n#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        },
+        "script.js": {
+          "contents": "//game setup\nvar game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n\n// Global Variables\nvar player;\nvar key;\nvar cursors;\nvar speed = 900;\nvar score = 0;\nvar score_text;\n\n// Loads assets before starting the game\nfunction preload() {\n    game.load.crossOrigin = 'anonymous'; // For loading external assets\n  // Load player image\n  \tgame.load.image('player', 'https://app.bsd.education/resources/shipBlue_manned.png', 100,100); \n  \tgame.load.image('key', 'https://app.bsd.education/resources/coinGold.png');\n  \tgame.load.image('bgpic', 'https://app.bsd.education/resources/sky-1697359_1280.jpg');\n}\n\n// Creates game objects before starting the game\nfunction create() {\n\tgame.physics.startSystem(Phaser.Physics.Arcade); // Starts the physics system\n    cursors = game.input.keyboard.createCursorKeys(); // Adds keyboard input\n  \n  \t//add background image\n    game.add.image(0, 0, 'bgpic');\n  \n    player = game.add.sprite(128, 128, 'player'); // Add player sprite at x, y position\n  \tplayer.scale.setTo(0.4, 0.4); //scale the image\n    game.physics.enable(player, Phaser.Physics.ARCADE); // Enable player physics\n    player.body.collideWorldBounds = true; // Keep player inside the screen\n  \n  \tkey = game.add.sprite(200, 200, 'key'); // Add key sprite at x, y position\n  \tgame.physics.enable(key, Phaser.Physics.ARCADE); // Enable key physics\n  \tkey.body.immovable = true; // Keep key from moving\n  \n  \tscore_text = game.add.text(0, 0, \"Score: \" + score, {fill: \"white\"}); // Add score text at x, y position\n}\n\n// Runs every frame\nfunction update() {\n  \tvar speed_x = 0; // Current x speed\n  \tvar speed_y = 0; // Current y speed\n \n  \t// X Movement\n    if (cursors.left.isDown) { // Left\n        speed_x = -speed;\n    }\n    else if (cursors.right.isDown) { // Right\n        speed_x = speed;\n    }\n  \n  \t// Y Movement\n    if (cursors.up.isDown) { // Up\n        speed_y = -speed;\n    }\n    else if (cursors.down.isDown) { // Down\n        speed_y = speed;\n    }\n  \t\n  \tvar speed_dir = new Phaser.Point(speed_x, speed_y); // make speed vector\n  \tplayer.body.velocity = speed_dir; // Set player velocity\n    game.physics.arcade.collide(player, key, Collect); // Player-key collision\n}\n\n// Collect Key on Collision\nfunction Collect() {\n  \tvar pos_x = game.rnd.integerInRange(16, game.width - 16 ); // New key x pos\n  \tvar pos_y = game.rnd.integerInRange(16, game.height - 16 ); // New key y pos\n  \tkey.position = new Phaser.Point(pos_x, pos_y); // Change key position\n  \tscore++; // Add a point to the score\n  \tscore_text.text = \"Score: \" + score; // Update the score text\n}\n#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        },
+        "style.css": {
+          "contents": "#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        }
+      },
+      "tests": {}
+    },
+    "7049674483270153": {
+      "title": "Set up the game container",
+      "type": "code",
+      "content": {
+        "instructions": "<p>The first step is to create a game container. We can do this by creating a <code>&lt;div&gt;</code> in HTML.</p>\n<p><strong>Syntax required:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/html/6f45e8ff-64d2-4528-827a-9d2722b8449d\">&lt;div&gt;</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/html/05c870d4-8500-4dbd-98ef-92fd1f6d84a1\">id</a></p>\n</li>\n</ul>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "index.html"
+      },
+      "deleted": false,
+      "stepId": "7049674483270153",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 3000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "<!DOCTYPE html>\n<html>\n    <head>\n        <link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"/>\n    </head>\n    <body>\n\n      <!-- game area -->\n      #BEGIN_EDITABLE#   #END_EDITABLE#\n\n      \n      <script type=\"text/javascript\" src=\"script.js\"></script>\n    </body>\n</html>",
+          "mode": "new_contents",
+          "answers": [
+            "<div id=\"screen\"></div> "
+          ]
+        },
+        "script.js": {
+          "contents": "#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        },
+        "style.css": {
+          "contents": "#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        }
+      },
+      "tests": {
+        "6943054990825883": {
+          "title": "On&nbsp;<strong>HTML line 9</strong>, create a&nbsp;<code>&lt;div&gt;</code>&nbsp;and give it&nbsp;an&nbsp;<code>id</code>&nbsp;called&nbsp;<strong>\"screen\"</strong>",
+          "stepId": "7049674483270153",
+          "testId": "6943054990825883",
+          "orderNo": 1000,
+          "testFunction": "pass.if.html.editable(0).equivalent('<div id=\"screen\"></div>');",
+          "failureMessage": ""
+        }
+      }
+    },
+    "2570783206674660": {
+      "title": "Add the Phaser library",
+      "type": "code",
+      "content": {
+        "instructions": "<p>For our game, we will be using a game engine called Phaser.&nbsp;</p>\n<p>In order to use Phaser in our code, we need to add the link to the Phaser library in our HTML file.</p>\n<p><strong>Syntax required:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/html/72e6a24d-eb8d-4000-bee8-859baffda976\">&lt;script&gt;</a></p>\n</li>\n</ul>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "index.html"
+      },
+      "deleted": false,
+      "stepId": "2570783206674660",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 4000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "<!DOCTYPE html>\n<html>\n    <head>\n        <link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"/>\n    </head>\n    <body>\n\n      <!-- game area -->\n      <div id=\"screen\"></div>\n\n      <!-- link to phaser.js -->\n      #BEGIN_EDITABLE#    #END_EDITABLE#\n      <script type=\"text/javascript\" src=\"script.js\"></script>\n    </body>\n</html>",
+          "mode": "new_contents",
+          "answers": [
+            "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.min.js\"></script> "
+          ]
+        }
+      },
+      "tests": {
+        "4137743057896950": {
+          "title": "On&nbsp;<strong>HTML line 12</strong>,&nbsp;add a&nbsp;<code>script</code>&nbsp;tag and set its&nbsp;<code>src</code>&nbsp;to the following link:&nbsp;<br /><br /><strong>https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.min.js</strong>",
+          "stepId": "2570783206674660",
+          "testId": "4137743057896950",
+          "orderNo": 1000,
+          "testFunction": "pass.if.html.editable(0).equivalent('<script src=\"https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.min.js\"></script>')",
+          "failureMessage": ""
+        }
+      }
+    },
+    "7319056091920703": {
+      "title": "Create a new game object",
+      "type": "code",
+      "content": {
+        "instructions": "<p>We've added Phaser to our HTML file - now we can begin creating our game!</p>\n<p>To do that, let's switch over to our <strong>JavaScript </strong>(also called JS for short).</p>\n<p>In our JS, we'll need to create a game object with the following syntax:&nbsp;</p>\n<pre class=\"language-javascript\"><code> var variableName = new Phaser.Game(width, height, renderer, gamearea, {methods});</code></pre>\n<p><strong>Syntax required:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n</ul>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "7319056091920703",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 5000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "<!DOCTYPE html>\n<html>\n    <head>\n        <link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"/>\n    </head>\n    <body>\n\n      <!-- game area -->\n      <div id=\"screen\"></div>\n\n      <!-- link to phaser.js -->\n      <script src=\"https://cdnjs.cloudflare.com/ajax/libs/phaser/2.6.2/phaser.min.js\"></script>\n      <script type=\"text/javascript\" src=\"script.js\"></script>\n    </body>\n</html>\n#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        },
+        "script.js": {
+          "contents": "\n#BEGIN_EDITABLE#\n\n#END_EDITABLE#\n\nfunction preload(){\n  \n}\n\nfunction create() {\n\n}\n\nfunction update() {\n\n}\n\n\n\n\n\n\n\n\n\n",
+          "mode": "new_contents",
+          "answers": [
+            "var game = new Phaser.Game(640, 480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});"
+          ]
+        }
+      },
+      "tests": {
+        "5209676846112406": {
+          "title": "On&nbsp;<strong>JS line 2</strong>, create a&nbsp;<code>variable</code>&nbsp;called&nbsp;<strong>game</strong>&nbsp;and assign it a new Phaser game object with the following parameters:&nbsp;<br /><br /><code>width</code>&nbsp;-&nbsp;<strong>640</strong><br /><code>height</code>&nbsp;-&nbsp;<strong>480&nbsp;</strong><br /><code>renderer</code>&nbsp;-&nbsp;<strong>Phaser.AUTO</strong><br /><code>gamearea</code>&nbsp;- '<strong>screen'</strong><br /><code>methods</code>&nbsp;-&nbsp;<strong>&nbsp;preload: preload, create: create, update: update</strong>",
+          "stepId": "7319056091920703",
+          "testId": "5209676846112406",
+          "orderNo": 1000,
+          "testFunction": "pass.if.js.editable(0).equivalent('var game = new Phaser.Game(640,480, Phaser.AUTO, \\'screen\\', {    preload: preload,    create: create,    update: update});');",
+          "failureMessage": ""
+        }
+      }
+    },
+    "5045065526598902": {
+      "title": "Create the preload(), create(), and update() functions",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Now let's create the three main functions we'll need for our game: <code><strong>preload()</strong></code>, <code><strong>create()</strong></code>, and <code><strong>update()</strong></code>.&nbsp;</p>\n<p>The <code><strong>preload()</strong></code> function is used to load all our game's assets, the <code><strong>create()</strong></code> function is used to display and position the game's assets, and the <strong><code>update()</code> </strong>function is used to check if specific actions occur in the game.&nbsp;</p>\n<p><strong>Syntax required:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n</ul>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "5045065526598902",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 7000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "var game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n\n#BEGIN_EDITABLE# #END_EDITABLE#\n\n#BEGIN_EDITABLE# #END_EDITABLE#\n\n#BEGIN_EDITABLE# #END_EDITABLE#\n\n",
+          "mode": "new_contents",
+          "answers": [
+            "function preload() {} ",
+            "function create() {} ",
+            "function update() {}  "
+          ]
+        }
+      },
+      "tests": {
+        "4496775490993912": {
+          "title": "On<strong>&nbsp;JS line 7</strong>, create the&nbsp;<strong>preload()</strong>&nbsp;function.&nbsp;",
+          "stepId": "5045065526598902",
+          "testId": "4496775490993912",
+          "orderNo": 1000,
+          "testFunction": "pass.if.js.editable(0).equivalent('function preload(){}');",
+          "failureMessage": ""
+        },
+        "2036939789654932": {
+          "title": "&nbsp;On&nbsp;<strong>JS line 9</strong>, create the&nbsp;<strong>create()</strong>&nbsp;function.",
+          "stepId": "5045065526598902",
+          "testId": "2036939789654932",
+          "orderNo": 2000,
+          "testFunction": "pass.if.js.editable(1).equivalent('function create(){}');",
+          "failureMessage": ""
+        },
+        "4058095261016354": {
+          "title": "n&nbsp;<strong>JS line 11</strong>, create the&nbsp;<strong>update()</strong>&nbsp;function.&nbsp;",
+          "stepId": "5045065526598902",
+          "testId": "4058095261016354",
+          "orderNo": 3000,
+          "testFunction": "pass.if.js.editable(2).equivalent('function update(){}')",
+          "failureMessage": ""
+        }
+      }
+    },
+    "469612223945582": {
+      "title": "Preload items before the game begins",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Before we can even play the game, we need to load all the game's assets!&nbsp;</p>\n<p>Assets are all the visual elements that the player will see, such as sprites, collectables, and background images.&nbsp;</p>\n<p>For our coin collection game, we will need to load images using the <strong>load.image()</strong> method.&nbsp;</p>\n<p><strong>Syntax required:</strong></p>\n<pre class=\"language-javascript\"><code> game.load.image('identifier','image_url');</code></pre>\n<p>We will use the following images as our player sprite and key sprite:</p>\n<p class=\"notes\"><img src=\"https://app.bsd.education/resources/shipBlue_manned.png\" width=\"647\" height=\"78\" /><br />https://app.bsd.education/resources/shipBlue_manned.png</p>\n<p class=\"notes\"><img src=\"http://i.imgur.com/z9B7pI9.png\" width=\"69\" height=\"69\" /><br />https://app.bsd.education/resources/coinGold.png</p>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "469612223945582",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 8000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "var game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n\n//global variables\nvar player;\nvar key;\nvar cursors;\nvar speed = 900;\nvar score = 0;\nvar score_text;\n\nfunction preload() {\ngame.load.crossOrigin = 'anonymous';\n#BEGIN_EDITABLE#    #END_EDITABLE#\n#BEGIN_EDITABLE#    #END_EDITABLE#\n}\n\nfunction create() {\n  \n}\n\nfunction update() {\n  \n}\n",
+          "mode": "new_contents",
+          "answers": [
+            "game.load.image('player','https://app.bsd.education/resources/shipBlue_manned.png'); ",
+            "game.load.image(\"key\",\"https://app.bsd.education/resources/coinGold.png\"); "
+          ]
+        }
+      },
+      "tests": {
+        "5742381222073742": {
+          "title": "On&nbsp;<strong>JS line 17</strong>, use the&nbsp;<code>.load.image()</code>&nbsp;to load the Spaceman image and set its identifer to&nbsp;<strong>player</strong>",
+          "stepId": "469612223945582",
+          "testId": "5742381222073742",
+          "orderNo": 1000,
+          "testFunction": "// pass.if.js.editable(0).equivalent('game.load.image(\"player\",\"https://static.comicvine.com/uploads/original/4/46646/3412398-0163325335-Megam.gif\");');\n  \n//let str=code.js.editable[0];\n//var c1=/^game.load.image\\(\\'player\\'\\s*\\,\\s*\\'https\\:\\/\\/static.comicvine.com\\/uploads\\/original\\/4\\/46646\\/3412398\\-0163325335\\-Megam\\.gif\\'\\s*\\)\\;$/;\n//var c2=/^game.load.image\\(\\\"player\\\"\\s*\\,\\s*\\\"https\\:\\/\\/static.comicvine.com\\/uploads\\/original\\/4\\/46646\\/3412398\\-0163325335\\-Megam\\.gif\\\"\\s*\\)\\;$/;\n\n  \n//pass('Expected: game.load.image(\"player\",\"https://static.comicvine.com/uploads/original/4/46646/3412398-0163325335-Megam.gif\");').if(c1.test(str.trim())||c2.test(str.trim())).is.true;\n  \n  pass.if.js.editable(0).equivalent(`game.load.image('player','https://app.bsd.education/resources/shipBlue_manned.png');`);",
+          "failureMessage": ""
+        },
+        "8369691393456829": {
+          "title": "On&nbsp;<strong>JS line 18</strong>, use the&nbsp;<code>.load.image()</code>&nbsp;method to load the Key image and set its identifer to&nbsp;<strong>key</strong>",
+          "stepId": "469612223945582",
+          "testId": "8369691393456829",
+          "orderNo": 2000,
+          "testFunction": "pass.if.js.editable(1).equivalent(`game.load.image(\"key\",\"https://app.bsd.education/resources/coinGold.png\");`)",
+          "failureMessage": ""
+        }
+      }
+    },
+    "7943553549578421": {
+      "title": "Displaying the sprites",
+      "type": "code",
+      "content": {
+        "instructions": "<p>We've loaded the game's images...but we can't see them yet!</p>\n<p>Remember, this is because the <strong>preload()</strong> function is for loading the assets only.&nbsp;</p>\n<p>To display our images in the game area, we'll need to do this in the <strong>create()</strong> function!</p>\n<p><strong>Syntax required:</strong></p>\n<pre class=\"language-javascript\"><code>game.add.sprite(x position,y position,'identifier');</code></pre>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "7943553549578421",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 9000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "var game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n\n//global variables\nvar player;\nvar key;\nvar cursors;\nvar speed = 900;\nvar score = 0;\nvar score_text;\n\nfunction preload() {\n\tgame.load.crossOrigin = 'anonymous';\n\tgame.load.image('player', 'https://app.bsd.education/resources/shipBlue_manned.png'); \n\tgame.load.image('key', 'https://app.bsd.education/resources/coinGold.png');\n  \t game.load.image('bgpic', 'https://app.bsd.education/resources/sky-1697359_1280.jpg');\n  \n}\n\nfunction create() {\n  \n  \t//add background image\n    game.add.image(0, 0, 'bgpic');\n  \n    player = #BEGIN_EDITABLE#     #END_EDITABLE#\n  \tplayer.scale.setTo(0.4, 0.4); //scale the image\n  \tkey = #BEGIN_EDITABLE#    #END_EDITABLE# \n}\n\nfunction update() {\n  \n}",
+          "mode": "new_contents",
+          "answers": [
+            " game.add.sprite(128,128,'player');    ",
+            " game.add.sprite(200,200,'key');   "
+          ]
+        }
+      },
+      "tests": {
+        "1063934104778484": {
+          "title": "On&nbsp;<strong>JS&nbsp;line 28</strong>, use the&nbsp;<code>add.sprite()</code>&nbsp;method to add the&nbsp;<strong>player</strong>&nbsp;sprite at&nbsp;<strong>(128,128)</strong>",
+          "stepId": "7943553549578421",
+          "testId": "1063934104778484",
+          "orderNo": 1000,
+          "testFunction": "pass.if.js.editable(0).equivalent('game.add.sprite(128,128,\"player\");');",
+          "failureMessage": ""
+        },
+        "88032504473062": {
+          "title": "On&nbsp;<strong>JS line 30</strong>, use the&nbsp;<code>add.sprite()</code>&nbsp;method to add the&nbsp;<strong>key</strong>&nbsp;sprite at (<strong>200,200)</strong>",
+          "stepId": "7943553549578421",
+          "testId": "88032504473062",
+          "orderNo": 2000,
+          "testFunction": "pass.if.js.editable(1).equivalent('game.add.sprite(200,200,\"key\");');",
+          "failureMessage": ""
+        }
+      }
+    },
+    "4704890722679422": {
+      "title": "Create the scoreboard",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Now let's add the scoreboard that will&nbsp;display&nbsp;the number of coins collected.&nbsp;</p>\n<p>To do this, we'll use the <code>add.text()</code> method to add text.&nbsp;</p>\n<p><strong>Syntax required:</strong></p>\n<pre class=\"language-javascript\"><code> game.add.text(x position,y position,text,{style}); </code></pre>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "4704890722679422",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 10000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//JavaScript\nvar game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n// Global Variables\nvar player;\nvar key;\nvar cursors;\nvar speed = 900;\nvar score = 0;\nvar score_text;\n\nfunction preload(){\n\tgame.load.crossOrigin = 'anonymous'; \n \tgame.load.image('bgpic', 'https://app.bsd.education/resources/sky-1697359_1280.jpg');\n\tgame.load.image('player', 'https://app.bsd.education/resources/shipBlue_manned.png'); \n\tgame.load.image('key', 'https://app.bsd.education/resources/coinGold.png');\n}\n\nfunction create() {\n  \tgame.add.image(0, 0, 'bgpic');\n    player = game.add.sprite(128, 128,'player'); \n  \tplayer.scale.setTo(0.4, 0.4);\n  \tkey = game.add.sprite(200, 200,'key'); \n    score_text = #BEGIN_EDITABLE#  #END_EDITABLE#\n}\n\nfunction update() {\n  \n}",
+          "mode": "new_contents",
+          "answers": [
+            "  game.add.text(0,0,\"Score: \"+score,{fill: \"white\"});    "
+          ]
+        }
+      },
+      "tests": {
+        "6701850974492986": {
+          "title": "On&nbsp;<strong>JS line 27</strong>, use the&nbsp;<code><strong>add.text()</strong></code>&nbsp;method to add the scoreboard with the following parameters:<br /><br />x position -&nbsp;<strong>0</strong><br />y position -<strong>&nbsp;0</strong><br />text -&nbsp;<strong>\"Score: \"+ score</strong><br />style -&nbsp;<strong>fill: \"white\"</strong>",
+          "stepId": "4704890722679422",
+          "testId": "6701850974492986",
+          "orderNo": 1000,
+          "testFunction": "pass.if.js.editable(0).equivalent('game.add.text(0, 0, \"Score: \" + score, {fill: \"white\"});');",
+          "failureMessage": ""
+        }
+      }
+    },
+    "8629317986537787": {
+      "title": "Add keyboard controls",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Awesome job!&nbsp;</p>\n<p>Next, we'll need to program the keyboard controls so players can use the <strong>arrow keys</strong> to move the player sprite!&nbsp;</p>\n<p>In Phaser, the arrow keys are also called <strong>cursor keys</strong>.&nbsp;</p>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "8629317986537787",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 11000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "var game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n\n//global variables\nvar player;\nvar key;\nvar cursors;\nvar speed = 900;\nvar score = 0;\nvar score_text;\n\nfunction preload() {\ngame.load.crossOrigin = 'anonymous'; //for loading external assets\ngame.load.image('player', 'https://app.bsd.education/resources/shipBlue_manned.png'); \ngame.load.image('key', 'https://app.bsd.education/resources/coinGold.png');\n  game.load.image('bgpic', 'https://app.bsd.education/resources/sky-1697359_1280.jpg');\n}\n\nfunction create() {\n\tcursors = #BEGIN_EDITABLE#     #END_EDITABLE#\n    game.add.image(0, 0, 'bgpic');\t\n    player = game.add.sprite(128,128,'player'); //display player sprite at x and y position\n  \tplayer.scale.setTo(0.4, 0.4); //scales the image\n  \tkey = game.add.sprite(200,200,'key'); //display key sprite at x and y position\n    score_text = game.add.text(0, 0, \"Score: \" + score, {fill: \"white\"}); //display scoreboard text at x and y position\n}\n\nfunction update() {\n  \n}",
+          "mode": "new_contents",
+          "answers": [
+            "game.input.keyboard.createCursorKeys();     "
+          ]
+        }
+      },
+      "tests": {
+        "6665027662612592": {
+          "title": "On&nbsp;<strong>JS line 23</strong>, enable&nbsp;<strong>keyboard controls</strong>&nbsp;into the game by adding the following :<br /><br /><code>game.input.keyboard.createCursorKeys();</code>",
+          "stepId": "8629317986537787",
+          "testId": "6665027662612592",
+          "orderNo": 1000,
+          "testFunction": "pass.if.js.editable(0).equivalent('game.input.keyboard.createCursorKeys();');",
+          "failureMessage": ""
+        }
+      }
+    },
+    "2213808901246124": {
+      "title": "Generate new position for moving left and right",
+      "type": "code",
+      "content": {
+        "instructions": "<p>In Phaser, a coordinate grid with an X and Y axis is used to determine the position of our game sprites - the x-axis is used for moving left or right, and the y-axis is used for moving up and down.&nbsp;</p>\n<p><img style=\"margin-top: 0px; margin-bottom: 0px;\" src=\"http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/12/256px-2D_Cartesian_Coordinates.svg_.png\" width=\"493\" height=\"199\" /></p>\n<p>This means that in our game, every time we&nbsp;press a key to move our character, it's x and y position changes!&nbsp;</p>\n<p>Let's program the controls for moving our character <strong>left and right.&nbsp;</strong>Every time we move our character to the left, the values along the x-axis decrease, and when we move to the right, the values along the x-axis increase.&nbsp;&nbsp;</p>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "2213808901246124",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 12000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "var game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n\n//global variables\nvar player;\nvar key;\nvar cursors;\nvar speed = 900;\nvar score = 0;\nvar score_text;\n\nfunction preload() {\ngame.load.crossOrigin = 'anonymous'; // For loading external assets\ngame.load.image('player', 'https://app.bsd.education/resources/shipBlue_manned.png'); \ngame.load.image('key', 'https://app.bsd.education/resources/coinGold.png');\n  game.load.image('bgpic', 'https://app.bsd.education/resources/sky-1697359_1280.jpg');\n}\n\nfunction create() {\n\tcursors = game.input.keyboard.createCursorKeys();\n  \tgame.add.image(0, 0, 'bgpic');\n    player = game.add.sprite(128,128,'player'); //display player sprite at x and y position\n  \tplayer.scale.setTo(0.4, 0.4); //scales the image\n  \tkey = game.add.sprite(200,200,'key'); //display key sprite at x and y position\n    score_text = game.add.text(0, 0, \"Score: \" + score, {fill: \"white\"}); //display scoreboard text at x and y position\n}\n\nfunction update() {\n \tvar speed_x = 0; //current x speed\n  \tvar speed_y = 0; //current y speed\n \n  \t//x-axis movement (moving left and right)\n    if (cursors.left.isDown) { \n      \t//left arrow key\n        #BEGIN_EDITABLE#      #END_EDITABLE#\n    }\n    else if (cursors.right.isDown) {\n     \t//right arrow key\n        #BEGIN_EDITABLE#      #END_EDITABLE#\n    }\n}",
+          "mode": "new_contents",
+          "answers": [
+            "speed_x = speed_x - speed;",
+            "speed_x = speed_x + speed;"
+          ]
+        }
+      },
+      "tests": {
+        "8964441327635607": {
+          "title": "On&nbsp;<strong>JS line 38</strong>, set the value of the&nbsp;<strong>speed_x</strong>&nbsp;variable to&nbsp;<strong>speed_x - speed;&nbsp;</strong>",
+          "stepId": "2213808901246124",
+          "testId": "8964441327635607",
+          "orderNo": 1000,
+          "testFunction": "pass.if.js.editable(0).equivalent('speed_x=speed_x-speed;')",
+          "failureMessage": ""
+        },
+        "1193686153292064": {
+          "title": "On&nbsp;<strong>JS line 42</strong>,&nbsp;set the value of the&nbsp;<strong>speed_x</strong>&nbsp;variable to&nbsp;<strong>speed_x + speed;</strong>",
+          "stepId": "2213808901246124",
+          "testId": "1193686153292064",
+          "orderNo": 2000,
+          "testFunction": "pass.if.js.editable(1).equivalent('speed_x=speed_x+speed;');",
+          "failureMessage": ""
+        }
+      }
+    },
+    "8976159463195411": {
+      "title": "Generate new position for moving up and down",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Great job! Now we have to program the controls that let us move our characters along the y-axis (up and down)!&nbsp;</p>\n<p>Every time we move our character up, the values along the y-axis increase, and when we move&nbsp;down, the values along the y-axis&nbsp;decrease.&nbsp; &nbsp;</p>\n<p><img src=\"http://bsdacademysandbox.com/curriculum/wp-content/uploads/2017/12/256px-2D_Cartesian_Coordinates.svg_.png\" width=\"493\" height=\"199\" />&nbsp;</p>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "8976159463195411",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 13000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "var game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n\n//global variables\nvar player;\nvar key;\nvar cursors;\nvar speed = 900;\nvar score = 0;\nvar score_text;\n\nfunction preload() {\ngame.load.crossOrigin = 'anonymous'; // For loading external assets\ngame.load.image('player', 'https://app.bsd.education/resources/shipBlue_manned.png'); \ngame.load.image('key', 'https://app.bsd.education/resources/coinGold.png');\n  game.load.image('bgpic', 'https://app.bsd.education/resources/sky-1697359_1280.jpg');\n}\n\nfunction create() {\n\tcursors = game.input.keyboard.createCursorKeys();\n  \tgame.add.image(0, 0, 'bgpic');\n    player = game.add.sprite(128,128,'player'); //display player sprite at x and y position\n  \tplayer.scale.setTo(0.4, 0.4); //scales the image\n  \tkey = game.add.sprite(200,200,'key'); //display key sprite at x and y position\n    score_text = game.add.text(0, 0, \"Score: \" + score, {fill: \"white\"}); //display scoreboard text at x and y position\n}\n\nfunction update() {\n \tvar speed_x = 0; //current x speed\n  \tvar speed_y = 0; //current y speed\n \n  \t//x-axis movement (moving left and right)\n    if (cursors.left.isDown) { \n      \t//left arrow key\n        speed_x = speed_x - speed;   \n    }\n    else if (cursors.right.isDown) {\n     \t//right arrow key\n        speed_x = speed_x + speed;   \n    }\n  \t\n   //Y-axis movement (moving up and down)\n    if (cursors.up.isDown) { \n      \t//up arrow key\n        #BEGIN_EDITABLE#   #END_EDITABLE#\n    }\n    else if (cursors.down.isDown) {\n      \t//down arrow key\n        #BEGIN_EDITABLE#  #END_EDITABLE#\n    }\n}\n ",
+          "mode": "new_contents",
+          "answers": [
+            "speed_y = speed_y - speed;  ",
+            "speed_y = speed_y + speed; "
+          ]
+        }
+      },
+      "tests": {
+        "3795147671647014": {
+          "title": "On&nbsp;<strong>JS line 48</strong>, set the value of the&nbsp;<strong>speed_y</strong>&nbsp;variable to&nbsp;<strong>speed_y - speed;</strong>",
+          "stepId": "8976159463195411",
+          "testId": "3795147671647014",
+          "orderNo": 1000,
+          "testFunction": "pass.if.js.editable(0).equivalent('speed_y=speed_y-speed;');",
+          "failureMessage": ""
+        },
+        "3380195770289710": {
+          "title": "On&nbsp;<strong>JS line 52</strong>, set the value of the&nbsp;<strong>speed_y</strong>&nbsp;variable to&nbsp;<strong>speed_y + speed;</strong>",
+          "stepId": "8976159463195411",
+          "testId": "3380195770289710",
+          "orderNo": 2000,
+          "testFunction": "pass.if.js.editable(1).equivalent('speed_y=speed_y+speed;');",
+          "failureMessage": ""
+        }
+      }
+    },
+    "8950588202167531": {
+      "title": "Add physics to create a collision event",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Now let's enable the use of <strong>physics</strong> in our game!</p>\n<p>We need to add physics to our game so our game can <strong>detect a collision</strong> between the player and the coin (so our player can collect the coin!).</p>\n<p><strong>Syntax required:</strong></p>\n<pre class=\"language-javascript\"><code> game.physics.arcade.collide(identifier1, identifier2, function_name); </code></pre>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "8950588202167531",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 14000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "var game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n\n//global variables\nvar player;\nvar key;\nvar cursors;\nvar speed = 900;\nvar score = 0;\nvar score_text;\n\nfunction preload() {\n\tgame.load.crossOrigin = 'anonymous'; //for loading external assets\n\tgame.load.image('player', 'https://app.bsd.education/resources/shipBlue_manned.png'); \n\tgame.load.image('key', 'https://app.bsd.education/resources/coinGold.png');\n  \tgame.load.image('bgpic', 'https://app.bsd.education/resources/sky-1697359_1280.jpg');\n}\n\nfunction create() {\n\tcursors = game.input.keyboard.createCursorKeys();\n  \t#BEGIN_EDITABLE#    #END_EDITABLE#\n\tgame.add.image(0, 0, 'bgpic');\n    player = game.add.sprite(128,128,'player'); // Add player sprite at x, y position\n  \tplayer.scale.setTo(0.4, 0.4); //scales the image\n    game.physics.enable(player, Phaser.Physics.ARCADE); // Enable player physics\n    player.body.collideWorldBounds = true; \n  \tkey = game.add.sprite(200,200,'key'); //display coin at x and y position\n    game.physics.enable(key, Phaser.Physics.ARCADE); //enable key physics\n  \tkey.body.immovable = true; //prevent coin from moving\n    score_text = game.add.text(0, 0, \"Score: \" + score, {fill: \"white\"}); // display scoreboard text at x and y position\n  \n   \n}\nfunction update() {\n\tvar speed_x = 0; //current x speed\n  \tvar speed_y = 0; //current y speed\n \n  \t//x-axis movement (moving left and right)\n    if (cursors.left.isDown) { \n    \t//left arrow key\n       speed_x = speed_x - speed;\n    }\n    else if (cursors.right.isDown) { \n      \t//right arrow key\n        speed_x = speed_x + speed;\n    }\n  \n  \t//x-axis movement (moving left and right)\n    if (cursors.up.isDown) { \n      \t//up arrow key\n       speed_y = speed_y - speed;\n    }\n    else if (cursors.down.isDown) { \n     \t//down arrow key\n      \tspeed_y = speed_y + speed;\n    }\n  \n   var speed_dir = new Phaser.Point(speed_x, speed_y); //make speed vector\n  \tplayer.body.velocity = speed_dir; //set player velocity\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n}\nfunction Collect(){}",
+          "mode": "new_contents",
+          "answers": [
+            "game.physics.startSystem(Phaser.Physics.Arcade);  ",
+            "game.physics.arcade.collide(player, key , Collect); "
+          ]
+        }
+      },
+      "tests": {
+        "472752294779968": {
+          "title": "On&nbsp;<strong>JS&nbsp;line 24</strong>, enable the physics system by adding the following code:&nbsp;<br /><br /><code>game.physics.startSystem(Phaser.Physics.Arcade);</code>",
+          "stepId": "8950588202167531",
+          "testId": "472752294779968",
+          "orderNo": 1000,
+          "testFunction": "pass.if.js.editable(0).equivalent('game.physics.startSystem(Phaser.Physics.Arcade);');",
+          "failureMessage": ""
+        },
+        "728136666554926": {
+          "title": "On&nbsp;<strong>JS line 63</strong>, check for a collision event between&nbsp;<strong>player</strong>&nbsp;and&nbsp;<strong>key</strong>&nbsp;which runs a function called&nbsp;<strong>Collect</strong>",
+          "stepId": "8950588202167531",
+          "testId": "728136666554926",
+          "orderNo": 2000,
+          "testFunction": "pass.if.js.editable(1).equivalent('game.physics.arcade.collide(player, key, Collect);')",
+          "failureMessage": ""
+        }
+      }
+    },
+    "4792494385800062": {
+      "title": "Increment score",
+      "type": "code",
+      "content": {
+        "instructions": "<p>When the player and coin collide (when the player collects the coin), we need to increase the score!&nbsp;</p>\n<hr />\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES&nbsp;</strong></p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "4792494385800062",
+      "majorRevision": 0,
+      "minorRevision": 21,
+      "orderNo": 15000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//game setup\nvar game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n\n//global variables\nvar player;\nvar key;\nvar cursors;\nvar speed = 900;\nvar score = 0;\nvar score_text;\n\n//function that loads assets before starting the game\nfunction preload() {\n    game.load.crossOrigin = 'anonymous'; //for loading external assets\n  \n  //loads player and coin sprites\n  \tgame.load.image('player', 'https://app.bsd.education/resources/shipBlue_manned.png'); \n  \tgame.load.image('key', 'https://app.bsd.education/resources/coinGold.png');\n  \tgame.load.image('bgpic', 'https://app.bsd.education/resources/sky-1697359_1280.jpg');\n}\n\n//function that displays and positions game assets before starting the game\nfunction create() {\n\tgame.physics.startSystem(Phaser.Physics.Arcade); //starts physics system in the game\n    cursors = game.input.keyboard.createCursorKeys(); \n  \tgame.add.image(0, 0, 'bgpic');\n  //enables keyboard input\n    player = game.add.sprite(128, 128, 'player'); //displays player sprite at x, y position\n  \tplayer.scale.setTo(0.4, 0.4); //scales the image\n    game.physics.enable(player, Phaser.Physics.ARCADE); //enable player physics\n    player.body.collideWorldBounds = true; //prevents player from moving outside game area\n  \tkey = game.add.sprite(200, 200, 'key'); //display coin spirte at x, y position\n  \tgame.physics.enable(key, Phaser.Physics.ARCADE); //enables physics for the coin\n  \tkey.body.immovable = true; //prevents coin from moving \n  \tscore_text = game.add.text(0, 0, \"Score: \" + score, {fill: \"white\"}); //displays scoreboard at x, y position\n}\n\n//function that checks for specific events and runs every frame\nfunction update() {\n  \tvar speed_x = 0; //current x speed\n  \tvar speed_y = 0; //current y speed\n \n  \t\t//x-axis movement (moving left and right)\n    if (cursors.left.isDown) { \n    \t//left arrow key\n       speed_x = speed_x - speed;\n    }\n    else if (cursors.right.isDown) { \n      \t//right arrow key\n        speed_x = speed_x + speed;\n    }\n  \n  \t//x-axis movement (moving left and right)\n    if (cursors.up.isDown) { \n      \t//up arrow key\n       speed_y = speed_y - speed;\n    }\n    else if (cursors.down.isDown) { \n     \t//down arrow key\n      \tspeed_y = speed_y + speed;\n    }\n  \t\n  \tvar speed_dir = new Phaser.Point(speed_x, speed_y); //makes speed vector\n  \tplayer.body.velocity = speed_dir; //sets player velocity\n    game.physics.arcade.collide(player, key, Collect); //collision between player and coin\n}\n\n// Collect coin upon collision\nfunction Collect() {\n  \t#BEGIN_EDITABLE#  #END_EDITABLE# //increases score by 1 upon collection\n  \tscore_text.text = #BEGIN_EDITABLE#  #END_EDITABLE# //updates the score text\n}",
+          "mode": "new_contents",
+          "answers": [
+            "score = score + 1;   ",
+            "\"Score: \" + score;    "
+          ]
+        }
+      },
+      "tests": {
+        "3216515990903736": {
+          "title": "On&nbsp;<strong>JS line 74</strong>,&nbsp;increment the score by 1 by setting the value of the&nbsp;<strong>score</strong>&nbsp;variable to the following:&nbsp;<strong><code>score + 1</code></strong>",
+          "stepId": "4792494385800062",
+          "testId": "3216515990903736",
+          "orderNo": 1000,
+          "testFunction": "pass.if.js.editable(0).equivalent('score = score + 1;').or(`score++;`).or(`score += 1;`);",
+          "failureMessage": ""
+        },
+        "4829828566969550": {
+          "title": "On&nbsp;<strong>JS line 75</strong>,&nbsp;update the&nbsp;<code>score_text</code>&nbsp;variable by adding the following:&nbsp;<strong>\"Score: \" + score</strong>",
+          "stepId": "4792494385800062",
+          "testId": "4829828566969550",
+          "orderNo": 2000,
+          "testFunction": "pass.if.js.editable(1).equivalent('\"Score: \" + score;');",
+          "failureMessage": ""
+        }
+      }
+    },
+    "4644598609776978": {
+      "title": "Randomize the position of the key upon collision",
+      "type": "code",
+      "content": {
+        "instructions": "<p>After a collision event (when the player collects the coin), we need to randomize the position of the coin so it appears in a new spot!&nbsp;</p>\n<p><strong>Syntax required:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n</ul>\n<hr />\n<p class=\"highlight\"><strong>OBJECTIVES&nbsp;</strong></p>\n<p>&nbsp;</p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "4644598609776978",
+      "majorRevision": 0,
+      "minorRevision": 27,
+      "orderNo": 16000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//game setup\nvar game = new Phaser.Game(640,480, Phaser.AUTO, 'screen', {\n    preload: preload,\n    create: create,\n    update: update\n});\n\n//global variables\nvar player;\nvar key;\nvar cursors;\nvar speed = 900;\nvar score = 0;\nvar score_text;\n\n//function that loads assets before starting the game\nfunction preload() {\n    game.load.crossOrigin = 'anonymous'; //for loading external assets\n  \n  //loads player and coin sprites\n  \tgame.load.image('player', 'https://app.bsd.education/resources/shipBlue_manned.png'); \n  \tgame.load.image('key', 'https://app.bsd.education/resources/coinGold.png');\n  \tgame.load.image('bgpic', 'https://app.bsd.education/resources/sky-1697359_1280.jpg');\n}\n\n//function that displays and positions game assets before starting the game\nfunction create() {\n\tgame.physics.startSystem(Phaser.Physics.Arcade); //starts physics system in the game\n    cursors = game.input.keyboard.createCursorKeys(); \n  \tgame.add.image(0, 0, 'bgpic');\n  //enables keyboard input\n    player = game.add.sprite(128, 128, 'player'); //displays player sprite at x, y position\n  \tplayer.scale.setTo(0.4, 0.4); //scales the image\n    game.physics.enable(player, Phaser.Physics.ARCADE); //enable player physics\n    player.body.collideWorldBounds = true; //prevents player from moving outside game area\n  \tkey = game.add.sprite(200, 200, 'key'); //display coin spirte at x, y position\n  \tgame.physics.enable(key, Phaser.Physics.ARCADE); //enables physics for the coin\n  \tkey.body.immovable = true; //prevents coin from moving \n  \tscore_text = game.add.text(0, 0, \"Score: \" + score, {fill: \"white\"}); //displays scoreboard at x, y position\n}\n\n//function that checks for specific events and runs every frame\nfunction update() {\n  \tvar speed_x = 0; //current x speed\n  \tvar speed_y = 0; //current y speed\n \n  \t\t//x-axis movement (moving left and right)\n    if (cursors.left.isDown) { \n    \t//left arrow key\n       speed_x = speed_x - speed;\n    }\n    else if (cursors.right.isDown) { \n      \t//right arrow key\n        speed_x = speed_x + speed;\n    }\n  \n  \t//x-axis movement (moving left and right)\n    if (cursors.up.isDown) { \n      \t//up arrow key\n       speed_y = speed_y - speed;\n    }\n    else if (cursors.down.isDown) { \n     \t//down arrow key\n      \tspeed_y = speed_y + speed;\n    }\n  \t\n  \tvar speed_dir = new Phaser.Point(speed_x, speed_y); //makes speed vector\n  \tplayer.body.velocity = speed_dir; //sets player velocity\n    game.physics.arcade.collide(player, key, Collect); //collision between player and coin\n}\n\n// Collect coin upon collision\nfunction Collect() {\n  \t#BEGIN_EDITABLE#      #END_EDITABLE#\n    #BEGIN_EDITABLE#      #END_EDITABLE#\n  \tkey.position = new Phaser.Point(pos_x, pos_y); //change coin position\n  \tscore = score + 1;    //increases score by 1 upon collection\n  \tscore_text.text = \"Score: \" + score; //updates the score text\n}",
+          "mode": "new_contents",
+          "answers": [
+            "var pos_x = game.rnd.integerInRange(16, game.width - 16 );    ",
+            "var pos_y = game.rnd.integerInRange(16, game.height - 16 );    "
+          ]
+        }
+      },
+      "tests": {
+        "6175579718560502": {
+          "title": "On&nbsp;<strong>JS line 74</strong>, create a&nbsp;<code>variable&nbsp;</code>called&nbsp;<strong>pos_x</strong>&nbsp;and let it store a random position between&nbsp;<strong>16</strong>&nbsp;and the&nbsp;<strong>game.width - 16</strong>&nbsp;by entering the following:&nbsp;<code>game.rnd.integerInRange(16, game.width - 16);</code>",
+          "stepId": "4644598609776978",
+          "testId": "6175579718560502",
+          "orderNo": 1000,
+          "testFunction": "pass.if.js.editable(0).equivalent('var pos_x = game.rnd.integerInRange(16, game.width - 16 );');",
+          "failureMessage": ""
+        },
+        "7124296525667497": {
+          "title": "On&nbsp;<strong>JS line 75</strong>, create a&nbsp;<code>variable&nbsp;</code>called&nbsp;<strong>pos_y</strong>&nbsp;and let it store a random position between&nbsp;<strong>16</strong>&nbsp;and the&nbsp;<strong>game.height - 16</strong>&nbsp;by entering the following:&nbsp;<code>game.rnd.integerInRange(16, game.height - 16);</code>",
+          "stepId": "4644598609776978",
+          "testId": "7124296525667497",
+          "orderNo": 2000,
+          "testFunction": "pass.if.js.editable(1).equivalent('var pos_y = game.rnd.integerInRange(16, game.height - 16 );')",
+          "failureMessage": ""
+        }
+      }
+    },
+    "7817750308494463:1": {
+      "title": "Summary",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Well done! you have successfully built your coin collector game!</p>\n<p>Here's a recap of what we learned:</p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/html/6f45e8ff-64d2-4528-827a-9d2722b8449d\">&lt;div&gt;</a>&nbsp;was used to create the game area</p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/html/05c870d4-8500-4dbd-98ef-92fd1f6d84a1\">id</a>&nbsp;was used to give a unique label to the &lt;div&gt;</p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/html/72e6a24d-eb8d-4000-bee8-859baffda976\">&lt;script&gt;</a>&nbsp;was used to enable the Phaser game engine to be used in the game code</p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a>&nbsp;was used to store game information, such as the score and sprite position&nbsp;</p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a>&nbsp;was used to run all the game's actions, such as loading and displaying assets, detect keyboard presses, and check when the player collects a coin</p>\n</li>\n<li>\n<p class=\"notes\"><strong>game.add.sprite(x position,y position,'identifier'); </strong>was used to position the sprites</p>\n</li>\n<li>\n<p class=\"notes\"><strong>game.add.text(x position,y position,text,{style}); </strong>was used to change the text content of the scoreboard</p>\n</li>\n<li>\n<p class=\"notes\"><strong>game.input.keyboard.createCursorKeys(); </strong>was used to enable the use of the arrow keys</p>\n</li>\n<li>\n<p class=\"notes\"><strong>game.physics.arcade.collide(identifier1, identifier2, function_name);</strong> was used to add collision detection</p>\n</li>\n</ul>\n<p class=\"notes\">&nbsp;On the next step, you will customize this project.&nbsp;</p>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "7817750308494463:1",
+      "majorRevision": 0,
+      "minorRevision": 30,
+      "orderNo": 17000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "return codeWithoutMarkup + \"#BEGIN_EDITABLE##END_EDITABLE#\";",
+          "mode": "modify",
+          "answers": []
+        },
+        "script.js": {
+          "contents": "return codeWithoutMarkup + \"#BEGIN_EDITABLE##END_EDITABLE#\";",
+          "mode": "modify",
+          "answers": []
+        },
+        "style.css": {
+          "contents": "return codeWithoutMarkup + \"#BEGIN_EDITABLE##END_EDITABLE#\";",
+          "mode": "modify",
+          "answers": []
+        }
+      },
+      "tests": {}
+    },
+    "3757081175022234:1": {
+      "title": "Customize your project",
+      "type": "code",
+      "content": {
+        "instructions": "<p>On this step,&nbsp;let's now make some changes. Here are some suggested changes you could make.&nbsp;</p>\n<ol>\n<li>\n<p class=\"notes\">Change the player</p>\n</li>\n<li>\n<p class=\"notes\">Add an object that reduces points for the user</p>\n</li>\n<li>\n<p class=\"notes\">Add a second sprite that can be moved with the WASD keys</p>\n</li>\n</ol>\n<p class=\"highlight\" style=\"text-align: center;\"><strong>OBJECTIVES</strong></p>\n<p class=\"highlight\"><span data-sheets-value=\"{&quot;1&quot;:2,&quot;2&quot;:&quot;- Change the text and images on the poster\\n- Change the background color for the &lt;div&gt; and &lt;body&gt;\\n- Change the font-family used for the text&quot;}\" data-sheets-userformat=\"{&quot;2&quot;:513,&quot;3&quot;:{&quot;1&quot;:0},&quot;12&quot;:0}\">Customize&nbsp;your space coin collector game.</span></p>\n<p class=\"highlight notes\"><span data-sheets-value=\"{&quot;1&quot;:2,&quot;2&quot;:&quot;- Change the text and images on the poster\\n- Change the background color for the &lt;div&gt; and &lt;body&gt;\\n- Change the font-family used for the text&quot;}\" data-sheets-userformat=\"{&quot;2&quot;:513,&quot;3&quot;:{&quot;1&quot;:0},&quot;12&quot;:0}\"><strong>NOTE</strong>: Please remember to save your work.<br /><br /> You can save your work by clicking on the save button.&nbsp;<br /><br /><img src=\"https://app.bsd.education/resources/savebutton.PNG\" alt=\"\" width=\"298\" height=\"280\" /><br /></span></p>\n<p>&nbsp;</p>"
+      },
+      "deleted": false,
+      "stepId": "3757081175022234:1",
+      "majorRevision": 0,
+      "minorRevision": 23,
+      "orderNo": 18000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "return codeWithoutMarkup;",
+          "mode": "modify",
+          "answers": []
+        },
+        "script.js": {
+          "contents": "return codeWithoutMarkup;",
+          "mode": "modify",
+          "answers": []
+        },
+        "style.css": {
+          "contents": "return codeWithoutMarkup;",
+          "mode": "modify",
+          "answers": []
+        }
+      },
+      "tests": {}
+    }
+  }
+}
