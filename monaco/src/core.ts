@@ -135,7 +135,7 @@ const langType = {
 
 const editorOpts: any = {
     multiCursorModifier: 'ctrlCmd',
-    fontFamily: 'Fira Code',
+    // fontFamily: 'Fira Code',
     fontLigatures: true,
     scrollBeyondLastLine: false,
     formatOnPaste: true
@@ -1826,12 +1826,21 @@ function hideOutput() {
     if (App.output.large) (codeEditor || diffEditor).layout();
 }
 
+function insertCrossOrigin(codeString: string = '') {
+    const dom = (new DOMParser).parseFromString(codeString, 'text/html');
+    const imgTags = dom.querySelectorAll('img');
+
+    imgTags.forEach(tag => tag.crossOrigin = tag.crossOrigin || 'anonymous');
+    
+    return dom.documentElement.outerHTML;
+}
+
 function refreshOutput() {
     if (!App.UI.pnlPreview.iframe) return;
 
     debugGroup('refreshOutput()');
 
-    let srcHtml = getAuthorOrLearnerContent('index.html');
+    let srcHtml = insertCrossOrigin(getAuthorOrLearnerContent('index.html'));
     const linkAndScript = srcHtml.match(/<link\s+[\s\S]*?>|<script[\s\S]*?>[\s\S]*?<\/script\s*>/gi);
     const attrTypes = { link: 'href', script: 'src' };
 

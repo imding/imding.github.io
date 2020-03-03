@@ -10,17 +10,44 @@ export default class HTMLTree {
             tags = {
                 all: [
                     // IMPORTANT: ascending tag name lengths
-                    'p', 'b', 'u', 'i', 'a',
-                    'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'em', 'hr', 'tt', 'dl', 'dt', 'dd', 'tr', 'th', 'td',
-                    'col', 'div', 'img', 'nav', 'sup', 'sub', 'pre', 'wbr',
-                    'area', 'base', 'code', 'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
-                    'embed', 'label', 'input', 'param', 'small', 'style', 'table', 'title', 'frame', 'track',
-                    'button', 'canvas', 'center', 'footer', 'header', 'keygen', 'iframe', 'strong', 'select', 'option', 'script', 'source', 'strike',
-                    'command', 'article', 'section',
-                    'noscript', 'textarea', 'frameset', 'noframes', 'progress', '!doctype',
-                    'blockquote',
+                    'a', 'b', 'i', 'p', 'q', 's', 'u',
+                    'br', 'dd', 'dl', 'dt', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'li', 'ol', 'rp', 'rt', 'td', 'th', 'tr', 'ul',
+                    'bdi', 'bdo', 'col', 'del', 'dfn', 'div', 'img', 'ins', 'kbd', 'map', 'nav', 'pre', 'sub', 'sup', 'svg', 'var', 'wbr',
+                    'abbr', 'area', 'base', 'body', 'cite', 'code', 'data', 'form', 'head', 'html', 'link', 'main', 'mark', 'meta', 'ruby', 'samp', 'span', 'time',
+                    'a-box', 'a-sky', 'aside', 'audio', 'embed', 'input', 'label', 'meter', 'param', 'small', 'style', 'table', 'tbody', 'tfoot', 'thred', 'title', 'track', 'video',
+                    'a-cone', 'a-link', 'a-ring', 'a-text', 'button', 'canvas', 'dialog', 'figure', 'footer', 'header', 'iframe', 'legend', 'object', 'option', 'output', 'script', 'select', 'source', 'strong',
+                    'a-curve', 'a-image', 'a-light', 'a-mixin', 'a-plane', 'a-scene', 'a-sound', 'a-torus', 'a-video', 'address', 'article', 'caption', 'details', 'picture', 'section', 'summary',
+                    'a-assets', 'a-camera', 'a-circle', 'a-cursor', 'a-entity', 'a-sphere', 'colgroup', 'datalist', 'fieldset', 'noscript', 'optgroup', 'progress', 'template', 'textarea',
+                    'a-cubemap', 'a-cylinder', 'a-timeline', 'a-triangle', 'blockquote', 'figcaption',
+                    'a-obj-model',
+                    'a-asset-item', 'a-draw-curve', 'a-gltf-model', 'a-octahedron', 'a-torus-knot',
+                    'a-curve-point', 'a-curvedimage', 'a-icosahedron', 'a-tetrahedron', 'a-videosphere',
+                    'a-dodecahedron',
+                    'a-timeline-group',
+                    'a-timeline-animation'
                 ],
-                void: ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr', '!doctype'],
+                void: [
+                    'br','hr',
+                    'col', 'img', 'wbr',
+                    'area', 'base', 'link', 'meta',
+                    'embed', 'input', 'param', 'track', 
+                    'keygen', 'source', 
+                    'command', 
+                    '!doctype',
+                ],
+                aframe: [
+                    'a-box', 'a-sky',
+                    'a-cone', 'a-link', 'a-ring', 'a-text',
+                    'a-curve', 'a-image', 'a-light', 'a-mixin', 'a-plane', 'a-scene', 'a-sound', 'a-torus', 'a-video',
+                    'a-assets', 'a-camera', 'a-circle', 'a-cursor', 'a-entity', 'a-sphere',
+                    'a-cubemap', 'a-cylinder', 'a-timeline', 'a-triangle',
+                    'a-obj-model',
+                    'a-asset-item', 'a-draw-curve', 'a-gltf-model', 'a-octahedron', 'a-torus-knot',
+                    'a-curve-point', 'a-curvedimage', 'a-icosahedron', 'a-tetrahedron', 'a-videosphere',
+                    'a-dodecahedron',
+                    'a-timeline-group',
+                    'a-timeline-animation'
+                  ]
             },
             attributes = {
                 all: [
