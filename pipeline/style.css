@@ -278,6 +278,10 @@ h5>.fa-window-maximize, h5>.fa-window-minimize, h4>.fa-expand, h4>.fa-compress {
     opacity: 0.2;
 }
 
+em, samp {
+    word-break: break-all;
+}
+
 em {
     color: palegreen;
     font-style: normal;
