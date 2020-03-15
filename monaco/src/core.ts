@@ -632,14 +632,14 @@ function registerTopLevelEvents() {
     });
 
     btnProjectSettings.addEventListener('click', toggleSettings);
-    btnOpenProject.addEventListener('click', openProjectFromJson);
+    btnOpenProject.addEventListener('dblclick', openProjectFromJson);
     btnSaveProject.addEventListener('click', saveProjectToDisk);
     btnCopyJson.addEventListener('click', copyMissionJson);
     btnContinue.addEventListener('click', loadFromCache);
     // btnTickets.addEventListener('click', fetchAsanaTickets);
 
     btnNewStep.addEventListener('click', () => createStep(activeStepNo).go());
-    btnDelStep.addEventListener('click', () => deleteStep(activeStepNo));
+    btnDelStep.addEventListener('dblclick', () => deleteStep(activeStepNo));
     btnNextStep.addEventListener('click', () => goToStep(activeStepNo + 1));
     btnPrevStep.addEventListener('click', () => goToStep(activeStepNo - 1));
 
@@ -678,7 +678,7 @@ function registerTopLevelEvents() {
                 case 'KeyM': toggleOutputSize(); break;
                 case 'KeyN': btnNewStep.click(); break;
                 case 'KeyP': pnlPreview.classList.contains('hidden') ? toggleOutput() : refreshOutput(); break;
-                case 'KeyL': break;
+                case 'KeyL': toggleAnswerEditor(); break;
                 case 'KeyK': break;
                 case 'KeyI': break;
                 case 'KeyO': break;
@@ -842,6 +842,8 @@ function openProjectFromJson() {
 }
 
 function parseAndLoadJson(mission) {
+    if (!confirm('Loading a new file will discard unsaved progress, are you sure?')) return;
+
     stepList = [];
     missionFiles = [];
 
@@ -949,7 +951,17 @@ function parseAndLoadJson(mission) {
             .sort((a, b) => a.orderNo - b.orderNo)
             .map(test => {
                 const { title, testFunction } = test;
-                const testTree = esprima.parseScript(testFunction);
+                let testTree;
+
+                try {
+                    testTree = esprima.parseScript(testFunction);
+                }
+                catch (err) {
+                    if (err.description === 'Illegal return statement') {
+                        testTree = esprima.parseScript(`function foo() { ${testFunction} }`);
+                    }
+                }
+
                 const passSyntax = testTree.body.reduce((acc, node) => {
                     const cutTail = () => {
                         const { type } = node;
@@ -1076,6 +1088,7 @@ function parseAndLoadJson(mission) {
 
         return objectiveBlocks;
     };
+    let lookForCodeStep = true;
 
     missionSteps.forEach((step, idx) => {
         const { title, type, stepId } = step;
@@ -1087,6 +1100,7 @@ function parseAndLoadJson(mission) {
         if (hasCode) {
             const stepFiles = Object.entries(step.files) as Array<[string, any]>;
 
+            //  update mission-wide files list
             if (stepFiles.length > missionFiles.length) {
                 missionFiles = stepFiles.map(entry => entry[0]);
             }
@@ -1103,16 +1117,24 @@ function parseAndLoadJson(mission) {
             stepFiles.forEach(file => {
                 const [fileName, fileData] = file;
                 const fileObj: File = { mode: fileData.mode || fileMode.newContents };
+                const validateCodeStep = lookForCodeStep && type === stepType.code && fileData.mode !== fileMode.newContents;
 
                 fileData.answers = fileData.answers || [];
-                fileData.contents = fileData.contents || fileData.contentsWithAnswers;
+                fileData.contents = fileData.contents || fileData.contentsWithAnswers || '#BEGIN_EDITABLE##END_EDITABLE#';
 
+                if (validateCodeStep) {
+                    lookForCodeStep = false;
+                    fileObj.mode = fileMode.newContents;
+                }
+
+                //  for both code and interactive steps
                 if (fileObj.mode === fileMode.newContents) {
                     const content = insertAnswers(fileData.contents, fileData.answers);
                     const type = langType[parseFileName(fileName).type];
 
                     fileObj.author = monaco.editor.createModel(content, type);
                 }
+                //  code step only
                 else if (fileObj.mode === fileMode.modify) {
                     fileObj.author = monaco.editor.createModel(fileData.contents, langType.js);
                 }
@@ -1120,9 +1142,9 @@ function parseAndLoadJson(mission) {
                 if (step.type === stepType.code) {
                     fileObj.answers = fileData.answers;
                 }
-                else {
-                    fileObj.author = monaco.editor.createModel(fileData.contents, langType[parseFileName(fileName).type]);
-                }
+                // else {
+                //     fileObj.author = monaco.editor.createModel(fileData.contents, langType[parseFileName(fileName).type]);
+                // }
 
                 stepObj[fileName] = fileObj;
             });
@@ -1136,11 +1158,16 @@ function parseAndLoadJson(mission) {
         stepList.push(stepObj);
     });
 
+    //  transfrom file name to aphabet which determines it's placement in the tab container
     const transform = (name: string) => parseFileName(name).type.replace('html', 'a').replace('css', 'b').replace('js', 'c');
 
     missionFiles = missionFiles.sort((a, b) => transform(a) < transform(b) ? -1 : 1);
     missionJson.missionUuid = mission.missionUuid;
     missionJson.settings = mission.settings;
+
+    if (missionJson.settings.cardImage === '') {
+        missionJson.settings.cardImage = '/resources/project cards/project_placeholder.png';
+    } 
 
     loadStepData(1);
 }
@@ -1598,7 +1625,7 @@ function deleteStep(targetStepNo: number = activeStepNo) {
     if (stepList.length === 1) {
         warn('Skipped deleting the only step');
     }
-    else {
+    else if (confirm(`Step ${targetStepNo} will be deleted, are you sure?`)) {
         stepList.splice(targetStepNo - 1, 1);
 
         //  if the active step is being deleted
@@ -1861,9 +1888,10 @@ function refreshOutput() {
                 const attrValue = refAttr[0].value;
                 const isPrivateFile = activeStep.hasOwnProperty(attrValue);
                 const nodeRaw = `${node.openingTag.raw}${node.rawContent}${node.closingTag.raw}`;
-                const { type } = parseFileName(attrValue);
-    
+                
                 if (isPrivateFile) {
+                    const { type } = parseFileName(attrValue);
+
                     if (/^(css|js)$/.test(type)) {
                         const isCss = type === 'css';
                         const replaceTarget = isCss ? node.openingTag.raw : nodeRaw;
@@ -2049,8 +2077,10 @@ function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepN
         const relevantSteps = [];
 
         stepList
+            //  remove steps after the target step
             .slice(0, targetStepNo)
             .reverse()
+            //  remove non-code steps
             .filter(step => step.type === stepType.code)
             .some(step => {
                 relevantSteps.unshift(step);
@@ -2089,7 +2119,7 @@ function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepN
 
                     return code.join('\n');
                 }
-            };
+            }; 
             const lockEverything = (code: string) => {
                 return `${removeEditableMarkup(code)}#BEGIN_EDITABLE##END_EDITABLE#`;
             };
