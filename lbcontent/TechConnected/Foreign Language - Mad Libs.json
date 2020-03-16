@@ -1,0 +1,310 @@
+{
+  "missionUuid": "20bd8a99-a913-4aa9-a815-536a0aa8bba7",
+  "settings": {
+    "revision": "(1,15)",
+    "level": 0,
+    "title": "CodePacks - Mad Libs",
+    "description": "Build a digitized mad libs word game using HTML, CSS, and JavaScript to enhance your understanding of vocabulary and grammar. Practice using a wide range of vocabulary and express and develop ideas with increasing accuracy.",
+    "duration": null,
+    "type": "project", 
+    "status": "exclusive",
+    "tenant": "bsd",
+    "missionUuid": "20bd8a99-a913-4aa9-a815-536a0aa8bba7",
+    "missionName": "codepacks---mad-libs",
+    "majorRevision": 1,
+    "minorRevision": 15,
+    "changeInfo": "(fc6cd04c-494c-4246-8f73-00f429af54a9,\"2019-11-11 03:24:30.337472\")",
+    "objectivesVersion": 2,
+    "cardImage": "/resources/project cards/project_placeholder.png",
+    "authorUserId": "fc6cd04c-494c-4246-8f73-00f429af54a9",
+    "ownerUserId": "fc6cd04c-494c-4246-8f73-00f429af54a9",
+    "createdDate": "2019-09-16T13:11:24.870Z",
+    "lastModified": "2020-03-10T22:29:37+08:00",
+    "authorName": "Nickey Khemchandani",
+    "ownerName": "Nickey Khemchandani",
+    "ownerEmail": "nk@bsd.education",
+    "at_end": "export",
+    "resources": [],
+    "card_image": "/resources/Mad%20Libs.jpg",
+    "card_links": [],
+    "searchable": true,
+    "web_output": true,
+    "mobile_view": {
+      "mobileViewEnabled": false
+    },
+    "recommended": false,
+    "body_locking": false,
+    "console_type": null,
+    "code_unlocked": false,
+    "mission_video": "",
+    "sandbox_default": false,
+    "image_upload_on_html": false,
+    "tags": [
+      "376dff9f-7c58-4cab-b9a8-95df804e8ed1"
+    ],
+    "mobileView": {
+      "mobileViewEnabled": false
+    }
+  },
+  "steps": {
+    "3658896096533154": {
+      "title": "Introduction2",
+      "type": "interactive",
+      "content": {
+        "instructions": "<p>Mad Libs is a popular word game where a  a player is prompted for a list of words. Each word is then used to fill in the blanks of a story where certain words have been removed - but the player is not told what the story is!&nbsp;The list of words that the player provides is then inserted into the blanks, and the story is finally read aloud - often with hilarious results!&nbsp;In this project, we will learn how to build our very own Mad Libs game using&nbsp;<a href='#glossary/html/53fa2693-c653-411c-9a7d-f1df47d36432'>HTML</a>,&nbsp;<a href='#glossary/css/da14e3f5-4197-46ee-9006-b858b1214b67'>CSS</a>, and&nbsp;<a href='#glossary/javascript/051f20b9-73df-49fd-905f-7e438e0c7a61'>JavaScript</a>.&nbsp;</p>"
+      },
+      "deleted": false,
+      "stepId": "3658896096533154",
+      "majorRevision": 1,
+      "minorRevision": 0,
+      "orderNo": 1000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "mode": "new_contents",
+          "contents": "<!DOCTYPE html>\n<html>\n<head>\n    <link href='https://fonts.googleapis.com/css?family=Shadows+Into+Light' rel='stylesheet' type='text/css'>\n    <link href='https://fonts.googleapis.com/css?family=Exo:200' rel='stylesheet' type='text/css'>\n\t<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div id='content'>\n\t    <h1>The English Dragon</h1>\n\t    <img src='/resources/mad-libs-dragon.gif'>\n\t    <h2 id='question'></h2>\n\t    <input id='answer' placeholder=\"build your story\">\n\t    <br>\n\t    <button id='submit'>Next</button>\n\t    <h3 id='finishedStory'></h3>\n    </div>\n  \n\t<script src=\"script.js\"></script>\n</body>\n</html>\n#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "style.css": {
+          "mode": "new_contents",
+          "contents": "* {\n    margin: 0;\n    box-sizing: border-box;\n}\n\nbody {\n    height: 100vh;\n    font-family: 'Exo';\n    display: grid;\n    justify-content: center;\n    background-color: skyblue;\n}\n\nimg {\n    width: auto;\n    height: auto;\n    max-width: 300px;\n    max-height: 200px;\n}\n\ninput {\n    font-size: 1rem;\n    padding: 5px 10px;\n    width: 250px;\n    text-align: center;\n}\n\nbutton {\n    padding: 5px 10px;\n}\n\nimg, h4, input, button {\n    margin-top: 10px;\n}\n\n#content {\n    margin-top: 30px;\n    max-width: 450px;\n    text-align: center;\n}\n\n#finishedStory {\n    line-height: 2rem;\n    padding: 20px;\n}\n\n.highlight {\n    color: tomato;\n    font-family: 'Shadows Into Light';\n    background-color: white;\n    padding: 0 5px;\n    border-radius: 5px;\n}\n#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "script.js": {
+          "mode": "new_contents",
+          "contents": "var story = 'The (color) Dragon is the (superlative) Dragon of all. It has (adjective1) (body_parts), and a (body_part) shaped like a (noun). It loves to eat (animal), although it will feast on nearly anything. It is (adjective2) and (adjective3). You must be (adjective4) around it, or you may end up as its meal!';\n\nvar questions = {\n    color: 'Type a color',\n    superlative: 'Type a superlative (ending is \"est\") (2/10)',\n    body_parts: 'Type a body part (plural) (3/10)',\n    body_part: 'Type a body part (4/10)',\n    noun: 'Type a noun (5/10)',\n    animal: 'Type an animal (plural) (6/10)',\n    adjective1: 'Type an adjective (7/10)',\n    adjective2: 'Type an adjective (8/10)',\n    adjective3: 'Type an adjective (9/10)',\n    adjective4: 'Type an adjective (Almost Done!)',\n};\n\nvar answers = {};\n\nvar keys = Object.keys(questions);\n\nquestions = Object.values(questions);\n\nsubmit.onclick = () => {\n    if (questions.length === 0) {\n        showStory();\n    }\n    else if (answer.value.trim().length) {\n        showNextQuestion();\n        const key = keys.shift();\n        answers[key] = answer.value;\n        answer.value = '';\n        answer.focus();\n    }\n};\n\nanswer.onkeydown = () => {\n    if (event.code === 'Enter') submit.click();\n};\n\nfunction showNextQuestion() {\n    question.innerText = questions.shift();\n}\n\nfunction showStory() {\n    Object.entries(answers).forEach(item => {\n        const [key, answer] = item;\n        story = story.replace(`(${key})`, `<span class='highlight'>${answer}</span>`);\n    });\n    finishedStory.innerHTML = story;\n    [question, answer, submit].forEach(el => el.parentNode.removeChild(el));\n}\n\nshowNextQuestion();\n#BEGIN_EDITABLE##END_EDITABLE#"
+        }
+      },
+      "tests": {}
+    },
+    "2917647719999250": {
+      "title": "Add the title",
+      "type": "code",
+      "content": {
+        "instructions": "<p>To begin, let's give our Mad Libs story will a title using an HTML <code class=\"syntax\">&lt;h1&gt;</code> element.&nbsp;</p><p>Required Syntax:</p><ul><li><p class=\"notes\"><a href='#glossary/html/2b80319b-5dc3-4f5d-89f8-1f38b5969f6e'>&lt;h1&gt;</a></p></li></ul>"
+      },
+      "deleted": false,
+      "stepId": "2917647719999250",
+      "majorRevision": 1,
+      "minorRevision": 0,
+      "orderNo": 2000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "mode": "new_contents",
+          "contents": "<!DOCTYPE html>\n<html>\n<head>\n    <link href='https://fonts.googleapis.com/css?family=Shadows+Into+Light' rel='stylesheet' type='text/css'>\n    <link href='https://fonts.googleapis.com/css?family=Exo:200' rel='stylesheet' type='text/css'>\n\t<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div id='content'>\n\t    #BEGIN_EDITABLE#    #END_EDITABLE#\n    </div>\n  \n  \t<script src=\"script.js\"></script>\n</body>\n</html>",
+          "answers": [
+            "<h1>The English Dragon</h1>"
+          ],
+          "contentsWithAnswers": "<!DOCTYPE html>\n<html>\n<head>\n    <link href='https://fonts.googleapis.com/css?family=Shadows+Into+Light' rel='stylesheet' type='text/css'>\n    <link href='https://fonts.googleapis.com/css?family=Exo:200' rel='stylesheet' type='text/css'>\n\t<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div id='content'>\n\t    #BEGIN_EDITABLE#<h1>The English Dragon</h1>#END_EDITABLE#\n    </div>\n  \n  \t<script src=\"script.js\"></script>\n</body>\n</html>"
+        },
+        "style.css": {
+          "mode": "new_contents",
+          "contents": "#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "script.js": {
+          "mode": "new_contents",
+          "contents": "#BEGIN_EDITABLE##END_EDITABLE#"
+        }
+      },
+      "tests": {
+        "7746001463206495": {
+          "title": "On <strong>HTML line ##LINE('index.html','content')+1##</strong>, create an <code class=\"syntax\">&lt;h1&gt;</code> element, and add a title for your Mad Libs story between the tags.",
+          "stepId": "2917647719999250",
+          "testId": "7746001463206495",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\n// pass.if.html.editable(0).equivalent(`<h1>The English Dragon</h1>`);\npass.if.html.editable(0).equivalent(`<h1>##ANY##</h1>`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "5930973679431420": {
+      "title": "Change our character",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Next, let's add an image to our game's web page using a picture that best respresents our Mad Libs story. </p><p>You can replace the sample dragon image with any image you like.</p><p>Want different images? Try the following:</p><ul><li><p class=\"notes\">Visit  and use the search bar to find an image</p></li><li><p class=\"notes\">Right-click the image, then click Copy Image Address (NOT \"Copy Link Address\"!)</p></li></ul><p>Required Syntax:</p><ul><li><p class=\"notes\"><a href='#glossary/html/1eff844a-cc1d-4e36-b5dc-8b29d9b7ce7d'>&lt;img&gt;</a></p></li></ul>"
+      },
+      "deleted": false,
+      "stepId": "5930973679431420",
+      "majorRevision": 1,
+      "minorRevision": 0,
+      "orderNo": 3000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "mode": "modify",
+          "contents": "<!DOCTYPE html>\n<html>\n<head>\n    <link href='https://fonts.googleapis.com/css?family=Shadows+Into+Light' rel='stylesheet' type='text/css'>\n    <link href='https://fonts.googleapis.com/css?family=Exo:200' rel='stylesheet' type='text/css'>\n\t<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div id='content'>\n\t    <h1>The English Dragon</h1>\n    </div>\n  \n  \t<script src=\"script.js\"></script>\n</body>\n</html>",
+          "answers": null,
+          "contentsWithAnswers": "<!DOCTYPE html>\n<html>\n<head>\n    <link href='https://fonts.googleapis.com/css?family=Shadows+Into+Light' rel='stylesheet' type='text/css'>\n    <link href='https://fonts.googleapis.com/css?family=Exo:200' rel='stylesheet' type='text/css'>\n\t<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div id='content'>\n\t    <h1>The English Dragon</h1>\n    </div>\n  \n  \t<script src=\"script.js\"></script>\n</body>\n</html>\n<img src='http://app.bsd.education/resources/mad-libs-dragon.gif'>"
+        },
+        "style.css": {
+          "mode": "no_change",
+          "contents": "#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "script.js": {
+          "mode": "new_contents",
+          "contents": "#BEGIN_EDITABLE##END_EDITABLE#"
+        }
+      },
+      "tests": {
+        "3485528143153198": {
+          "title": {},
+          "stepId": "5930973679431420",
+          "testId": "3485528143153198",
+          "orderNo": 1000,
+          "testFunction": "//\tNo editable selected",
+          "failureMessage": ""
+        }
+      }
+    },
+    "1400915141687970": {
+      "title": "Changing the background color",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Great work!&nbsp;<br /><br />Before we begin writing our Mad Libs story, let's style our web page with CSS by changing the background color.&nbsp;</p><p>We can do this using the CSS <code class=\"syntax\">background-color</code> property.</p><p><strong>Note</strong>: Think about the story you're about to write - which color is the best fit for your story?</p><p><strong>Required Syntax:</strong></p><ul><li><p class=\"notes\"><a href='#glossary/css/c0ed8259-70af-4c0c-abdc-56be713f6cdf'>background-color</a></p></li></ul>"
+      },
+      "deleted": false,
+      "stepId": "1400915141687970",
+      "majorRevision": 1,
+      "minorRevision": 0,
+      "orderNo": 4000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "mode": "modify",
+          "contents": "<!DOCTYPE html>\n<html>\n<head>\n    <link href='https://fonts.googleapis.com/css?family=Shadows+Into+Light' rel='stylesheet' type='text/css'>\n    <link href='https://fonts.googleapis.com/css?family=Exo:200' rel='stylesheet' type='text/css'>\n\t<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div id='content'>\n\t    <h1>The English Dragon</h1>\n    </div>\n  \n  \t<script src=\"script.js\"></script>\n</body>\n</html>\n<img src='http://app.bsd.education/resources/mad-libs-dragon.gif'>#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "style.css": {
+          "mode": "new_contents",
+          "contents": "* {\n    margin: 0;\n    box-sizing: border-box;\n}\n\nbody {\n    height: 100vh;\n    font-family: 'Exo';\n    display: grid;\n    justify-content: center;\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n}\n\nimg {\n    width: auto;\n    height: auto;\n    max-width: 300px;\n    max-height: 200px;\n}\n\ninput {\n    font-size: 1rem;\n    padding: 5px 10px;\n    width: 250px;\n    text-align: center;\n}\n\nbutton {\n    padding: 5px 10px;\n}\n\nimg, h4, input, button {\n    margin-top: 10px;\n}\n\n#content {\n    margin-top: 30px;\n    max-width: 450px;\n    text-align: center;\n}\n\n#finishedStory {\n    line-height: 2rem;\n    padding: 20px;\n}\n\n.highlight {\n    color: tomato;\n    font-family: 'Shadows Into Light';\n    background-color: white;\n    padding: 0 5px;\n    border-radius: 5px;\n}",
+          "answers": [
+            "background-color: skyblue;"
+          ],
+          "contentsWithAnswers": "* {\n    margin: 0;\n    box-sizing: border-box;\n}\n\nbody {\n    height: 100vh;\n    font-family: 'Exo';\n    display: grid;\n    justify-content: center;\n    #BEGIN_EDITABLE#background-color: skyblue;#END_EDITABLE#\n}\n\nimg {\n    width: auto;\n    height: auto;\n    max-width: 300px;\n    max-height: 200px;\n}\n\ninput {\n    font-size: 1rem;\n    padding: 5px 10px;\n    width: 250px;\n    text-align: center;\n}\n\nbutton {\n    padding: 5px 10px;\n}\n\nimg, h4, input, button {\n    margin-top: 10px;\n}\n\n#content {\n    margin-top: 30px;\n    max-width: 450px;\n    text-align: center;\n}\n\n#finishedStory {\n    line-height: 2rem;\n    padding: 20px;\n}\n\n.highlight {\n    color: tomato;\n    font-family: 'Shadows Into Light';\n    background-color: white;\n    padding: 0 5px;\n    border-radius: 5px;\n}"
+        },
+        "script.js": {
+          "mode": "new_contents",
+          "contents": "#BEGIN_EDITABLE##END_EDITABLE#"
+        }
+      },
+      "tests": {
+        "8050650631921955": {
+          "title": "On <strong>CSS line ##LINE('style.css','img {')-3##</strong>, set the <code class=\"syntax\">background-color</code> property to a color of your choice.",
+          "stepId": "1400915141687970",
+          "testId": "8050650631921955",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\n// pass.if.css.editable(0).equivalent(`background-color: skyblue;`);\npass.if.css.editable(0).equivalent(`background-color: ##COLOR##;`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "1167958653216164": {
+      "title": "Writing your story",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Now we can buid our Mad Libs story!&nbsp;<br /><br />Remember, Mad Libs works by creating a story with certain words removed.&nbsp;<br /><br />To do that, we will use JavaScript variables to store the player's list of words.&nbsp;</p><p>Your story must contain these keywords written exactly as listed below:&nbsp;</p><ul><li><p class=\"notes\">(color)</p></li><li><p class=\"notes\">(superlative)</p></li><li><p class=\"notes\">(body_parts)</p></li><li><p class=\"notes\">(body_part)</p></li><li><p class=\"notes\">(noun)</p></li><li><p class=\"notes\">(animal)</p></li><li><p class=\"notes\">(adjective1)</p></li><li><p class=\"notes\">(adjective2)</p></li><li><p class=\"notes\">(adjective3)</p></li><li><p class=\"notes\">(adjective4)</p></li></ul><p><strong>Example</strong>: The <strong>(color)</strong> Dragon is the <strong>(superlative)</strong> Dragon of all. It has <strong>(adjective1) (body_parts)</strong>, and a <strong>(body_part)</strong> shaped like a <strong>(noun)</strong>...</p><p>Showcase your vocabulary skills by writing your&nbsp;story - be creative!&nbsp;</p><p><strong>Required Syntax:</strong></p><ul><li><p class=\"notes\"><a href='#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52'>variable</a></p></li><li><p class=\"notes\"><a href='#glossary/javascript/4abbff41-b31c-4ef1-a42b-4b64470a5f4b'>string</a></p></li></ul>"
+      },
+      "deleted": false,
+      "stepId": "1167958653216164",
+      "majorRevision": 1,
+      "minorRevision": 0,
+      "orderNo": 5000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "mode": "modify",
+          "contents": "<!DOCTYPE html>\n<html>\n<head>\n    <link href='https://fonts.googleapis.com/css?family=Shadows+Into+Light' rel='stylesheet' type='text/css'>\n    <link href='https://fonts.googleapis.com/css?family=Exo:200' rel='stylesheet' type='text/css'>\n\t<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div id='content'>\n\t    <h1>The English Dragon</h1>\n    </div>\n  \n  \t<script src=\"script.js\"></script>\n</body>\n</html>\n<img src='http://app.bsd.education/resources/mad-libs-dragon.gif'>#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "style.css": {
+          "mode": "modify",
+          "contents": "* {\n    margin: 0;\n    box-sizing: border-box;\n}\n\nbody {\n    height: 100vh;\n    font-family: 'Exo';\n    display: grid;\n    justify-content: center;\n    background-color: skyblue;\n}\n\nimg {\n    width: auto;\n    height: auto;\n    max-width: 300px;\n    max-height: 200px;\n}\n\ninput {\n    font-size: 1rem;\n    padding: 5px 10px;\n    width: 250px;\n    text-align: center;\n}\n\nbutton {\n    padding: 5px 10px;\n}\n\nimg, h4, input, button {\n    margin-top: 10px;\n}\n\n#content {\n    margin-top: 30px;\n    max-width: 450px;\n    text-align: center;\n}\n\n#finishedStory {\n    line-height: 2rem;\n    padding: 20px;\n}\n\n.highlight {\n    color: tomato;\n    font-family: 'Shadows Into Light';\n    background-color: white;\n    padding: 0 5px;\n    border-radius: 5px;\n}\n#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "script.js": {
+          "mode": "new_contents",
+          "contents": "// JavaScript\n#BEGIN_EDITABLE#    #END_EDITABLE#",
+          "answers": [
+            "var story;"
+          ],
+          "contentsWithAnswers": "// JavaScript\n#BEGIN_EDITABLE#var story;#END_EDITABLE#"
+        }
+      },
+      "tests": {
+        "6134071332147128": {
+          "title": "On <strong>JS line ##LINE('script.js','JavaScript')+1##</strong>, create a variable called <strong>story</strong>.",
+          "stepId": "1167958653216164",
+          "testId": "6134071332147128",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`var story;`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "4771320549855550": {
+      "title": "Writing your story (copy)",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Now we can buid our Mad Libs story!&nbsp;<br /><br />Remember, Mad Libs works by creating a story with certain words removed.&nbsp;<br /><br />To do that, we will use JavaScript variables to store the player's list of words.&nbsp;</p><p>Your story must contain these keywords written exactly as listed below:&nbsp;</p><ul><li><p class=\"notes\">(color)</p></li><li><p class=\"notes\">(superlative)</p></li><li><p class=\"notes\">(body_parts)</p></li><li><p class=\"notes\">(body_part)</p></li><li><p class=\"notes\">(noun)</p></li><li><p class=\"notes\">(animal)</p></li><li><p class=\"notes\">(adjective1)</p></li><li><p class=\"notes\">(adjective2)</p></li><li><p class=\"notes\">(adjective3)</p></li><li><p class=\"notes\">(adjective4)</p></li></ul><p><strong>Example</strong>: The <strong>(color)</strong> Dragon is the <strong>(superlative)</strong> Dragon of all. It has <strong>(adjective1) (body_parts)</strong>, and a <strong>(body_part)</strong> shaped like a <strong>(noun)</strong>...</p><p>Showcase your vocabulary skills by writing your&nbsp;story - be creative!&nbsp;</p><p><strong>Required Syntax:</strong></p><ul><li><p class=\"notes\"><a href='#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52'>variable</a></p></li><li><p class=\"notes\"><a href='#glossary/javascript/4abbff41-b31c-4ef1-a42b-4b64470a5f4b'>string</a></p></li></ul>"
+      },
+      "deleted": false,
+      "stepId": "4771320549855550",
+      "majorRevision": 1,
+      "minorRevision": 0,
+      "orderNo": 6000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "mode": "modify",
+          "contents": "<!DOCTYPE html>\n<html>\n<head>\n    <link href='https://fonts.googleapis.com/css?family=Shadows+Into+Light' rel='stylesheet' type='text/css'>\n    <link href='https://fonts.googleapis.com/css?family=Exo:200' rel='stylesheet' type='text/css'>\n\t<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div id='content'>\n\t    <h1>The English Dragon</h1>\n    </div>\n  \n  \t<script src=\"script.js\"></script>\n</body>\n</html>\n<img src='http://app.bsd.education/resources/mad-libs-dragon.gif'>#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "style.css": {
+          "mode": "modify",
+          "contents": "* {\n    margin: 0;\n    box-sizing: border-box;\n}\n\nbody {\n    height: 100vh;\n    font-family: 'Exo';\n    display: grid;\n    justify-content: center;\n    background-color: skyblue;\n}\n\nimg {\n    width: auto;\n    height: auto;\n    max-width: 300px;\n    max-height: 200px;\n}\n\ninput {\n    font-size: 1rem;\n    padding: 5px 10px;\n    width: 250px;\n    text-align: center;\n}\n\nbutton {\n    padding: 5px 10px;\n}\n\nimg, h4, input, button {\n    margin-top: 10px;\n}\n\n#content {\n    margin-top: 30px;\n    max-width: 450px;\n    text-align: center;\n}\n\n#finishedStory {\n    line-height: 2rem;\n    padding: 20px;\n}\n\n.highlight {\n    color: tomato;\n    font-family: 'Shadows Into Light';\n    background-color: white;\n    padding: 0 5px;\n    border-radius: 5px;\n}\n#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "script.js": {
+          "mode": "new_contents",
+          "contents": "// JavaScript\nvar story = #BEGIN_EDITABLE#    #END_EDITABLE#;",
+          "answers": [
+            "\"The (color) Dragon is the (superlative) Dragon of all. It has (adjective1) (body_parts), and a (body_part) shaped like a (noun). It loves to eat (animal), although it will feast on nearly anything. It's (adjective2) and (adjective3). You must be (adjective4) around it, or you may end up as its meal!\""
+          ],
+          "contentsWithAnswers": "// JavaScript\nvar story = #BEGIN_EDITABLE#\"The (color) Dragon is the (superlative) Dragon of all. It has (adjective1) (body_parts), and a (body_part) shaped like a (noun). It loves to eat (animal), although it will feast on nearly anything. It's (adjective2) and (adjective3). You must be (adjective4) around it, or you may end up as its meal!\"#END_EDITABLE#;"
+        }
+      },
+      "tests": {
+        "6226433362984708": {
+          "title": "On <strong>JS line ##LINE('script.js','JavaScript')+1##</strong>, create a variable called <strong>story&nbsp;</strong>",
+          "stepId": "4771320549855550",
+          "testId": "6226433362984708",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`##STRING##`);\nconst raw = code.js.editable[0].match(/(['\"]).*?\\1/)[0];\nconst keywords = ['(color)', '(superlative)', '(body_parts)', '(body_part)', '(noun)', '(animal)', '(adjective1)', '(adjective2)', '(adjective3)', '(adjective4)'];\ncode.js.editable[0] = keywords.every(word => raw.includes(word)).toString();\npass('Make sure you have included all 10 keywards in your story exactly as listed in the instructions').if.js.editable(0).equivalent('true');",
+          "failureMessage": ""
+        }
+      }
+    },
+    "1750417574377206": {
+      "title": "Summary",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Great job!</p><p>You have completed this project, here is a recap:</p><ul><li><p class=\"notes\">We used the <a href='#glossary/html/2b80319b-5dc3-4f5d-89f8-1f38b5969f6e'>&lt;h1&gt;</a> element to add the title for our story</p></li><li><p class=\"notes\">We used the <a href='#glossary/html/1eff844a-cc1d-4e36-b5dc-8b29d9b7ce7d'>&lt;img&gt;</a> element for the character image</p></li><li><p class=\"notes\">We used the <a href='#glossary/css/c0ed8259-70af-4c0c-abdc-56be713f6cdf'>background-color</a> property to customize the mood of our page</p></li><li><p class=\"notes\">We wrote our stories using a <a href='#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52'>variable</a> and a <a href='#glossary/javascript/4abbff41-b31c-4ef1-a42b-4b64470a5f4b'>string</a></p></li></ul>"
+      },
+      "deleted": false,
+      "stepId": "1750417574377206",
+      "majorRevision": 1,
+      "minorRevision": 0,
+      "orderNo": 7000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "mode": "modify",
+          "contents": "<!DOCTYPE html>\n<html>\n<head>\n    <link href='https://fonts.googleapis.com/css?family=Shadows+Into+Light' rel='stylesheet' type='text/css'>\n    <link href='https://fonts.googleapis.com/css?family=Exo:200' rel='stylesheet' type='text/css'>\n\t<link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n    <div id='content'>\n\t    <h1>The English Dragon</h1>\n    </div>\n  \n  \t<script src=\"script.js\"></script>\n</body>\n</html>\n<img src='http://app.bsd.education/resources/mad-libs-dragon.gif'>#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "style.css": {
+          "mode": "modify",
+          "contents": "* {\n    margin: 0;\n    box-sizing: border-box;\n}\n\nbody {\n    height: 100vh;\n    font-family: 'Exo';\n    display: grid;\n    justify-content: center;\n    background-color: skyblue;\n}\n\nimg {\n    width: auto;\n    height: auto;\n    max-width: 300px;\n    max-height: 200px;\n}\n\ninput {\n    font-size: 1rem;\n    padding: 5px 10px;\n    width: 250px;\n    text-align: center;\n}\n\nbutton {\n    padding: 5px 10px;\n}\n\nimg, h4, input, button {\n    margin-top: 10px;\n}\n\n#content {\n    margin-top: 30px;\n    max-width: 450px;\n    text-align: center;\n}\n\n#finishedStory {\n    line-height: 2rem;\n    padding: 20px;\n}\n\n.highlight {\n    color: tomato;\n    font-family: 'Shadows Into Light';\n    background-color: white;\n    padding: 0 5px;\n    border-radius: 5px;\n}\n#BEGIN_EDITABLE##END_EDITABLE#"
+        },
+        "script.js": {
+          "mode": "modify",
+          "contents": "// JavaScript\nvar story = \"The (color) Dragon is the (superlative) Dragon of all. It has (adjective1) (body_parts), and a (body_part) shaped like a (noun). It loves to eat (animal), although it will feast on nearly anything. It's (adjective2) and (adjective3). You must be (adjective4) around it, or you may end up as its meal!\";\n\nvar questions = {\n    color: 'Type a color',\n    superlative: 'Type a superlative (ending is \"est\") (2/10)',\n    body_parts: 'Type a body part (plural) (3/10)',\n    body_part: 'Type a body part (4/10)',\n    noun: 'Type a noun (5/10)',\n    animal: 'Type an animal (plural) (6/10)',\n    adjective1: 'Type an adjective (7/10)',\n    adjective2: 'Type an adjective (8/10)',\n    adjective3: 'Type an adjective (9/10)',\n    adjective4: 'Type an adjective (Almost Done!)',\n};\n\nvar answers = {};\n\nvar keys = Object.keys(questions);\n\nquestions = Object.values(questions);\n\nsubmit.onclick = () => {\n    if (questions.length === 0) {\n        showStory();\n    }\n    else if (answer.value.trim().length) {\n        showNextQuestion();\n        const key = keys.shift();\n        answers[key] = answer.value;\n        answer.value = '';\n        answer.focus();\n    }\n};\n\nanswer.onkeydown = () => {\n    if (event.code === 'Enter') submit.click();\n};\n\nfunction showNextQuestion() {\n    question.innerText = questions.shift();\n}\n\nfunction showStory() {\n    Object.entries(answers).forEach(item => {\n        const [key, answer] = item;\n        story = story.replace('(' + key + ')', \"<span class='highlight'>\" + answer + '</span>');\n    });\n    finishedStory.innerHTML = story;\n    [question, answer, submit].forEach(el => el.parentNode.removeChild(el));\n}\n\nshowNextQuestion();\n#BEGIN_EDITABLE##END_EDITABLE#"
+        }
+      },
+      "tests": {}
+    }
+  }
+}

@@ -1,0 +1,862 @@
+{
+  "missionUuid": "a88231fe-7394-479d-9f94-b055ceb51d5d",
+  "settings": {
+    "revision": "(3,16)",
+    "level": 0,
+    "title": "TechReady - AI - AI Chess Player",
+    "description": "",
+    "duration": null,
+    "type": "project",
+    "status": "exclusive",
+    "tenant": "bsd",
+    "missionUuid": "a88231fe-7394-479d-9f94-b055ceb51d5d",
+    "missionName": "techready---ai---ai-chess-player",
+    "majorRevision": 3,
+    "minorRevision": 17,
+    "changeInfo": "(1315b022-3715-4e54-aa31-e917c53fb0be,\"2020-03-10 06:12:44.497289\")",
+    "objectivesVersion": 2,
+    "cardImage": "/resources/project cards/project_placeholder.png",
+    "authorUserId": "1315b022-3715-4e54-aa31-e917c53fb0be",
+    "ownerUserId": "1315b022-3715-4e54-aa31-e917c53fb0be",
+    "createdDate": "2019-09-10T10:10:58.128Z",
+    "lastModified": "2020-03-10T06:12:44.497Z",
+    "authorName": "Ding Siuling",
+    "ownerName": "Ding Siuling",
+    "ownerEmail": "sd@bsd.education",
+    "atEnd": "export",
+    "cardLinks": [],
+    "resources": [],
+    "webOutput": true,
+    "mobileView": {
+      "mobileViewEnabled": false
+    },
+    "searchable": true,
+    "bodyLocking": false,
+    "consoleType": null,
+    "recommended": false,
+    "codeUnlocked": false,
+    "missionVideo": "",
+    "sandboxDefault": false,
+    "imageUploadOnHtml": false,
+    "tags": []
+  },
+  "steps": {
+    "575547752981262": {
+      "title": "Introduction",
+      "type": "interactive",
+      "content": {
+        "instructions": "<p>In lesson 9, you played chess with an AI.</p>\n<p>In this project, we will be working to create the AI chess player using HTML, CSS and JavaScript.</p>\n<p>Before we begin, play the game once to familiarize with it.</p>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>"
+      },
+      "deleted": false,
+      "stepId": "575547752981262",
+      "majorRevision": 3,
+      "minorRevision": 14,
+      "orderNo": 1500,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <link href=\"https://fonts.googleapis.com/css?family=Frijole\" rel=\"stylesheet\">\n    <link rel=\"stylesheet\" href=\"https://app.bsd.education/resources/css/chessboard-0.3.0.css\">\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <script src=\"https://app.bsd.education/resources/js/jquery-3.2.1.js\"></script>\n    <script src=\"https://app.bsd.education/resources/js/chess.js\"></script>\n    <script src=\"https://app.bsd.education/resources/js/chessboard.js\"></script>\n</head>\n<body>\n    <h1>AI Chess</h1>\n    <div id=\"board\" class=\"board\"></div>\n    \n    <script src=\"script.js\"></script>\n</body>\n</html>\n#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        },
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\ncfg.onMouseoutSquare = handleMouseoutSquare;\ncfg.onDragStart = handleDragStart;\ncfg.onDrop = handleDrop;\ncfg.onSnapEnd = handleSnapEnd;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\nvar positionCount;\nvar depth = 3;\n\nwindow.onload = () => {\n    var boardContainer = document.querySelector('#board');\n    var title = document.querySelector('h1');\n    var height = window.innerHeight - title.offsetHeight - 50;\n    var size = `${Math.min(window.innerWidth - 100, height)}px`;\n\n    boardContainer.style.height = size;\n    boardContainer.style.width = size;\n\n    board.resize();\n}\n\nfunction minimaxRoot(depth, game) {\n    var moves = game.ugly_moves();\n    var bestMove = -9999;\n    var bestMoveFound;\n\n    moves.forEach(move => {\n        game.ugly_move(move);\n\n        var value = minimax(depth - 1, game, false);\n\n        if (value >= bestMove) {\n            bestMove = value;\n            bestMoveFound = move;\n        }\n\n        game.undo();\n    });\n\n    return bestMoveFound;\n}\n\nfunction minimax(depth, game, isMaximisingPlayer) {\n    positionCount++;\n\n    if (depth === 0) {\n        return -evaluateBoard(game.board());\n    }\n\n    var moves = game.ugly_moves();\n    var bestMove = isMaximisingPlayer ? -9999 : 9999;\n\n    moves.forEach(move => {\n        game.ugly_move(move);\n        bestMove = Math[isMaximisingPlayer ? 'max' : 'min'](bestMove, minimax(depth - 1, game, !isMaximisingPlayer));\n        game.undo();\n    });\n\n    return bestMove;\n}\n\nfunction evaluateBoard(board) {\n    var totalEvaluation = 0;\n\n    for (var i = 0; i < 8; i++) {\n        for (var j = 0; j < 8; j++) {\n            totalEvaluation = totalEvaluation + getPieceValue(board[i][j]);\n        }\n    }\n\n    return totalEvaluation;\n}\n\nfunction getPieceValue(piece) {\n    if (piece === null) return 0;\n\n    var getAbsoluteValue = piece => {\n        if (piece.type === 'p') {\n            return 10;\n        } else if (piece.type === 'r') {\n            return 50;\n        } else if (piece.type === 'n') {\n            return 30;\n        } else if (piece.type === 'b') {\n            return 30;\n        } else if (piece.type === 'q') {\n            return 90;\n        } else if (piece.type === 'k') {\n            return 900;\n        }\n        throw \"Unknown piece type: \" + piece.type;\n    };\n    var absoluteValue = getAbsoluteValue(piece, piece.color === 'w');\n\n    return piece.color === 'w' ? absoluteValue : -absoluteValue;\n}\n\nfunction handleDragStart(source, piece) {\n    if (game.in_checkmate() === true || game.in_draw() === true || piece.search(/^b/) !== -1) {\n        return false;\n    }\n}\n\nfunction handleDrop(source, target) {\n    var move = game.move({ from: source, to: target });\n\n    removeGreySquares();\n\n    if (move === null) { return 'snapback' }\n\n    setTimeout(makeBestMove, 250);\n}\n\nfunction makeBestMove() {\n    var bestMove = getBestMove(game);\n\n    game.ugly_move(bestMove);\n    board.position(game.fen());\n\n    if (game.game_over()) {\n        alert('You lost');\n        passStep();\n    }\n}\n\nfunction passStep() { }\n\nfunction getBestMove(game) {\n    if (game.game_over()) {\n        alert('You won!');\n        passStep();\n    }\n\n    positionCount = 0;\n\n    var bestMove = minimaxRoot(depth, game);\n\n    return bestMove;\n}\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    removeGreySquares();\n}\n\nfunction handleSnapEnd() {\n    board.position(game.fen());\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n\n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": []
+        },
+        "style.css": {
+          "contents": "/* CSS */\nbody {\n    background-color: lightyellow;\n}\n\nbody, h1 {\n    margin: 0;\n}\n\nh1 {\n    font-family: \"Frijole\";\n    color: maroon;\n    text-align: center;\n    padding: 20px 0 10px;\n}\n\n#board {\n\tmargin: auto;\n}",
+          "mode": "new_contents",
+          "answers": []
+        }
+      },
+      "tests": {
+        "8090848423333001": {
+          "title": "Play chess game with the AI at least 1 game",
+          "stepId": "575547752981262",
+          "testId": "8090848423333001",
+          "orderNo": 1000,
+          "testFunction": "pass.on('passStep');",
+          "failureMessage": ""
+        }
+      }
+    },
+    "5368142955476646": {
+      "title": "Importing the chessboard library",
+      "type": "code",
+      "content": {
+        "instructions": "<p>There are 2 parts to the chess game: the chessboard UI and the AI that actually plays chess.</p>\n<p>Each part can be created using a library.</p>\n<p>First, we'll use the chessboard.js library to create the UI.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/html/6f45e8ff-64d2-4528-827a-9d2722b8449d\">&lt;div&gt;</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/html/05c870d4-8500-4dbd-98ef-92fd1f6d84a1\">id</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "index.html"
+      },
+      "deleted": false,
+      "stepId": "5368142955476646",
+      "majorRevision": 3,
+      "minorRevision": 14,
+      "orderNo": 2000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n  \t<link href=\"https://fonts.googleapis.com/css?family=Frijole\" rel=\"stylesheet\">\n    <link rel=\"stylesheet\" href=\"https://app.bsd.education/resources/css/chessboard-0.3.0.css\">\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <script src=\"https://app.bsd.education/resources/js/jquery-3.2.1.js\"></script>\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n</head>\n<body>\n    <h1>AI Chess</h1>\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n    \n    <script src=\"script.js\"></script>\n</body>\n</html>",
+          "mode": "new_contents",
+          "answers": [
+            "<script src=\"https://app.bsd.education/resources/js/chessboard.js\"></script>",
+            "<div id=\"board\" class=\"board\"></div>"
+          ]
+        },
+        "script.js": {
+          "contents": "#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        },
+        "style.css": {
+          "contents": "body {\n    background-color: lightyellow;\n}\n\nh1 {\n    font-family: \"Frijole\";\n    color: maroon;\n    text-align: center;\n}\n#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        }
+      },
+      "tests": {
+        "538662702269950": {
+          "title": "On <strong>HTML line ##LINE('index.html','&lt;meta')+5##</strong>, create a <code class=\"syntax\">&lt;script&gt;</code> element and set the <code class=\"syntax\">src</code> attribute to <strong>https://app.bsd.education/resources/js/chessboard.js</strong>.",
+          "stepId": "5368142955476646",
+          "testId": "538662702269950",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.html.editable(0).equivalent(`<script src=\"https://app.bsd.education/resources/js/chessboard.js\"></script>`);",
+          "failureMessage": ""
+        },
+        "637025815488188": {
+          "title": "On <strong>HTML line ##LINE('index.html','&lt;h1>')+1##</strong>, create a <code class=\"syntax\">&lt;div></code> element, set the <code class=\"syntax\">id</code> attribute to <strong>board</strong> and the <code class=\"syntax\">class</code> attribute to <strong>board</strong>.",
+          "stepId": "5368142955476646",
+          "testId": "637025815488188",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.html.editable(1).equivalent(`<div id=\"board\" class=\"board\"></div>`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "7661377447172435": {
+      "title": "Setting up the chessboard",
+      "type": "code",
+      "content": {
+        "instructions": "<p>After&nbsp;importing the chessboard library, we&nbsp;can use it to populate the <code>&lt;div id=\"board\"&gt;</code> element in HTML.</p>\n<p>The chessboard library needs 2 things to work: the <code>id</code> name of the element where we want the chessboard to be shown, and a configuration variable to tell the library where the chess pieces should be placed.</p>\n<p>For the <code>id</code> name, we'll use&nbsp;<strong>\"board\"</strong> since that's&nbsp;what we assigned to the <code>&lt;div&gt;</code> element.</p>\n<p>And for the configuration variable, we'll use <code>{ position: \"start\" }</code> to put the chess pieces in their starting positions.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/879dff65-4e0f-45e1-89c4-febd7060b6b9\">object</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "7661377447172435",
+      "majorRevision": 3,
+      "minorRevision": 13,
+      "orderNo": 3000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n  \t<link href=\"https://fonts.googleapis.com/css?family=Frijole\" rel=\"stylesheet\">\n    <link rel=\"stylesheet\" href=\"https://app.bsd.education/resources/css/chessboard-0.3.0.css\">\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <script src=\"https://app.bsd.education/resources/js/jquery-3.2.1.js\"></script>\n    <script src=\"https://app.bsd.education/resources/js/chessboard.js\"></script>\n</head>\n<body>\n    <h1>AI Chess</h1>\n    <div id=\"board\" class=\"board\"></div>\n    \n    <script src=\"script.js\"></script>\n</body>\n</html>\n#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        },
+        "script.js": {
+          "contents": "//  JavaScript\n#BEGIN_EDITABLE#    #END_EDITABLE#\n\n#BEGIN_EDITABLE#    #END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": [
+            "var cfg = { position: 'start' };",
+            "var board = ChessBoard('board', cfg);"
+          ]
+        }
+      },
+      "tests": {
+        "6761014085511003": {
+          "title": "On <strong>JS line ##LINE('script.js','JavaScript')+1##</strong>, create a variable called <strong>cfg</strong> to store the object <code class=\"syntax\">{ position: \"start\" }</code>.",
+          "stepId": "7661377447172435",
+          "testId": "6761014085511003",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`var cfg = { position: 'start' };`);",
+          "failureMessage": ""
+        },
+        "6226804567948940": {
+          "title": "On <strong>JS line ##LINE('script.js','JavaScript')+3##</strong>, type in <code class=\"syntax\">var board = ChessBoard(\"board\", cfg);</code> to create a chassboard object using the chessboard.js library.",
+          "stepId": "7661377447172435",
+          "testId": "6226804567948940",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`var board = ChessBoard('board', cfg);`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "282925035087484": {
+      "title": "Making chess pieces draggable",
+      "type": "code",
+      "content": {
+        "instructions": "<p>With the board properly set up, you should now see the chessboard in the output panel.</p>\n<p>However, in order to move the chess pieces, we'll need to add more properties to the configuration variable.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/879dff65-4e0f-45e1-89c4-febd7060b6b9\">object</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "282925035087484",
+      "majorRevision": 3,
+      "minorRevision": 1,
+      "orderNo": 4000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\n#BEGIN_EDITABLE#    #END_EDITABLE#\n\nvar board = ChessBoard('board', cfg);",
+          "mode": "new_contents",
+          "answers": [
+            "cfg.draggable = true;"
+          ]
+        }
+      },
+      "tests": {
+        "3634076920484120": {
+          "title": "On <strong>JS line ##LINE('script.js','var cfg')+2##</strong>, type in <code class=\"syntax\">cfg.draggable = true;</code> to set the <strong>draggable</strong> property of <strong>cfg</strong> to <strong>true</strong>.",
+          "stepId": "282925035087484",
+          "testId": "3634076920484120",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`cfg.draggable = true;`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "2106159975097110": {
+      "title": "Importing the chess library",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Try clicking and dragging a chess piece to a different position.</p>\n<p>You will notice that we can move any piece to any position on the board, this is not how chess should be played.</p>\n<p>To fix this, we'll need the chess.js library, because it contains the rules of the game, including the move patterns of each chess pieces.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/html/72e6a24d-eb8d-4000-bee8-859baffda976\">&lt;script&gt;</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "index.html"
+      },
+      "deleted": false,
+      "stepId": "2106159975097110",
+      "majorRevision": 3,
+      "minorRevision": 1,
+      "orderNo": 5000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n  \t<link href=\"https://fonts.googleapis.com/css?family=Frijole\" rel=\"stylesheet\">\n    <link rel=\"stylesheet\" href=\"https://app.bsd.education/resources/css/chessboard-0.3.0.css\">\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <script src=\"https://app.bsd.education/resources/js/jquery-3.2.1.js\"></script>\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n    <script src=\"https://app.bsd.education/resources/js/chessboard.js\"></script>\n</head>\n<body>\n    <h1>AI Chess</h1>\n    <div id=\"board\" class=\"board\"></div>\n    \n    <script src=\"script.js\"></script>\n</body>\n</html>\n",
+          "mode": "new_contents",
+          "answers": [
+            "<script src=\"https://app.bsd.education/resources/js/chess.js\"></script>"
+          ]
+        },
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\n\nvar board = ChessBoard('board', cfg);\n#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        }
+      },
+      "tests": {
+        "8065681998882183": {
+          "title": "On <strong>HTML line ##LINE('index.html','&lt;meta')+4##</strong>, create a <code class=\"syntax\">&lt;script></code> element and set the <code class=\"syntax\">src</code> attribute to <strong>https://app.bsd.education/resources/js/chess.js</strong>.",
+          "stepId": "2106159975097110",
+          "testId": "8065681998882183",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.html.editable(0).equivalent(`<script src=\"https://app.bsd.education/resources/js/chess.js\"></script>`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "1129642966557658": {
+      "title": "Setting up the chess library",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Just like the chessboard.js library, the chess.js library needs to be properly set up after import.&nbsp;</p>\n<p>To do this, we can create a new variable called&nbsp;<strong>game</strong>&nbsp;to store a copy of the chess.js library.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/649ea84e-8c3e-408e-b332-4cba6539381d\">new</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "1129642966557658",
+      "majorRevision": 3,
+      "minorRevision": 1,
+      "orderNo": 6000,
+      "refMissionUuid": null,
+      "files": {
+        "index.html": {
+          "contents": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n  \t<link href=\"https://fonts.googleapis.com/css?family=Frijole\" rel=\"stylesheet\">\n    <link rel=\"stylesheet\" href=\"https://app.bsd.education/resources/css/chessboard-0.3.0.css\">\n    <link rel=\"stylesheet\" href=\"style.css\">\n    <script src=\"https://app.bsd.education/resources/js/jquery-3.2.1.js\"></script>\n    <script src=\"https://app.bsd.education/resources/js/chess.js\"></script>\n    <script src=\"https://app.bsd.education/resources/js/chessboard.js\"></script>\n</head>\n<body>\n    <h1>AI Chess</h1>\n    <div id=\"board\" class=\"board\"></div>\n    \n    <script src=\"script.js\"></script>\n</body>\n</html>\n#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        },
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\n\nvar board = ChessBoard('board', cfg);\n#BEGIN_EDITABLE#    #END_EDITABLE#\n",
+          "mode": "new_contents",
+          "answers": [
+            "var game = new Chess();"
+          ]
+        }
+      },
+      "tests": {
+        "3890646237363920": {
+          "title": "On <strong>JS line ##LINE('script.js','var board')+1##</strong>, type in <code class=\"syntax\">var game = new Chess();</code> to create a new game object using the chess.js library.",
+          "stepId": "1129642966557658",
+          "testId": "3890646237363920",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`var game = new Chess();`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "5747970762126090": {
+      "title": "Handling mouse over a square",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Normally, chess players are required to remember the move patterns of each piece, but&nbsp;since we have the power of technology in our hands, we can make the game more accessible by providing visual cues for where each piece can move to.</p>\n<p>We would like to highlight the squares that a chess piece can move to when we hover over that piece.</p>\n<p>To do this, we'll need to configure the chessboard to listen for the&nbsp;<strong>mouse over</strong> event, and when it is detected, we want a function to run, where we'll write more code to highlight the corresponding squares for that chess piece.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/879dff65-4e0f-45e1-89c4-febd7060b6b9\">object</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/c7d23919-b71c-429d-b41c-d9fd7f73ddc5\">function arguments</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "5747970762126090",
+      "majorRevision": 3,
+      "minorRevision": 1,
+      "orderNo": 7000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\n#BEGIN_EDITABLE#    #END_EDITABLE#\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\n#BEGIN_EDITABLE#    #END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": [
+            "cfg.onMouseoverSquare = handleMouseoverSquare;",
+            "function handleMouseoverSquare(square) {}"
+          ]
+        }
+      },
+      "tests": {
+        "5568158087906872": {
+          "title": "On <strong>JS line ##LINE('script.js','draggable')+1##</strong>, type in <code class=\"syntax\">cfg.onMouseoverSquare = handleMouseoverSquare;</code> to handle the mouse over event for each square.",
+          "stepId": "5747970762126090",
+          "testId": "5568158087906872",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`cfg.onMouseoverSquare = handleMouseoverSquare;`);",
+          "failureMessage": ""
+        },
+        "8757005355316501": {
+          "title": "On <strong>JS line ##LINE('script.js','var game')+2##</strong>, type in <code class=\"syntax\">function handleMouseoverSquare(square) {}</code> to create a new function called <strong>handleMouseoverSquare</strong> with the argument <strong>square</strong>.",
+          "stepId": "5747970762126090",
+          "testId": "8757005355316501",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`function handleMouseoverSquare(square) {}`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "8789072493132765": {
+      "title": "Getting valid moves of the target piece",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Now, the&nbsp;<strong>handleMouseoverSquare</strong> function will run when we hover over any square on the board, and inside the function, we have access to the&nbsp;<strong>square</strong> argument, which tells us which square the mouse cursor is hovering.</p>\n<p>To get the valid moves of the chess piece that sits on the hovered square, we can simply&nbsp;call the <code>game.moves</code> function&nbsp;(which&nbsp;comes from the chess.js library) and store it in a variable called&nbsp;<strong>moves</strong>.</p>\n<p>In addition, we'll also need to check whether <strong>moves</strong> actually contains more than 0 moves, because if we're hovering over an empty square or a chess pieces whose path is fully blocked, there will be no possible move and we don't want to highlight anything.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/2ed56671-86c8-4799-a423-5d7f549ec659\">if</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "8789072493132765",
+      "majorRevision": 3,
+      "minorRevision": 14,
+      "orderNo": 8000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\nfunction handleMouseoverSquare(square) {\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "var moves = game.moves({ square, verbose: true });",
+            "if (moves.length > 0) {}"
+          ]
+        }
+      },
+      "tests": {
+        "6201908823517278": {
+          "title": "On <strong>JS line ##LINE('script.js','var game')+3##</strong>, type in <code class=\"syntax\">var moves = game.moves({ square, verbose: true });</code> to store all the available moves of the chess piece under the mouse cursor.",
+          "stepId": "8789072493132765",
+          "testId": "6201908823517278",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`var moves = game.moves({ square, verbose: true });`);",
+          "failureMessage": ""
+        },
+        "5859592672153178": {
+          "title": "On <strong>JS line ##LINE('script.js','var game')+5##</strong>, create an <code class=\"syntax\">if</code> statement to check whether <code class=\"syntax\">moves.length</code> is greater than <strong>0</strong>.",
+          "stepId": "8789072493132765",
+          "testId": "5859592672153178",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`if (moves.length > 0) {}`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "8790370981128201": {
+      "title": "Highlighting the valid moves",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Inside the <code>if</code> statement, we need to write 2 lines of code:&nbsp;one to highlight all squares that the hovered pieces can move to, and another to highlight the square where the cursor is hovering.</p>\n<p>Because&nbsp;<strong>moves</strong> is an array, we need to use the&nbsp;<strong>forEach</strong> method to go over each&nbsp;move it contains, and highlight the squares&nbsp;each move covers.</p>\n<p class=\"notes\">Note: We have created the&nbsp;<strong>greySquare</strong> function to do the highlighting for you.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/f17d20df-0558-4e71-9453-241850c24347\">forEach</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "8790370981128201",
+      "majorRevision": 3,
+      "minorRevision": 14,
+      "orderNo": 9000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        #BEGIN_EDITABLE#    #END_EDITABLE#\n        #BEGIN_EDITABLE#    #END_EDITABLE#\n    }\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "moves.forEach(move => greySquare(move.to));",
+            "greySquare(square);"
+          ]
+        }
+      },
+      "tests": {
+        "8055108871601591": {
+          "title": "On <strong>JS line ##LINE('script.js','moves.length')+1##</strong>, type in <code class=\"syntax\">moves.forEach(move =&gt; greySquare(move.to));</code> to highlight the available moves.",
+          "stepId": "8790370981128201",
+          "testId": "8055108871601591",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`moves.forEach(move => greySquare(move.to));`);",
+          "failureMessage": ""
+        },
+        "420485983985802": {
+          "title": "On <strong>JS line ##LINE('script.js','moves.length')+2##</strong>, type in <code class=\"syntax\">greySquare(square);</code> to highlight the square under the cursor grey.",
+          "stepId": "8790370981128201",
+          "testId": "420485983985802",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`greySquare(square);`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "7820625625303853": {
+      "title": "Removing highlight",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Great work! Now the chessboard tells us where to move a chess piece when we point at it using the mouse cursor.</p>\n<p>But now we have a problem - the highlighted square stays highlighted forever. Ideally, the highlighted squares should go back to their normal colors when we move the mouse away from a chess piece.</p>\n<p>To do this, we need to do something very similar to what we did previously, but this time, we're listening for the&nbsp;<strong>onMouseoutSquare</strong> event and handling it using the&nbsp;<strong>handleMouseoutSquare</strong> function.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/879dff65-4e0f-45e1-89c4-febd7060b6b9\">object</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "7820625625303853",
+      "majorRevision": 3,
+      "minorRevision": 14,
+      "orderNo": 10000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\n#BEGIN_EDITABLE#    #END_EDITABLE#\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "cfg.onMouseoutSquare = handleMouseoutSquare;",
+            "removeGreySquares();"
+          ]
+        }
+      },
+      "tests": {
+        "1384873495000528": {
+          "title": "On <strong>JS line ##LINE('script.js','draggable')+2##</strong>, type in <code class=\"syntax\">cfg.onMouseoutSquare = handleMouseoutSquare;</code> to handle the mouse out event for each square.",
+          "stepId": "7820625625303853",
+          "testId": "1384873495000528",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`cfg.onMouseoutSquare = handleMouseoutSquare;`);",
+          "failureMessage": ""
+        },
+        "4578127489613052": {
+          "title": "On <strong>JS line ##LINE('script.js','on handleMouseout')+1##</strong>, call the <strong>removeGreySquares</strong> function to remove the grey highlight from all squares.",
+          "stepId": "7820625625303853",
+          "testId": "4578127489613052",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`removeGreySquares();`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "2986496859107868": {
+      "title": "Validating a move - 1/2",
+      "type": "code",
+      "content": {
+        "instructions": "<p>The&nbsp;<strong>mouse over</strong> and&nbsp;<strong>mouse out</strong> events are now properly handled, you can test it by pointing the mouse cursor at different chess pieces.</p>\n<p>Now we have another issue - even though the game tells us where we can move a certain chess piece, we can still move it anywhere we want.</p>\n<p>To fix this, we need to listen for and handle one last event, it's called the&nbsp;<strong>onDrop</strong> event.</p>\n<p>And inside the handler function&nbsp;<strong>handleDrop</strong>, we must tell the&nbsp;<strong>game</strong>&nbsp;object that we have just made a move from a <strong>source</strong> position to a&nbsp;<strong>target</strong> position, the&nbsp;<strong>game</strong> object will then figure out whether or not the move is a valid one, we will save this information in a variable called&nbsp;<strong>move</strong> (we will figure out what to do with this later).</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/879dff65-4e0f-45e1-89c4-febd7060b6b9\">object</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "2986496859107868",
+      "majorRevision": 3,
+      "minorRevision": 2,
+      "orderNo": 11000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\ncfg.onMouseoutSquare = handleMouseoutSquare;\n#BEGIN_EDITABLE#    #END_EDITABLE#\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\nfunction handleDrop(source, target) {\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n}\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    removeGreySquares();\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "cfg.onDrop = handleDrop;",
+            "var move = game.move({ from: source, to: target });"
+          ]
+        }
+      },
+      "tests": {
+        "1154436702143972": {
+          "title": "On <strong>JS line ##LINE('script.js','draggable')+3##</strong>, type in <code class=\"syntax\">cfg.onDrop = handleDrop;</code> to handle the drop event of a chess piece.",
+          "stepId": "2986496859107868",
+          "testId": "1154436702143972",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`cfg.onDrop = handleDrop;`);",
+          "failureMessage": ""
+        },
+        "5113645933407222": {
+          "title": "On <strong>JS line ##LINE('script.js','on handleDrop')+1##</strong>, type in <code class=\"syntax\">var move = game.move({ from: source, to: target });</code> to move a chess piece to the square where the mouse button is released.",
+          "stepId": "2986496859107868",
+          "testId": "5113645933407222",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`var move = game.move({ from: source, to: target });`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "4613832323291050:1": {
+      "title": "Validating a move - 2/2",
+      "type": "code",
+      "content": {
+        "instructions": "<p>After picking up and dropping a chess piece, we also want to remove highlighting from the squares that were previously marked as valid moves, this can be done by calling the&nbsp;<strong>removeGreySquares</strong> function.</p>\n<p>In the previous step, we had stored whether or not a move is valid in the variable&nbsp;<strong>move</strong>, now we can use a conditional statement to determine whether this variable is equal to&nbsp;<strong>null</strong>, in which case the move is invalid, and if so, we will respond by returning the string&nbsp;<strong>\"snapback\"</strong> as the outcome of the&nbsp;<strong>handleDrop</strong> function, the chess.js library, or the&nbsp;<strong>game</strong> object, will then prevent the player from moving the chess piece.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/2ed56671-86c8-4799-a423-5d7f549ec659\">if</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/b47252e0-df5c-4a4f-8a4e-78b350d400fa\">return</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "4613832323291050:1",
+      "majorRevision": 3,
+      "minorRevision": 15,
+      "orderNo": 12000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\ncfg.onMouseoutSquare = handleMouseoutSquare;\ncfg.onDrop = handleDrop;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\nfunction handleDrop(source, target) {\n    var move = game.move({ from: source, to: target });\n\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n    \n    #BEGIN_EDITABLE#    #END_EDITABLE# {\n        #BEGIN_EDITABLE#    #END_EDITABLE#\n    }\n}\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    removeGreySquares();\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "removeGreySquares();",
+            "if (move === null)",
+            "return \"snapback\";"
+          ]
+        }
+      },
+      "tests": {
+        "5254387321046894": {
+          "title": "On <strong>JS line ##LINE('script.js','on handleDrop')+3##</strong>, call the <strong>removeGreySquares</strong> function to remove highlighting from all squares.",
+          "stepId": "4613832323291050:1",
+          "testId": "5254387321046894",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`removeGreySquares();`);",
+          "failureMessage": ""
+        },
+        "670699968451102": {
+          "title": "On <strong>JS line ##LINE('script.js','on handleDrop')+5##</strong>, type in <code class=\"syntax\">if (move === null)</code>&nbsp;to check whether move is invalud.",
+          "stepId": "4613832323291050:1",
+          "testId": "670699968451102",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`if (move === null)`);\n",
+          "failureMessage": ""
+        },
+        "4152146925694734": {
+          "title": "On&nbsp;<strong>JS line ##LINE('script.js','on handleDrop')+6##</strong>, type in&nbsp;<code class=\"syntax\">return \"snapback\";</code>&nbsp;to move a chess piece to its original position.",
+          "stepId": "4613832323291050:1",
+          "testId": "4152146925694734",
+          "orderNo": 3000,
+          "testFunction": "// Expectation:\npass.if.js.editable(2).equivalent(`return \"snapback\";`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "1572085448955998": {
+      "title": "Making the AI move",
+      "type": "code",
+      "content": {
+        "instructions": "<p>We've written all the code required for the player side, the player can now pick up any chess piece and move it to a different square if the move is a valid one.</p>\n<p>Let's now turn our attention to the AI side.</p>\n<p>After the player makes a move, the function&nbsp;<strong>calculateBestMove</strong> will be called, we will be writing code in this function to determine how the AI will react.</p>\n<p>First, we need to collect all the possible moves that the AI can make among all its available pieces, in the chess.js library,&nbsp;this can be obtained by calling the&nbsp;<strong>ugly_moves</strong> function, and it will give us an array of moves.</p>\n<p>As a starter, we will simply generate a random number between 0 and the length of all possible moves, and use that to select a single move from the array of available moves.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/f497a433-d9f0-4e08-b825-8a39cc30560b\">Math.floor</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/f7003228-1b3e-4a96-8357-2f9ac0ee9a12\">Math.random</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/1aab90dc-ef73-46c8-8d4a-bbcbab21879a\">length</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/b47252e0-df5c-4a4f-8a4e-78b350d400fa\">return</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/f6b7d0fc-700b-4202-861a-b5900a6fd922\">array</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "1572085448955998",
+      "majorRevision": 3,
+      "minorRevision": 14,
+      "orderNo": 13000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\ncfg.onMouseoutSquare = handleMouseoutSquare;\ncfg.onDragStart = handleDragStart;\ncfg.onDrop = handleDrop;\ncfg.onSnapEnd = handleSnapEnd;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\nfunction calculateBestMove() {\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n}\n\nfunction handleDragStart(source, piece) {\n    if (game.in_checkmate() === true || game.in_draw() === true || piece.search(/^b/) !== -1) {\n        return false;\n    }\n}\n\nfunction handleDrop(source, target) {\n    var move = game.move({ from: source, to: target });\n\n    removeGreySquares();\n    \n    if (move === null) { return 'snapback' }\n    \n    setTimeout(makeBestMove, 250);\n}\n\nfunction makeBestMove() {\n    var bestMove = getBestMove(game);\n\n    game.ugly_move(bestMove);\n    board.position(game.fen());\n\n    if (game.game_over()) {\n        alert('Game over');\n    }\n}\n\nfunction getBestMove(game) {\n    if (game.game_over()) {\n        alert('Game over');\n    }\n\n    var bestMove = calculateBestMove(game);\n\n    return bestMove;\n}\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    removeGreySquares();\n}\n\nfunction handleSnapEnd() {\n    board.position(game.fen());\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "var moves = game.ugly_moves();",
+            "var randomIndex = Math.floor(Math.random() * moves.length);",
+            "return moves[randomIndex];"
+          ]
+        }
+      },
+      "tests": {
+        "6403183712088420": {
+          "title": "On <strong>JS line ##LINE('script.js','on calc')+1##</strong>, type in <code class=\"syntax\">var moves = game.ugly_moves();</code> to store all the valid moves of all chess pieces.",
+          "stepId": "1572085448955998",
+          "testId": "6403183712088420",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`var moves = game.ugly_moves();`);",
+          "failureMessage": ""
+        },
+        "4990007980859194": {
+          "title": "On <strong>JS line ##LINE('script.js','on calc')+2##</strong>, type in <code class=\"syntax\">var randomIndex = Math.floor(Math.random() * moves.length);</code> to generate a random integer between 0 and the number of valid moves.",
+          "stepId": "1572085448955998",
+          "testId": "4990007980859194",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`var randomIndex = Math.floor(Math.random() * moves.length);`);",
+          "failureMessage": ""
+        },
+        "3290679814530672": {
+          "title": "On <strong>JS line ##LINE('script.js','on calc')+3##</strong>, type in <code class=\"syntax\">return moves[randomIndex];</code> to determine a random chess move.",
+          "stepId": "1572085448955998",
+          "testId": "3290679814530672",
+          "orderNo": 3000,
+          "testFunction": "// Expectation:\npass.if.js.editable(2).equivalent(`return moves[randomIndex];`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "3109925187060338": {
+      "title": "Making the AI evaluate a move",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Well done, you've just made an AI that is able to play chess, albeit randomly, it could be an effective trainer for somebody just beginning to learn chess.</p>\n<p>For those who already play chess though, this AI might not provide sufficient challenge, we can upgrade the AI by modifying some code in the&nbsp;<strong>calculateBestMove</strong> function.</p>\n<p>We are going to keep the&nbsp;<strong>moves</strong> variable, and in addition, create a new variable called&nbsp;<strong>bestValue</strong> that is initially 9999.</p>\n<p>The idea is that we give each piece some value, e.g. the pawn is worth 10 points, the knight is worth 30 points and so on, add together to get the total value of the entire board.</p>\n<p>Out of all the moves the AI can make, some will take out our pawn and some might take out our knight, we can rank each AI move by how many total board points after the move, the fewer the points, the better the move.</p>\n<p>To implement this logic, we need to first create a loop on the&nbsp;<strong>moves</strong> array using the&nbsp;<strong>forEach</strong> function.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/f17d20df-0558-4e71-9453-241850c24347\">forEach</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "3109925187060338",
+      "majorRevision": 3,
+      "minorRevision": 2,
+      "orderNo": 14000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\ncfg.onMouseoutSquare = handleMouseoutSquare;\ncfg.onDragStart = handleDragStart;\ncfg.onDrop = handleDrop;\ncfg.onSnapEnd = handleSnapEnd;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\nfunction calculateBestMove() {\n    var moves = game.ugly_moves();\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n    #BEGIN_EDITABLE#    #END_EDITABLE#\n    \n    #BEGIN_EDITABLE#    #END_EDITABLE#\n}\n\nfunction handleDragStart(source, piece) {\n    if (game.in_checkmate() === true || game.in_draw() === true || piece.search(/^b/) !== -1) {\n        return false;\n    }\n}\n\nfunction handleDrop(source, target) {\n    var move = game.move({ from: source, to: target });\n\n    removeGreySquares();\n    \n    if (move === null) { return 'snapback' }\n    \n    setTimeout(makeBestMove, 250);\n}\n\nfunction makeBestMove() {\n    var bestMove = getBestMove(game);\n\n    game.ugly_move(bestMove);\n    board.position(game.fen());\n\n    if (game.game_over()) {\n        alert('Game over');\n    }\n}\n\nfunction getBestMove(game) {\n    if (game.game_over()) {\n        alert('Game over');\n    }\n\n    var bestMove = calculateBestMove(game);\n\n    return bestMove;\n}\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    removeGreySquares();\n}\n\nfunction handleSnapEnd() {\n    board.position(game.fen());\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "var bestMove;",
+            "var bestValue = 9999;",
+            "moves.forEach(move => {});"
+          ]
+        }
+      },
+      "tests": {
+        "5572204249913986": {
+          "title": "On <strong>JS line ##LINE('script.js','on calc')+2##</strong>, create a variable called <strong>bestMove</strong>.",
+          "stepId": "3109925187060338",
+          "testId": "5572204249913986",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`var bestMove;`);",
+          "failureMessage": ""
+        },
+        "4692073812451814": {
+          "title": "On <strong>JS line ##LINE('script.js','on calc')+3##</strong>, create a variable called <strong>bestValue</strong> to store the number <strong>9999</strong>.",
+          "stepId": "3109925187060338",
+          "testId": "4692073812451814",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`var bestValue = 9999;`);",
+          "failureMessage": ""
+        },
+        "7166379294359787": {
+          "title": "On <strong>JS line ##LINE('script.js','on cal')+5##</strong>, type in <code class=\"syntax\">moves.forEach(move => {});</code> to create a function call for each move in the <strong>moves</strong> array.",
+          "stepId": "3109925187060338",
+          "testId": "7166379294359787",
+          "orderNo": 3000,
+          "testFunction": "// Expectation:\npass.if.js.editable(2).equivalent(`moves.forEach(move => {});`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "7167940198868439": {
+      "title": "Trying each move and storing the board value",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Imagine this scenario: there are 3 possible moves for the AI, the first move takes out our pawn, leaves the total board points at 90, 90 is smaller than 9999, so we store it and 90 is our new best value move. The second move takes out our knight, total board point is now 70, 70 is smaller than 90, we store it and 70 is now our best value move. The third move doesn't take out any of our pieces, board point is 100, 100 is not smaller than 70, our best value move is still 70 (one that took out our knight).</p>\n<p>The above chain of logic is what we're trying to create inside the&nbsp;<strong>forEach</strong>&nbsp;function.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/879dff65-4e0f-45e1-89c4-febd7060b6b9\">object</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong>OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "7167940198868439",
+      "majorRevision": 3,
+      "minorRevision": 5,
+      "orderNo": 15000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\ncfg.onMouseoutSquare = handleMouseoutSquare;\ncfg.onDragStart = handleDragStart;\ncfg.onDrop = handleDrop;\ncfg.onSnapEnd = handleSnapEnd;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\nfunction calculateBestMove() {\n    var moves = game.ugly_moves();\n    var bestMove = null;\n    var bestValue = 9999;\n    \n    moves.forEach(move => {\n        #BEGIN_EDITABLE#    #END_EDITABLE#\n        \n        #BEGIN_EDITABLE#    #END_EDITABLE#\n        \n        #BEGIN_EDITABLE#    #END_EDITABLE#\n    });\n}\n\nfunction evaluateBoard(board) {\n    var totalEvaluation = 0;\n    \n    for (var i = 0; i < 8; i++) {\n        for (var j = 0; j < 8; j++) {\n            totalEvaluation = totalEvaluation + getPieceValue(board[i][j]);\n        }\n    }\n    \n    return totalEvaluation;\n}\n\nfunction getPieceValue(piece) {\n    if (piece === null) return 0;\n\n    var getAbsoluteValue = piece => {\n        if (piece.type === 'p') {\n            return 10;\n        } else if (piece.type === 'r') {\n            return 50;\n        } else if (piece.type === 'n') {\n            return 30;\n        } else if (piece.type === 'b') {\n            return 30;\n        } else if (piece.type === 'q') {\n            return 90;\n        } else if (piece.type === 'k') {\n            return 900;\n        }\n        throw \"Unknown piece type: \" + piece.type;\n    };\n    var absoluteValue = getAbsoluteValue(piece, piece.color === 'w');\n    \n    return piece.color === 'w' ? absoluteValue : -absoluteValue;\n}\n\nfunction handleDragStart(source, piece) {\n    if (game.in_checkmate() === true || game.in_draw() === true || piece.search(/^b/) !== -1) {\n        return false;\n    }\n}\n\nfunction handleDrop(source, target) {\n    var move = game.move({ from: source, to: target });\n\n    removeGreySquares();\n    \n    if (move === null) { return 'snapback' }\n    \n    setTimeout(makeBestMove, 250);\n}\n\nfunction makeBestMove() {\n    var bestMove = getBestMove(game);\n\n    game.ugly_move(bestMove);\n    board.position(game.fen());\n\n    if (game.game_over()) {\n        alert('Game over');\n    }\n}\n\nfunction getBestMove(game) {\n    if (game.game_over()) {\n        alert('Game over');\n    }\n\n    var bestMove = calculateBestMove(game);\n\n    return bestMove;\n}\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    removeGreySquares();\n}\n\nfunction handleSnapEnd() {\n    board.position(game.fen());\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "game.ugly_move(move);",
+            "var value = evaluateBoard(game.board());",
+            "if (value < bestValue) {}"
+          ]
+        }
+      },
+      "tests": {
+        "3677265538126096": {
+          "title": "On <strong>JS line ##LINE('script.js','on calc')+6##</strong>, type in <code class=\"syntax\">game.ugly_move(move);</code> to carry out every valid move on all chess pieces.",
+          "stepId": "7167940198868439",
+          "testId": "3677265538126096",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`game.ugly_move(move);`);",
+          "failureMessage": ""
+        },
+        "4648443268688900": {
+          "title": "On <strong>JS line ##LINE('script.js','on calc')+8##</strong>, type in <code class=\"syntax\">var value = evaluateBoard(game.board());</code> to store the total board value after the move.",
+          "stepId": "7167940198868439",
+          "testId": "4648443268688900",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`var value = evaluateBoard(game.board());`);",
+          "failureMessage": ""
+        },
+        "6097798892309516": {
+          "title": "On&nbsp;<strong>JS line</strong>&nbsp;<strong>##LINE('script.js','on calc')+10##</strong>, create an&nbsp;<code class=\"syntax\">if</code>&nbsp;statement to check whether&nbsp;<strong>value</strong>&nbsp;is less than&nbsp;<strong>bestValue</strong>.",
+          "stepId": "7167940198868439",
+          "testId": "6097798892309516",
+          "orderNo": 3000,
+          "testFunction": "pass.if.js.editable(2).equivalent(`if (value < bestValue) {}`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "5321328633117952": {
+      "title": "Returning the best move",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Inside the conditional statement, we should update the value for&nbsp;<strong>bestValue</strong> to the smaller&nbsp;<strong>value</strong>.</p>\n<p>In addition, we should also store the move that generated the best value for the AI.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "5321328633117952",
+      "majorRevision": 3,
+      "minorRevision": 6,
+      "orderNo": 16000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\ncfg.onMouseoutSquare = handleMouseoutSquare;\ncfg.onDragStart = handleDragStart;\ncfg.onDrop = handleDrop;\ncfg.onSnapEnd = handleSnapEnd;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\nfunction calculateBestMove() {\n    var moves = game.ugly_moves();\n    var bestMove = null;\n    var bestValue = 9999;\n    \n    moves.forEach(move => {\n        game.ugly_move(move);\n        \n        var value = evaluateBoard(game.board());\n        \n        if (value < bestValue) {\n            #BEGIN_EDITABLE#    #END_EDITABLE#\n            #BEGIN_EDITABLE#    #END_EDITABLE#\n        }\n    });\n}\n\nfunction evaluateBoard(board) {\n    var totalEvaluation = 0;\n    \n    for (var i = 0; i < 8; i++) {\n        for (var j = 0; j < 8; j++) {\n            totalEvaluation = totalEvaluation + getPieceValue(board[i][j]);\n        }\n    }\n    \n    return totalEvaluation;\n}\n\nfunction getPieceValue(piece) {\n    if (piece === null) return 0;\n\n    var getAbsoluteValue = piece => {\n        if (piece.type === 'p') {\n            return 10;\n        } else if (piece.type === 'r') {\n            return 50;\n        } else if (piece.type === 'n') {\n            return 30;\n        } else if (piece.type === 'b') {\n            return 30;\n        } else if (piece.type === 'q') {\n            return 90;\n        } else if (piece.type === 'k') {\n            return 900;\n        }\n        throw \"Unknown piece type: \" + piece.type;\n    };\n    var absoluteValue = getAbsoluteValue(piece, piece.color === 'w');\n    \n    return piece.color === 'w' ? absoluteValue : -absoluteValue;\n}\n\nfunction handleDragStart(source, piece) {\n    if (game.in_checkmate() === true || game.in_draw() === true || piece.search(/^b/) !== -1) {\n        return false;\n    }\n}\n\nfunction handleDrop(source, target) {\n    var move = game.move({ from: source, to: target });\n\n    removeGreySquares();\n    \n    if (move === null) { return 'snapback' }\n    \n    setTimeout(makeBestMove, 250);\n}\n\nfunction makeBestMove() {\n    var bestMove = getBestMove(game);\n\n    game.ugly_move(bestMove);\n    board.position(game.fen());\n\n    if (game.game_over()) {\n        alert('Game over');\n    }\n}\n\nfunction getBestMove(game) {\n    if (game.game_over()) {\n        alert('Game over');\n    }\n\n    var bestMove = calculateBestMove(game);\n\n    return bestMove;\n}\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    removeGreySquares();\n}\n\nfunction handleSnapEnd() {\n    board.position(game.fen());\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "bestValue = value;",
+            "bestMove = move;"
+          ]
+        }
+      },
+      "tests": {
+        "6196516302572426": {
+          "title": "On +type#key#,",
+          "stepId": "5321328633117952",
+          "testId": "6196516302572426",
+          "orderNo": -1,
+          "testFunction": "// Expectation:",
+          "failureMessage": ""
+        },
+        "1480984420544478": {
+          "title": "On <strong>JS line ##LINE('script.js','var value')+3##</strong>, type in <code class=\"syntax\">bestValue = value;</code> to update the highest value of any move.",
+          "stepId": "5321328633117952",
+          "testId": "1480984420544478",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`bestValue = value;`);",
+          "failureMessage": ""
+        },
+        "1063119980285910": {
+          "title": "On <strong>JS line ##LINE('script.js','var value')+4##</strong>, type in <code class=\"syntax\">bestMove = move;</code> to update the best move.",
+          "stepId": "5321328633117952",
+          "testId": "1063119980285910",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`bestMove = move;`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "2009087550963606": {
+      "title": "Undoing the move",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Each time the AI is done trying a new move among all its available moves, we must undo the move so it doesn't look like the AI is making multiple moves during its turn.</p>\n<p>And once the&nbsp;<strong>forEach</strong> loop finishes running, we can return&nbsp;<strong>bestMove</strong> as the outcome of the&nbsp;<strong>calculateBestMove</strong> function. The AI will then carry out this move.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/879dff65-4e0f-45e1-89c4-febd7060b6b9\">object</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/b47252e0-df5c-4a4f-8a4e-78b350d400fa\">return</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "2009087550963606",
+      "majorRevision": 3,
+      "minorRevision": 2,
+      "orderNo": 17000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\ncfg.onMouseoutSquare = handleMouseoutSquare;\ncfg.onDragStart = handleDragStart;\ncfg.onDrop = handleDrop;\ncfg.onSnapEnd = handleSnapEnd;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\n\nfunction calculateBestMove() {\n    var moves = game.ugly_moves();\n    var bestMove = null;\n    var bestValue = 9999;\n    \n    moves.forEach(move => {\n        game.ugly_move(move);\n        \n        var value = evaluateBoard(game.board());\n        \n        if (value > bestValue) {\n            bestValue = value;\n            bestMove = move;\n        }\n        \n        #BEGIN_EDITABLE#    #END_EDITABLE#\n    });\n    \n    #BEGIN_EDITABLE#    #END_EDITABLE#\n}\n\nfunction evaluateBoard(board) {\n    var totalEvaluation = 0;\n    \n    for (var i = 0; i < 8; i++) {\n        for (var j = 0; j < 8; j++) {\n            totalEvaluation = totalEvaluation + getPieceValue(board[i][j]);\n        }\n    }\n    \n    return totalEvaluation;\n}\n\nfunction getPieceValue(piece) {\n    if (piece === null) return 0;\n\n    var getAbsoluteValue = piece => {\n        if (piece.type === 'p') {\n            return 10;\n        } else if (piece.type === 'r') {\n            return 50;\n        } else if (piece.type === 'n') {\n            return 30;\n        } else if (piece.type === 'b') {\n            return 30;\n        } else if (piece.type === 'q') {\n            return 90;\n        } else if (piece.type === 'k') {\n            return 900;\n        }\n        throw \"Unknown piece type: \" + piece.type;\n    };\n    var absoluteValue = getAbsoluteValue(piece, piece.color === 'w');\n    \n    return piece.color === 'w' ? absoluteValue : -absoluteValue;\n}\n\nfunction handleDragStart(source, piece) {\n    if (game.in_checkmate() === true || game.in_draw() === true || piece.search(/^b/) !== -1) {\n        return false;\n    }\n}\n\nfunction handleDrop(source, target) {\n    var move = game.move({ from: source, to: target });\n\n    removeGreySquares();\n    \n    if (move === null) { return 'snapback' }\n    \n    setTimeout(makeBestMove, 250);\n}\n\nfunction makeBestMove() {\n    var bestMove = getBestMove(game);\n\n    game.ugly_move(bestMove);\n    board.position(game.fen());\n\n    if (game.game_over()) {\n        alert('Game over');\n    }\n}\n\nfunction getBestMove(game) {\n    if (game.game_over()) {\n        alert('Game over');\n    }\n\n    var bestMove = calculateBestMove(game);\n\n    return bestMove;\n}\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    removeGreySquares();\n}\n\nfunction handleSnapEnd() {\n    board.position(game.fen());\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "game.undo();",
+            "return bestMove;"
+          ]
+        }
+      },
+      "tests": {
+        "49289616711406": {
+          "title": "On <strong>JS line ##LINE('script.js','var value')+7##</strong>, type in <code class=\"syntax\">game.undo()</code> to reverse the move.",
+          "stepId": "2009087550963606",
+          "testId": "49289616711406",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`game.undo();`);",
+          "failureMessage": ""
+        },
+        "7182476981564537": {
+          "title": "On <strong>JS line ##LINE('script.js','var value')+10##</strong>, type in <code class=\"syntax\">return bestMove;</code> to determine the best move.",
+          "stepId": "2009087550963606",
+          "testId": "7182476981564537",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`return bestMove;`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "6552813850990368": {
+      "title": "Making the AI pick the best move with depth",
+      "type": "code",
+      "content": {
+        "instructions": "<p>If you're a chess veteran, even this AI won't be able to put up a good fight. Because it only maximizes the value gain in one turn, and completely ignores the consequences of its move 2 or 3 steps later.</p>\n<p>There is a name to this, it's called the&nbsp;<strong>minimax</strong> algorithm.</p>\n<p>To further upgrade our AI chess player, we need to make the AI use the minimax algorithm across multiple turns, so it can avoid making a seemingly good move that cripples it 3 turns later.</p>\n<p><strong>Required Syntax:</strong></p>\n<ul>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variable</a></p>\n</li>\n<li>\n<p class=\"notes\"><a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">function</a></p>\n</li>\n</ul>\n<hr /><center>\n<p class=\"highlight\"><strong style=\"letter-spacing: 2px;\">OBJECTIVES</strong></p>\n</center>",
+        "startTab": "script.js"
+      },
+      "deleted": false,
+      "stepId": "6552813850990368",
+      "majorRevision": 3,
+      "minorRevision": 2,
+      "orderNo": 18000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\ncfg.onMouseoutSquare = handleMouseoutSquare;\ncfg.onDragStart = handleDragStart;\ncfg.onDrop = handleDrop;\ncfg.onSnapEnd = handleSnapEnd;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\nvar positionCount;\n#BEGIN_EDITABLE#    #END_EDITABLE#\n\nfunction minimaxRoot(depth, game) {\n    var moves = game.ugly_moves();\n    var bestMove = -9999;\n    var bestMoveFound;\n    \n    moves.forEach(move => {\n        game.ugly_move(move);\n        \n        var value = minimax(depth - 1, game, false);\n        \n        if (value >= bestMove) {\n            bestMove = value;\n            bestMoveFound = move;\n        }\n        \n        game.undo();\n    });\n    \n    return bestMoveFound;\n}\n\nfunction minimax(depth, game, isMaximisingPlayer) {\n    positionCount++;\n    \n    if (depth === 0) {\n        return -evaluateBoard(game.board());\n    }\n\n    var moves = game.ugly_moves();\n    var bestMove = isMaximisingPlayer ? -9999 : 9999;\n    \n    moves.forEach(move => {\n        game.ugly_move(move);\n        bestMove = Math[isMaximisingPlayer ? 'max' : 'min'](bestMove, minimax(depth - 1, game, !isMaximisingPlayer));\n        game.undo();\n    });\n    \n    return bestMove;\n}\n\nfunction evaluateBoard(board) {\n    var totalEvaluation = 0;\n    \n    for (var i = 0; i < 8; i++) {\n        for (var j = 0; j < 8; j++) {\n            totalEvaluation = totalEvaluation + getPieceValue(board[i][j]);\n        }\n    }\n    \n    return totalEvaluation;\n}\n\nfunction getPieceValue(piece) {\n    if (piece === null) return 0;\n\n    var getAbsoluteValue = piece => {\n        if (piece.type === 'p') {\n            return 10;\n        } else if (piece.type === 'r') {\n            return 50;\n        } else if (piece.type === 'n') {\n            return 30;\n        } else if (piece.type === 'b') {\n            return 30;\n        } else if (piece.type === 'q') {\n            return 90;\n        } else if (piece.type === 'k') {\n            return 900;\n        }\n        throw \"Unknown piece type: \" + piece.type;\n    };\n    var absoluteValue = getAbsoluteValue(piece, piece.color === 'w');\n    \n    return piece.color === 'w' ? absoluteValue : -absoluteValue;\n}\n\nfunction handleDragStart(source, piece) {\n    if (game.in_checkmate() === true || game.in_draw() === true || piece.search(/^b/) !== -1) {\n        return false;\n    }\n}\n\nfunction handleDrop(source, target) {\n    var move = game.move({ from: source, to: target });\n\n    removeGreySquares();\n    \n    if (move === null) { return 'snapback' }\n    \n    setTimeout(makeBestMove, 250);\n}\n\nfunction makeBestMove() {\n    var bestMove = getBestMove(game);\n\n    game.ugly_move(bestMove);\n    board.position(game.fen());\n\n    if (game.game_over()) {\n        alert('Game over');\n    }\n}\n\nfunction getBestMove(game) {\n    if (game.game_over()) {\n        alert('Game over');\n    }\n    \n    positionCount = 0;\n\n    var bestMove = #BEGIN_EDITABLE#calculateBestMove(game)#END_EDITABLE#;\n    // var bestMove = minimaxRoot(depth, game);\n\n    return bestMove;\n}\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    removeGreySquares();\n}\n\nfunction handleSnapEnd() {\n    board.position(game.fen());\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}",
+          "mode": "new_contents",
+          "answers": [
+            "var depth = 3;",
+            "minimaxRoot(depth, game)"
+          ]
+        }
+      },
+      "tests": {
+        "7268164549418707": {
+          "title": "On <strong>JS line ##LINE('script.js','var position')+1##</strong>, create a variable called <strong>depth</strong> to store the number <strong>3</strong>.",
+          "stepId": "6552813850990368",
+          "testId": "7268164549418707",
+          "orderNo": 1000,
+          "testFunction": "// Expectation:\npass.if.js.editable(0).equivalent(`var depth = 3;`);",
+          "failureMessage": ""
+        },
+        "6150924512768146": {
+          "title": "On <strong>JS line ##LINE('script.js','on getBest')+7##</strong>, replace the <strong>calculateBestMove(game)</strong> function call with <strong>minimaxRoot(depth, game)</strong> to apply the minimax algorithm.",
+          "stepId": "6552813850990368",
+          "testId": "6150924512768146",
+          "orderNo": 2000,
+          "testFunction": "// Expectation:\npass.if.js.editable(1).equivalent(`minimaxRoot(depth, game)`);",
+          "failureMessage": ""
+        }
+      }
+    },
+    "5963548975918166": {
+      "title": "Summary",
+      "type": "code",
+      "content": {
+        "instructions": "<p>Great job!</p>\n<p>You have completed this project, here is a recap:</p>\n<ul>\n<li>\n<p class=\"notes\">We used the <a href=\"#glossary/html/72e6a24d-eb8d-4000-bee8-859baffda976\">&lt;script&gt;</a> element to import the chess and chessboard libraries.</p>\n</li>\n<li>\n<p class=\"notes\">We used <a href=\"#glossary/javascript/ba0d9cd6-b0c1-4087-8760-a9f09b0d8d52\">variables</a> to create the chess and chessboard objects in JavaScript.</p>\n</li>\n<li>\n<p class=\"notes\">We created multiple <a href=\"#glossary/javascript/37322df6-fd28-4a7e-992f-05f0e06ecfe1\">functions</a> to gradually increase the strength of our chess playing AI.</p>\n</li>\n</ul>"
+      },
+      "deleted": false,
+      "stepId": "5963548975918166",
+      "majorRevision": 3,
+      "minorRevision": 2,
+      "orderNo": 19000,
+      "refMissionUuid": null,
+      "files": {
+        "script.js": {
+          "contents": "//  JavaScript\nvar cfg = { position: 'start' };\n\ncfg.draggable = true;\ncfg.onMouseoverSquare = handleMouseoverSquare;\ncfg.onMouseoutSquare = handleMouseoutSquare;\ncfg.onDragStart = handleDragStart;\ncfg.onDrop = handleDrop;\ncfg.onSnapEnd = handleSnapEnd;\n\nvar board = ChessBoard('board', cfg);\nvar game = new Chess();\nvar positionCount;\nvar depth = 3;\n\nfunction minimaxRoot(depth, game) {\n    var moves = game.ugly_moves();\n    var bestMove = -9999;\n    var bestMoveFound;\n    \n    moves.forEach(move => {\n        game.ugly_move(move);\n        \n        var value = minimax(depth - 1, game, false);\n        \n        if (value >= bestMove) {\n            bestMove = value;\n            bestMoveFound = move;\n        }\n        \n        game.undo();\n    });\n    \n    return bestMoveFound;\n}\n\nfunction minimax(depth, game, isMaximisingPlayer) {\n    positionCount++;\n    \n    if (depth === 0) {\n        return -evaluateBoard(game.board());\n    }\n\n    var moves = game.ugly_moves();\n    var bestMove = isMaximisingPlayer ? -9999 : 9999;\n    \n    moves.forEach(move => {\n        game.ugly_move(move);\n        bestMove = Math[isMaximisingPlayer ? 'max' : 'min'](bestMove, minimax(depth - 1, game, !isMaximisingPlayer));\n        game.undo();\n    });\n    \n    return bestMove;\n}\n\nfunction evaluateBoard(board) {\n    var totalEvaluation = 0;\n    \n    for (var i = 0; i < 8; i++) {\n        for (var j = 0; j < 8; j++) {\n            totalEvaluation = totalEvaluation + getPieceValue(board[i][j]);\n        }\n    }\n    \n    return totalEvaluation;\n}\n\nfunction getPieceValue(piece) {\n    if (piece === null) return 0;\n\n    var getAbsoluteValue = piece => {\n        if (piece.type === 'p') {\n            return 10;\n        } else if (piece.type === 'r') {\n            return 50;\n        } else if (piece.type === 'n') {\n            return 30;\n        } else if (piece.type === 'b') {\n            return 30;\n        } else if (piece.type === 'q') {\n            return 90;\n        } else if (piece.type === 'k') {\n            return 900;\n        }\n        throw \"Unknown piece type: \" + piece.type;\n    };\n    var absoluteValue = getAbsoluteValue(piece, piece.color === 'w');\n    \n    return piece.color === 'w' ? absoluteValue : -absoluteValue;\n}\n\nfunction handleDragStart(source, piece) {\n    if (game.in_checkmate() === true || game.in_draw() === true || piece.search(/^b/) !== -1) {\n        return false;\n    }\n}\n\nfunction handleDrop(source, target) {\n    var move = game.move({ from: source, to: target });\n\n    removeGreySquares();\n    \n    if (move === null) { return 'snapback' }\n    \n    setTimeout(makeBestMove, 250);\n}\n\nfunction makeBestMove() {\n    var bestMove = getBestMove(game);\n\n    game.ugly_move(bestMove);\n    board.position(game.fen());\n\n    if (game.game_over()) {\n        alert('Game over');\n    }\n}\n\nfunction getBestMove(game) {\n    if (game.game_over()) {\n        alert('Game over');\n    }\n    \n    positionCount = 0;\n\n    var bestMove = minimaxRoot(depth, game);\n\n    return bestMove;\n}\n\nfunction handleMouseoverSquare(square) {\n    var moves = game.moves({ square, verbose: true });\n\n    if (moves.length > 0) {\n        moves.forEach(move => greySquare(move.to));\n        greySquare(square);\n    }\n}\n\nfunction handleMouseoutSquare() {\n    removeGreySquares();\n}\n\nfunction handleSnapEnd() {\n    board.position(game.fen());\n}\n\nfunction removeGreySquares() {\n    $('#board .square-55d63').css('background', '');\n}\n\nfunction greySquare(square) {\n    var squareEl = $('#board .square-' + square);\n    var background = '#a9a9a9';\n    \n    if (squareEl.hasClass('black-3c85d') === true) {\n        background = '#696969';\n    }\n\n    squareEl.css('background', background);\n}\n#BEGIN_EDITABLE##END_EDITABLE#",
+          "mode": "new_contents",
+          "answers": []
+        }
+      },
+      "tests": {}
+    }
+  }
+}

@@ -2064,7 +2064,7 @@ function getDiffModels(tabName: string = activeTab.innerText, stepNo: number = a
 }
 
 function resolveAuthorContent(tabName: string = activeTab.innerText, targetStepNo: number = activeStepNo) {
-    debugGroup('resolveTabContent(', [tabName, clr.string], ')');
+    debugGroup('resolveAuthorContent(', [tabName, clr.string], ')');
 
     const activeFile: File = (targetStepNo === activeStepNo ? activeStep : stepList[targetStepNo - 1])[tabName];
     let result: { resolvedContent: string, answers: Array<string> | [] };
