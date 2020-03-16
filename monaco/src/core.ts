@@ -50,6 +50,7 @@ const feedbackProjectId = '379597955490248';
 interface File {
     author?: monaco.editor.IModel,
     mode?: string,
+    contents?: string,
     answers?: [] | Array<string>
 }
 
@@ -1088,17 +1089,19 @@ function parseAndLoadJson(mission) {
 
         return objectiveBlocks;
     };
-    let lookForCodeStep = true;
+    let validateFirstCodeStep = true;
 
     missionSteps.forEach((step, idx) => {
         const { title, type, stepId } = step;
         const content = transformContentObject(step.content);
-        const hasCode = type === stepType.code || type === stepType.interactive;
+        const isCodeStep = type === stepType.code;
+        const hasCode = isCodeStep || type === stepType.interactive;
         const orderNo = (idx + 1) * 1000;
         const stepObj: Step = { orderNo, hasCode, type, title, stepId, content };
 
         if (hasCode) {
             const stepFiles = Object.entries(step.files) as Array<[string, any]>;
+            const checkFileMode = validateFirstCodeStep && isCodeStep;
 
             //  update mission-wide files list
             if (stepFiles.length > missionFiles.length) {
@@ -1109,47 +1112,46 @@ function parseAndLoadJson(mission) {
 
                 missionFiles.forEach(fileName => {
                     if (!fileNames.includes(fileName)) {
-                        stepFiles.push([fileName, { mode: fileMode.noChange }]);
+                        stepFiles.push([fileName, { mode: isCodeStep ? fileMode.noChange : fileMode.newContents }]);
                     }
                 });
             }
 
             stepFiles.forEach(file => {
                 const [fileName, fileData] = file;
-                const fileObj: File = { mode: fileData.mode || fileMode.newContents };
-                const validateCodeStep = lookForCodeStep && type === stepType.code && fileData.mode !== fileMode.newContents;
+                const fileObj: File = {
+                    mode: fileData.mode || fileMode.newContents,
+                    contents: fileData.contents || fileData.contentsWithAnswers,
+                    answers: fileData.answers || []
+                };
 
-                fileData.answers = fileData.answers || [];
-                fileData.contents = fileData.contents || fileData.contentsWithAnswers || '#BEGIN_EDITABLE##END_EDITABLE#';
-
-                if (validateCodeStep) {
-                    lookForCodeStep = false;
+                if (checkFileMode && fileData.mode !== fileMode.newContents) {
                     fileObj.mode = fileMode.newContents;
+                    fileObj.contents = '#BEGIN_EDITABLE##END_EDITABLE#';
+
+                    alert(`"${fileName}" in step ${idx + 1} has been changed to "new_contents" mode.`);
                 }
 
                 //  for both code and interactive steps
                 if (fileObj.mode === fileMode.newContents) {
-                    const content = insertAnswers(fileData.contents, fileData.answers);
+                    const content = insertAnswers(fileObj.contents, fileObj.answers);
                     const type = langType[parseFileName(fileName).type];
 
                     fileObj.author = monaco.editor.createModel(content, type);
                 }
                 //  code step only
                 else if (fileObj.mode === fileMode.modify) {
-                    fileObj.author = monaco.editor.createModel(fileData.contents, langType.js);
+                    fileObj.author = monaco.editor.createModel(fileObj.contents, langType.js);
                 }
-
-                if (step.type === stepType.code) {
-                    fileObj.answers = fileData.answers;
-                }
-                // else {
-                //     fileObj.author = monaco.editor.createModel(fileData.contents, langType[parseFileName(fileName).type]);
-                // }
 
                 stepObj[fileName] = fileObj;
             });
 
             stepObj.tests = transformTests(Object.values(step.tests));
+
+            if (checkFileMode) {
+                validateFirstCodeStep = false;
+            }
         }
         else if (type === stepType.text) {
             stepObj.text = step.content.text;
@@ -1931,7 +1933,7 @@ function getAuthorOrLearnerContent(tabName: string, stepNo: number = activeStepN
         result = codeEditor || diffEditor.getModel().modified
     }
     else if (codeEditor) {
-        result = stepList[stepNo - 1][tabName].author;
+        result = stepList[stepNo - 1][tabName].author || monaco.editor.createModel(resolveAuthorContent(tabName, stepNo - 1).resolvedContent, langType[parseFileName(tabName).type]);
     }
     else {
         result = getDiffModels(tabName, stepNo).modified;
