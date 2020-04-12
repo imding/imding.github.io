@@ -1,4 +1,3 @@
-import { makeSource } from '../../utils';
 
 const initialState = {
 	nodes: {}
@@ -14,7 +13,7 @@ export const flowReducer = (state = initialState, action: any) => {
 		case 'flow/UPDATE_OUTPUT':
 			return {
 				...state,
-				srcdoc: action.payload
+				update: action.payload
 			};
 		default: return state;
 	}

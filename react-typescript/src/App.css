@@ -12,6 +12,10 @@ main {
 	border: none;
 }
 
+[list]::-webkit-calendar-picker-indicator {
+	display: none;
+}
+
 .App {
 	text-align: center;
 }

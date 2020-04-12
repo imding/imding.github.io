@@ -5,7 +5,7 @@ export const resolveGraphAction = (nodes: any) => ({
 	payload: nodes
 });
 
-export const updateOutputAction = (srcdoc: string) => ({
+export const updateOutputAction = (update: { id: string, timestamp: string, srcdoc: string }) => ({
 	type: 'flow/UPDATE_OUTPUT',
-	payload: srcdoc
+	payload: update
 });

@@ -2,17 +2,18 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import Rete from 'rete';
+import { NodeData } from 'rete/types/core/data';
 import ReactRenderPlugin from 'rete-react-render-plugin';
 import ConnectionPlugin from 'rete-connection-plugin';
 import ContextMenuPlugin from 'rete-context-menu-plugin';
 import AreaPlugin from 'rete-area-plugin';
 
+import cuid from 'cuid';
 import moment from 'moment';
 
-import { AddComponent } from './NodeComponents';
+import * as componentList from './NodeComponents';
 
 import { resolveGraphAction, updateOutputAction } from '../actions';
-import { makeSource } from '../../../utils';
 
 
 type Props = {
@@ -22,14 +23,14 @@ type Props = {
 
 const mapDispatchToProps = (dispatch: any) => ({
 	resolveGraph: (nodes: any) => dispatch(resolveGraphAction(nodes)),
-	updateOutput: (srcdoc: string) => dispatch(updateOutputAction(srcdoc))
+	updateOutput: (data: any) => dispatch(updateOutputAction(data))
 });
 
 const GraphEditor = (props: Props) => {
 	const createEditor = (container: HTMLDivElement) => {
 		const editor = new Rete.NodeEditor('flow@0.1.0', container);
 		const engine = new Rete.Engine('flow@0.1.0');
-		const components = [new AddComponent()];
+		const components = Object.values(componentList).map(component => new component());
 
 		components.forEach(component => {
 			editor.register(component);
@@ -53,11 +54,21 @@ const GraphEditor = (props: Props) => {
 
 			await engine.process(json).then(res => {
 				if (res === 'success') {
-					props.resolveGraph(json.nodes);
-					props.updateOutput(makeSource('', `Updated at ${moment().format('MMMM Do, h:mm:ss a')}`));
+					const outputNode = Object.values(json.nodes).find(node => node.name === 'HTML Output') as NodeData;
+					
+					if (outputNode) {
+						const srcdoc = (outputNode.data.html as HTMLElement).outerHTML;
+	
+						props.resolveGraph(json.nodes);
+						props.updateOutput({
+							id: cuid(),
+							timestamp: moment().format('MMMM Do, h:mm:ss a'),
+							srcdoc
+						});
+					}
 				}
 				else {
-					console.warn('Graphy failed to resolve.');
+					console.warn('Graph failed to resolve.');
 				}
 			});
 		});
