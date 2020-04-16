@@ -14,6 +14,7 @@ import moment from 'moment';
 import * as componentList from './NodeComponents';
 
 import { resolveGraphAction, updateOutputAction } from '../actions';
+import { defaultNodes } from '../constants';
 
 
 type Props = {
@@ -51,28 +52,33 @@ const GraphEditor = (props: Props) => {
 			await engine.abort();
 
 			const json = editor.toJSON();
+			const outputNode = Object.values(json.nodes).find(node => node.name === 'HTML Output') as NodeData;
 
 			await engine.process(json).then(res => {
-				if (res === 'success') {
-					const outputNode = Object.values(json.nodes).find(node => node.name === 'HTML Output') as NodeData;
-					
-					if (outputNode) {
-						const srcdoc = (outputNode.data.html as HTMLElement).outerHTML;
-	
-						props.resolveGraph(json.nodes);
-						props.updateOutput({
-							id: cuid(),
-							timestamp: moment().format('MMMM Do, h:mm:ss a'),
-							srcdoc
-						});
-					}
-				}
-				else {
-					console.warn('Graph failed to resolve.');
+				if (res === 'success' && outputNode) {
+					const srcdoc = (outputNode.data.html as HTMLElement).outerHTML;
+
+					props.resolveGraph(json.nodes);
+					props.updateOutput({
+						id: cuid(),
+						timestamp: moment().format('MMMM Do, h:mm:ss a'),
+						srcdoc
+					});
+
+					console.log(json);
 				}
 			});
+			// else {
+			// 	await engine.process(json);
+			// 	console.log('Add the "HTML Output" node to preview.'); 
+			// }
 		});
 
+		// editor.on('connectioncreate', data => {
+		// 	console.log(data);
+		// });
+
+		editor.fromJSON(JSON.parse(defaultNodes));
 		editor.view.resize();
 		editor.trigger("process");
 		AreaPlugin.zoomAt(editor, editor.nodes);

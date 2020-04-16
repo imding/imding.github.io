@@ -1,6 +1,88 @@
 import React from 'react';
 import Rete from 'rete';
 
+import { MdAddBox } from 'react-icons/md';
+import { keyConnector, getKey, getNumber, tags, attributes, attrFormat } from '../constants';
+import { capitalise } from '../../../utils';
+
+const defaultTextField = (opts?: any) => {
+	return Object.assign({
+		margin: '6px',
+		padding: '4px 6px',
+		width: 'calc(100% - 12px)',
+		height: '24px',
+		minHeight: '24px',
+		fontFamily: 'Monospace',
+		border: 'none',
+		outline: 'none',
+		borderRadius: '3px',
+		resize: 'vertical',
+		verticalAlign: 'bottom'
+	}, opts || {});
+};
+
+export class ControlManager extends Rete.Control {
+	emitter: any;
+	key: string;
+	node: any;
+	component: (arg: any) => JSX.Element;
+	props: any;
+	update: any;
+
+	constructor(emitter: any, key: string, node: any) {
+		super(key);
+
+		this.emitter = emitter;
+		this.key = key;
+		this.component = ({ addSocket }) => {
+			const title = capitalise(getKey(key));
+
+			return <div style={{
+				color: 'white',
+				display: 'flex',
+				flexDirection: 'row'
+			}}>
+				<h5 style={{ margin: '0', padding: '5px 0' }}>{title}</h5>
+				<span
+					title={`Add ${title}`}
+					onClick={addSocket}
+					ref={ref => {
+						ref && ref.addEventListener('pointerdown', e => e.stopPropagation());
+					}}
+				>
+					<MdAddBox style={{ margin: '6px 0 0 4px', color: 'lightblue' }} />
+				</span>
+
+
+				{/* <MdMinusBox title='Remove Socket' /> */}
+			</div>;
+		}
+
+		const initial = node.data[key] || [];
+
+		node.data[key] = initial;
+
+		this.props = {
+			addSocket: () => {
+				const manager = getKey(key);
+				const sockets = this.getData(key) as string[];
+				const nextNumber = sockets.reduce((acc: number, name: string) => {
+					const n = getNumber(name);
+
+					return n >= acc ? acc = n + 1 : acc;
+				}, 1);
+
+				sockets.push(`${manager}${keyConnector}${nextNumber}`)
+
+				this.putData(key, sockets);
+				this.emitter.trigger('process');
+
+				console.log(node.data);
+			}
+		};
+	}
+}
+
 export class TextContentControl extends Rete.Control {
 	emitter: any;
 	key: string;
@@ -16,16 +98,9 @@ export class TextContentControl extends Rete.Control {
 		this.key = key;
 		this.component = ({ value, onChange }) => {
 			return <><textarea
-				// type='text'
 				value={value}
 				placeholder='text content'
-				style={{
-					border: 'none',
-					boxSizing: 'border-box',
-					resize: 'vertical',
-					width: '100%',
-					minHeight: '50px',
-				}}
+				style={defaultTextField()}
 				ref={ref => {
 					ref && ref.addEventListener('pointerdown', e => e.stopPropagation());
 				}}
@@ -48,18 +123,9 @@ export class TextContentControl extends Rete.Control {
 	}
 
 	setValue(val: any) {
-		const element = this.getData('element');
-
-		if (element) {
-			(element as HTMLElement).textContent = val;
-			this.putData('element', element);
-		}
-
 		this.props.value = val;
 		this.putData(this.key, val);
 		this.update();
-
-		console.log(this.getData('element'));
 	}
 }
 
@@ -76,68 +142,33 @@ export class AttributeControl extends Rete.Control {
 
 		this.emitter = emitter;
 		this.key = key;
-		this.component = ({ value, onChange }) => {
-			const attributes = {
-				all: [
-					'id',
-					'alt', 'dir', 'for', 'low', 'max', 'min', 'rel', 'src',
-					'cite', 'code', 'cols', 'data', 'form', 'high', 'href', 'icon', 'kind', 'lang', 'list', 'loop', 'name', 'open', 'ping', 'rows', 'size', 'slot', 'span', 'step', 'type', 'wrap',
-					'align', 'async', 'class', 'defer', 'ismap', 'label', 'media', 'muted', 'scope', 'shape', 'sizes', 'start', 'style', 'title', 'value', 'width',
-					'accept', 'action', 'coords', 'height', 'hidden', 'method', 'nowrap', 'poster', 'scoped', 'srcdoc', 'srcset', 'target', 'usemap',
-					'charset', 'checked', 'colspan', 'compact', 'content', 'declare', 'default', 'dirname', 'enctype', 'headers', 'keytype', 'noshade', 'optimum', 'pattern', 'preload', 'rowspan', 'sandbox', 'srclang', 'summary',
-					'autoplay', 'buffered', 'codebase', 'controls', 'datetime', 'disabled', 'download', 'dropzone', 'hreflang', 'itemprop', 'language', 'manifest', 'multiple', 'readonly', 'required', 'reversed', 'seamless', 'selected', 'tabindex',
-					'accesskey', 'autofocus', 'challenge', 'draggable', 'integrity', 'maxlength', 'minlength', 'noresize', 'translate',
-					'formaction', 'http-equiv', 'novalidate', 'radiogroup', 'spellcheck',
-					'contextmenu', 'crossorigin', 'placeholder',
-					'autocomplete',
-					'accept-charset', 'autocapitalize',
-					'contenteditable',
+		this.component = ({ value, onChange }) => <>
+			<datalist id='attr-list'>
+				{attributes.all.map(attr => {
+					const data = attributes.boolean.includes(attr) ? attr : `${attr}=''`;
+					return (<option key={attr}>{data}</option>);
+				})}
+			</datalist>
+			<input
+				type='text'
+				list='attr-list'
+				value={value}
+				placeholder='name="value"'
+				style={defaultTextField()}
+				ref={ref => {
+					ref && ref.addEventListener('pointerdown', e => e.stopPropagation());
+				}}
+				onChange={e => onChange(e.target.value)}
+			/>
+		</>;
 
-					// window events
-					'onafterprint', 'onbeforeprint', 'onbeforeunload', 'onerror', 'onhashchange', 'onload', 'onmessage', 'onoffline', 'ononline', 'onpageshow', 'onpopstate', 'onresize', 'onstorage',
-					// form events
-					'onblur', 'onchange', 'oncontextmenu', 'onfocus', 'oninput', 'oninvalid', 'onreset', 'onsearch', 'onselect', 'onsubmit',
-					// keyboard events
-					'onkeydown', 'onkeypress', 'onkeyup',
-					// mouse events
-					'onclick', 'ondblclick', 'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup', 'onmousewheel', 'onwheel',
-					// drag events
-					'ondrag', 'ondragend', 'ondragenter', 'ondragleave', 'ondragover', 'ondragstart', 'ondrop', 'onscroll',
-					// clipboard events
-					'oncopy', 'oncut', 'onpaste',
-					// media events
-					'onabort', 'oncanplaythrough', 'oncuechange', 'ondurationchange', 'onemptied', 'onended', 'onerror', 'onloadeddata', 'onloadedmetadata', 'onloadstart', 'onpaush', 'onplay', 'onplaying', 'onprogress', 'onratechange', 'onseeked', 'onseeking', 'onstalled', 'onsuspend', 'ontimeupdate', 'onvalumechange', 'onwaiting',
-					// misc events
-					'onshow', 'ontoggle',
-
-					'role' /* jQuery mobile specific */,
-				],
-				boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
-			};
-
-			return <>
-				<datalist id='attr-list'>
-					{attributes.all.map(attr => (<option key={attr}>{attr}</option>))}
-				</datalist>
-				<input
-					type='text'
-					list='attr-list'
-					value={value}
-					ref={ref => {
-						ref && ref.addEventListener('pointerdown', e => e.stopPropagation());
-					}}
-					onChange={e => onChange(e.target.value)}
-				/>
-			</>;
-		};
-
-		const initial = node.data[key] || '';
+		const initial = node.data[key] || { name: '', quote: '', value: '' };
 
 		node.data[key] = initial;
 
 		this.props = {
 			readonly,
-			value: initial,
+			value: this.attrToString(initial),
 			onChange: (v: string) => {
 				this.setValue(v);
 				this.emitter.trigger('process');
@@ -145,14 +176,47 @@ export class AttributeControl extends Rete.Control {
 		};
 	}
 
+	parseAttr = (str: string) => {
+		const empty = { name: '', quote: '', value: '' };
+
+		str = str.trim();
+
+		if (str.length === 0) return empty;
+
+		const attr = str.match(attrFormat);
+
+		if (attr === null) return empty;
+
+		const [_, name, quote, value] = str.match(attrFormat) as any;
+		const escapedQuote = new RegExp(`\\\\${quote}`, 'g');
+		const valueNoQuote = value.replace(escapedQuote, '');
+
+		if (valueNoQuote.includes(quote)) {
+			console.warn('Incorrect quote usage.');
+			return empty;
+		}
+
+		return { name, quote, value };
+	}
+
+	attrToString = (attr: any) => {
+		const { name, quote, value } = attr;
+
+		if (name.length && quote.length && value.length) {
+			return `${name}=${quote}${value}${quote}`;
+		}
+
+		return '';
+	}
+
 	setValue(val: any) {
 		this.props.value = val;
-		this.putData(this.key, val);
+		this.putData(this.key, this.parseAttr(val));
 		this.update();
 	}
 }
 
-export class ElementControl extends Rete.Control {
+export class ElementPicker extends Rete.Control {
 	emitter: any;
 	key: string;
 	node: any;
@@ -165,69 +229,60 @@ export class ElementControl extends Rete.Control {
 
 		this.emitter = emitter;
 		this.key = key;
-		this.component = ({ value, onChange }: any) => {
-			const tags = {
-				all: [
-					// IMPORTANT: ascending tag name lengths
-					'p', 'b', 'u', 'i', 'a',
-					'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'em', 'hr', 'tt', 'dl', 'dt', 'dd', 'tr', 'th', 'td',
-					'col', 'div', 'img', 'nav', 'sup', 'sub', 'pre', 'wbr',
-					'area', 'base', 'code', 'html', 'meta', 'head', 'link', 'body', 'span', 'nobr', 'form',
-					'embed', 'label', 'input', 'param', 'small', 'style', 'table', 'title', 'frame', 'track',
-					'button', 'canvas', 'footer', 'header', 'keygen', 'iframe', 'strong', 'select', 'option', 'script', 'source', 'strike',
-					'command', 'article', 'section',
-					'noscript', 'textarea', 'frameset', 'noframes', 'progress',
-					'blockquote',
-				],
-				void: ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'],
-			};
+		this.component = ({ value, onChange }: any) => <>
+			<datalist id='tag-list'>
+				{tags.all.map(tag => (<option key={tag}>{`<${tag}>`}</option>))}
+			</datalist>
+			<input
+				type='text'
+				list='tag-list'
+				value={value}
+				placeholder='element name'
+				style={{
+					width: '100px',
+					minWidth: '100px',
+					padding: '4px 6px',
+					color: 'rgba(255, 255, 255, 0.8)',
+					fontFamily: 'Monospace',
+					textAlign: 'center',
+					outline: 'none',
+					border: 'none',
+					borderRadius: '4px',
+					backgroundColor: 'rgba(0, 0, 0, 0.4)'
+				}}
+				ref={ref => {
+					ref && ref.addEventListener('pointerdown', e => e.stopPropagation());
+				}}
+				onChange={e => onChange(e.target)}
+			/>
+		</>;
 
-			return <>
-				<datalist id='tag-list'>
-					{tags.all.map(tag => (<option key={tag}>{tag}</option>))}
-				</datalist>
-				<input
-					type='text'
-					list='tag-list'
-					value={value}
-					placeholder='element name'
-					style={{ border: 'none' }}
-					ref={ref => {
-						ref && ref.addEventListener('pointerdown', e => e.stopPropagation());
-					}}
-					onChange={e => onChange(e.target.value)}
-				/>
-			</>;
-		};
+		const fromData = node.data[key];
+		const initial = (fromData && `<${fromData}>`) || '';
 
-		const initial = node.data[key] || '';
-
-		node.data[key] = initial;
+		node.data[key] = this.stripBracket(initial);
 
 		this.props = {
 			readonly,
 			value: initial,
-			onChange: (v: string) => {
-				this.setValue(v);
+			onChange: (el: HTMLInputElement) => {
+				el.style.width = `${el.value.length * 8 + 12}px`;
+				this.setValue(el.value);
 				this.emitter.trigger('process');
 			}
 		};
 	}
 
 	setValue(val: string) {
-		if (val.trim().length) {
-			const element = document.createElement(val) as HTMLElement;
-			const content = this.getData('text') as string;
+		const tagName = this.stripBracket(val);
 
-			if (content && content.length) {
-				element.textContent = content.trim();
-			}
-
-			this.putData(this.key, element);
-		}
-
+		this.putData(this.key, tagName.trim().length ? tagName : '');
 		this.props.value = val;
 		this.update();
+	}
+
+	stripBracket(str: string) {
+		return str.replace(/[<>]/g, '');
 	}
 }
 
