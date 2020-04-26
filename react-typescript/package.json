@@ -8,14 +8,17 @@
 		"@testing-library/react": "^9.3.2",
 		"@testing-library/user-event": "^7.1.2",
 		"@types/jest": "^24.0.0",
-		"@types/lodash": "^4.14.149",
+		"@types/js-beautify": "^1.8.2",
 		"@types/node": "^12.0.0",
 		"cuid": "^2.1.8",
-		"lodash": "^4.17.15",
+		"js-beautify": "^1.11.0",
 		"moment": "^2.24.0",
+		"monaco-editor-webpack-plugin": "^1.9.0",
 		"react": "^16.13.1",
+		"react-contenteditable": "^3.3.4",
 		"react-dom": "^16.13.1",
 		"react-icons": "^3.9.0",
+		"react-monaco-editor": "^0.36.0",
 		"react-redux": "^7.2.0",
 		"react-scripts": "3.4.1",
 		"redux": "^4.0.5",
@@ -23,15 +26,16 @@
 		"rete-area-plugin": "^0.2.1",
 		"rete-connection-plugin": "^0.9.0",
 		"rete-context-menu-plugin": "^0.5.2",
+		"rete-module-plugin": "^0.4.1",
 		"rete-react-render-plugin": "^0.2.0",
 		"styled-components": "^5.1.0",
 		"typesafe-actions": "^5.1.0",
 		"typescript": "~3.7.2"
 	},
 	"scripts": {
-		"start": "react-scripts start",
-		"build": "react-scripts build",
-		"test": "react-scripts test",
+		"start": "react-app-rewired start",
+		"build": "react-app-rewired build",
+		"test": "react-app-rewired test",
 		"eject": "react-scripts eject"
 	},
 	"eslintConfig": {
@@ -53,6 +57,6 @@
 		"@types/react": "^16.9.32",
 		"@types/react-dom": "^16.9.6",
 		"@types/react-redux": "^7.1.7",
-		"@types/styled-components": "^5.0.1"
+		"react-app-rewired": "^2.1.5"
 	}
 }

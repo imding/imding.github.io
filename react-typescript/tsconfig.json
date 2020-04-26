@@ -24,7 +24,7 @@
 		// ]
 	},
 	"include": [
-		"src"
+		"src", "src/features/flow/components/GraphEditor.tsx", "ignore/MyNode.tsx", "ignore/MyControls.tsx", "ignore/MyComponents.ts"
 	],
 	// "exclude": [
 	// 	"../../node_modules",

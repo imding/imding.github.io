@@ -1,3 +1,8 @@
+import Rete from 'rete';
+
+export type Inputs = {
+	[key: string]: any[]
+};
 
 export enum KEY {
 	HEAD = 'HEAD',
@@ -7,19 +12,62 @@ export enum KEY {
 	CONTENT = 'CONTENT',
 	TEXT = 'TEXT',
 }
+export const keyDenoter = '::';
+export const addSuffix = (key: string) => (suffix?: number | 'MANAGER') => `${key}${suffix ? `${keyDenoter}${suffix}` : ''}`;
+export const removeSuffix = (str: string) => str.split(keyDenoter).shift()!;
+export const getSuffix = (str: string) => Number(str.split(keyDenoter).pop()!);
+export const makeKey = {
+	head: addSuffix(KEY.HEAD),
+	body: addSuffix(KEY.BODY),
+	elm: addSuffix(KEY.ELEMENT),
+	attr: addSuffix(KEY.ATTRIBUTE),
+	content: addSuffix(KEY.CONTENT),
+	text: addSuffix(KEY.TEXT),
 
-export const keyConnector = '::';
-export const makeKey = (key: string) => (suffix?: number | 'MANAGER') => `${key}${suffix ? `${keyConnector}${suffix}` : ''}`;
-export const getKey = (str: string) => str.split(keyConnector).shift()!;
-export const getNumber = (str: string) => Number(str.split(keyConnector).pop()!);
-export const key = {
-	head: makeKey(KEY.HEAD),
-	body: makeKey(KEY.BODY),
-	elm: makeKey(KEY.ELEMENT),
-	attr: makeKey(KEY.ATTRIBUTE),
-	content: makeKey(KEY.CONTENT),
-	text: makeKey(KEY.TEXT),
+	/**
+	 * @param type `KEY.ATTRIBUTE | KEY.CONTENT | string`
+	 * - Creates keys exclusively for the `input` object
+	 * - The `input` object is received via connections between nodes
+	 * @returns plural of parameter string cerverted to lowercase
+	 */
+	io: (type: KEY.ATTRIBUTE | KEY.CONTENT | string) => `${type.toLowerCase()}s`
 }
+
+export const numSocket = new Rete.Socket('Number');
+export const elmSocket = new Rete.Socket('Element');
+export const attrSocket = new Rete.Socket('Attribute');
+
+export const defaultNode = (opts?: any) => Object.assign({
+	border: 'none',
+	padding: '6px 0 6px 0'
+}, opts || {});
+
+export const defaultTextField = (opts?: any) => Object.assign({
+	display: 'inline-block',
+	whiteSpace: 'pre-wrap',
+	minWidth: '150px',
+	maxWidth: '250px',
+	minHeight: '24px',
+	padding: '4px 6px',
+	fontFamily: 'Monospace',
+	color: 'ghostwhite',
+	backgroundColor: 'rgba(0, 0, 0, 0.4)',
+	borderRadius: '3px',
+	cursor: 'text',
+	border: 'none',
+	outline: 'none',
+	resize: 'none'
+}, opts || {});
+
+export const color = {
+	add: 'lightskyblue',
+	remove: 'lightcoral',
+	sync: 'gold'
+};
+
+export const text = {
+	noConnection: 'No Connection'
+};
 
 export const attrFormat = /^([a-z-]+)\s*=\s*(['"])(.*)\2$/;
 
@@ -37,6 +85,7 @@ export const tags = {
 		'blockquote',
 	],
 	void: ['area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track', 'wbr'],
+	allowedInHead: ['title', 'base', 'link', 'style', 'meta', 'script', 'noscript', 'template']
 };
 export const attributes = {
 	all: [
@@ -73,17 +122,46 @@ export const attributes = {
 	],
 	boolean: ['checked', 'disabled', 'selected', 'readonly', 'multiple', 'ismap', 'defer', 'declare', 'noresize', 'nowrap', 'noshade', 'compact'],
 };
-export const defaultNodes = `{
+export const editorJson = `{
 	"id": "flow@0.1.0",
 	"nodes": {
 		"1": {
 			"id": 1,
 			"data": {
-				"html": {}
+				"HEAD::MANAGER": [
+					"HEAD::1",
+					"HEAD::2"
+				],
+				"BODY::MANAGER": [
+					"BODY::1",
+					"BODY::2",
+					"BODY::3"
+				],
+				"HEAD::1": "",
+				"HEAD::2": "",
+				"BODY::1": "",
+				"BODY::2": "",
+				"html": {},
+				"BODY::3": ""
 			},
 			"inputs": {
 				"HEAD::1": {
-					"connections": []
+					"connections": [
+						{
+							"node": 6,
+							"output": "ELEMENT",
+							"data": {}
+						}
+					]
+				},
+				"HEAD::2": {
+					"connections": [
+						{
+							"node": 7,
+							"output": "ELEMENT",
+							"data": {}
+						}
+					]
 				},
 				"BODY::1": {
 					"connections": [
@@ -97,7 +175,16 @@ export const defaultNodes = `{
 				"BODY::2": {
 					"connections": [
 						{
-							"node": 4,
+							"node": 8,
+							"output": "ELEMENT",
+							"data": {}
+						}
+					]
+				},
+				"BODY::3": {
+					"connections": [
+						{
+							"node": 9,
 							"output": "ELEMENT",
 							"data": {}
 						}
@@ -106,8 +193,8 @@ export const defaultNodes = `{
 			},
 			"outputs": {},
 			"position": [
-				285.91385927657996,
-				-305.38199336970774
+				294.0930464279578,
+				-341.7507329781607
 			],
 			"name": "HTML Output"
 		},
@@ -148,32 +235,86 @@ export const defaultNodes = `{
 				}
 			},
 			"position": [
-				-111.65555344238643,
-				-286.44505677465486
+				-98.94763055382651,
+				-126.70301828346801
 			],
 			"name": "Element"
 		},
-		"4": {
-			"id": 4,
+		"6": {
+			"id": 6,
 			"data": {
-				"ELEMENT": "h2",
-				"ATTRIBUTE::MANAGER": [
-					"ATTRIBUTE::1"
-				],
+				"ELEMENT": "style",
+				"ATTRIBUTE::MANAGER": [],
 				"CONTENT::MANAGER": [
 					"CONTENT::1"
 				],
-				"ATTRIBUTE::1": {
-					"name": "class",
-					"quote": "'",
-					"value": "subtitle"
-				},
-				"CONTENT::1": "hello world!"
+				"CONTENT::1": "body {\\n  background-color: khaki;\\n}"
 			},
 			"inputs": {
-				"ATTRIBUTE::1": {
+				"CONTENT::1": {
 					"connections": []
-				},
+				}
+			},
+			"outputs": {
+				"ELEMENT": {
+					"connections": [
+						{
+							"node": 1,
+							"input": "HEAD::1",
+							"data": {}
+						}
+					]
+				}
+			},
+			"position": [
+				-381.72978294808235,
+				-458.21656508024387
+			],
+			"name": "Element"
+		},
+		"7": {
+			"id": 7,
+			"data": {
+				"ELEMENT": "style",
+				"ATTRIBUTE::MANAGER": [],
+				"CONTENT::MANAGER": [
+					"CONTENT::1"
+				],
+				"CONTENT::1": "#title {\\n  text-align: center;\\n}"
+			},
+			"inputs": {
+				"CONTENT::1": {
+					"connections": []
+				}
+			},
+			"outputs": {
+				"ELEMENT": {
+					"connections": [
+						{
+							"node": 1,
+							"input": "HEAD::2",
+							"data": {}
+						}
+					]
+				}
+			},
+			"position": [
+				-380.8593293307887,
+				-206.19709297469933
+			],
+			"name": "Element"
+		},
+		"8": {
+			"id": 8,
+			"data": {
+				"ELEMENT": "h2",
+				"ATTRIBUTE::MANAGER": [],
+				"CONTENT::MANAGER": [
+					"CONTENT::1"
+				],
+				"CONTENT::1": "Create HTML pages without having to worry about syntax."
+			},
+			"inputs": {
 				"CONTENT::1": {
 					"connections": []
 				}
@@ -190,8 +331,44 @@ export const defaultNodes = `{
 				}
 			},
 			"position": [
-				-111.65900786086542,
-				-3.0748492968437233
+				-164.13953966187998,
+				96.58648906386625
+			],
+			"name": "Element"
+		},
+		"9": {
+			"id": 9,
+			"data": {
+				"ELEMENT": "img",
+				"ATTRIBUTE::MANAGER": [
+					"ATTRIBUTE::1"
+				],
+				"CONTENT::MANAGER": [],
+				"ATTRIBUTE::1": {
+					"name": "src",
+					"quote": "'",
+					"value": "https://app.bsd.education/resources/mole.png"
+				}
+			},
+			"inputs": {
+				"ATTRIBUTE::1": {
+					"connections": []
+				}
+			},
+			"outputs": {
+				"ELEMENT": {
+					"connections": [
+						{
+							"node": 1,
+							"input": "BODY::3",
+							"data": {}
+						}
+					]
+				}
+			},
+			"position": [
+				-158.30153551015871,
+				300.6932586512734
 			],
 			"name": "Element"
 		}

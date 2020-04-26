@@ -1,18 +1,49 @@
 * {
+	margin: 0;
 	box-sizing: border-box;
 }
 
 main {
-	display: flex;
 	height: calc(100vh - 60px);
 }
 
+/* #flow-view {
+	display: grid;
+	grid-template-columns: 7fr 3fr;
+	grid-template-rows: 100%;
+	border: 6px solid black;
+	height: 100%;
+}
+
 #graph-editor {
-	flex: 7;
+	border: 6px solid dimgray;
 }
 
 #graph-output {
-	flex: 3;
+	display: grid;
+	grid-template-rows: 7fr 3fr;
+	place-items: stretch;
+	border: 6px solid gray;
+}
+
+#output-viewer {
+	width: 100%;
+	border: 6px solid red;
+}
+
+#code-viewer {
+	border: 6px solid gold;
+} */
+
+.node div.output {
+	padding-left: 18px;
+}
+
+.node div.input {
+	padding-right: 8px;
+}
+
+div.socket {
 	border: none;
 }
 
@@ -21,7 +52,8 @@ main {
 }
 
 .App {
-	text-align: center;
+	overflow: hidden;
+	/* text-align: center; */
 }
 
 .App-header {

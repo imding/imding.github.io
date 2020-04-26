@@ -7,14 +7,15 @@ import ReactRenderPlugin from 'rete-react-render-plugin';
 import ConnectionPlugin from 'rete-connection-plugin';
 import ContextMenuPlugin from 'rete-context-menu-plugin';
 import AreaPlugin from 'rete-area-plugin';
+import ModulePlugin from 'rete-module-plugin';
 
 import cuid from 'cuid';
 import moment from 'moment';
 
-import * as componentList from './NodeComponents';
+import * as componentList from './ReteComponents';
 
 import { resolveGraphAction, updateOutputAction } from '../actions';
-import { defaultNodes } from '../constants';
+import { editorJson } from '../constants';
 
 
 type Props = {
@@ -48,7 +49,7 @@ const GraphEditor = (props: Props) => {
 			'noderemoved',
 			'connectioncreated',
 			'connectionremoved'
-		], async evt => {
+		], async () => {
 			await engine.abort();
 
 			const json = editor.toJSON();
@@ -68,23 +69,26 @@ const GraphEditor = (props: Props) => {
 					console.log(json);
 				}
 			});
-			// else {
-			// 	await engine.process(json);
-			// 	console.log('Add the "HTML Output" node to preview.'); 
-			// }
 		});
 
-		// editor.on('connectioncreate', data => {
-		// 	console.log(data);
-		// });
-
-		editor.fromJSON(JSON.parse(defaultNodes));
+		editor.fromJSON(JSON.parse(editorJson));
 		editor.view.resize();
 		editor.trigger("process");
 		AreaPlugin.zoomAt(editor, editor.nodes);
 	}
 
-	return <div id='graph-editor' ref={ref => ref && createEditor(ref)} />;
+	return <div
+		id='graph-editor'
+		style={{
+			width: 'calc(100% - 640px)',
+			height: '100%',
+			position: 'absolute',
+			left: '0',
+			top: '0'
+		}}
+	>
+		<div ref={ref => ref && createEditor(ref)} />
+	</div>
 };
 
 export default connect(null, mapDispatchToProps)(GraphEditor);
