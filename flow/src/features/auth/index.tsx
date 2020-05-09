@@ -6,14 +6,17 @@ import { MoonLoader } from 'react-spinners'
 import Avatars from '@dicebear/avatars';
 import sprites from '@dicebear/avatars-gridy-sprites';
 
+import { Trigger, ITrigger } from '../../components/TriggerMenu/Trigger';
 import Dropdown, { IDropdownTrigger, IDropdownOption } from '../../components/Dropdown';
 import defaultProfileImage from './user.svg';
+import { setLoginType } from './actions';
 
 export interface IFirebaseAuth {
 	uid: string,
 	displayName: string,
 	email: string,
 	photoURL: string,
+	isAnonymous: boolean,
 	isLoaded: boolean,
 	isEmpty: boolean
 }
@@ -25,12 +28,17 @@ const mapStateToProps = (state: any) => {
 		displayName: auth.displayName,
 		email: auth.email,
 		photoURL: auth.photoURL,
+		isAnonymous: auth.isAnonymous,
 		isLoaded: auth.isLoaded,
 		isEmpty: auth.isEmpty
 	};
 };
 
-const FirebaseAuth: React.FC<IFirebaseAuth> = props => {
+const mapDispatchToProps = (dispatch: any) => ({
+	setLoginType: (loginType: number) => dispatch(setLoginType(loginType))
+});
+
+const FirebaseAuth: React.FC<any> = props => {
 	const firebase = useFirebase();
 	const firestore = useFirestore();
 	const trigger: IDropdownTrigger = {
@@ -50,7 +58,7 @@ const FirebaseAuth: React.FC<IFirebaseAuth> = props => {
 				.then(credential => {
 					const { additionalUserInfo } = credential;
 					const { isNewUser, profile } = additionalUserInfo!;
-					const { given_name: givenName, family_name: familyName } = profile as any; 
+					const { given_name: givenName, family_name: familyName } = profile as any;
 
 					if (isNewUser) {
 						firestore.collection('user').doc(props.uid).set({
@@ -60,6 +68,9 @@ const FirebaseAuth: React.FC<IFirebaseAuth> = props => {
 							content: {}
 						});
 					}
+				})
+				.catch(err => {
+					console.warn(`Login unsuccessful: ${err.code}`)
 				})
 		}, {
 			icon: 'anonymous',
@@ -74,9 +85,18 @@ const FirebaseAuth: React.FC<IFirebaseAuth> = props => {
 
 	console.log('render: <FirebaseAuth>', props.isLoaded);
 
+	const unsubscribe = firebase.auth().onAuthStateChanged(data => {
+		const loginType = data === null ? 0 : data.isAnonymous ? 1 : 2;
+		props.setLoginType(loginType);
+		unsubscribe();
+	});
+
+	// const trigger = <Trigger size={30}  }} />;
+
 	return props.isLoaded
 		? <Dropdown trigger={trigger} header={header} options={options} />
+		// ? <div>hello</div>
 		: <MoonLoader size={trigger.size * 0.6} color='white' />
 };
 
-export default connect(mapStateToProps)(FirebaseAuth);
+export default connect(mapStateToProps, mapDispatchToProps)(FirebaseAuth);

@@ -37,7 +37,7 @@ const FlowView: React.FC<IFlowView> = props => {
 	return props.isLoaded
 		? <div css={cls.view}>
 			<GraphEditor />
-			<GraphOutput />
+			{/* <GraphOutput /> */}
 		</div>
 		: <div css={cls.loader}>
 			<FadeLoader color='dimgray' />

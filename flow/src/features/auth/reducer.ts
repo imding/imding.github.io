@@ -8,6 +8,11 @@ export const authReducer = (state = initialState, action: any) => {
 				...state,
 				showLogin: action.payload
 			};
+		case 'auth/SET_LOGIN_TYPE':
+			return {
+				...state,
+				loginType: action.payload
+			};
 		default: return state;
 	}
 };

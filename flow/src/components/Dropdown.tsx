@@ -1,5 +1,4 @@
 /** @jsx jsx */
-
 import { jsx, css } from '@emotion/core';
 import { connect } from 'react-redux';
 import { FcGoogle, FcExport, FcPrivacy } from 'react-icons/fc';
@@ -52,13 +51,17 @@ const Dropdown: React.FC<IDropdown> = props => {
 		triggerWrapper: css`
 			width: ${trigger.size}px;
 			height: ${trigger.size}px;
+			z-index: 98;
 			cursor: pointer;
 		`,
 		triggerImage: css`
 			width: 100%;
 			border-radius: 50%;
 		`,
-		menuWrapper: css`position: relative;`,
+		menuWrapper: css`
+			position: relative;
+			z-index: 99;
+		`,
 		menu: css`
 			border: 1px solid #aaa;
 			border-radius: 5px;
@@ -69,7 +72,6 @@ const Dropdown: React.FC<IDropdown> = props => {
 			overflow: hidden;
 			transform: translateX(calc(-50% + ${trigger.size / 2}px));
 			white-space: nowrap;
-			z-index: 99;
 		`,
 		header: css`
 			color: #444;
@@ -93,6 +95,19 @@ const Dropdown: React.FC<IDropdown> = props => {
 			margin: 0;
 			padding-left: 5px;
 			display: inline-block;
+		`,
+		backdropWrapper: css`
+			position: absolute;
+			top: 60px;
+			left: 0;
+			z-index: 97;
+		`,
+		backdrop: css`
+			width: 100vw;
+			height: calc(100vh - 60px);
+			background-color: black;
+			opacity: 0.8;
+			pointer-events: none;
 		`
 	};
 	const menu = (
@@ -124,6 +139,7 @@ const Dropdown: React.FC<IDropdown> = props => {
 			}
 		</div>
 		{props.showLogin && <div css={cls.menuWrapper}>{menu}</div>}
+		{props.showLogin && <div css={cls.backdropWrapper}><div css={cls.backdrop} /></div>}
 	</div>;
 };
 

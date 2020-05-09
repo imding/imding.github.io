@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { jsx, css } from '@emotion/core';
+import { jsx, css, SerializedStyles } from '@emotion/core';
 import React, { useState } from 'react';
 
 import { IconType } from 'react-icons/lib/cjs';
@@ -20,16 +20,39 @@ export interface IButton {
 	 * @see https://react-icons.github.io/
 	 */
 	toggle?: IconType,
+	enabled?: boolean,
+	// enabled?: {
+	// 	default: boolean,
+	// 	state: string,
+	// 	stateTransform?: (...arg: any) => boolean
+	// },
 	color?: string,
 	hoverColor?: string,
 	activeColor?: string,
-	handler?: (arg?: any) => any
+	handler?: (...arg: any) => any,
+	[key: string]: any
 }
 
-const Button: React.FC<IButton> = props => {
+const disabled = (styles: SerializedStyles) => css`
+	${styles};
+	color: lightsalmon;
+	opacity: 0.4;
+	cursor: help;
+	&:hover {
+		color: lightsalmon;
+		opacity: 0.5;
+	}
+	&:active {
+		color: indianred;
+		opacity: 0.6
+	}
+`;
+
+export const Button: React.FC<IButton> = props => {
 	const {
 		icon: Icon,
 		toggle: Toggle,
+		enabled,
 		title, size,
 		color,
 		hoverColor,
@@ -61,23 +84,34 @@ const Button: React.FC<IButton> = props => {
 	};
 
 	console.log('render: <Button>', Icon.name);
+	
+	if (!enabled) return <Icon css={disabled(iconCfg.css)}/>;
+
+	// if (enabled) {
+	// 	if (enabled.stateTransform) {
+	// 		if (!enabled.stateTransform(props[enabled.state])) {
+	// 			return <Icon css={disabled(iconCfg.css)}/>;
+	// 		}
+	// 	}
+	// 	else if (!props[enabled.state]) {
+	// 		return <Icon css={disabled(iconCfg.css)}/>;
+	// 	}
+	// }
 
 	if (!Toggle) return <Icon {...iconCfg} />;
 
-	const Binary: React.FC = props => {
+	const Binary = () => {
 		const [isToggled, toggleButton] = useState<boolean>(false);
 		const Toggled = isToggled ? Toggle : Icon;
 
-		iconCfg.onClick = () => {
+		iconCfg.onClick = () => {			
 			toggleButton(!isToggled);
 			console.log('isToggled:', isToggled);
 			handler && handler(isToggled);
 		};
-		
+
 		return <Toggled {...iconCfg} />;
 	};
 
 	return <Binary />;
 };
-
-export default Button;

@@ -10,9 +10,9 @@ export const setGraphKey = (graphKey: string) => ({
 	payload: graphKey
 });
 
-export const setGraphTitle = (title: string) => ({
+export const setGraphTitle = (graphTitle: string) => ({
 	type: 'flow/SET_GRAPH_TITLE',
-	payload: title
+	payload: graphTitle
 });
 
 export const resolveGraph = (graphJson: any) => ({
