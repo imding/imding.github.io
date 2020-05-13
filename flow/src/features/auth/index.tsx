@@ -6,7 +6,6 @@ import { MoonLoader } from 'react-spinners'
 import Avatars from '@dicebear/avatars';
 import sprites from '@dicebear/avatars-gridy-sprites';
 
-import { Trigger, ITrigger } from '../../components/TriggerMenu/Trigger';
 import Dropdown, { IDropdownTrigger, IDropdownOption } from '../../components/Dropdown';
 import defaultProfileImage from './user.svg';
 import { setLoginType } from './actions';
@@ -56,26 +55,26 @@ const FirebaseAuth: React.FC<any> = props => {
 			text: 'Google',
 			handler: () => firebase.login({ provider: 'google', type: 'popup' })
 				.then(credential => {
-					const { additionalUserInfo } = credential;
+					const { additionalUserInfo, user } = credential;
 					const { isNewUser, profile } = additionalUserInfo!;
-					const { given_name: givenName, family_name: familyName } = profile as any;
-
+					const { given_name: givenName, family_name: familyName, email } = profile as any;
+console.log(credential);
 					if (isNewUser) {
-						firestore.collection('user').doc(props.uid).set({
+						firestore.collection('user').doc(user!.uid).set({
 							givenName,
 							familyName,
-							email: props.email,
+							email,
 							content: {}
 						});
 					}
 				})
 				.catch(err => {
-					console.warn(`Login unsuccessful: ${err.code}`)
+					console.warn(`Login unsuccessful: ${err.code}`, err)
 				})
-		}, {
-			icon: 'anonymous',
-			text: 'Anonymous',
-			handler: () => firebase.auth().signInAnonymously()
+		// }, {
+		// 	icon: 'anonymous',
+		// 	text: 'Anonymous',
+		// 	handler: () => firebase.auth().signInAnonymously()
 		}]
 		: [{
 			icon: 'logout',
@@ -91,11 +90,8 @@ const FirebaseAuth: React.FC<any> = props => {
 		unsubscribe();
 	});
 
-	// const trigger = <Trigger size={30}  }} />;
-
 	return props.isLoaded
 		? <Dropdown trigger={trigger} header={header} options={options} />
-		// ? <div>hello</div>
 		: <MoonLoader size={trigger.size * 0.6} color='white' />
 };
 

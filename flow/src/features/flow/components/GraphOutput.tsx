@@ -1,99 +1,51 @@
+/** @jsx jsx */
+import { jsx, css } from '@emotion/core'
 import React from 'react';
-import { useSelector } from 'react-redux';
-import MonacoEditor from 'react-monaco-editor';
-import beautify from 'js-beautify';
+import { Panel, IPanel, Header } from '../../../components/Panel';
+import { IHeader, Title, Options } from '../../../components/Panel/Header';
+import { ITitle } from '../../../components/Panel/Header/Title';
 
-import { makeSource } from '../../../utils';
-
-const menuHeight = 30;
-const SectionHeader = (props: {
-	text: string,
-	vRef: 'top' | 'bottom'
-	vPos: number,
-}) => {
-	return <div
-		style={{
-			position: 'absolute',
-			[props.vRef]: `${props.vPos}px`,
-			width: '100%',
-			height: `${menuHeight}px`,
-			backgroundColor: '#1a1a1a'
-		}}
-	>
-		<h5 style={{
-			color: 'white',
-			paddingTop: '5px',
-			textAlign: 'center'
-		}}>{props.text}</h5>
-	</div>
+const panelCfg: IPanel = {
+	style: css`
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 645px;
+		height: 100%;
+		padding-left: 0;
+	`
 };
+const headerCfg: IHeader = {
+	name: '',
+	height: 38,
+};
+const titleCfg: ITitle = {
+	text: {
+		default: 'Output Viewer'
+	}
+};
+const contentStyle = css`
+	height: calc(100% - 38px);
+	border: solid silver;
+	border-width: 0 1px 1px 1px;
+	border-radius: 0 0 6px 6px;
+	overflow: hidden;
+`;
 
-const GraphOutput = () => {
-	const { htmlString } = useSelector((state: any) => state.flowReducer);
-	const width = 640;
-	const codeViewerHeight = width / 16 * 9;
-	const tabSize = 2;
+const GraphOutput: React.FC = props => {
+	return (
+		<Panel {...panelCfg}>
+			<Header {...headerCfg}>
+				<Title {...titleCfg} />
+				<Options>
+					
+				</Options>
+			</Header>
+			<div css={contentStyle}>
 
-	console.log('render: <GraphOutput>')
-
-	return <div
-		id='graph-output'
-		style={{
-			width: `${width}px`,
-			height: '100%',
-			position: 'absolute',
-			right: '0',
-			top: '0'
-		}}
-	>
-		<SectionHeader
-			text='Output Viewer'
-			vRef='top'
-			vPos={0}
-		/>
-
-		<iframe
-			id='output-viewer'
-			title='HTML Output'
-			style={{
-				position: 'absolute',
-				top: `${menuHeight}px`,
-				width: '100%',
-				height: `calc(100% - ${codeViewerHeight}px - ${menuHeight * 2}px)`,
-				border: 'none'
-			}}
-			srcDoc={htmlString || makeSource('', '<h1>Flow</h1>')}
-		/>
-
-		<SectionHeader
-			text='Code Viewer'
-			vRef='bottom'
-			vPos={codeViewerHeight}
-		/>
-
-		<div style={{
-			position: 'absolute',
-			bottom: '0'
-		}}>
-			<MonacoEditor
-				width={width}
-				height={codeViewerHeight}
-				theme='vs-dark'
-				value={beautify.html(htmlString, { 'indent_size': tabSize, 'inline': [] })}
-				language='html'
-				options={{
-					readOnly: true,
-					wordWrap: 'on',
-					scrollBeyondLastLine: false,
-					scrollBeyondLastColumn: 10,
-				}}
-				editorDidMount={editor => {
-					const model = editor.getModel();
-					if (model) model.updateOptions({ tabSize });
-				}}
-			/>
-		</div>
-	</div>;
+			</div>
+		</Panel>
+	);
 };
 
 export default GraphOutput;

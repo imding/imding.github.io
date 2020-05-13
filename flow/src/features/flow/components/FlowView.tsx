@@ -1,23 +1,13 @@
 /** @jsx jsx */
 
 import React from 'react';
-import { connect } from 'react-redux';
 import { jsx, css } from '@emotion/core';
-import { FadeLoader } from 'react-spinners'
 
 import GraphEditor from './GraphEditor';
-import GraphOutput from './GraphOutput';
+import GraphOutput from './Output';
 
-export interface IFlowView {
-	isLoaded: boolean
-}
 
-const mapStateToProps = (state: any) => {
-	const { auth } = state.firebaseReducer;
-	return { isLoaded: auth.isLoaded };
-};
-
-const FlowView: React.FC<IFlowView> = props => {
+const FlowView: React.FC = () => {
 	const cls = {
 		view: css`
 			width: 100%;
@@ -32,17 +22,15 @@ const FlowView: React.FC<IFlowView> = props => {
 		`,
 	};
 
-	console.log('render: <FlowView>', props.isLoaded);
+	console.log('render: <FlowView>');
 
-	return props.isLoaded
-		? <div css={cls.view}>
+	return (
+		<div css={cls.view}>
 			<GraphEditor />
-			{/* <GraphOutput /> */}
+			<GraphOutput /> 
 		</div>
-		: <div css={cls.loader}>
-			<FadeLoader color='dimgray' />
-		</div>;
+	);
 };
 
-export default connect(mapStateToProps)(FlowView);
+export default FlowView;
 

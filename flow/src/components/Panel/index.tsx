@@ -13,15 +13,16 @@ export interface IPanel {
 	css?: never
 };
 
+const panelStyle = css`
+	width: calc(100% - 10px);
+	height: calc(100% - 10px);
+	position: relative;
+	left: 5px;
+	top: 5px;
+	overflow: hidden;
+`;
+
 export const Panel: React.FC<IPanel> = props => {
-	const panelStyle = css`
-		width: calc(100% - 10px);
-		height: calc(100% - 10px);
-		position: relative;
-		left: 5px;
-		top: 5px;
-		overflow: hidden;
-	`;
 
 	console.log('render: <Panel>')
 

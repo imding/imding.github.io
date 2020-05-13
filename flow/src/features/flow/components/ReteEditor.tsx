@@ -1,7 +1,9 @@
+/** @jsx jsx */
+import { jsx, css } from '@emotion/core'
 import React from 'react';
 import { connect } from 'react-redux';
-import Rete from 'rete';
 
+import Rete from 'rete';
 import { NodeData } from 'rete/types/core/data';
 import ReactRenderPlugin from 'rete-react-render-plugin';
 import ConnectionPlugin from 'rete-connection-plugin';
@@ -11,27 +13,36 @@ import AreaPlugin from 'rete-area-plugin';
 
 import * as componentList from './ReteComponents';
 
-// import { updateOutput } from '../actions';
 import { defaultGraphJson } from '../constants';
-
-// export interface IReteEditor {
-// 	// sync: (json: any) => any,
-// 	// resolveGraph: (arg: any) => any,
-// 	updateOutput: (arg: any) => any
-// };
-
-// const mapDispatchToProps = (dispatch: any) => ({
-// 	// resolveGraph: (graphJson: any) => dispatch(resolveGraph(graphJson)),
-// 	updateOutput: (htmlString: any) => dispatch(updateOutput(htmlString))
-// });
+import { PulseLoader } from 'react-spinners';
+import { IFetchGraph } from '../actions';
 
 interface IReteEditor {
 	useJson?: (...arg: any) => any,
-	useHtml?: (...arg: any) => any
+	useHtml?: (...arg: any) => any,
+	fetchState?: IFetchGraph,
+	graphKey?: any,
+	// graphBrowser?: any,
 }
 
+const loaderWrapper = css`
+	width: 100%;
+	height: 100%;
+	display: grid;
+	place-items: center;
+`;
+const loaderStyle = css`
+	background-color: rgba(0, 0, 0, 0.6);
+	padding: 14px 15px 8px;
+    border-radius: 20px;
+`;
+const mapStateToProps = (state: any) => ({
+	// graphBrowser: state.flowReducer.graphBrowser,
+	fetchState: state.flowReducer.fetchState,
+});
 const ReteEditor: React.FC<IReteEditor> = props => {
-	const createEditor = (container: HTMLDivElement) => {
+	const { isFetching, jsonResponse } = props.fetchState || {};
+	const createEditor = (container: HTMLDivElement, json: any) => {
 		const editor = new Rete.NodeEditor('flow@0.1.0', container);
 		const engine = new Rete.Engine('flow@0.1.0');
 		const components = Object.values(componentList).map(component => new component());
@@ -59,24 +70,29 @@ const ReteEditor: React.FC<IReteEditor> = props => {
 
 			await engine.process(json).then(res => {
 				if (res === 'success' && outputNode) {
-					//	stringify and parse json to strip field values incompatible with firestore
-					// props.resolveGraph(JSON.parse(JSON.stringify(json)));
-					// props.sync && props.sync(JSON.parse(JSON.stringify(json)));
 					props.useHtml && props.useHtml((outputNode.data.html as HTMLElement).outerHTML);
+					//	stringify and parse json to strip field values incompatible with firestore
 					props.useJson && props.useJson(JSON.parse(JSON.stringify(json)));
-					
+
 				}
 			});
 		});
 
-		editor.fromJSON(defaultGraphJson);
+		editor.fromJSON(isFetching === false ? json : defaultGraphJson);
 		editor.trigger("process");
 		editor.view.resize();
 		AreaPlugin.zoomAt(editor);
 	};
 
-	return <div ref={ref => ref && createEditor(ref)} />;
+	console.log('render: <ReteEditor>');
+
+	return isFetching
+		? <div css={loaderWrapper}>
+			<div css={loaderStyle}>
+				<PulseLoader color='gold' margin={10} />
+			</div>
+		</div>
+		: <div ref={ref => ref && createEditor(ref, jsonResponse)} />;
 };
 
-// export default connect(null, mapDispatchToProps)(React.memo(ReteEditor));
-export default ReteEditor;
+export default connect(mapStateToProps)(ReteEditor);

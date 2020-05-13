@@ -2,7 +2,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { MdFolder, MdFolderOpen, MdSave } from 'react-icons/md';
+import { MdSave } from 'react-icons/md';
 import { Button, IButton } from '../../../../components/Panel/Header/Button';
 
 

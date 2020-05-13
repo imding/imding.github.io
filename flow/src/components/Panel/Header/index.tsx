@@ -21,11 +21,12 @@ export const Header: React.FC<IHeader> = props => {
 			grid-auto-flow: column;
 			place-items: center;
 			justify-content: space-between;
-			background-color: #444;
+			background-color: #333;
 			color: ghostwhite;
+			white-space: nowrap;
 		`,
 		name: css`
-			opacity: 0.6;
+			opacity: 0.4;
 			cursor: default;
 			user-select: none;
 		`
