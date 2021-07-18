@@ -12,7 +12,7 @@
   "author": "S. Ding",
   "license": "MIT",
   "dependencies": {
-    "googleapis": "^38.0.0"
+    "googleapis": "^39.1.0"
   },
   "devDependencies": {
     "electron": "^4.0.8",
