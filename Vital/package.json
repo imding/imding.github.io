@@ -15,7 +15,7 @@
     "googleapis": "^38.0.0"
   },
   "devDependencies": {
-    "electron": "^4.0.8",
+    "electron": "^13.6.6",
     "electron-packager": "^13.1.0"
   }
 }
